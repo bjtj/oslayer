@@ -1,2 +1,2 @@
 # oslayer
-cross-platform ls layer
+cross-platform OS layer
