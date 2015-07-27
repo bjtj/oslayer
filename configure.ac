@@ -35,5 +35,6 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([gettimeofday memset mkdir select socket])
 
 AC_CONFIG_FILES([Makefile
-				 liboslayer/Makefile])
+				 liboslayer/Makefile
+				 examples/Makefile])
 AC_OUTPUT
