@@ -45,7 +45,10 @@
 #	define USE_POSIX_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
-#	define USE_PRCTL
+
+#	if !defined(__CYGWIN__)
+#		define USE_PRCTL
+#	endif
 
 #	include <unistd.h>
 #	include <sys/time.h>
