@@ -21,6 +21,11 @@ build() {
 	$BASE/configure --prefix "$DIR_WORLD" && make && make install
 }
 
+install() {
+	cd $DIR_BUILD
+	$BASE/configure && make && sudo make install
+}
+
 case $OPT in
 	prepare)
 		prepare
@@ -34,6 +39,9 @@ case $OPT in
 		;;
 	make)
 		cd $DIR_BUILD && make && make install
+		;;
+	install)
+		install
 		;;
 	dist)
 		cd $DIR_BUILD && make dist
