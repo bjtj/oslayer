@@ -10,13 +10,13 @@ if [ -n "$1" ]; then
 	OPT=$1
 fi
 
-prepare() {
+reconf() {
 	autoreconf -i
-	mkdir -p $DIR_BUILD
-	mkdir -p $DIR_WORLD
 }
 
 build() {
+	mkdir -p $DIR_BUILD
+	mkdir -p $DIR_WORLD
 	cd $DIR_BUILD
 	$BASE/configure --prefix "$DIR_WORLD" && make && make install
 }
@@ -27,8 +27,8 @@ install() {
 }
 
 case $OPT in
-	prepare)
-		prepare
+	reconf)
+		reconf
 		;;
 	build)
 		build
