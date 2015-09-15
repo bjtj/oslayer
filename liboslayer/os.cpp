@@ -2048,6 +2048,8 @@ namespace OS {
 			size_t f = filename.find_first_not_of('/');
 			if (f != string::npos) {
 				filename = filename.substr(f);
+			} else {
+				filename = "";
 			}
 		}
 
