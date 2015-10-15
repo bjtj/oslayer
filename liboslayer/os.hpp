@@ -208,6 +208,11 @@ namespace OS {
 	};
 
 	/**
+	 * @brief no meaningful version string to distinguish
+	 */
+	std::string nomeaningfulVesion();
+
+	/**
 	 * @brief milli seconds sleep
 	 */
 	void idle(unsigned long timeout);

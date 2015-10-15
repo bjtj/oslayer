@@ -9,6 +9,10 @@ namespace OS {
 
 	using namespace std;
 
+	string nomeaningfulVesion() {
+		return "0.1";
+	}
+
 
 	/**
 	 * @brief milliseconds sleep

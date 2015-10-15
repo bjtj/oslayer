@@ -42,8 +42,10 @@ public:
 		socket->setBroadcast();
 		socket->joinGroup("239.255.255.250");
 
+		socket->registerSelector(selector);
+
 		while (!interrupted()) {
-			if (selector.select(1000)) {
+			if (selector.select(1000) > 0) {
 				char buffer[1024] = {0,};
 				int len = socket->recv(buffer, sizeof(buffer));
 				if (len > 0) {
