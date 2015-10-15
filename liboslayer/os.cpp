@@ -567,7 +567,7 @@ namespace OS {
 			char portStr[10] = {0,};
 			if (startup() != 0) {
 				// error
-				return;
+				throw -1;
 			}
 
 			this->socket(INVALID_SOCKET);
@@ -583,7 +583,7 @@ namespace OS {
 				// error
 				cleanup();
 				targetAddr = NULL;
-				return;
+				throw -1;
 			}
 		}
 
