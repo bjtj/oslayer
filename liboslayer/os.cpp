@@ -1,5 +1,7 @@
 #include "os.hpp"
 
+#define CHECK_NOT_IMPL_THROW(x) if(!x){throw -1;}
+
 /**
  * @namespace OS
  */
@@ -1449,58 +1451,60 @@ namespace OS {
 		}
 	}
 	void DatagramSocket::setReuseAddr() {
-		if (socketImpl) {
-			socketImpl->setReuseAddr();
-		}
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->setReuseAddr();
 	}
 	void DatagramSocket::setBroadcast() {
-		if (socketImpl) {
-			socketImpl->setBroadcast();
-		}
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->setBroadcast();
 	}
 	int DatagramSocket::bind() {
-		return socketImpl ? socketImpl->bind() : -1;
-	}
-	int DatagramSocket::joinGroup(const char * host) {
-		return socketImpl ? socketImpl->joinGroup(host) : -1;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->bind();
 	}
 	int DatagramSocket::joinGroup(const std::string & group) {
 		return joinGroup(group.c_str());
 	}
+	int DatagramSocket::joinGroup(const char * host) {
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->joinGroup(host);
+	}
 	int DatagramSocket::connect() {
-		return socketImpl ? socketImpl->connect() : -1;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->connect();
 	}
 
 	void DatagramSocket::registerSelector(Selector & selector) {
-		if (socketImpl) {
-			socketImpl->registerSelector(selector);
-		}
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->registerSelector(selector);
 	}
 	bool DatagramSocket::compareFd(int fd) {
-		return socketImpl ? socketImpl->compareFd(fd) : false;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->compareFd(fd);
 	}
 	int DatagramSocket::getFd() {
-		return socketImpl ? socketImpl->getFd() : -1;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->getFd();
 	}
 	int DatagramSocket::recv(char * buffer, size_t max) {
-		return socketImpl ? socketImpl->recv(buffer, max) : -1;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->recv(buffer, max);
 	}
 	
 	int DatagramSocket::send(const char * host, int port,
 							 char * buffer, size_t length) {
-		return socketImpl ? socketImpl->send(host, port, buffer, length) : -1;
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->send(host, port, buffer, length);
 	}
 
 	void DatagramSocket::shutdown(/* type */) {
-		if (socketImpl) {
-			socketImpl->shutdown();
-		}
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->shutdown();
 	}
 	
 	void DatagramSocket::close() {
-		if (socketImpl) {
-			socketImpl->close();
-		}
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->close();
 	}
 
 	char * DatagramSocket::getHost() {
