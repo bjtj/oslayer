@@ -1272,6 +1272,21 @@ namespace OS {
 		virtual ~Winsock2DatagramSocket() {
 			cleanup();
 		}
+		virtual void setReuseAddr() {
+			int status;
+			int on = 1;
+			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
+								  (const char*)&on, sizeof(on));
+			if (status != 0) {
+				// error
+				::closesocket(socket());
+			}
+		}
+		virtual void setBroadcast() {
+			int broadcast = 1;
+			setsockopt(socket(), SOL_SOCKET, SO_BROADCAST,
+					   (char *)&broadcast, sizeof(broadcast));
+		}
 		virtual int bind() {
 			
 			struct sockaddr_in server_addr;
@@ -1286,6 +1301,22 @@ namespace OS {
 			return ::bind(this->socket(),
 						  (struct sockaddr*)&server_addr,
 						  sizeof(server_addr));
+		}
+		virtual int joinGroup(const char * group) {
+			
+			struct ip_mreq mreq;
+
+			SOCK_HANDLE sock = socket();
+			int ret = 0;
+
+			if (bind() < 0) {
+				throw -1;
+			}
+
+			mreq.imr_multiaddr.s_addr = ::inet_addr(group);
+			mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+			ret = ::setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&mreq, sizeof(mreq));
+			return ret;
 		}
 		virtual int connect() {
 
