@@ -46,3 +46,5 @@ Makefile.in
 
 /build
 /world
+
+config.h.in~
