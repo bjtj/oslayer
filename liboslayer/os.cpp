@@ -527,7 +527,7 @@ namespace OS {
 		virtual int recv(char * buffer, size_t max) {
 			return ::read(socket(), buffer, max);
 		}
-		virtual int send(char * buffer, size_t length) {
+		virtual int send(const char * buffer, size_t length) {
 			return ::write(socket(), buffer, length);
 		}
 		virtual void shutdown(/* type */) {}
@@ -654,7 +654,7 @@ namespace OS {
 			return ::recv(this->socket(), buffer, max, 0);
 		}
 
-		virtual int send(char * buffer, size_t length) {
+		virtual int send(const char * buffer, size_t length) {
 			if (this->socket() == INVALID_SOCKET) {
 				return -1;
 			}
@@ -743,7 +743,7 @@ namespace OS {
 		return socketImpl ? socketImpl->recv(buffer, max) : -1;
 	}
 	
-	int Socket::send(char * buffer, size_t length) {
+	int Socket::send(const char * buffer, size_t length) {
 		return socketImpl ? socketImpl->send(buffer, length) : -1;
 	}
 

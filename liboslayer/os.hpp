@@ -344,7 +344,7 @@ namespace OS {
 		virtual int getFd();
 
 		virtual int recv(char * buffer, size_t max);
-		virtual int send(char * buffer, size_t length);
+		virtual int send(const char * buffer, size_t length);
 
 		virtual void shutdown(/* type */);
 		virtual void close();
