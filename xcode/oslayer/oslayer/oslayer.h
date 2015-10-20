@@ -15,3 +15,23 @@
 + (unsigned long)tick_milli;
 
 @end
+
+@interface OSThread : NSObject
+
+- (void)run;
+- (void)start;
+- (bool)interrupted;
+- (void)interrupt;
+- (void)join;
+
+@end
+
+@interface OSSocket : NSObject
+
+- (id)initWithAddress:(NSString*)hostname :(int)port;
+- (void)connect;
+- (NSInteger)send:(char*)buffer :(int)max;
+- (NSInteger)recv:(char*)buffer :(int)max;
+- (void)close;
+
+@end

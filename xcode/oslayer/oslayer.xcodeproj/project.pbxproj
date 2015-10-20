@@ -11,6 +11,8 @@
 		E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FE831BD5312600E1C8C7 /* oslayer.mm */; };
 		E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8A1BD5315300E1C8C7 /* os.cpp */; settings = {ASSET_TAGS = (); }; };
 		E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8C1BD5315300E1C8C7 /* Text.cpp */; settings = {ASSET_TAGS = (); }; };
+		E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA71BD687E100E1C8C7 /* OSThread.mm */; settings = {ASSET_TAGS = (); }; };
+		E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA91BD692C700E1C8C7 /* OSSocket.mm */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -30,10 +32,12 @@
 		E882FE7E1BD5312600E1C8C7 /* liboslayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liboslayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E882FE811BD5312600E1C8C7 /* oslayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = oslayer.h; sourceTree = "<group>"; };
 		E882FE831BD5312600E1C8C7 /* oslayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = oslayer.mm; sourceTree = "<group>"; };
-		E882FE8A1BD5315300E1C8C7 /* os.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = os.cpp; path = ../../../liboslayer/os.cpp; sourceTree = "<group>"; };
-		E882FE8B1BD5315300E1C8C7 /* os.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = os.hpp; path = ../../../liboslayer/os.hpp; sourceTree = "<group>"; };
-		E882FE8C1BD5315300E1C8C7 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = ../../../liboslayer/Text.cpp; sourceTree = "<group>"; };
-		E882FE8D1BD5315300E1C8C7 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = ../../../liboslayer/Text.hpp; sourceTree = "<group>"; };
+		E882FE8A1BD5315300E1C8C7 /* os.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = os.cpp; path = ../../liboslayer/os.cpp; sourceTree = "<group>"; };
+		E882FE8B1BD5315300E1C8C7 /* os.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = os.hpp; path = ../../liboslayer/os.hpp; sourceTree = "<group>"; };
+		E882FE8C1BD5315300E1C8C7 /* Text.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Text.cpp; path = ../../liboslayer/Text.cpp; sourceTree = "<group>"; };
+		E882FE8D1BD5315300E1C8C7 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = ../../liboslayer/Text.hpp; sourceTree = "<group>"; };
+		E882FEA71BD687E100E1C8C7 /* OSThread.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSThread.mm; sourceTree = "<group>"; };
+		E882FEA91BD692C700E1C8C7 /* OSSocket.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSSocket.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,6 +54,7 @@
 		E882FE751BD5312600E1C8C7 = {
 			isa = PBXGroup;
 			children = (
+				E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */,
 				E882FE801BD5312600E1C8C7 /* oslayer */,
 				E882FE7F1BD5312600E1C8C7 /* Products */,
 			);
@@ -66,14 +71,23 @@
 		E882FE801BD5312600E1C8C7 /* oslayer */ = {
 			isa = PBXGroup;
 			children = (
+				E882FE811BD5312600E1C8C7 /* oslayer.h */,
+				E882FE831BD5312600E1C8C7 /* oslayer.mm */,
+				E882FEA71BD687E100E1C8C7 /* OSThread.mm */,
+				E882FEA91BD692C700E1C8C7 /* OSSocket.mm */,
+			);
+			path = oslayer;
+			sourceTree = "<group>";
+		};
+		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
+			isa = PBXGroup;
+			children = (
 				E882FE8A1BD5315300E1C8C7 /* os.cpp */,
 				E882FE8B1BD5315300E1C8C7 /* os.hpp */,
 				E882FE8C1BD5315300E1C8C7 /* Text.cpp */,
 				E882FE8D1BD5315300E1C8C7 /* Text.hpp */,
-				E882FE811BD5312600E1C8C7 /* oslayer.h */,
-				E882FE831BD5312600E1C8C7 /* oslayer.mm */,
 			);
-			path = oslayer;
+			name = "liboslayer_c++";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -132,9 +146,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
+				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,6 +272,7 @@
 				E882FE891BD5312600E1C8C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -7,7 +7,6 @@
 //
 
 #import "oslayer.h"
-
 #import "os.hpp"
 
 @implementation oslayer
