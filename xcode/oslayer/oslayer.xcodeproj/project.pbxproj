@@ -13,6 +13,12 @@
 		E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8C1BD5315300E1C8C7 /* Text.cpp */; settings = {ASSET_TAGS = (); }; };
 		E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA71BD687E100E1C8C7 /* OSThread.mm */; settings = {ASSET_TAGS = (); }; };
 		E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA91BD692C700E1C8C7 /* OSSocket.mm */; settings = {ASSET_TAGS = (); }; };
+		E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA91BD692C700E1C8C7 /* OSSocket.mm */; settings = {ASSET_TAGS = (); }; };
+		E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8C1BD5315300E1C8C7 /* Text.cpp */; settings = {ASSET_TAGS = (); }; };
+		E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FE831BD5312600E1C8C7 /* oslayer.mm */; };
+		E8FAB2161BD7C36200E89DC5 /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8A1BD5315300E1C8C7 /* os.cpp */; settings = {ASSET_TAGS = (); }; };
+		E8FAB2171BD7C36200E89DC5 /* OSThread.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA71BD687E100E1C8C7 /* OSThread.mm */; settings = {ASSET_TAGS = (); }; };
+		E8FAB21A1BD7C36200E89DC5 /* oslayer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E882FE811BD5312600E1C8C7 /* oslayer.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,6 +29,16 @@
 			dstSubfolderSpec = 16;
 			files = (
 				E882FE821BD5312600E1C8C7 /* oslayer.h in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8FAB2191BD7C36200E89DC5 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+				E8FAB21A1BD7C36200E89DC5 /* oslayer.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,10 +54,18 @@
 		E882FE8D1BD5315300E1C8C7 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = ../../liboslayer/Text.hpp; sourceTree = "<group>"; };
 		E882FEA71BD687E100E1C8C7 /* OSThread.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSThread.mm; sourceTree = "<group>"; };
 		E882FEA91BD692C700E1C8C7 /* OSSocket.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSSocket.mm; sourceTree = "<group>"; };
+		E8FAB21E1BD7C36200E89DC5 /* liboslayer-cocoa.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "liboslayer-cocoa.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		E882FE7B1BD5312600E1C8C7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8FAB2181BD7C36200E89DC5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -64,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				E882FE7E1BD5312600E1C8C7 /* liboslayer.a */,
+				E8FAB21E1BD7C36200E89DC5 /* liboslayer-cocoa.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,6 +135,23 @@
 			productReference = E882FE7E1BD5312600E1C8C7 /* liboslayer.a */;
 			productType = "com.apple.product-type.library.static";
 		};
+		E8FAB2111BD7C36200E89DC5 /* oslayer-cocoa */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E8FAB21B1BD7C36200E89DC5 /* Build configuration list for PBXNativeTarget "oslayer-cocoa" */;
+			buildPhases = (
+				E8FAB2121BD7C36200E89DC5 /* Sources */,
+				E8FAB2181BD7C36200E89DC5 /* Frameworks */,
+				E8FAB2191BD7C36200E89DC5 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "oslayer-cocoa";
+			productName = oslayer;
+			productReference = E8FAB21E1BD7C36200E89DC5 /* liboslayer-cocoa.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -137,6 +179,7 @@
 			projectRoot = "";
 			targets = (
 				E882FE7D1BD5312600E1C8C7 /* oslayer */,
+				E8FAB2111BD7C36200E89DC5 /* oslayer-cocoa */,
 			);
 		};
 /* End PBXProject section */
@@ -151,6 +194,18 @@
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
 				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E8FAB2121BD7C36200E89DC5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
+				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,
+				E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */,
+				E8FAB2161BD7C36200E89DC5 /* os.cpp in Sources */,
+				E8FAB2171BD7C36200E89DC5 /* OSThread.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -253,6 +308,26 @@
 			};
 			name = Release;
 		};
+		E8FAB21C1BD7C36200E89DC5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		E8FAB21D1BD7C36200E89DC5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -270,6 +345,15 @@
 			buildConfigurations = (
 				E882FE881BD5312600E1C8C7 /* Debug */,
 				E882FE891BD5312600E1C8C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E8FAB21B1BD7C36200E89DC5 /* Build configuration list for PBXNativeTarget "oslayer-cocoa" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E8FAB21C1BD7C36200E89DC5 /* Debug */,
+				E8FAB21D1BD7C36200E89DC5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
