@@ -52,7 +52,7 @@ namespace UTIL {
 	/**
 	 * @brief match f can contains * for any 1..n, ? for any 1
 	 */
-	bool Text::match(std::string f, std::string s) {
+	bool Text::match(string f, string s) {
 
 		if (f.empty() && !s.empty()) {
 			return false;
@@ -275,8 +275,8 @@ namespace UTIL {
 	/**
 	 * @brief to int
 	 */
-	int Text::toInt(std::string str) {
-		return atoi(str.c_str());
+	int Text::toInt(string str, int radix) {
+		return (int)strtol(str.c_str(), NULL, radix);
 	}
 
 	/**
@@ -292,7 +292,7 @@ namespace UTIL {
 	/**
 	 * @brief starts with
 	 */
-	bool Text::startsWith(std::string a, std::string b, bool ignorecase) {
+	bool Text::startsWith(string a, string b, bool ignorecase) {
 		
 		if (b.empty()) {
 			return false;
@@ -313,7 +313,7 @@ namespace UTIL {
 	/**
 	 * @brief ends with
 	 */
-	bool Text::endsWith(std::string a, std::string b, bool ignorecase) {
+	bool Text::endsWith(string a, string b, bool ignorecase) {
 
 		if (b.empty()) {
 			return false;
@@ -335,14 +335,14 @@ namespace UTIL {
 	/**
 	 * @brief compare ignore case
 	 */
-	int Text::compareIgnoreCase(std::string a, std::string b) {
+	int Text::compareIgnoreCase(string a, string b) {
 		return strcasecmp(a.c_str(), b.c_str());
 	}
 
 	/**
 	 * @brief equals ignore case
 	 */
-	bool Text::equalsIgnoreCase(std::string a, std::string b) {
+	bool Text::equalsIgnoreCase(string a, string b) {
 
 		if (a.length() != b.length()) {
 			return false;

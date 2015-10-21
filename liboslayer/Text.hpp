@@ -50,7 +50,7 @@ namespace UTIL {
 		static std::string toMapString(std::vector<std::pair<std::string, std::string> > & m,
 									   std::string item_sep = ": ",
 									   std::string line_sep = ", ");
-		static int toInt(std::string str);
+		static int toInt(std::string str, int radix = 10);
 		static std::string toString(int i);
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
 		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
