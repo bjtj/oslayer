@@ -30,7 +30,7 @@
 
 - (id)initWithAddress:(NSString*)hostname :(int)port;
 - (void)connect;
-- (NSInteger)send:(char*)buffer :(int)max;
+- (NSInteger)send:(const char*)buffer :(int)max;
 - (NSInteger)recv:(char*)buffer :(int)max;
 - (void)close;
 

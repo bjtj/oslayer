@@ -37,7 +37,7 @@ using namespace OS;
     socket->connect();
 }
 
-- (NSInteger)send:(char *)buffer :(int)max
+- (NSInteger)send:(const char *)buffer :(int)max
 {
     return socket->send(buffer, max);
 }

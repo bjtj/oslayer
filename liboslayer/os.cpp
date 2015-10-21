@@ -19,7 +19,7 @@ namespace OS {
 	 */
 	void idle(unsigned long timeout) {
 #if defined(USE_UNIX_STD)
-		usleep(timeout * 1000);
+		usleep((useconds_t)timeout * 1000);
 #elif defined(USE_MS_WIN)
 		Sleep(timeout);
 #else
@@ -525,10 +525,10 @@ namespace OS {
 			return socket();
 		}
 		virtual int recv(char * buffer, size_t max) {
-			return ::read(socket(), buffer, max);
+			return (int)::read(socket(), buffer, max);
 		}
 		virtual int send(const char * buffer, size_t length) {
-			return ::write(socket(), buffer, length);
+			return (int)::write(socket(), buffer, length);
 		}
 		virtual void shutdown(/* type */) {}
 		virtual void close() {
@@ -1194,7 +1194,7 @@ namespace OS {
 		virtual int recv(char * buffer, size_t max) {
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
-			return ::recvfrom(socket(), buffer, max, 0,
+			return (int)::recvfrom(socket(), buffer, max, 0,
 							  (struct sockaddr*)&client_addr, &client_addr_size);
 		}
 		virtual int send(const char * host,
@@ -1213,7 +1213,7 @@ namespace OS {
 			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
 				return -1;
 			}
-			ret = ::sendto(socket(), buffer, length,
+			ret = (int)::sendto(socket(), buffer, length,
 						   0, res->ai_addr, res->ai_addrlen);
 
 			freeaddrinfo(res);
