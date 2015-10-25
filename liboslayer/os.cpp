@@ -1199,7 +1199,7 @@ namespace OS {
 		}
 		virtual int send(const char * host,
 						 int port,
-						 char * buffer,
+						 const char * buffer,
 						 size_t length) {
 
 			int ret = -1;
@@ -1404,11 +1404,29 @@ namespace OS {
 			return ::recv(socket(), buffer, max, 0);
 		}
 
-		virtual int send(char * buffer, size_t length) {
-			if (socket() == INVALID_SOCKET) {
+		virtual int send(const char * host,
+						 int port,
+						 const char * buffer,
+						 size_t length) {
+
+
+			int ret = -1;
+			char portstr[10] = {0,};
+			
+			struct addrinfo hints, * res = NULL;
+			memset(&hints, 0, sizeof(hints));
+			hints.ai_family = AF_UNSPEC;
+			hints.ai_socktype = SOCK_DGRAM;
+			snprintf(portstr, sizeof(portstr), "%d", port);
+			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
 				return -1;
 			}
-			return ::send(socket(), buffer, length, 0);
+			ret = (int)::sendto(socket(), buffer, length,
+				0, res->ai_addr, res->ai_addrlen);
+
+			freeaddrinfo(res);
+
+			return ret;
 		}
 
 		virtual void shutdown(/* type */) {
@@ -1527,7 +1545,7 @@ namespace OS {
 	}
 	
 	int DatagramSocket::send(const char * host, int port,
-							 char * buffer, size_t length) {
+							 const char * buffer, size_t length) {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->send(host, port, buffer, length);
 	}
