@@ -1106,7 +1106,18 @@ namespace OS {
 			if (status != 0) {
 				// error
 				::close(socket());
+                throw -1;
 			}
+            
+            // http://stackoverflow.com/a/4766262
+#ifdef __APPLE__
+            status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
+            if (status != 0) {
+                // error
+                ::close(socket());
+                throw -1;
+            }
+#endif
 		}
 		virtual void setBroadcast() {
 			int broadcast = 1;
@@ -1133,7 +1144,7 @@ namespace OS {
 			SOCK_HANDLE sock = socket();
 			int ret = 0;
 
-			if (bind() < 0) {
+			if ((ret = bind()) < 0) {
 				throw -1;
 			}
 
