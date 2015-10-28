@@ -454,6 +454,10 @@ namespace OS {
 		return selected;
 	}
 
+	bool Selector::isSelected(int fd) {
+		return FD_ISSET(fd, &curfds);
+	}
+
 
 	
 	

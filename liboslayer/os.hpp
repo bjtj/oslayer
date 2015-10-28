@@ -299,6 +299,7 @@ namespace OS {
 		virtual void unset(int fd);
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<int> & getSelected();
+		virtual bool isSelected(int fd);
 	};
 
 	/**
