@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E8FAB1F81BD7C2C300E89DC5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = E8FAB1F71BD7C2C300E89DC5 /* main.m */; };
+		E857BAF91BE2651000D2022F /* app.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BAF71BE2651000D2022F /* app.cpp */; };
 		E8FAB22C1BD7C6A300E89DC5 /* liboslayer-cocoa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FAB2271BD7C5EA00E89DC5 /* liboslayer-cocoa.a */; };
 /* End PBXBuildFile section */
 
@@ -48,6 +48,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E857BAF71BE2651000D2022F /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = app.cpp; path = ../../../examples/app.cpp; sourceTree = "<group>"; };
+		E857BAF81BE2651000D2022F /* trycatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = trycatch.cpp; path = ../../../examples/trycatch.cpp; sourceTree = "<group>"; };
 		E8FAB1F41BD7C2C200E89DC5 /* oslayer sample */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "oslayer sample"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E8FAB1F71BD7C2C300E89DC5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		E8FAB21F1BD7C5EA00E89DC5 /* oslayer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = oslayer.xcodeproj; path = ../oslayer/oslayer.xcodeproj; sourceTree = "<group>"; };
@@ -85,6 +87,8 @@
 		E8FAB1F61BD7C2C200E89DC5 /* oslayer sample */ = {
 			isa = PBXGroup;
 			children = (
+				E857BAF71BE2651000D2022F /* app.cpp */,
+				E857BAF81BE2651000D2022F /* trycatch.cpp */,
 				E8FAB1F71BD7C2C300E89DC5 /* main.m */,
 			);
 			path = "oslayer sample";
@@ -179,7 +183,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8FAB1F81BD7C2C300E89DC5 /* main.m in Sources */,
+				E857BAF91BE2651000D2022F /* app.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,6 +278,7 @@
 		E8FAB1FC1BD7C2C300E89DC5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = ../../;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -283,6 +288,7 @@
 		E8FAB1FD1BD7C2C300E89DC5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				HEADER_SEARCH_PATHS = ../../;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_NAME = "$(TARGET_NAME)";

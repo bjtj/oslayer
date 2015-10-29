@@ -162,6 +162,20 @@ typedef SOCKET SOCK_HANDLE;
 
 namespace OS {
 
+#define DECL_NAMED_ONLY_EXCEPTION(NAME) class NAME : public Exception { \
+public: \
+    NAME() { \
+    } \
+    NAME(const std::string & message, int errorCode, int subErrorCode) \
+    : Exception(message, errorCode, subErrorCode) { \
+    } \
+    NAME(const char * message, int errorCode, int subErrorCode) \
+    : Exception(message, errorCode, subErrorCode) { \
+    } \
+    virtual ~NAME() { \
+    } \
+}
+
 	/**
 	 * @brief Exception
 	 */
@@ -206,6 +220,9 @@ namespace OS {
 			return message;
 		}
 	};
+    
+    DECL_NAMED_ONLY_EXCEPTION(IOException);
+    DECL_NAMED_ONLY_EXCEPTION(NotImplementedException);
 
 	/**
 	 * @brief no meaningful version string to distinguish
@@ -221,6 +238,20 @@ namespace OS {
 	 * @brief get tick count
 	 */
 	unsigned long tick_milli();
+    
+    /**
+     * @brief system wide operation
+     */
+    class System {
+    private:
+        static System * systemImpl;
+    protected:
+        System();
+        System(const System & other);
+    public:
+        virtual ~System();
+        static System * getInstance();
+    };
 
 	/**
 	 * @brief semaphore
@@ -234,6 +265,17 @@ namespace OS {
 		void wait();
 		void post();
 	};
+    
+    /**
+     * @brief auto lock
+     */
+    class AutoLock {
+    private:
+        Semaphore & sem;
+    public:
+        AutoLock(Semaphore & sem);
+        virtual ~AutoLock();
+    };
 
 	/*
 	 * @brief Thread
@@ -524,6 +566,7 @@ namespace OS {
 		virtual std::string toString();
 	};
 	
+    
 }
 
 #endif

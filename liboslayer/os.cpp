@@ -1,6 +1,6 @@
 #include "os.hpp"
 
-#define CHECK_NOT_IMPL_THROW(x) if(!x){throw -1;}
+#define CHECK_NOT_IMPL_THROW(x) if(!x){throw NotImplementedException();}
 
 /**
  * @namespace OS
@@ -47,6 +47,54 @@ namespace OS {
 	}
 
 
+    /**
+     * @brief System
+     */
+    
+    class SystemImpl : public System {
+    public:
+        SystemImpl () {
+        }
+        virtual ~SystemImpl() {
+        }
+    };
+    
+#if defined(USE_UNIX_STD)
+    class NixSystemImpl : public SystemImpl {
+    public:
+        NixSystemImpl() {
+        }
+        virtual ~NixSystemImpl() {
+        }
+    };
+    static NixSystemImpl s_systemImpl;
+#elif defined(USE_MS_WIN)
+    class MSSystemImpl : public SystemImpl {
+    public:
+        MSSystemImpl() {
+            WSADATA wsaData;
+            WSAStartup(MAKEWORD(2,2), &wsaData);
+        }
+        virtual ~MSSystemImpl() {
+            WSACleanup();
+        }
+    };
+    static MSSystemImpl s_systemImpl;
+#else
+    static SystemImpl s_systemImpl;
+#endif
+    
+    System * System::systemImpl = &s_systemImpl;
+    
+    System::System() {
+    }
+    System::~System() {
+    }
+    System * System::getInstance() {
+        return systemImpl;
+    }
+    
+    
 	/* SEMAPHORE */
 
 #if defined(USE_APPLE_SEMAPHORE)
@@ -130,6 +178,18 @@ namespace OS {
 		s_sem_post(&handle);
 	}
 
+    
+    /**
+     * @breif auto lock
+     */
+    
+    AutoLock::AutoLock(Semaphore & sem) : sem(sem) {
+        sem.wait();
+    }
+    AutoLock::~AutoLock() {
+        sem.post();
+    }
+    
 
 	/* THREAD */
 #if defined(USE_PTHREAD)
@@ -207,7 +267,6 @@ namespace OS {
 	 * @brief win32 thread start
 	 */
 	static bool s_startThread(THREAD_HANDLE * handle, thread_func func, Thread * thread) {
-		// TODO: 
 		UINT dwThreadID;
 		HANDLE h;
 
@@ -459,7 +518,19 @@ namespace OS {
 	}
 
 
-	
+    class ScopedConnection {
+    private:
+        struct addrinfo ** res;
+    public:
+        ScopedConnection(struct addrinfo ** res) : res(res) {
+        }
+        virtual ~ScopedConnection() {
+            if (*res) {
+                freeaddrinfo(*res);
+                *res = NULL;
+            }
+        }
+    };
 	
 
 	/* SOCKET implementation */
@@ -480,7 +551,7 @@ namespace OS {
 		virtual ~BsdSocket() {
 		}
 		virtual int connect() {
-
+            
 			int ret = 0;
 			struct addrinfo hints, * res = NULL;
 			char port[10] = {0,};
@@ -488,34 +559,27 @@ namespace OS {
 			SOCK_HANDLE sock = -1;
 			socket(-1);
 			snprintf(port, sizeof(port), "%d", getPort());
+            
+            ScopedConnection scopedConnection(&res);
 
 			memset(&hints, 0, sizeof(hints));
 			hints.ai_family = AF_UNSPEC;
 			hints.ai_socktype = SOCK_STREAM;
 			if (::getaddrinfo(getHost(), port, &hints, &res) < 0) {
-				ret = -1;
-				goto exit;
+                throw IOException("getaddrinfo() error", -1, 0);
 			}
 
 			sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 			if (sock < 0) {
-				ret = -1;
-				goto exit;
+                throw IOException("socket() error", -1, 0);
 			}
 
 			if (::connect(sock, res->ai_addr, res->ai_addrlen) < 0) {
 				::close(sock);
-				ret = -1;
-				goto exit;
+                throw IOException("connect() error", -1, 0);
 			}
 
 			socket(sock);
-
-		exit:
-			if (res) {
-				freeaddrinfo(res);
-				res = NULL;
-			}
 			
 			return ret;
 		}
@@ -529,10 +593,18 @@ namespace OS {
 			return socket();
 		}
 		virtual int recv(char * buffer, size_t max) {
-			return (int)::read(socket(), buffer, max);
+            ssize_t ret = ::read(socket(), buffer, max);
+            if (ret <= 0) {
+                throw IOException("read() error", (int)ret, 0);
+            }
+			return (int)ret;
 		}
 		virtual int send(const char * buffer, size_t length) {
-			return (int)::write(socket(), buffer, length);
+            ssize_t ret = ::write(socket(), buffer, length);
+            if (ret <= 0) {
+                throw IOException("write() error", (int)ret, 0);
+            }
+			return (int)ret;
 		}
 		virtual void shutdown(/* type */) {}
 		virtual void close() {
@@ -553,13 +625,6 @@ namespace OS {
 		struct addrinfo * targetAddr;
 
 	private:
-		int startup() {
-			WSADATA wsaData;
-			return WSAStartup(MAKEWORD(2,2), &wsaData);
-		}
-		void cleanup() {
-			WSACleanup();
-		}
 		
 	public:
 		Winsock2Socket(SOCKET sock) : Socket(sock), targetAddr(NULL) {
@@ -569,10 +634,6 @@ namespace OS {
 			struct addrinfo hints;
 			
 			char portStr[10] = {0,};
-			if (startup() != 0) {
-				// error
-				throw -1;
-			}
 
 			this->socket(INVALID_SOCKET);
 			setAddress(host, port);
@@ -585,9 +646,8 @@ namespace OS {
 			snprintf(portStr, sizeof(portStr), "%d", port);
 			if (getaddrinfo(host, portStr, &hints, &targetAddr) != 0) {
 				// error
-				cleanup();
 				targetAddr = NULL;
-				throw -1;
+				throw IOException("getaddrinfo() error", -1, 0);
 			}
 		}
 
@@ -595,7 +655,6 @@ namespace OS {
 			if (targetAddr) {
 				freeaddrinfo(targetAddr);
 			}
-			cleanup();
 		}
 
 		virtual int connect() {
@@ -606,7 +665,7 @@ namespace OS {
 
 			if (!targetAddr) {
 				// error
-				return -1;
+				throw IOException("no target address error", -1, 0);
 			}
 
 			for (addr = targetAddr; addr; addr = addr->ai_next) {
@@ -615,8 +674,7 @@ namespace OS {
 				if (sock == INVALID_SOCKET) {
 					// error
 					freeaddrinfo(targetAddr);
-					cleanup();
-					return -1;
+					throw IOException("socket() error", -1, 0);
 				}
 
 				ret = ::connect(sock, addr->ai_addr, (int)addr->ai_addrlen);
@@ -633,9 +691,7 @@ namespace OS {
 			targetAddr = NULL;
 
 			if (sock == INVALID_SOCKET) {
-				// error
-				cleanup();
-				return -1;
+				throw IOException("invalid socket error", -1, 0);
 			}
 
 			this->socket(sock);
@@ -653,14 +709,20 @@ namespace OS {
 		}
 		virtual int recv(char * buffer, size_t max) {
 			if (this->socket() == INVALID_SOCKET) {
-				return -1;
+				throw IOException("invalid socket error", -1, 0);
 			}
-			return ::recv(this->socket(), buffer, max, 0);
+            int ret = ::recv(this->socket(), buffer, max, 0);
+            
+            if (ret <= 0) {
+                throw IOException("recv() error", ret, 0);
+            }
+            
+			return ret;
 		}
 
 		virtual int send(const char * buffer, size_t length) {
 			if (this->socket() == INVALID_SOCKET) {
-				return -1;
+                throw IOException("invalid socket error", -1, 0);
 			}
 			return ::send(this->socket(), buffer, length, 0);
 		}
@@ -710,6 +772,9 @@ namespace OS {
 	}
 
 	void Socket::init() {
+        
+        System::getInstance();
+        
 		sock = 0;
 		socketImpl = NULL;
 		port = 0;
@@ -729,38 +794,40 @@ namespace OS {
 	}	
 
 	int Socket::connect() {
-		return socketImpl ? socketImpl->connect() : -1;
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->connect();
 	}
 
 	void Socket::registerSelector(Selector & selector) {
-		if (socketImpl) {
-			socketImpl->registerSelector(selector);
-		}
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->registerSelector(selector);
 	}
 	bool Socket::compareFd(int fd) {
-		return socketImpl ? socketImpl->compareFd(fd) : false;
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->compareFd(fd);
 	}
 	int Socket::getFd() {
-		return socketImpl ? socketImpl->getFd() : -1;
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->getFd();
 	}
 	int Socket::recv(char * buffer, size_t max) {
-		return socketImpl ? socketImpl->recv(buffer, max) : -1;
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->recv(buffer, max);
 	}
 	
 	int Socket::send(const char * buffer, size_t length) {
-		return socketImpl ? socketImpl->send(buffer, length) : -1;
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->send(buffer, length);
 	}
 
 	void Socket::shutdown(/* type */) {
-		if (socketImpl) {
-			socketImpl->shutdown();
-		}
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->shutdown();
 	}
 	
 	void Socket::close() {
-		if (socketImpl) {
-			socketImpl->close();
-		}
+        CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->close();
 	}
 
 	char * Socket::getHost() {
@@ -796,8 +863,7 @@ namespace OS {
 			setPort(port);
 			sock = ::socket(AF_INET, SOCK_STREAM, 0);
 			if (sock < 0) {
-				// error
-				throw -1;
+                throw IOException("socket() error", -1, 0);
 			}
 
 			socket(sock);
@@ -812,7 +878,6 @@ namespace OS {
 			int on = 1;
 			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 			if (status != 0) {
-				// error
 				::close(socket());
 			}
 		}
@@ -856,7 +921,6 @@ namespace OS {
 			socklen_t clientaddr_len = 0;
 			SOCK_HANDLE client = ::accept(socket(), (struct sockaddr*)&clientaddr, &clientaddr_len);
 			if (client < 0) {
-				// error
 				return NULL;
 			}
 
@@ -874,24 +938,12 @@ namespace OS {
 		struct addrinfo * addr;
 
 	private:
-		int startup() {
-			WSADATA wsaData;
-			return WSAStartup(MAKEWORD(2,2), &wsaData);
-		}
-		void cleanup() {
-			WSACleanup();
-		}
-
+        
 	public:
 		Winsock2ServerSocket(int port) : addr(NULL) {
 			SOCK_HANDLE sock;
 			struct addrinfo hints;
 			char portStr[10] = {0,};
-						
-			if (startup() != 0) {
-				// error
-				return;
-			}
 
 			setPort(port);
 
@@ -906,7 +958,6 @@ namespace OS {
 			// Resolve the server address and port
 			if (getaddrinfo(NULL, portStr, &hints, &addr) != 0) {
 				// error
-				cleanup();
 				return;
 			}
 
@@ -914,7 +965,6 @@ namespace OS {
 			if (sock == SOCKET_ERROR) {
 				// error
 				freeaddrinfo(addr);
-				cleanup();
 				return;
 			}
 
@@ -923,7 +973,6 @@ namespace OS {
 
 		virtual ~Winsock2ServerSocket() {
 			close();
-			cleanup();
 		}
 
 		virtual void setReuseAddr() {
@@ -946,10 +995,8 @@ namespace OS {
 
 			ret = ::bind(socket(), addr->ai_addr, (int)addr->ai_addrlen);
 			if (ret == SOCKET_ERROR) {
-				// error
 				freeaddrinfo(addr);
 				close();
-				cleanup();
 				return false;
 			}
 
@@ -962,9 +1009,7 @@ namespace OS {
 
 			int ret = ::listen(this->socket(), max); // SOMAXCONN
 			if (ret == SOCKET_ERROR) {
-				// error ; WSAGetLastError();
 				close();
-				cleanup();
 				return false;
 			}
 
@@ -1015,6 +1060,9 @@ namespace OS {
 	}
 
 	void ServerSocket::init() {
+        
+        System::getInstance();
+        
 		serverSocketImpl = NULL;
 		port = 0;
 	}
@@ -1024,41 +1072,44 @@ namespace OS {
 	}
 
 	void ServerSocket::setReuseAddr() {
-		if (serverSocketImpl) {
-			serverSocketImpl->setReuseAddr();
-		}
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		serverSocketImpl->setReuseAddr();
+
 	}
 
 	void ServerSocket::registerSelector(Selector & selector) {
-		if (serverSocketImpl) {
-			serverSocketImpl->registerSelector(selector);
-		}
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		serverSocketImpl->registerSelector(selector);
 	}
 
 	bool ServerSocket::compareFd(int fd) {
-		return serverSocketImpl ? serverSocketImpl->compareFd(fd) : false;
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		return serverSocketImpl->compareFd(fd);
 	}
 
 	int ServerSocket::getFd() {
-		return serverSocketImpl ? serverSocketImpl->getFd() : -1;
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		return serverSocketImpl->getFd();
 	}
 	
 	bool ServerSocket::bind() {
-		return serverSocketImpl ? serverSocketImpl->bind() : false;
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		return serverSocketImpl->bind();
 	}
 	
 	bool ServerSocket::listen(int max) {
-		return serverSocketImpl ? serverSocketImpl->listen(max) : false;
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		return serverSocketImpl->listen(max);
 	}
 	
 	Socket * ServerSocket::accept() {
-		return serverSocketImpl ? serverSocketImpl->accept() : NULL;
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+		return serverSocketImpl->accept();
 	}
 
 	void ServerSocket::close() {
-		if (serverSocketImpl) {
-			serverSocketImpl->close();
-		}
+        CHECK_NOT_IMPL_THROW(serverSocketImpl);
+        serverSocketImpl->close();
 	}
 
 	int ServerSocket::getPort() {
@@ -1090,14 +1141,14 @@ namespace OS {
 			setPort(port);
 			SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
 			if (sock < 0) {
-				throw -1;
+				throw IOException("socket() error", -1, 0);
 			}
 			socket(sock);
 		}
 		BsdDatagramSocket(const char * host, int port) {
 			setAddress(host, port);
 			if (connect() < 0) {
-				throw -1;
+				throw IOException("connect() error", -1, 0);
 			}
 		}
 		virtual ~BsdDatagramSocket() {
@@ -1110,7 +1161,7 @@ namespace OS {
 			if (status != 0) {
 				// error
 				::close(socket());
-                throw -1;
+                throw IOException("setsockopt() error", -1, 0);
 			}
             
             // http://stackoverflow.com/a/4766262
@@ -1119,7 +1170,7 @@ namespace OS {
             if (status != 0) {
                 // error
                 ::close(socket());
-                throw -1;
+                throw IOException("setsockopt() error", -1, 0);
             }
 #endif
 		}
@@ -1149,7 +1200,7 @@ namespace OS {
 			int ret = 0;
 
 			if ((ret = bind()) < 0) {
-				throw -1;
+				throw IOException("bind() error", -1, 0);
 			}
 
 			mreq.imr_multiaddr.s_addr = ::inet_addr(group);
@@ -1267,43 +1318,27 @@ namespace OS {
 	private:
 
 	private:
-		int startup() {
-			WSADATA wsaData;
-			return WSAStartup(MAKEWORD(2,2), &wsaData);
-		}
-		void cleanup() {
-			WSACleanup();
-		}
 		
 	public:
 		Winsock2DatagramSocket(int port) {
 			setPort(port);
 
-			if (startup() != 0) {
-				throw -1;
-			}
-
 			SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
 			if (sock == INVALID_SOCKET) {
-				throw -1;
+				throw IOException("socket() error", -1, 0);
 			}
 
 			socket(sock);
 		}
 		Winsock2DatagramSocket(const char * host, int port) {
 			setAddress(host, port);
-			
-			if (startup() != 0) {
-				throw -1;
-			}
 
 			if (connect() < 0) {
-				throw -1;
+				throw IOException("connect() error", -1, 0);
 			}
 		}
 
 		virtual ~Winsock2DatagramSocket() {
-			cleanup();
 		}
 		virtual void setReuseAddr() {
 			int status;
@@ -1343,7 +1378,7 @@ namespace OS {
 			int ret = 0;
 
 			if (bind() < 0) {
-				throw -1;
+				throw IOException("bind() error", -1, 0);
 			}
 
 			mreq.imr_multiaddr.s_addr = ::inet_addr(group);
@@ -1370,7 +1405,6 @@ namespace OS {
 
 			snprintf(portStr, sizeof(portStr), "%d", getPort());
 			if (getaddrinfo(getHost(), portStr, &hints, &targetAddr) != 0) {
-				cleanup();
 				targetAddr = NULL;
 				ret = -1;
 				goto exit;
@@ -1383,7 +1417,6 @@ namespace OS {
 				if (sock == INVALID_SOCKET) {
 					// error
 					freeaddrinfo(targetAddr);
-					cleanup();
 					ret = -1;
 					goto exit;
 				}
@@ -1402,7 +1435,6 @@ namespace OS {
 			targetAddr = NULL;
 
 			if (sock == INVALID_SOCKET) {
-				cleanup();
 				ret = -1;
 				goto exit;
 			}
@@ -1505,8 +1537,10 @@ namespace OS {
 	 * Datagram Packet
 	 */
 
-	DatagramPacket::DatagramPacket(char * data, size_t maxSize) 
-		: data(data), maxSize(maxSize), length(0), remotePort(0) {
+	DatagramPacket::DatagramPacket(char * data, size_t maxSize)
+    : data(data), maxSize(maxSize), length(0), remotePort(0) {
+        
+        System::getInstance();
 	}
 
 	DatagramPacket::~DatagramPacket() {
