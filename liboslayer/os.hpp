@@ -401,6 +401,28 @@ namespace OS {
 
 	};
 
+	/**
+	 * @brief Datagram packet
+	 */
+	class DatagramPacket {
+	private:
+		char * data;
+		size_t length;
+		size_t maxSize;
+		std::string remoteAddr;
+		int remotePort;
+	public:
+		DatagramPacket(char * data, size_t maxSize);
+		virtual ~DatagramPacket();
+		char * getData();
+		size_t getLength();
+		size_t getMaxSize();
+		void setLength(size_t length);
+		std::string getRemoteAddr();
+		int getRemotePort();
+		void setRemoteAddr(std::string remoteAddr);
+		void setRemotePort(int remotePort);
+	};
 
 	/*
 	 * @brief Datagram Socket
@@ -438,6 +460,7 @@ namespace OS {
 		virtual bool compareFd(int fd);
 		virtual int getFd();
 
+		virtual int recv(DatagramPacket & packet);
 		virtual int recv(char * buffer, size_t max);
 		virtual int send(const char * host, int port, const char * buffer, size_t length);
 
@@ -451,7 +474,8 @@ namespace OS {
 
 	protected:
 		void socket(SOCK_HANDLE sock);
-	
+		std::string getRemoteIPAddress(sockaddr_in * addr);
+		int getRemotePortNumber(sockaddr_in * addr);
 	};
 	
 

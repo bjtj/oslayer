@@ -455,7 +455,7 @@ namespace OS {
 	}
 
 	bool Selector::isSelected(int fd) {
-		return FD_ISSET(fd, &curfds);
+		return FD_ISSET(fd, &curfds) ? true : false;
 	}
 
 
@@ -1206,6 +1206,24 @@ namespace OS {
 		virtual int getFd() {
 			return socket();
 		}
+		virtual int recv(DatagramPacket & packet) {
+			if (socket() == INVALID_SOCKET) {
+				return -1;
+			}
+			
+			struct sockaddr_in client_addr;
+			socklen_t client_addr_size = sizeof(client_addr);
+			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
+				(struct sockaddr*)&client_addr, &client_addr_size);
+
+			if (ret > 0) {
+				packet.setLength(ret);
+				packet.setRemoteAddr(getRemoteIPAddress(&client_addr));
+				packet.setRemotePort(getRemotePortNumber(&client_addr));
+			}
+			
+			return ret;
+		}
 		virtual int recv(char * buffer, size_t max) {
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
@@ -1412,11 +1430,41 @@ namespace OS {
 		virtual int getFd() {
 			return (int)socket();
 		}
+		virtual int recv(DatagramPacket & packet) {
+			if (socket() == INVALID_SOCKET) {
+				return -1;
+			}
+			
+			struct sockaddr_in client_addr;
+			socklen_t client_addr_size = sizeof(client_addr);
+			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
+				(struct sockaddr*)&client_addr, &client_addr_size);
+
+			if (ret > 0) {
+				packet.setLength(ret);
+				packet.setRemoteAddr(getRemoteIPAddress(&client_addr));
+				packet.setRemotePort(getRemotePortNumber(&client_addr));
+			}
+			
+			return ret;
+		}
 		virtual int recv(char * buffer, size_t max) {
 			if (socket() == INVALID_SOCKET) {
 				return -1;
 			}
-			return ::recv(socket(), buffer, max, 0);
+			
+			struct sockaddr_in client_addr;
+			socklen_t client_addr_size = sizeof(client_addr);
+			int ret = (int)::recvfrom(socket(), buffer, max, 0, 
+				(struct sockaddr*)&client_addr, &client_addr_size);
+
+			char ipstr[INET6_ADDRSTRLEN] = {0,};
+
+			inet_ntop(client_addr.sin_family, (client_addr.sin_family == AF_INET ? 
+				(void*)&((struct sockaddr_in*)&client_addr)->sin_addr : (void*)&((struct sockaddr_in6 *)&client_addr)->sin6_addr),
+				ipstr, sizeof(ipstr));
+
+			return ret;
 		}
 
 		virtual int send(const char * host,
@@ -1456,6 +1504,50 @@ namespace OS {
 	};
 
 #endif
+
+	/*
+	 * Datagram Packet
+	 */
+
+	DatagramPacket::DatagramPacket(char * data, size_t maxSize) 
+		: data(data), maxSize(maxSize), length(0), remotePort(0) {
+	}
+
+	DatagramPacket::~DatagramPacket() {
+	}
+
+	char * DatagramPacket::getData() {
+		return data;
+	}
+
+	size_t DatagramPacket::getLength() {
+		return length;
+	}
+
+	size_t DatagramPacket::getMaxSize() {
+		return maxSize;
+	}
+
+	void DatagramPacket::setLength(size_t length) {
+		this->length = length;
+	}
+
+	string DatagramPacket::getRemoteAddr() {
+		return remoteAddr;
+	}
+
+	int DatagramPacket::getRemotePort() {
+		return remotePort;
+	}
+
+	void DatagramPacket::setRemoteAddr(string remoteAddr) {
+		this->remoteAddr = remoteAddr;
+	}
+
+	void DatagramPacket::setRemotePort(int remotePort) {
+		this->remotePort = remotePort;
+	}
+
 
 	/*
 	 * Datagram Socket
@@ -1554,6 +1646,12 @@ namespace OS {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->getFd();
 	}
+
+	int DatagramSocket::recv(DatagramPacket & packet) {
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		return socketImpl->recv(packet);
+	}
+
 	int DatagramSocket::recv(char * buffer, size_t max) {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->recv(buffer, max);
@@ -1591,7 +1689,18 @@ namespace OS {
 		this->sock = sock;
 	}
 
+	string DatagramSocket::getRemoteIPAddress(sockaddr_in * addr) {
+		char ipstr[INET6_ADDRSTRLEN] = {0,};
+		inet_ntop(addr->sin_family, (addr->sin_family == AF_INET ? 
+			(void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
+			ipstr, sizeof(ipstr));
+		return string(ipstr);
+	}
 
+	int DatagramSocket::getRemotePortNumber(sockaddr_in * addr) {
+		return ntohs((addr->sin_family == AF_INET ? 
+			((struct sockaddr_in*)addr)->sin_port: ((struct sockaddr_in6 *)addr)->sin6_port));
+	}
 
 	
 	/* Date */
