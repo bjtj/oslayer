@@ -1207,10 +1207,6 @@ namespace OS {
 			return socket();
 		}
 		virtual int recv(DatagramPacket & packet) {
-			if (socket() == INVALID_SOCKET) {
-				return -1;
-			}
-			
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
 			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
