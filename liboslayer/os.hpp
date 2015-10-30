@@ -258,9 +258,11 @@ public: \
 	 */
 	class Semaphore {
 	private:
+		int initial;
 		SEM_HANDLE handle;
 	public:
 		Semaphore(int initial);
+		Semaphore(const Semaphore & other);
 		virtual ~Semaphore();
 		void wait();
 		void post();

@@ -162,8 +162,13 @@ namespace OS {
 #endif /* SEMAPHORE */
 	
 
-	Semaphore::Semaphore(int initial) {
+	Semaphore::Semaphore(int initial) : initial(initial) {
 		s_sem_init(&handle, initial);
+	}
+
+	Semaphore::Semaphore(const Semaphore & other) {
+		this->initial = other.initial;
+		s_sem_init(&(this->handle), this->initial);
 	}
 	
 	Semaphore::~Semaphore() {
