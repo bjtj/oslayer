@@ -1491,12 +1491,6 @@ namespace OS {
 			int ret = (int)::recvfrom(socket(), buffer, max, 0, 
 				(struct sockaddr*)&client_addr, &client_addr_size);
 
-			char ipstr[INET6_ADDRSTRLEN] = {0,};
-
-			inet_ntop(client_addr.sin_family, (client_addr.sin_family == AF_INET ? 
-				(void*)&((struct sockaddr_in*)&client_addr)->sin_addr : (void*)&((struct sockaddr_in6 *)&client_addr)->sin6_addr),
-				ipstr, sizeof(ipstr));
-
 			return ret;
 		}
 
@@ -1623,6 +1617,9 @@ namespace OS {
 	}
 
 	void DatagramSocket::init() {
+
+		System::getInstance();
+
 		sock = 0;
 		socketImpl = NULL;
 		port = 0;
@@ -1725,10 +1722,21 @@ namespace OS {
 	}
 
 	string DatagramSocket::getRemoteIPAddress(sockaddr_in * addr) {
+
 		char ipstr[INET6_ADDRSTRLEN] = {0,};
+
+#if (!defined(USE_WINSOCK2) || _WIN32_WINNT >= 0x0600)
 		inet_ntop(addr->sin_family, (addr->sin_family == AF_INET ? 
 			(void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
 			ipstr, sizeof(ipstr));
+
+#else
+		char * ptr = NULL;
+		if ((ptr = inet_ntoa(addr->sin_addr)) != NULL) {
+			strncpy(ipstr, ptr, INET6_ADDRSTRLEN - 1);
+		}
+#endif
+
 		return string(ipstr);
 	}
 
