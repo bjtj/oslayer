@@ -1351,8 +1351,7 @@ namespace OS {
 			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
 								  (const char*)&on, sizeof(on));
 			if (status != 0) {
-				// error
-				::closesocket(socket());
+				throw IOException("setsockopt() error", -1, 0);
 			}
 		}
 		virtual void setBroadcast() {

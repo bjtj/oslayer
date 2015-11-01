@@ -66,6 +66,7 @@
 #	define USE_WINSOCK2
 
 #	define snprintf _snprintf_s
+#	define strncpy strncpy_s
 
 #	define TIME FILETIME
 
