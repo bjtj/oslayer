@@ -981,7 +981,13 @@ namespace OS {
 		}
 
 		virtual void setReuseAddr() {
-			// TODO: implement - https://msdn.microsoft.com/en-us/library/windows/desktop/ms740621%28v=vs.85%29.aspx
+			int status;
+			int on = 1;
+			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
+								  (const char*)&on, sizeof(on));
+			if (status != 0) {
+				throw IOException("setsockopt() error", -1, 0);
+			}
 		}
 
 		virtual void registerSelector(Selector & selector) {
@@ -1345,6 +1351,13 @@ namespace OS {
 
 		virtual ~Winsock2DatagramSocket() {
 		}
+
+		virtual void checkValidSocket(SOCK_HANDLE sock) {
+			if (sock == INVALID_SOCKET) {
+				throw IOException("invalid socket", -1, 0);
+			}
+		}
+
 		virtual void setReuseAddr() {
 			int status;
 			int on = 1;
@@ -1641,6 +1654,12 @@ namespace OS {
 			snprintf(this->host, sizeof(this->host), "%s", host);
 		}
 	}
+
+	void DatagramSocket::checkValidSocket(SOCK_HANDLE sock) {
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->checkValidSocket(sock);
+	}
+
 	void DatagramSocket::setReuseAddr() {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		socketImpl->setReuseAddr();
@@ -1713,6 +1732,7 @@ namespace OS {
 	}
 
 	SOCK_HANDLE DatagramSocket::socket() {
+		checkValidSocket(sock);
 		return sock;
 	}
 

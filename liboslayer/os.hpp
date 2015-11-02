@@ -492,6 +492,7 @@ public: \
 		void setPort(int port);
 		void setAddress(const char * host, int port);
 		void setHost(const char * host);
+		virtual void checkValidSocket(SOCK_HANDLE sock);
 
 	public:
 		virtual void setReuseAddr();
