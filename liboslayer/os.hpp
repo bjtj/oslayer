@@ -358,6 +358,18 @@ public: \
 		virtual void registerSelector(Selector & selector) = 0;
 	};
 
+    /**
+     * @brief socket binder
+     */
+    class RandomPortBinder {
+    public:
+        RandomPortBinder() {}
+        virtual ~RandomPortBinder() {}
+        virtual void start() = 0;
+        virtual int getNextPort() = 0;
+        virtual bool wantFinish() = 0;
+        virtual int getSelectedPort() = 0;
+    };
 
 	/*
 	 * @brief Socket
@@ -432,7 +444,8 @@ public: \
 		virtual bool compareFd(int fd);
 		virtual int getFd();
 
-		virtual bool bind();
+		virtual int bind();
+        virtual int randomBind(RandomPortBinder & portBinder);
 		virtual bool listen(int max);
 		virtual Socket * accept();
 		virtual void close();
@@ -456,6 +469,7 @@ public: \
 		size_t maxSize;
 		std::string remoteAddr;
 		int remotePort;
+        
 	public:
 		DatagramPacket(char * data, size_t maxSize);
 		virtual ~DatagramPacket();
@@ -500,6 +514,7 @@ public: \
 		virtual int joinGroup(const std::string & group);
 		virtual int joinGroup(const char * group);
 		virtual int bind();
+        virtual int randomBind(RandomPortBinder & portBinder);
 		virtual int connect();
 
 		virtual void registerSelector(Selector & selector);

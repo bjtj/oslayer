@@ -897,19 +897,18 @@ namespace OS {
 			return socket();
 		}
 
-		virtual bool bind() {
+		virtual int bind() {
+            int ret;
 			struct sockaddr_in addr;
 
 			memset(&addr, 0, sizeof(addr));
 			addr.sin_family = AF_INET;
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(getPort());
-			if (::bind(socket(), (struct sockaddr*)&addr, sizeof(addr)) != 0) {
-				// error
+			if ((ret = ::bind(socket(), (struct sockaddr*)&addr, sizeof(addr))) != 0) {
 				close();
-				return false;
 			}
-			return true;
+			return ret;
 		}
 	
 		virtual bool listen(int max) {
@@ -1000,20 +999,18 @@ namespace OS {
 			return (int)socket();
 		}
 
-		virtual bool bind() {
+		virtual int bind() {
 
-			int ret;
-
-			ret = ::bind(socket(), addr->ai_addr, (int)addr->ai_addrlen);
+			int ret = ::bind(socket(), addr->ai_addr, (int)addr->ai_addrlen);
 			if (ret == SOCKET_ERROR) {
 				freeaddrinfo(addr);
 				close();
-				return false;
+                return ret;
 			}
 
 			freeaddrinfo(addr);
 
-			return true;
+			return ret;
 		}
 	
 		virtual bool listen(int max) {
@@ -1103,10 +1100,23 @@ namespace OS {
 		return serverSocketImpl->getFd();
 	}
 	
-	bool ServerSocket::bind() {
+	int ServerSocket::bind() {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
 		return serverSocketImpl->bind();
 	}
+    
+    int ServerSocket::randomBind(RandomPortBinder & portBinder) {
+        int ret = -1;
+        portBinder.start();
+        while (!portBinder.wantFinish()) {
+            setPort(portBinder.getNextPort());
+            ret = bind();
+            if (ret >= 0) {
+                break;
+            }
+        }
+        return ret;
+    }
 	
 	bool ServerSocket::listen(int max) {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
@@ -1164,6 +1174,11 @@ namespace OS {
 		}
 		virtual ~BsdDatagramSocket() {
 		}
+        virtual void checkValidSocket(SOCK_HANDLE sock) {
+            if (sock < 0) {
+                throw new IOException("invalid socket", -1, 0);
+            }
+        }
 		virtual void setReuseAddr() {
 			int status;
 			int on = 1;
@@ -1200,7 +1215,7 @@ namespace OS {
 			server_addr.sin_family = AF_INET;
 			server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			server_addr.sin_port = htons(getPort());
-			
+            
 			return ::bind(sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
 		}
 		virtual int joinGroup(const char * group) {
@@ -1672,6 +1687,19 @@ namespace OS {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->bind();
 	}
+    int DatagramSocket::randomBind(RandomPortBinder & portBinder) {
+        CHECK_NOT_IMPL_THROW(socketImpl);
+        int ret = -1;
+        portBinder.start();
+        while (!portBinder.wantFinish()) {
+            socketImpl->setPort(portBinder.getNextPort());
+            ret = bind();
+            if (ret >= 0) {
+                break;
+            }
+        }
+        return ret;
+    }
 	int DatagramSocket::joinGroup(const std::string & group) {
 		return joinGroup(group.c_str());
 	}
