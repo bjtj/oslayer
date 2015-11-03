@@ -45,7 +45,6 @@ namespace UTIL {
 	 */
 	class LinkedStringMap {
 	private:
-		const NameValue emptyNameValue;
 		std::vector<NameValue> elements;
 	private:
 		NameValue & get(const std::string & name) {
@@ -65,7 +64,8 @@ namespace UTIL {
 					return nv;
 				}
 			}
-			return emptyNameValue;
+            static const NameValue empty;
+			return empty;
 		}
 	public:
 		LinkedStringMap() {

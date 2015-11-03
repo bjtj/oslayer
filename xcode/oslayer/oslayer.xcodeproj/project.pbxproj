@@ -45,6 +45,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		E857BB371BE900CD00D2022F /* StringElement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StringElement.hpp; path = ../../liboslayer/StringElement.hpp; sourceTree = "<group>"; };
 		E882FE7E1BD5312600E1C8C7 /* liboslayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liboslayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E882FE811BD5312600E1C8C7 /* oslayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = oslayer.h; sourceTree = "<group>"; };
 		E882FE831BD5312600E1C8C7 /* oslayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = oslayer.mm; sourceTree = "<group>"; };
@@ -107,6 +108,7 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E857BB371BE900CD00D2022F /* StringElement.hpp */,
 				E882FE8A1BD5315300E1C8C7 /* os.cpp */,
 				E882FE8B1BD5315300E1C8C7 /* os.hpp */,
 				E882FE8C1BD5315300E1C8C7 /* Text.cpp */,
