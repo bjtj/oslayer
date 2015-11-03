@@ -29,5 +29,8 @@
     <ClInclude Include="..\liboslayer\Text.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\liboslayer\StringElement.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
