@@ -522,7 +522,25 @@ namespace OS {
 		return FD_ISSET(fd, &curfds) ? true : false;
 	}
 
+	/**
+	 *
+	 */
+	void SocketUtil::checkValidSocket(SOCK_HANDLE sock) {
+#if defined(USE_BSD_SOCKET)
+		if (sock < 0) {
+            throw new IOException("invalid socket", -1, 0);
+        }
 
+#elif defined(USE_WINSOCK2)
+		if (sock == INVALID_SOCKET) {
+			throw IOException("invalid socket", -1, 0);
+		}
+#endif
+	}
+
+	/**
+	 * @brief scoped connection (auto free)
+	 */
     class ScopedConnection {
     private:
         struct addrinfo ** res;
@@ -736,10 +754,12 @@ namespace OS {
 		}
 
 		virtual void close() {
-			if (this->socket() == INVALID_SOCKET) {
-				return;
+			try {
+				closesocket(this->socket());
+				this->socket(INVALID_SOCKET);
+			} catch (IOException e) {
+				//
 			}
-			closesocket(this->socket());
 		}
 	};
 
@@ -835,6 +855,15 @@ namespace OS {
 		socketImpl->close();
 	}
 
+	bool Socket::isClosed() {
+		try {
+			this->socket();
+			return false;
+		} catch (IOException e) {
+			return true;
+		}
+	}
+
 	char * Socket::getHost() {
 		return host;
 	}
@@ -844,6 +873,7 @@ namespace OS {
 	}
 
 	SOCK_HANDLE Socket::socket() {
+		SocketUtil::checkValidSocket(sock);
 		return sock;
 	}
 
@@ -1133,6 +1163,15 @@ namespace OS {
         serverSocketImpl->close();
 	}
 
+	bool ServerSocket::isClosed() {
+		try {
+			this->socket();
+			return false;
+		} catch (IOException e) {
+			return true;
+		}
+	}
+
 	int ServerSocket::getPort() {
 		return port;
 	}
@@ -1144,8 +1183,6 @@ namespace OS {
 	void ServerSocket::socket(SOCK_HANDLE sock) {
 		this->sock = sock;
 	}
-
-
 
 
 	/* Datagram Socket Implementation */
@@ -1174,11 +1211,6 @@ namespace OS {
 		}
 		virtual ~BsdDatagramSocket() {
 		}
-        virtual void checkValidSocket(SOCK_HANDLE sock) {
-            if (sock < 0) {
-                throw new IOException("invalid socket", -1, 0);
-            }
-        }
 		virtual void setReuseAddr() {
 			int status;
 			int on = 1;
@@ -1366,13 +1398,6 @@ namespace OS {
 
 		virtual ~Winsock2DatagramSocket() {
 		}
-
-		virtual void checkValidSocket(SOCK_HANDLE sock) {
-			if (sock == INVALID_SOCKET) {
-				throw IOException("invalid socket", -1, 0);
-			}
-		}
-
 		virtual void setReuseAddr() {
 			int status;
 			int on = 1;
@@ -1670,11 +1695,6 @@ namespace OS {
 		}
 	}
 
-	void DatagramSocket::checkValidSocket(SOCK_HANDLE sock) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->checkValidSocket(sock);
-	}
-
 	void DatagramSocket::setReuseAddr() {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		socketImpl->setReuseAddr();
@@ -1751,6 +1771,15 @@ namespace OS {
 		socketImpl->close();
 	}
 
+	bool DatagramSocket::isClosed() {
+		try {
+			this->socket();
+			return false;
+		} catch (IOException e) {
+			return true;
+		}
+	}
+
 	char * DatagramSocket::getHost() {
 		return host;
 	}
@@ -1760,7 +1789,7 @@ namespace OS {
 	}
 
 	SOCK_HANDLE DatagramSocket::socket() {
-		checkValidSocket(sock);
+		SocketUtil::checkValidSocket(sock);
 		return sock;
 	}
 

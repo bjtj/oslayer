@@ -325,6 +325,7 @@ public: \
 	public:
 		static std::string getIPAddress(const std::string & iface);
 		static std::string getIPAddress(const char * iface);
+
 	};
 
 	/**
@@ -356,6 +357,17 @@ public: \
 		virtual ~Selectable() {}
 
 		virtual void registerSelector(Selector & selector) = 0;
+	};
+
+	/**
+	 * @brief socket util
+	 */
+	class SocketUtil {
+	private:
+	public:
+		SocketUtil();
+		virtual ~SocketUtil();
+		static void checkValidSocket(SOCK_HANDLE sock);
 	};
 
     /**
@@ -406,6 +418,7 @@ public: \
 
 		virtual void shutdown(/* type */);
 		virtual void close();
+		virtual bool isClosed();
 
 		char * getHost();
 		int getPort();
@@ -449,6 +462,7 @@ public: \
 		virtual bool listen(int max);
 		virtual Socket * accept();
 		virtual void close();
+		virtual bool isClosed();
 
 		int getPort();
 
@@ -506,7 +520,6 @@ public: \
 		void setPort(int port);
 		void setAddress(const char * host, int port);
 		void setHost(const char * host);
-		virtual void checkValidSocket(SOCK_HANDLE sock);
 
 	public:
 		virtual void setReuseAddr();
@@ -527,6 +540,7 @@ public: \
 
 		virtual void shutdown(/* type */);
 		virtual void close();
+		virtual bool isClosed();
 
 		char * getHost();
 		int getPort();
