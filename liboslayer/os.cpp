@@ -528,7 +528,7 @@ namespace OS {
 	void SocketUtil::checkValidSocket(SOCK_HANDLE sock) {
 #if defined(USE_BSD_SOCKET)
 		if (sock < 0) {
-            throw new IOException("invalid socket", -1, 0);
+            throw IOException("invalid socket", -1, 0);
         }
 
 #elif defined(USE_WINSOCK2)
@@ -631,7 +631,13 @@ namespace OS {
 		}
 		virtual void shutdown(/* type */) {}
 		virtual void close() {
-			::close(socket());
+            try {
+                ::close(this->socket());
+                this->socket(-1);
+            } catch (IOException e) {
+                // ignore
+            }
+			
 		}
 	};
 
@@ -962,7 +968,13 @@ namespace OS {
 		}
 
 		virtual void close() {
-			::close(socket());
+            try {
+                ::close(this->socket());
+                this->socket(-1);
+            } catch (IOException e) {
+                // ignore
+            }
+			
 		}
 	};
 #elif defined(USE_WINSOCK2)
@@ -1065,7 +1077,13 @@ namespace OS {
 		}
 
 		virtual void close() {
-			closesocket(socket());
+            try {
+                closesocket(this->socket());
+                this->socket(INVALID_SOCKET);
+            } catch (IOException e) {
+                // ignore
+            }
+			
 		}
 	};
 
@@ -1360,7 +1378,12 @@ namespace OS {
 		}
 		virtual void shutdown(/* type */) {}
 		virtual void close() {
-			::close(socket());
+            try {
+                ::close(this->socket());
+                this->socket(-1);
+            } catch (IOException e) {
+                // ignore
+            }
 		}
 	};
 
@@ -1575,10 +1598,13 @@ namespace OS {
 		}
 
 		virtual void close() {
-			if (socket() == INVALID_SOCKET) {
-				return;
-			}
-			closesocket(socket());
+            try {
+                closesocket(this->socket());
+                this->socket(INVALID_SOCKET);
+            } catch (IOException e) {
+                // ignore
+            }
+			
 		}
 	};
 
