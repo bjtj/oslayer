@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "os.hpp"
 
 namespace UTIL {
 
@@ -35,15 +36,44 @@ namespace UTIL {
 	 * @brief string map
 	 */
 	class StringMap : public std::map<std::string, std::string> {
+    private:
 	public:
 		StringMap() {}
 		virtual ~StringMap() {}
+        
+        std::string & operator[] (const std::string & name) {
+            return std::map<std::string, std::string>::operator[](name);
+        }
+        
+        std::string get(const std::string & name) const {
+            for (StringMap::const_iterator iter = begin(); iter != end(); iter++) {
+                if (iter->first == name) {
+                    return iter->second;
+                }
+            }
+            return "";
+        }
+//
+//        const std::string & operator[] (const std::string & name) const {
+//            
+//            for (StringMap::const_iterator iter = begin(); iter != end(); iter++) {
+//                if (iter->first == name) {
+//                    return iter->second;
+//                }
+//            }
+//            throw OS::Exception("no element found", -1, 0);
+//        }
 	};
 
 	/**
 	 * @brief linked string map
 	 */
 	class LinkedStringMap {
+    public:
+        class iterator {
+            const LinkedStringMap * container;
+            
+        };
 	private:
 		std::vector<NameValue> elements;
 	private:
@@ -77,6 +107,10 @@ namespace UTIL {
 		size_t size() const {
 			return elements.size();
 		}
+        
+        void clear() {
+            elements.clear();
+        }
 
 		const std::string & operator[] (const std::string & name) const {
 			return get(name).getValue();

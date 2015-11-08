@@ -379,6 +379,8 @@ public: \
         void setInetAddress(const InetAddress & address);
         std::vector<InetAddress> getInetAddresses();
         
+        bool isLoopBack();
+        
     };
 
 	/**

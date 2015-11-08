@@ -416,6 +416,16 @@ namespace OS {
     vector<InetAddress> NetworkInterface::getInetAddresses() {
         return inetAddresses;
     }
+    bool NetworkInterface::isLoopBack() {
+        for (size_t i = 0; i < inetAddresses.size(); i++) {
+            InetAddress & addr = inetAddresses[i];
+            if (!addr.getAddress().compare("127.0.0.1") ||
+                !addr.getAddress().compare("::1")) {
+                return true;
+            }
+        }
+        return false;
+    }
     
 
 	/* Network */
