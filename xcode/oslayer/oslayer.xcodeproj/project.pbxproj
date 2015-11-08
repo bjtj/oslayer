@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
+		E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
+		E857BB8C1BEDE13300D2022F /* PollablePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB8A1BEDE13300D2022F /* PollablePool.cpp */; };
+		E857BB8D1BEDE13300D2022F /* PollablePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB8A1BEDE13300D2022F /* PollablePool.cpp */; };
 		E882FE821BD5312600E1C8C7 /* oslayer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E882FE811BD5312600E1C8C7 /* oslayer.h */; };
 		E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FE831BD5312600E1C8C7 /* oslayer.mm */; };
 		E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8A1BD5315300E1C8C7 /* os.cpp */; };
@@ -46,6 +50,10 @@
 
 /* Begin PBXFileReference section */
 		E857BB371BE900CD00D2022F /* StringElement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StringElement.hpp; path = ../../liboslayer/StringElement.hpp; sourceTree = "<group>"; };
+		E857BB691BECD09800D2022F /* Logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Logger.cpp; path = ../../liboslayer/Logger.cpp; sourceTree = "<group>"; };
+		E857BB6A1BECD09800D2022F /* Logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Logger.hpp; path = ../../liboslayer/Logger.hpp; sourceTree = "<group>"; };
+		E857BB8A1BEDE13300D2022F /* PollablePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PollablePool.cpp; path = ../../liboslayer/PollablePool.cpp; sourceTree = "<group>"; };
+		E857BB8B1BEDE13300D2022F /* PollablePool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = PollablePool.hpp; path = ../../liboslayer/PollablePool.hpp; sourceTree = "<group>"; };
 		E882FE7E1BD5312600E1C8C7 /* liboslayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liboslayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E882FE811BD5312600E1C8C7 /* oslayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = oslayer.h; sourceTree = "<group>"; };
 		E882FE831BD5312600E1C8C7 /* oslayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = oslayer.mm; sourceTree = "<group>"; };
@@ -108,6 +116,10 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E857BB8A1BEDE13300D2022F /* PollablePool.cpp */,
+				E857BB8B1BEDE13300D2022F /* PollablePool.hpp */,
+				E857BB691BECD09800D2022F /* Logger.cpp */,
+				E857BB6A1BECD09800D2022F /* Logger.hpp */,
 				E857BB371BE900CD00D2022F /* StringElement.hpp */,
 				E882FE8A1BD5315300E1C8C7 /* os.cpp */,
 				E882FE8B1BD5315300E1C8C7 /* os.hpp */,
@@ -192,8 +204,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */,
+				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
+				E857BB8C1BEDE13300D2022F /* PollablePool.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
 				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
 			);
@@ -203,9 +217,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */,
 				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
 				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,
 				E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */,
+				E857BB8D1BEDE13300D2022F /* PollablePool.cpp in Sources */,
 				E8FAB2161BD7C36200E89DC5 /* os.cpp in Sources */,
 				E8FAB2171BD7C36200E89DC5 /* OSThread.mm in Sources */,
 			);

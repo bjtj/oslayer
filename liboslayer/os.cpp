@@ -103,11 +103,11 @@ namespace OS {
 		*handle = dispatch_semaphore_create(initial);
 	}
 
-	static void s_sem_wait(SEM_HANDLE * handle) {
+	static void s_sem_wait(const SEM_HANDLE * handle) {
 		dispatch_semaphore_wait(*handle, DISPATCH_TIME_FOREVER);
 	}
 
-	static void s_sem_post(SEM_HANDLE * handle) {
+	static void s_sem_post(const SEM_HANDLE * handle) {
 		dispatch_semaphore_signal(*handle);
 	}
 
@@ -122,11 +122,11 @@ namespace OS {
 		sem_init(handle, 0, initial);
 	}
 
-	static void s_sem_wait(SEM_HANDLE * handle) {
+	static void s_sem_wait(const SEM_HANDLE * handle) {
 		sem_wait(handle);
 	}
 
-	static void s_sem_post(SEM_HANDLE * handle) {
+	static void s_sem_post(const SEM_HANDLE * handle) {
 		sem_post(handle);
 	}
 
@@ -175,12 +175,12 @@ namespace OS {
 		s_sem_destroy(&handle);
 	}
 	
-	void Semaphore::wait() {
+	void Semaphore::wait() const {
 		s_sem_wait(&handle);
 	}
 	
-	void Semaphore::post() {
-		s_sem_post(&handle);
+	void Semaphore::post() const {
+        s_sem_post(&handle);
 	}
 
     
@@ -340,34 +340,119 @@ namespace OS {
 	void Thread::join() {
 		while (running) { /* take time : 10ms */ idle(10); }
 	}
+    
+    
+    /* InetAddress */
+    
+    InetAddress::InetAddress() : address("0.0.0.0"), port(0) {
+    }
+    InetAddress::InetAddress(const std::string & address, int port) : address(address), port(port) {
+    }
+    InetAddress::InetAddress(sockaddr_in * addr) : port(0) {
+        if (addr->sin_family == AF_INET) {
+            setInetVersion(InetAddress::InetVersion::INET4);
+        } else {
+            setInetVersion(InetAddress::InetVersion::INET6);
+        }
+        address = InetAddress::getIPAddress(addr);
+    }
+    InetAddress::~InetAddress() {
+    }
+    bool InetAddress::inet4() {
+        return inetVersion == InetVersion::INET4;
+    }
+    bool InetAddress::inet6() {
+        return inetVersion == InetVersion::INET6;
+    }
+    void InetAddress::setInetVersion(int version) {
+        inetVersion = version;
+    }
+    std::string InetAddress::getAddress() const {
+        return address;
+    }
+    void InetAddress::setAddress(const std::string & address) {
+        this->address = address;
+    }
+    int InetAddress::getPort() const {
+        return port;
+    }
+    void InetAddress::setPort(int port) {
+        this->port = port;
+    }
+    string InetAddress::getIPAddress(sockaddr_in * addr) {
+        char ipstr[INET6_ADDRSTRLEN] = {0,};
+        
+#if (!defined(USE_WINSOCK2) || _WIN32_WINNT >= 0x0600)
+        inet_ntop(addr->sin_family, (addr->sin_family == AF_INET ?
+                                     (void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
+                  ipstr, sizeof(ipstr));
+        
+#else
+        char * ptr = NULL;
+        if ((ptr = inet_ntoa(addr->sin_addr)) != NULL) {
+            strncpy(ipstr, ptr, INET6_ADDRSTRLEN - 1);
+        }
+#endif
+        
+        return string(ipstr);
+    }
+    int InetAddress::getPortNumber(sockaddr_in * addr) {
+        return ntohs((addr->sin_family == AF_INET ?
+                      ((struct sockaddr_in*)addr)->sin_port: ((struct sockaddr_in6 *)addr)->sin6_port));
+    }
+    
+    /* Network Interface */
+    
+    NetworkInterface::NetworkInterface(const string & name) : name(name) {
+    }
+    NetworkInterface::~NetworkInterface() {
+    }
+    string NetworkInterface::getName() {
+        return name;
+    }
+    void NetworkInterface::setInetAddress(const InetAddress & address) {
+        inetAddresses.push_back(address);
+    }
+    vector<InetAddress> NetworkInterface::getInetAddresses() {
+        return inetAddresses;
+    }
+    
 
-
-	/* Network*/
+	/* Network */
 	
 #if defined(USE_BSD_SOCKET)
-
-	static int s_get_ip_address(const char * ifname, char * ipAddressBuffer) {
-	
-		struct ifaddrs * ifAddrStruct = NULL;
-		struct ifaddrs * ifa = NULL;
-		void * tmpAddrPtr = NULL;
-		getifaddrs( &ifAddrStruct );
-		int found=0;
-
-		for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
-			if ( ifa->ifa_addr != NULL && ifa ->ifa_addr->sa_family == AF_INET ) { // check it is IP4
-				// is a valid IP4 Address
-				tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
-				inet_ntop( AF_INET, tmpAddrPtr, ipAddressBuffer, INET_ADDRSTRLEN );
-				if ( strcmp( ifa->ifa_name, ifname )==0 ) {
-					found = 1;
-					break;
-				}
-			}
-		}
-		if (ifAddrStruct!=NULL) freeifaddrs(ifAddrStruct);
-		return found;
-	}
+    
+    static NetworkInterface & s_obtain_network_interface(vector<NetworkInterface> & ifaces, const string & name) {
+        for (size_t i = 0; i < ifaces.size(); i++) {
+            if (!ifaces[i].getName().compare(name)) {
+                return ifaces[i];
+            }
+        }
+        ifaces.push_back(NetworkInterface(name));
+        return s_obtain_network_interface(ifaces, name);
+    }
+    
+    static vector<NetworkInterface> s_get_all_network_interfaces() {
+        
+        vector<NetworkInterface> ifaces;
+        
+        struct ifaddrs * addrs, * tmp;
+        getifaddrs(&addrs);
+        tmp = addrs;
+        
+        while (tmp) {
+            
+            if (tmp->ifa_addr && (tmp->ifa_addr->sa_family == AF_INET || tmp->ifa_addr->sa_family == AF_INET6)) {
+                NetworkInterface & iface = s_obtain_network_interface(ifaces, tmp->ifa_name);
+                iface.setInetAddress(InetAddress((sockaddr_in*)tmp->ifa_addr));
+            }
+            
+            tmp = tmp->ifa_next;
+        }
+        freeifaddrs(addrs);
+        
+        return ifaces;
+    }
 
 #elif defined(USE_WINSOCK2)
 
@@ -466,19 +551,21 @@ namespace OS {
 	}
 
 #endif
-		
-	string Network::getIPAddress(const string & iface) {
-		return getIPAddress(iface.c_str());
-	}
-
-	string Network::getIPAddress(const char * iface) {
-		char ipaddr[1024] = {0,};
-		if (s_get_ip_address(iface, ipaddr) > 0) {
-			return string(ipaddr);
-		}
-
-		return "0.0.0.0";
-	}
+    
+    vector<InetAddress> Network::getInetAddressesWithIfaceName(const std::string & ifaceName) {
+        vector<NetworkInterface> ifaces = getNetworkInterfaces();
+        for (size_t i = 0; i < ifaces.size(); i++) {
+            NetworkInterface & iface = ifaces[i];
+            if (!iface.getName().compare(ifaceName)) {
+                return iface.getInetAddresses();
+            }
+        }
+        return vector<InetAddress>();
+    }
+    
+    vector<NetworkInterface> Network::getNetworkInterfaces() {
+        return s_get_all_network_interfaces();
+    }
 
 
 	/* select */
@@ -606,9 +693,6 @@ namespace OS {
 			
 			return ret;
 		}
-		virtual void registerSelector(Selector & selector) {
-			selector.set(socket());
-		}
 		virtual bool compareFd(int fd) {
 			return socket() == fd;
 		}
@@ -727,9 +811,6 @@ namespace OS {
 
 			return 0;
 		}
-		virtual void registerSelector(Selector & selector) {
-			selector.set((int)this->socket());
-		}
 		virtual bool compareFd(int fd) {
 			return (int)this->socket() == fd;
 		}
@@ -830,9 +911,15 @@ namespace OS {
 	}
 
 	void Socket::registerSelector(Selector & selector) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->registerSelector(selector);
+        selector.set(getFd());
 	}
+    void Socket::unregisterSelector(Selector & selector) {
+        selector.unset(getFd());
+    }
+    
+    bool Socket::isSelected(Selector & selector) {
+        return selector.isSelected(getFd());
+    }
 	bool Socket::compareFd(int fd) {
         CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->compareFd(fd);
@@ -923,9 +1010,6 @@ namespace OS {
 			}
 		}
 
-		virtual void registerSelector(Selector & selector) {
-			selector.set(socket());
-		}
 		virtual bool compareFd(int fd) {
 			return socket() == fd;
 		}
@@ -947,13 +1031,12 @@ namespace OS {
 			return ret;
 		}
 	
-		virtual bool listen(int max) {
-			if (::listen(socket(), max) != 0) {
-				// error
-				close();
-				return false;
+		virtual int listen(int max) {
+            int ret;
+			if ((ret = ::listen(socket(), max)) < 0) {
+                throw IOException("listen() error", -1, 0);
 			}
-			return true;
+            return ret;
 		}
 	
 		virtual Socket * accept() {
@@ -1030,10 +1113,6 @@ namespace OS {
 				throw IOException("setsockopt() error", -1, 0);
 			}
 		}
-
-		virtual void registerSelector(Selector & selector) {
-			selector.set((int)socket());
-		}
 		virtual bool compareFd(int fd) {
 			return (int)socket() == fd;
 		}
@@ -1055,15 +1134,13 @@ namespace OS {
 			return ret;
 		}
 	
-		virtual bool listen(int max) {
+		virtual int listen(int max) {
 
 			int ret = ::listen(this->socket(), max); // SOMAXCONN
 			if (ret == SOCKET_ERROR) {
-				close();
-				return false;
+                throw IOException("listen() error", -1, 0);
 			}
-
-			return true;
+            return ret;
 		}
 	
 		virtual Socket * accept() {
@@ -1134,9 +1211,16 @@ namespace OS {
 	}
 
 	void ServerSocket::registerSelector(Selector & selector) {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		serverSocketImpl->registerSelector(selector);
+        selector.set(getFd());
 	}
+    
+    void ServerSocket::unregisterSelector(Selector & selector) {
+        selector.unset(getFd());
+    }
+    
+    bool ServerSocket::isSelected(Selector & selector) {
+        return selector.isSelected(getFd());
+    }
 
 	bool ServerSocket::compareFd(int fd) {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
@@ -1166,7 +1250,7 @@ namespace OS {
         return ret;
     }
 	
-	bool ServerSocket::listen(int max) {
+	int ServerSocket::listen(int max) {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
 		return serverSocketImpl->listen(max);
 	}
@@ -1223,9 +1307,15 @@ namespace OS {
 		}
 		BsdDatagramSocket(const char * host, int port) {
 			setAddress(host, port);
-			if (connect() < 0) {
-				throw IOException("connect() error", -1, 0);
-			}
+            SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
+            if (sock < 0) {
+                throw IOException("socket() error", -1, 0);
+            }
+            socket(sock);
+            
+//			if (connect() < 0) {
+//				throw IOException("connect() error", -1, 0);
+//			}
 		}
 		virtual ~BsdDatagramSocket() {
 		}
@@ -1324,9 +1414,6 @@ namespace OS {
 			
 			return ret;
 		}
-		virtual void registerSelector(Selector & selector) {
-			selector.set(socket());
-		}
 		virtual bool compareFd(int fd) {
 			return socket() == fd;
 		}
@@ -1341,8 +1428,8 @@ namespace OS {
 
 			if (ret > 0) {
 				packet.setLength(ret);
-				packet.setRemoteAddr(getRemoteIPAddress(&client_addr));
-				packet.setRemotePort(getRemotePortNumber(&client_addr));
+                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
+                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
 			}
 			
 			return ret;
@@ -1367,7 +1454,7 @@ namespace OS {
 			hints.ai_socktype = SOCK_DGRAM;
 			snprintf(portstr, sizeof(portstr), "%d", port);
 			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
-				return -1;
+				throw IOException("getaddrinfo() error", -1, 0);
 			}
 			ret = (int)::sendto(socket(), buffer, length,
 						   0, res->ai_addr, res->ai_addrlen);
@@ -1529,9 +1616,6 @@ namespace OS {
 
 			return ret;
 		}
-		virtual void registerSelector(Selector & selector) {
-			selector.set((int)socket());
-		}
 		virtual bool compareFd(int fd) {
 			return (int)socket() == fd;
 		}
@@ -1550,8 +1634,8 @@ namespace OS {
 
 			if (ret > 0) {
 				packet.setLength(ret);
-				packet.setRemoteAddr(getRemoteIPAddress(&client_addr));
-				packet.setRemotePort(getRemotePortNumber(&client_addr));
+                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
+                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
 			}
 			
 			return ret;
@@ -1626,14 +1710,26 @@ namespace OS {
 	char * DatagramPacket::getData() {
 		return data;
 	}
+    
+    const char * DatagramPacket::getData() const {
+        return data;
+    }
 
 	size_t DatagramPacket::getLength() {
 		return length;
 	}
+    
+    size_t DatagramPacket::getLength() const {
+        return length;
+    }
 
 	size_t DatagramPacket::getMaxSize() {
 		return maxSize;
 	}
+    
+    size_t DatagramPacket::getMaxSize() const {
+        return maxSize;
+    }
 
 	void DatagramPacket::setLength(size_t length) {
 		this->length = length;
@@ -1642,10 +1738,18 @@ namespace OS {
 	string DatagramPacket::getRemoteAddr() {
 		return remoteAddr;
 	}
+    
+    string DatagramPacket::getRemoteAddr() const {
+        return remoteAddr;
+    }
 
 	int DatagramPacket::getRemotePort() {
 		return remotePort;
 	}
+    
+    int DatagramPacket::getRemotePort() const {
+        return remotePort;
+    }
 
 	void DatagramPacket::setRemoteAddr(string remoteAddr) {
 		this->remoteAddr = remoteAddr;
@@ -1759,9 +1863,14 @@ namespace OS {
 	}
 
 	void DatagramSocket::registerSelector(Selector & selector) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->registerSelector(selector);
+        selector.set(getFd());
 	}
+    void DatagramSocket::unregisterSelector(Selector & selector) {
+        selector.unset(getFd());
+    }
+    bool DatagramSocket::isSelected(Selector & selector) {
+        return selector.isSelected(getFd());
+    }
 	bool DatagramSocket::compareFd(int fd) {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->compareFd(fd);
@@ -1821,30 +1930,6 @@ namespace OS {
 
 	void DatagramSocket::socket(SOCK_HANDLE sock) {
 		this->sock = sock;
-	}
-
-	string DatagramSocket::getRemoteIPAddress(sockaddr_in * addr) {
-
-		char ipstr[INET6_ADDRSTRLEN] = {0,};
-
-#if (!defined(USE_WINSOCK2) || _WIN32_WINNT >= 0x0600)
-		inet_ntop(addr->sin_family, (addr->sin_family == AF_INET ? 
-			(void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
-			ipstr, sizeof(ipstr));
-
-#else
-		char * ptr = NULL;
-		if ((ptr = inet_ntoa(addr->sin_addr)) != NULL) {
-			strncpy(ipstr, ptr, INET6_ADDRSTRLEN - 1);
-		}
-#endif
-
-		return string(ipstr);
-	}
-
-	int DatagramSocket::getRemotePortNumber(sockaddr_in * addr) {
-		return ntohs((addr->sin_family == AF_INET ? 
-			((struct sockaddr_in*)addr)->sin_port: ((struct sockaddr_in6 *)addr)->sin6_port));
 	}
 
 	

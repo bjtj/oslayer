@@ -265,8 +265,8 @@ public: \
 		Semaphore(int initial);
 		Semaphore(const Semaphore & other);
 		virtual ~Semaphore();
-		void wait();
-		void post();
+		void wait() const;
+		void post() const;
 	};
     
     /**
@@ -316,6 +316,70 @@ public: \
 
 		virtual void run() = 0;
 	};
+    
+    /**
+     * @brief InetAddress
+     */
+    class InetAddress {
+    public:
+        class InetVersion {
+        public:
+            static const int UNKNOWN = 0;
+            static const int INET4 = 1;
+            static const int INET6 = 2;
+        private:
+            unsigned long version;
+        public:
+            InetVersion() : version(UNKNOWN) {}
+            InetVersion(int version) : version(version) {}
+            virtual ~InetVersion() {}
+            int getVersion();
+            bool operator== (int other) const {return version == other;}
+            void operator= (int version) {this->version = version;}
+        };
+        
+    private:
+        std::string address;
+        int port;
+        
+        InetVersion inetVersion;
+        
+    public:
+        InetAddress();
+        InetAddress(const std::string & address, int port);
+        InetAddress(sockaddr_in * addr);
+        virtual ~InetAddress();
+        
+        bool inet4();
+        bool inet6();
+        void setInetVersion(int version);
+        
+        std::string getAddress() const;
+        void setAddress(const std::string & address);
+        int getPort() const;
+        void setPort(int port);
+        
+        static std::string getIPAddress(sockaddr_in * addr);
+        static int getPortNumber(sockaddr_in * addr);
+        
+    };
+    
+    /**
+     * @brief network interface
+     */
+    class NetworkInterface {
+    private:
+        std::string name;
+        std::vector<InetAddress> inetAddresses;
+    public:
+        NetworkInterface(const std::string & name);
+        virtual ~NetworkInterface();
+        
+        std::string getName();
+        void setInetAddress(const InetAddress & address);
+        std::vector<InetAddress> getInetAddresses();
+        
+    };
 
 	/**
 	 * @brief network
@@ -323,8 +387,8 @@ public: \
 	class Network {
 	private:
 	public:
-		static std::string getIPAddress(const std::string & iface);
-		static std::string getIPAddress(const char * iface);
+        static std::vector<InetAddress> getInetAddressesWithIfaceName(const std::string & ifaceName);
+        static std::vector<NetworkInterface> getNetworkInterfaces();
 
 	};
 
@@ -357,6 +421,8 @@ public: \
 		virtual ~Selectable() {}
 
 		virtual void registerSelector(Selector & selector) = 0;
+        virtual void unregisterSelector(Selector & selector) = 0;
+        virtual bool isSelected(Selector & selector) = 0;
 	};
 
 	/**
@@ -410,6 +476,9 @@ public: \
 		virtual int connect();
 
 		virtual void registerSelector(Selector & selector);
+        virtual void unregisterSelector(Selector & selector);
+        virtual bool isSelected(Selector & selector);
+        
 		virtual bool compareFd(int fd);
 		virtual int getFd();
 
@@ -454,12 +523,15 @@ public: \
 		virtual void setReuseAddr();
 
 		virtual void registerSelector(Selector & selector);
+        virtual void unregisterSelector(Selector & selector);
+        virtual bool isSelected(Selector & selector);
+        
 		virtual bool compareFd(int fd);
 		virtual int getFd();
 
 		virtual int bind();
         virtual int randomBind(RandomPortBinder & portBinder);
-		virtual bool listen(int max);
+		virtual int listen(int max);
 		virtual Socket * accept();
 		virtual void close();
 		virtual bool isClosed();
@@ -488,11 +560,16 @@ public: \
 		DatagramPacket(char * data, size_t maxSize);
 		virtual ~DatagramPacket();
 		char * getData();
+        const char * getData() const;
 		size_t getLength();
+        size_t getLength() const;
 		size_t getMaxSize();
+        size_t getMaxSize() const;
 		void setLength(size_t length);
 		std::string getRemoteAddr();
+        std::string getRemoteAddr() const;
 		int getRemotePort();
+        int getRemotePort() const;
 		void setRemoteAddr(std::string remoteAddr);
 		void setRemotePort(int remotePort);
 	};
@@ -531,6 +608,9 @@ public: \
 		virtual int connect();
 
 		virtual void registerSelector(Selector & selector);
+        virtual void unregisterSelector(Selector & selector);
+        virtual bool isSelected(Selector & selector);
+        
 		virtual bool compareFd(int fd);
 		virtual int getFd();
 
@@ -549,8 +629,6 @@ public: \
 
 	protected:
 		void socket(SOCK_HANDLE sock);
-		std::string getRemoteIPAddress(sockaddr_in * addr);
-		int getRemotePortNumber(sockaddr_in * addr);
 	};
 	
 
