@@ -7,86 +7,85 @@ namespace UTIL {
     using namespace OS;
 
     /**
-     * @brief Pollable
+     * @brief Poller
      */
+    Poller::Poller() {
+    }
+    Poller::~Poller() {
+    }
+    void Poller::registerPollee(Pollee * pollee) {
+        pollees.push_back(pollee);
+    }
+    void Poller::unregisterPollee(Pollee * pollee) {
+        pollees.erase(std::remove(pollees.begin(), pollees.end(), pollee), pollees.end());
+    }
+    void Poller::listen() {
+        for (size_t i = 0; i < pollees.size(); i++) {
+            Pollee * pollee = pollees[i];
+            pollee->listen(*this);
+        }
+    }
     
-    Pollable::Pollable() {
-    }
-    Pollable::~Pollable() {
-    }
     
     /**
-     * @brief PollingServer
+     * @brief SelectablePollee
      */
     
-    PollablePool::PollablePool() {
+    SelectablePollee::SelectablePollee(SelectorPoller & selectorPoller) : selectorPoller(selectorPoller) {
+        selectorPoller.registerPollee(this);
     }
-    PollablePool::~PollablePool() {
+    SelectablePollee::~SelectablePollee() {
     }
-    
-    void PollablePool::registerSelector(Selector & selector) {
-        for (size_t i = 0; i < pollables.size(); i++) {
-            pollables[i]->registerSelector(selector);
-        }
+    void SelectablePollee::registerSelecotr(int fd) {
+        selectorPoller.registerSelector(fd);
     }
-    void PollablePool::unregisterSelector(Selector & selector) {
-        for (size_t i = 0; i < pollables.size(); i++) {
-            pollables[i]->unregisterSelector(selector);
-        }
+    void SelectablePollee::unregisterSelector(int fd) {
+        selectorPoller.unregisterSelector(fd);
     }
-    bool PollablePool::isSelected(Selector & selector) {
-        for (size_t i = 0; i < pollables.size(); i++) {
-            if (pollables[i]->isSelected(selector)) {
-                return true;
-            }
-        }
-        return false;
+    void SelectablePollee::listen(Poller & poller) {
+        listen((SelectorPoller&)poller);
     }
     
-    void PollablePool::poll(unsigned long timeout) {
+    
+    
+    /**
+     * @brief SelectorPoller
+     */
+    
+    SelectorPoller::SelectorPoller() {
+    }
+    SelectorPoller::~SelectorPoller() {
+    }
+    void SelectorPoller::registerSelector(int fd) {
+        selector.set(fd);
+    }
+    void SelectorPoller::unregisterSelector(int fd) {
+        selector.unset(fd);
+    }
+    void SelectorPoller::poll(unsigned long timeout) {
         if (selector.select(timeout) > 0) {
-            for (size_t i = 0; i < pollables.size(); i++) {
-                if (pollables[i]->isSelected(selector)) {
-                    pollables[i]->listen();
-                }
-            }
+            listen();
         }
     }
     
-    void PollablePool::listen() {
-        for (size_t i = 0; i < pollables.size(); i++) {
-            pollables[i]->listen();
-        }
-    }
-    
-    void PollablePool::registerPollable(Pollable * pollable) {
-        pollables.push_back(pollable);
-        pollable->registerSelector(selector);
-    }
-    
-    void PollablePool::unregisterPollable(Pollable * pollable) {
-        pollable->unregisterSelector(selector);
-        pollables.erase(std::remove(pollables.begin(), pollables.end(), pollable), pollables.end());
-    }
-    
-    vector<Pollable*> & PollablePool::getPollables() {
-        return pollables;
+    bool SelectorPoller::isSelected(int fd) {
+        return selector.isSelected(fd);
     }
     
     
     /**
      * @brief PollingThread
      */
-    PollingThread::PollingThread(Pollable & pollable, unsigned long timeout) : pollable(pollable), timeout(timeout) {
+    
+    PollingThread::PollingThread(Poller & poller, unsigned long timeout) : poller(poller), timeout(timeout) {
         
     }
     PollingThread::~PollingThread() {
-        
     }
     
     void PollingThread::run() {
         while (!interrupted()) {
-            pollable.poll(timeout);
+            poller.poll(timeout);
         }
     }
 }

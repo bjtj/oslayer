@@ -6,59 +6,106 @@
 
 namespace UTIL {
     
-    /**
-     * @brief pollable
-     */
-    class Pollable : OS::Selectable {
-    private:
-    public:
-        Pollable();
-        virtual ~Pollable();
-        
-        virtual void registerSelector(OS::Selector & selector) = 0;
-        virtual void unregisterSelector(OS::Selector & selector) = 0;
-        virtual bool isSelected(OS::Selector & selector) = 0;
-        
-        virtual void poll(unsigned long timeout) = 0;
-        virtual void listen() = 0;
-    };
+    class Poller;
+    
     
     /**
-     * @brief polling server
+     * @brief Pollee
      */
-    class PollablePool : public Pollable {
+    class Pollee {
+        
+    private:
+    public:
+        
+        Pollee() {}
+        virtual ~Pollee() {}
+        
+        virtual void listen(Poller & poller) = 0;
+    };
+    
+    
+    /**
+     * @brief Poller
+     */
+    class Poller {
+        
+    private:
+        std::vector<Pollee*> pollees;
+    public:
+        
+        Poller();
+        virtual ~Poller();
+        
+        virtual void registerPollee(Pollee * pollee);
+        virtual void unregisterPollee(Pollee * pollee);
+        virtual void poll(unsigned long timeout) = 0;
+        virtual void listen();
+    };
+    
+    
+    
+    
+    class SelectorPoller;
+    
+    
+    
+    /**
+     * @brief SelectablePollee
+     */
+    class SelectablePollee : public Pollee {
+        
+    private:
+        SelectorPoller & selectorPoller;
+        
+    public:
+        
+        SelectablePollee(SelectorPoller & selectorPoller);
+        virtual ~SelectablePollee();
+        
+        void registerSelecotr(int fd);
+        void unregisterSelector(int fd);
+        
+        
+        virtual void listen(Poller & poller);
+        virtual void listen(SelectorPoller & poller) = 0;
+    };
+    
+    
+    
+    
+    /**
+     * @brief SelectorPoller
+     */
+    class SelectorPoller : public Poller {
+        
     private:
         OS::Selector selector;
-        std::vector<Pollable*> pollables;
         
     public:
-        PollablePool();
-        virtual ~PollablePool();
         
-        virtual void registerSelector(OS::Selector & selector);
-        virtual void unregisterSelector(OS::Selector & selector);
-        virtual bool isSelected(OS::Selector & selector);
+        SelectorPoller();
+        virtual ~SelectorPoller();
+        
+        void registerSelector(int fd);
+        void unregisterSelector(int fd);
         
         virtual void poll(unsigned long timeout);
-        virtual void listen();
-        
-        void registerPollable(Pollable * pollable);
-        void unregisterPollable(Pollable * pollable);
-        
-    protected:
-        std::vector<Pollable*> & getPollables();
+        bool isSelected(int fd);
     };
     
+    
+    
+    
     /**
-     * @brief polling thread
+     * @brief PollingThread
      */
     class PollingThread : public OS::Thread {
     private:
-        Pollable & pollable;
+        Poller & poller;
         unsigned long timeout;
         
     public:
-        PollingThread(Pollable & pollable, unsigned long timeout);
+        PollingThread(Poller & poller, unsigned long timeout);
         virtual ~PollingThread();
         
         virtual void run();
