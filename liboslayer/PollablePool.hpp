@@ -43,39 +43,13 @@ namespace UTIL {
     };
     
     
-    
-    
-    class SelectorPoller;
-    
-    
-    
-    /**
-     * @brief SelectablePollee
-     */
-    class SelectablePollee : public Pollee {
-        
-    private:
-        SelectorPoller & selectorPoller;
-        
-    public:
-        
-        SelectablePollee(SelectorPoller & selectorPoller);
-        virtual ~SelectablePollee();
-        
-        void registerSelecotr(int fd);
-        void unregisterSelector(int fd);
-        
-        
-        virtual void listen(Poller & poller);
-        virtual void listen(SelectorPoller & poller) = 0;
-    };
-    
-    
+    class SelectablePollee;
     
     
     /**
      * @brief SelectorPoller
      */
+    
     class SelectorPoller : public Poller {
         
     private:
@@ -89,8 +63,40 @@ namespace UTIL {
         void registerSelector(int fd);
         void unregisterSelector(int fd);
         
+        void registerSelectablePollee(SelectablePollee * pollee);
+        void unregisterSelectablePollee(SelectablePollee * pollee);
+        
         virtual void poll(unsigned long timeout);
         bool isSelected(int fd);
+    };
+    
+    
+    /**
+     * @brief SelectablePollee
+     */
+    
+    class SelectablePollee : public Pollee {
+        
+    private:
+        SelectorPoller * selectorPoller;
+        SelectorPoller selfPoller;
+        
+    public:
+        
+        SelectablePollee();
+        virtual ~SelectablePollee();
+        
+        SelectorPoller * getSelectorPoller();
+        void setSelectorPoller(SelectorPoller * selectorPoller);
+        
+        SelectorPoller & getSelfSelectorPoller();
+        
+        void registerSelector(int fd);
+        void unregisterSelector(int fd);
+        
+        
+        virtual void listen(Poller & poller);
+        virtual void listen(SelectorPoller & poller) = 0;
     };
     
     

@@ -28,27 +28,6 @@ namespace UTIL {
     
     
     /**
-     * @brief SelectablePollee
-     */
-    
-    SelectablePollee::SelectablePollee(SelectorPoller & selectorPoller) : selectorPoller(selectorPoller) {
-        selectorPoller.registerPollee(this);
-    }
-    SelectablePollee::~SelectablePollee() {
-    }
-    void SelectablePollee::registerSelecotr(int fd) {
-        selectorPoller.registerSelector(fd);
-    }
-    void SelectablePollee::unregisterSelector(int fd) {
-        selectorPoller.unregisterSelector(fd);
-    }
-    void SelectablePollee::listen(Poller & poller) {
-        listen((SelectorPoller&)poller);
-    }
-    
-    
-    
-    /**
      * @brief SelectorPoller
      */
     
@@ -62,6 +41,14 @@ namespace UTIL {
     void SelectorPoller::unregisterSelector(int fd) {
         selector.unset(fd);
     }
+    void SelectorPoller::registerSelectablePollee(SelectablePollee * pollee) {
+        pollee->setSelectorPoller(this);
+        registerPollee(pollee);
+    }
+    void SelectorPoller::unregisterSelectablePollee(SelectablePollee * pollee) {
+        pollee->setSelectorPoller(NULL);
+        unregisterPollee(pollee);
+    }
     void SelectorPoller::poll(unsigned long timeout) {
         if (selector.select(timeout) > 0) {
             listen();
@@ -72,6 +59,44 @@ namespace UTIL {
         return selector.isSelected(fd);
     }
     
+    
+    
+    
+    /**
+     * @brief SelectablePollee
+     */
+    
+    SelectablePollee::SelectablePollee() : selectorPoller(NULL) {
+        selfPoller.registerPollee(this);
+    }
+    SelectablePollee::~SelectablePollee() {
+        selfPoller.unregisterPollee(this);
+    }
+    SelectorPoller * SelectablePollee::getSelectorPoller() {
+        return selectorPoller;
+    }
+    void SelectablePollee::setSelectorPoller(SelectorPoller * selectorPoller) {
+        this->selectorPoller = selectorPoller;
+    }
+    SelectorPoller & SelectablePollee::getSelfSelectorPoller() {
+        return selfPoller;
+    }
+    void SelectablePollee::registerSelector(int fd) {
+        selfPoller.registerSelector(fd);
+        if (selectorPoller) {
+            selectorPoller->registerSelector(fd);
+        }
+    }
+    void SelectablePollee::unregisterSelector(int fd) {
+        selfPoller.unregisterSelector(fd);
+        if (selectorPoller) {
+            selectorPoller->unregisterSelector(fd);
+        }
+    }
+    void SelectablePollee::listen(Poller & poller) {
+        listen((SelectorPoller&)poller);
+    }
+
     
     /**
      * @brief PollingThread
