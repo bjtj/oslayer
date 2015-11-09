@@ -28,7 +28,7 @@ namespace UTIL {
 		const std::string & getName() const {return name;}
 		const std::string & getValue() const {return value;}
 		bool operator==(const std::string & name) const {
-			return (!name.compare(name) ? true : false);
+			return (!this->name.compare(name) ? true : false);
 		}
 	};
 
@@ -53,16 +53,6 @@ namespace UTIL {
             }
             return "";
         }
-//
-//        const std::string & operator[] (const std::string & name) const {
-//            
-//            for (StringMap::const_iterator iter = begin(); iter != end(); iter++) {
-//                if (iter->first == name) {
-//                    return iter->second;
-//                }
-//            }
-//            throw OS::Exception("no element found", -1, 0);
-//        }
 	};
 
 	/**
@@ -97,6 +87,12 @@ namespace UTIL {
             static const NameValue empty;
 			return empty;
 		}
+		std::string & getValue(const std::string & name) {
+			return get(name).getValue();
+		}
+		const std::string & getValue(const std::string & name) const {
+			return get(name).getValue();
+		}
 	public:
 		LinkedStringMap() {
 		}
@@ -113,15 +109,107 @@ namespace UTIL {
         }
 
 		const std::string & operator[] (const std::string & name) const {
-			return get(name).getValue();
+			return getValue(name);
 		}
 		std::string & operator[] (const std::string & name) {
-			return get(name).getValue();
+			return getValue(name);
 		}
 		const NameValue & operator[] (size_t index) const {
 			return elements[index];
 		}
 		NameValue & operator[] (size_t index) {
+			return elements[index];
+		}
+	};
+
+
+	/**
+	 * @brief NameProperty
+	 */
+	class NameProperty {
+	private:
+		std::string name;
+		std::string value;
+		LinkedStringMap properties;
+
+	public:
+		NameProperty() {}
+		NameProperty(const std::string & name) : name(name) {}
+		NameProperty(const std::string & name, const std::string & value) : name(name), value(value) {}
+		virtual ~NameProperty() {}
+		void setName(const std::string & name) {this->name = name;}
+		void setValue(const std::string & value) {this->value = value;}
+		std::string & getName() {return name;}
+		std::string & getValue() {return value;}
+		const std::string & getName() const {return name;}
+		const std::string & getValue() const {return value;}
+		LinkedStringMap & getProperties() {return properties;}
+		const LinkedStringMap & getProperties() const {return properties;}
+		std::string & getProperty(const std::string & name) {return properties[name];}
+		void setProperty(const std::string & name, const std::string & value) {properties[name] = value;}
+		const std::string & getProperty(const std::string & name) const {return properties[name];}
+		std::string & operator[] (const std::string & name) {return properties[name];}
+		bool operator==(const std::string & name) const {
+			return (!this->name.compare(name) ? true : false);
+		}
+		void operator=(const std::string & value) {
+			this->value = value;
+		}
+	};
+
+
+	/**
+	 * @brief linked string map
+	 */
+	class LinkedStringProperties {
+	private:
+		std::vector<NameProperty> elements;
+	public:
+		LinkedStringProperties() {
+		}
+		virtual ~LinkedStringProperties() {
+		}
+		size_t size() const {
+			return elements.size();
+		}
+        void clear() {
+            elements.clear();
+        }
+		NameProperty & get(const std::string & name) {
+			for (size_t i = 0; i < elements.size(); i++) {
+				NameProperty & np = elements[i];
+				if (np == name) {
+					return np;
+				}
+			}
+			elements.push_back(NameProperty(name));
+			return get(name);
+		}
+		const NameProperty & const_get(const std::string & name) const {
+			for (size_t i = 0; i < elements.size(); i++) {
+				const NameProperty & np = elements[i];
+				if (np == name) {
+					return np;
+				}
+			}
+			throw OS::Exception("no item found", -1, 0);
+		}
+		bool has(const std::string & name) const {
+			for (size_t i = 0; i < elements.size(); i++) {
+				const NameProperty & np = elements[i];
+				if (np == name) {
+					return true;
+				}
+			}
+			return false;
+		}
+		NameProperty & operator[] (const std::string & name) {
+			return get(name);
+		}
+		const NameProperty & operator[] (size_t index) const {
+			return elements[index];
+		}
+		NameProperty & operator[] (size_t index) {
 			return elements[index];
 		}
 	};

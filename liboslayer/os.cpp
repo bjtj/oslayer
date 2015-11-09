@@ -527,6 +527,7 @@ namespace OS {
 
 				InetAddress address;
 				address.setAddress(pAdapterInfo->IpAddressList.IpAddress.String);
+				address.setInetVersion(InetAddress::InetVersion::INET4);
 				iface.setInetAddress(address);
 
 				pIpAddress = pIpAddress->Next;
