@@ -370,15 +370,22 @@ public: \
     class NetworkInterface {
     private:
         std::string name;
+		std::string description;
         std::vector<InetAddress> inetAddresses;
+		bool loopback;
+
     public:
         NetworkInterface(const std::string & name);
         virtual ~NetworkInterface();
         
-        std::string getName();
+        std::string getName() const;
+		void setDescription(const std::string & description);
+		std::string getDescription() const;
         void setInetAddress(const InetAddress & address);
         std::vector<InetAddress> getInetAddresses();
+		const std::vector<InetAddress> getInetAddresses() const;
         
+		void setLoopBack(bool loopback);
         bool isLoopBack();
         
     };

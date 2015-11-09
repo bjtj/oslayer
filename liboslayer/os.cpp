@@ -144,11 +144,11 @@ namespace OS {
 			NULL);		// unnamed semaphore
 	}
 
-	static void s_sem_wait(SEM_HANDLE * handle) {
+	static void s_sem_wait(const SEM_HANDLE * handle) {
 		WaitForSingleObject(*handle, INFINITE);
 	}
 
-	static void s_sem_post(SEM_HANDLE * handle) {
+	static void s_sem_post(const SEM_HANDLE * handle) {
 		ReleaseSemaphore( 
                         *handle,	// handle to semaphore
                         1,			// increase count by one
@@ -403,20 +403,39 @@ namespace OS {
     
     /* Network Interface */
     
-    NetworkInterface::NetworkInterface(const string & name) : name(name) {
+    NetworkInterface::NetworkInterface(const string & name) : name(name), loopback(false) {
     }
     NetworkInterface::~NetworkInterface() {
     }
-    string NetworkInterface::getName() {
+    string NetworkInterface::getName() const {
         return name;
     }
+	void NetworkInterface::setDescription(const string & description) {
+		this->description = description;
+	}
+	string NetworkInterface::getDescription() const {
+		return description;
+	}
     void NetworkInterface::setInetAddress(const InetAddress & address) {
         inetAddresses.push_back(address);
     }
     vector<InetAddress> NetworkInterface::getInetAddresses() {
         return inetAddresses;
     }
+
+	const vector<InetAddress> NetworkInterface::getInetAddresses() const {
+        return inetAddresses;
+    }
+
+	void NetworkInterface::setLoopBack(bool loopback) {
+		this->loopback = loopback;
+	}
+
     bool NetworkInterface::isLoopBack() {
+		if (loopback) {
+			return true;
+		}
+
         for (size_t i = 0; i < inetAddresses.size(); i++) {
             InetAddress & addr = inetAddresses[i];
             if (!addr.getAddress().compare("127.0.0.1") ||
@@ -424,6 +443,7 @@ namespace OS {
                 return true;
             }
         }
+
         return false;
     }
     
@@ -466,99 +486,60 @@ namespace OS {
 
 #elif defined(USE_WINSOCK2)
 
-#if 0
-	static int s_get_ip_address(const char * ifname, char * ipAddressBuffer) {
-		PIP_INTERFACE_INFO pInfo = NULL;
-		ULONG ulOutBufLen = 0;
+	static vector<NetworkInterface> s_get_all_network_interfaces() {
 
-		DWORD dwRetVal = 0;
-		int iReturn = 1;
+	vector<NetworkInterface> ret;
 
-		int i;
+	ULONG outBufLen = 0;
+	DWORD dwRetVal = 0;
+	IP_ADAPTER_INFO * pAdapterInfos = (IP_ADAPTER_INFO*) malloc(sizeof(IP_ADAPTER_INFO));
 
-		dwRetVal = GetInterfaceInfo(NULL, &ulOutBufLen);
-		if (dwRetVal == ERROR_INSUFFICIENT_BUFFER) {
-			pInfo = (IP_INTERFACE_INFO *) MALLOC(ulOutBufLen);
-			if (pInfo == NULL) {
-				printf("Unable to allocate memory needed to call GetInterfaceInfo\n");
-				return 1;
-			}
-		}
+	// retry up to 5 times, to get the adapter infos needed
+	const int retry = 5;
+	for (int i = 0; i < retry && (dwRetVal == ERROR_BUFFER_OVERFLOW || dwRetVal == NO_ERROR); ++i) {
 
-		dwRetVal = GetInterfaceInfo(pInfo, &ulOutBufLen);
+		// GetAdaptersInfo: https://msdn.microsoft.com/ko-kr/library/windows/desktop/aa365917%28v=vs.85%29.aspx
+		dwRetVal = GetAdaptersInfo(pAdapterInfos, &outBufLen);
+
 		if (dwRetVal == NO_ERROR) {
-			printf("Number of Adapters: %ld\n\n", pInfo->NumAdapters);
-			for (i = 0; i < pInfo->NumAdapters; i++) {
-	            printf("Adapter Index[%d]: %ld\n", i, pInfo->Adapter[i].Index);
-				printf("Adapter Name[%d]: %ws\n\n", i, pInfo->Adapter[i].Name);
-			}
-			iReturn = 0;
-		} else if (dwRetVal == ERROR_NO_DATA) {
-	        printf("There are no network adapters with IPv4 enabled on the local system\n");
-			iReturn = 0;
+			break;
+		} else if (dwRetVal == ERROR_BUFFER_OVERFLOW) {
+			free(pAdapterInfos);
+			pAdapterInfos = (IP_ADAPTER_INFO *)malloc(outBufLen);
 		} else {
-	        printf("GetInterfaceInfo failed with error: %d\n", dwRetVal);
-			iReturn = 1;
+			pAdapterInfos = NULL;
+			break;
 		}
-
-		FREE(pInfo);
-
-		return iReturn;
 	}
-#endif
 
-	/**
-	 * @ref http://stackoverflow.com/questions/1673931/how-do-i-enumerate-network-adapters-and-get-their-mac-addresses-in-win32-api-c
-	 * @ref https://msdn.microsoft.com/en-us/library/windows/desktop/aa365917%28v=vs.85%29.aspx
-	 */
-	static int s_get_ip_address(const char * ifname, char * ipAddressBuffer) {
-		ULONG outBufLen = 0;
-		DWORD dwRetVal = 0;
-		IP_ADAPTER_INFO* pAdapterInfos = (IP_ADAPTER_INFO*) malloc(sizeof(IP_ADAPTER_INFO));
+	if (dwRetVal == NO_ERROR) {
 
-		// retry up to 5 times, to get the adapter infos needed
-		for( int i = 0; i < 5 && (dwRetVal == ERROR_BUFFER_OVERFLOW || dwRetVal == NO_ERROR); ++i )
-		{
-			dwRetVal = GetAdaptersInfo(pAdapterInfos, &outBufLen);
-			if( dwRetVal == NO_ERROR )
-			{
-				break;
+		IP_ADAPTER_INFO* pAdapterInfo = pAdapterInfos;
+
+		while( pAdapterInfo ) {
+
+			NetworkInterface iface(pAdapterInfo->AdapterName);
+			iface.setDescription(pAdapterInfo->Description);
+
+			IP_ADDR_STRING * pIpAddress = &(pAdapterInfo->IpAddressList);
+
+			while( pIpAddress != 0 ) {
+
+				InetAddress address;
+				address.setAddress(pAdapterInfo->IpAddressList.IpAddress.String);
+				iface.setInetAddress(address);
+
+				pIpAddress = pIpAddress->Next;
 			}
-			else if( dwRetVal == ERROR_BUFFER_OVERFLOW )
-			{
-				free(pAdapterInfos);
-				pAdapterInfos = (IP_ADAPTER_INFO*) malloc(outBufLen);
-			}
-			else
-			{
-				pAdapterInfos = 0;
-				break;
-			}
+			pAdapterInfo = pAdapterInfo->Next;
+
+			ret.push_back(iface);
 		}
-		if( dwRetVal == NO_ERROR )
-		{
-			IP_ADAPTER_INFO* pAdapterInfo = pAdapterInfos;
-			while( pAdapterInfo )
-			{
-				IP_ADDR_STRING* pIpAddress = &(pAdapterInfo->IpAddressList);
-				while( pIpAddress != 0 )
-				{
-					// 
-					// <<<<
-					// here pAdapterInfo->Address should contain the MAC address
-					// >>>>
-					// 
-
-					printf("[%s] ip address: %s\n", pAdapterInfo->AdapterName, pAdapterInfo->IpAddressList.IpAddress.String);
-
-					pIpAddress = pIpAddress->Next;
-				}
-				pAdapterInfo = pAdapterInfo->Next;
-			}
-		}
-		free(pAdapterInfos);
-		return false;
 	}
+	free(pAdapterInfos);
+
+	return ret;
+}
 
 #endif
     
@@ -578,7 +559,8 @@ namespace OS {
     }
 
 
-	/* select */
+	/* SELECTOR */
+
 	Selector::Selector() : maxfds(0) {
 		FD_ZERO(&readfds);
 		FD_ZERO(&curfds);
