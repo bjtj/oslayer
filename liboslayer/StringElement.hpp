@@ -59,40 +59,10 @@ namespace UTIL {
 	 * @brief linked string map
 	 */
 	class LinkedStringMap {
-    public:
-        class iterator {
-            const LinkedStringMap * container;
-            
-        };
+
 	private:
 		std::vector<NameValue> elements;
-	private:
-		NameValue & get(const std::string & name) {
-			for (size_t i = 0; i < elements.size(); i++) {
-				NameValue & nv = elements[i];
-				if (nv == name) {
-					return nv;
-				}
-			}
-			elements.push_back(NameValue(name));
-			return get(name);
-		}
-		const NameValue & get(const std::string & name) const {
-			for (size_t i = 0; i < elements.size(); i++) {
-				const NameValue & nv = elements[i];
-				if (nv == name) {
-					return nv;
-				}
-			}
-            static const NameValue empty;
-			return empty;
-		}
-		std::string & getValue(const std::string & name) {
-			return get(name).getValue();
-		}
-		const std::string & getValue(const std::string & name) const {
-			return get(name).getValue();
-		}
+
 	public:
 		LinkedStringMap() {
 		}
@@ -108,14 +78,34 @@ namespace UTIL {
             elements.clear();
         }
 
-		const std::string & operator[] (const std::string & name) const {
-			return getValue(name);
+		NameValue & get(const std::string & name) {
+			for (size_t i = 0; i < elements.size(); i++) {
+				NameValue & nv = elements[i];
+				if (nv == name) {
+					return nv;
+				}
+			}
+			elements.push_back(NameValue(name));
+			return get(name);
 		}
-		std::string & operator[] (const std::string & name) {
-			return getValue(name);
+		NameValue const_get(const std::string & name) const {
+			for (size_t i = 0; i < elements.size(); i++) {
+				const NameValue & nv = elements[i];
+				if (nv == name) {
+					return nv;
+				}
+			}
+			return NameValue();
 		}
-		const NameValue & operator[] (size_t index) const {
+		NameValue & getByIndex(size_t index) {
 			return elements[index];
+		}
+		const NameValue & const_getByIndex(size_t index) const {
+			return elements[index];
+		}
+
+		std::string & operator[] (const std::string & name) {
+			return get(name).getValue();
 		}
 		NameValue & operator[] (size_t index) {
 			return elements[index];
@@ -146,8 +136,8 @@ namespace UTIL {
 		LinkedStringMap & getProperties() {return properties;}
 		const LinkedStringMap & getProperties() const {return properties;}
 		std::string & getProperty(const std::string & name) {return properties[name];}
+		std::string getProperty(const std::string & name) const {return properties.const_get(name).getValue();}
 		void setProperty(const std::string & name, const std::string & value) {properties[name] = value;}
-		const std::string & getProperty(const std::string & name) const {return properties[name];}
 		std::string & operator[] (const std::string & name) {return properties[name];}
 		bool operator==(const std::string & name) const {
 			return (!this->name.compare(name) ? true : false);
