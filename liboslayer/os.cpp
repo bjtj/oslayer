@@ -1976,6 +1976,13 @@ namespace OS {
 	static bool s_is_fullpath(const string & path) {
 		return !path.empty() && s_is_separator(path[0]);
 	}
+    static string s_get_cwd() {
+        char buffer[2048] = {0,};
+        if (getcwd(buffer, sizeof(buffer)) == NULL) {
+            throw IOException("getcwd() error", -1, 0);
+        }
+        return string(buffer);
+    }
 	static bool s_is_root_path(const string & path) {
 		return !path.compare("/");
 	}

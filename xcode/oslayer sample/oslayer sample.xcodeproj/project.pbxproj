@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E8447C5E1BF0B9BE000E2903 /* polling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8447C5D1BF0B9BE000E2903 /* polling.cpp */; };
+		E8447C9F1BF4AE51000E2903 /* fileReadWrite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8447C9B1BF4AE51000E2903 /* fileReadWrite.cpp */; };
 		E8FAB22C1BD7C6A300E89DC5 /* liboslayer-cocoa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FAB2271BD7C5EA00E89DC5 /* liboslayer-cocoa.a */; };
 /* End PBXBuildFile section */
 
@@ -49,6 +49,10 @@
 
 /* Begin PBXFileReference section */
 		E8447C5D1BF0B9BE000E2903 /* polling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = polling.cpp; path = ../../../examples/polling.cpp; sourceTree = "<group>"; };
+		E8447C9B1BF4AE51000E2903 /* fileReadWrite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fileReadWrite.cpp; path = ../../../examples/fileReadWrite.cpp; sourceTree = "<group>"; };
+		E8447C9C1BF4AE51000E2903 /* logTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = logTest.cpp; path = ../../../examples/logTest.cpp; sourceTree = "<group>"; };
+		E8447C9D1BF4AE51000E2903 /* pollingTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pollingTest.cpp; path = ../../../examples/pollingTest.cpp; sourceTree = "<group>"; };
+		E8447C9E1BF4AE51000E2903 /* udpclient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = udpclient.cpp; path = ../../../examples/udpclient.cpp; sourceTree = "<group>"; };
 		E857BAF71BE2651000D2022F /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = app.cpp; path = ../../../examples/app.cpp; sourceTree = "<group>"; };
 		E857BAF81BE2651000D2022F /* trycatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = trycatch.cpp; path = ../../../examples/trycatch.cpp; sourceTree = "<group>"; };
 		E857BB991BEE551000D2022F /* networkInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = networkInfo.cpp; path = ../../../examples/networkInfo.cpp; sourceTree = "<group>"; };
@@ -90,6 +94,10 @@
 		E8FAB1F61BD7C2C200E89DC5 /* oslayer sample */ = {
 			isa = PBXGroup;
 			children = (
+				E8447C9B1BF4AE51000E2903 /* fileReadWrite.cpp */,
+				E8447C9C1BF4AE51000E2903 /* logTest.cpp */,
+				E8447C9D1BF4AE51000E2903 /* pollingTest.cpp */,
+				E8447C9E1BF4AE51000E2903 /* udpclient.cpp */,
 				E8447C5D1BF0B9BE000E2903 /* polling.cpp */,
 				E857BAF71BE2651000D2022F /* app.cpp */,
 				E857BAF81BE2651000D2022F /* trycatch.cpp */,
@@ -189,7 +197,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E8447C5E1BF0B9BE000E2903 /* polling.cpp in Sources */,
+				E8447C9F1BF4AE51000E2903 /* fileReadWrite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

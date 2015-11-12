@@ -20,7 +20,7 @@ namespace UTIL {
 		FileReader(OS::File & file);
 		virtual ~FileReader();
 
-		virtual int read(char * buffer, size_t len);
+		virtual size_t read(char * buffer, size_t len);
 		virtual void close();
 
 		OS::File & getFile();
@@ -41,7 +41,7 @@ namespace UTIL {
 		FileWriter(OS::File & file);
 		virtual ~FileWriter();
 
-		virtual int write(const char * data, size_t len);
+		virtual size_t write(const char * data, size_t len);
 		virtual void close();
 
 		OS::File & getFile();

@@ -26,7 +26,7 @@ namespace UTIL {
 			close();
 		}
 
-		virtual int read(char * buffer, size_t len) {
+		virtual size_t read(char * buffer, size_t len) {
 			return fread(buffer, 1, len, fd);
 		}
 		virtual void close() {
@@ -52,8 +52,8 @@ namespace UTIL {
 			close();
 		}
 
-		virtual int read(char * buffer, size_t len) {
-			int ret = fread(buffer, 1, len, fd);
+		virtual size_t read(char * buffer, size_t len) {
+			size_t ret = fread(buffer, 1, len, fd);
 			return ret;
 		}
 		virtual void close() {
@@ -83,7 +83,7 @@ namespace UTIL {
 		}
 	}
 
-	int FileReader::read(char * buffer, size_t len) {
+	size_t FileReader::read(char * buffer, size_t len) {
 		CHECK_NOT_IMPL_THROW(impl);
 		return impl->read(buffer, len);
 	}
@@ -117,7 +117,7 @@ namespace UTIL {
 			close();
 		}
 
-		virtual int write(const char * data, size_t len) {
+		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
 		}
 		virtual void close() {
@@ -144,7 +144,7 @@ namespace UTIL {
 			close();
 		}
 
-		virtual int write(const char * data, size_t len) {
+		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
 		}
 		virtual void close() {
@@ -174,7 +174,7 @@ namespace UTIL {
 		}
 	}
 
-	int FileWriter::write(const char * data, size_t len) {
+	size_t FileWriter::write(const char * data, size_t len) {
 		CHECK_NOT_IMPL_THROW(impl);
 		return impl->write(data, len);
 	}

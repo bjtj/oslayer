@@ -7,7 +7,7 @@ using namespace OS;
 using namespace UTIL;
 
 size_t readline(char * buffer, size_t max) {
-	fgets(buffer, max - 1, stdin);
+	fgets(buffer, (int)max - 1, stdin);
 	buffer[strlen(buffer) - 1] = 0;
 	return strlen(buffer);
 }
@@ -17,7 +17,7 @@ void read_file(const char * filename) {
 	FileReader reader(file);
 
 	char buffer[1024] = {0,};
-	int len;
+	size_t len;
 	while ((len = reader.read(buffer, sizeof(buffer))) > 0) {
 		cout << "READ: " << string(buffer, len) << endl;
 	}
