@@ -346,7 +346,7 @@ namespace OS {
     
     InetAddress::InetAddress() : address("0.0.0.0"), port(0) {
     }
-    InetAddress::InetAddress(const std::string & address, int port) : address(address), port(port) {
+    InetAddress::InetAddress(const string & address, int port) : address(address), port(port) {
     }
     InetAddress::InetAddress(sockaddr_in * addr) : port(0) {
         if (addr->sin_family == AF_INET) {
@@ -367,10 +367,10 @@ namespace OS {
     void InetAddress::setInetVersion(int version) {
         inetVersion = version;
     }
-    std::string InetAddress::getAddress() const {
+    string InetAddress::getAddress() const {
         return address;
     }
-    void InetAddress::setAddress(const std::string & address) {
+    void InetAddress::setAddress(const string & address) {
         this->address = address;
     }
     int InetAddress::getPort() const {
@@ -544,7 +544,7 @@ namespace OS {
 
 #endif
     
-    vector<InetAddress> Network::getInetAddressesWithIfaceName(const std::string & ifaceName) {
+    vector<InetAddress> Network::getInetAddressesWithIfaceName(const string & ifaceName) {
         vector<NetworkInterface> ifaces = getNetworkInterfaces();
         for (size_t i = 0; i < ifaces.size(); i++) {
             NetworkInterface & iface = ifaces[i];
@@ -1843,7 +1843,7 @@ namespace OS {
         }
         return ret;
     }
-	int DatagramSocket::joinGroup(const std::string & group) {
+	int DatagramSocket::joinGroup(const string & group) {
 		return joinGroup(group.c_str());
 	}
 	int DatagramSocket::joinGroup(const char * host) {
@@ -1929,14 +1929,14 @@ namespace OS {
 	/* Date */
 	
 #if defined(USE_UNIX_STD)
-	static string s_date_format(string fmt, TIME time) {
+	static string s_date_format(const string & fmt, TIME time) {
 		char buffer[1024] = {0,};
 		strftime(buffer, sizeof(buffer), fmt.c_str(), gmtime((time_t *)&time));
 
 		return string(buffer);
 	}
 #elif defined(USE_MS_WIN)
-	static string s_date_format(string fmt, TIME time) {
+	static string s_date_format(const string & fmt, TIME time) {
 		char buffer[1024] = {0,};
 		SYSTEMTIME stUTC;
 		FileTimeToSystemTime(&time, &stUTC);
@@ -1953,7 +1953,7 @@ namespace OS {
 	 * @brief seconds to string
 	 * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
 	 */
-	string Date::format(string fmt, TIME seconds) {
+	string Date::format(const string & fmt, TIME seconds) {
 		return s_date_format(fmt, seconds);
 	}
 	
@@ -1964,7 +1964,7 @@ namespace OS {
 	static bool s_is_separator(char c) {
 		return (c == '/');
 	}
-	static string s_remove_if_last(string & path, char m) {
+	static string s_remove_if_last(const string & path, char m) {
 		SUPPRESS_WARNING(m);
 		if (!path.empty()
 			&& path.length() > 1
@@ -1973,13 +1973,13 @@ namespace OS {
 		}
 		return path;
 	}
-	static bool s_is_fullpath(string & path) {
+	static bool s_is_fullpath(const string & path) {
 		return !path.empty() && s_is_separator(path[0]);
 	}
-	static bool s_is_root_path(string & path) {
+	static bool s_is_root_path(const string & path) {
 		return !path.compare("/");
 	}
-	static bool s_exists(string & path) {
+	static bool s_exists(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -1989,7 +1989,7 @@ namespace OS {
 		struct stat st;
 		return (stat(path.c_str(), &st) == 0);
 	}
-	static bool s_is_file(string & path) {
+	static bool s_is_file(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -2000,7 +2000,7 @@ namespace OS {
 		lstat(path.c_str(), &st);
 		return (S_ISDIR(st.st_mode) ? false : true);
 	}
-	static bool s_is_directory(string & path) {
+	static bool s_is_directory(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -2010,10 +2010,10 @@ namespace OS {
 		lstat(path.c_str(), &st);
 		return (S_ISDIR(st.st_mode) ? true : false);
 	}
-	static bool s_is_writable(string & path) {
+	static bool s_is_writable(const string & path) {
 		return (access(path.c_str(), W_OK) == 0);
 	}
-	static string s_get_parent_path(string & path) {
+	static string s_get_parent_path(const string & path) {
 
 		if (path.empty()) {
 			return "";
@@ -2031,7 +2031,7 @@ namespace OS {
 		
 		return p.substr(0, f);
 	}
-	static string s_get_path_part(string & path) {
+	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
 			return s_remove_if_last(path, '/');
@@ -2044,7 +2044,7 @@ namespace OS {
 
 		return path.substr(0, f);
 	}
-	static string s_get_filename_part(string & path) {
+	static string s_get_filename_part(const string & path) {
 
 		if (path.empty() || s_is_directory(path)) {
 			return "";
@@ -2057,7 +2057,7 @@ namespace OS {
 
 		return path.substr(f + 1);
 	}
-	static string s_get_entity_name_part(string & path) {
+	static string s_get_entity_name_part(const string & path) {
 		if (path.empty()) {
 			return "";
 		}
@@ -2073,7 +2073,7 @@ namespace OS {
 
 		return s_get_filename_part(path);
 	}
-	static string s_get_ext(string & path) {
+	static string s_get_ext(const string & path) {
 		size_t f = path.find_last_of(".");
 		if (f == string::npos) {
 			return "";
@@ -2106,7 +2106,7 @@ namespace OS {
 		return mkdir(tmp, mode);
 	}
 
-	static TIME s_get_creation_date(string path) {
+	static TIME s_get_creation_date(const string & path) {
 		struct stat st;
 		if (stat(path.c_str(), &st) != 0) {
 			return 0;
@@ -2115,7 +2115,7 @@ namespace OS {
 		return (long int)st.st_ctime;
 	}
 
-	static TIME s_get_modified_date(string path) {
+	static TIME s_get_modified_date(const string & path) {
 		struct stat st;
 		if (stat(path.c_str(), &st) != 0) {
 			return 0;
@@ -2124,7 +2124,7 @@ namespace OS {
 		return (long int)st.st_mtime;
 	}
 
-	static std::vector<File> s_list(string path) {
+	static std::vector<File> s_list(const string & path) {
 		std::vector<File> ret;
 		struct dirent * ent = NULL;
 		struct dirent ** list = NULL;
@@ -2145,26 +2145,26 @@ namespace OS {
 #elif defined(USE_MS_WIN)
 
 	static bool s_is_separator(char c);
-	static string s_remove_if_last(string & path, char m);
-	static bool s_is_fullpath(string & path);
-	static bool s_is_root_path(string & path);
-	static bool s_exists(string & path);
-	static bool s_is_file(string & path);
-	static bool s_is_directory(string & path);
-	static string s_get_parent_path(string & path);
-	static string s_get_path_part(string & path);
-	static string s_get_filename_part(string & path);
-	static string s_get_entity_name_part(string & path);
-	static string s_get_ext(string & path);
+	static string s_remove_if_last(const string & path, char m);
+	static bool s_is_fullpath(const string & path);
+	static bool s_is_root_path(const string & path);
+	static bool s_exists(const string & path);
+	static bool s_is_file(const string & path);
+	static bool s_is_directory(const string & path);
+	static string s_get_parent_path(const string & path);
+	static string s_get_path_part(const string & path);
+	static string s_get_filename_part(const string & path);
+	static string s_get_entity_name_part(const string & path);
+	static string s_get_ext(const string & path);
 	static int s_mkdir(const char *dir, int mode);
-	static TIME s_get_creation_date(string path);
-	static TIME s_get_modified_date(string path);
+	static TIME s_get_creation_date(const string & path);
+	static TIME s_get_modified_date(const string & path);
 
 
 	static bool s_is_separator(char c) {
 		return (c == '/' || c == '\\');
 	}
-	static string s_remove_if_last(string & path, char m) {
+	static string s_remove_if_last(const string & path, char m) {
 		if (!path.empty()
 			&& path.length() > 1
 			&& s_is_separator(*(path.rbegin())) ) {
@@ -2172,13 +2172,22 @@ namespace OS {
 		}
 		return path;
 	}
-	static bool s_is_fullpath(string & path) {
+	static bool s_is_fullpath(const string & path) {
 		return !path.empty() && s_is_separator(path[0]);
 	}
-	static bool s_is_root_path(string & path) {
+
+	static string s_get_cwd() {
+		char buffer[2048] = {0,};
+		if (_getcwd(buffer, sizeof(buffer)) == NULL) {
+			throw IOException("_getcwd() error", -1, 0);
+		}
+		return string(buffer);
+	}
+
+	static bool s_is_root_path(const string & path) {
 		return !path.compare("/") || !path.compare("\\");
 	}
-	static bool s_exists(string & path) {
+	static bool s_exists(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -2190,7 +2199,7 @@ namespace OS {
 		
 		return false;
 	}
-	static bool s_is_file(string & path) {
+	static bool s_is_file(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -2204,7 +2213,7 @@ namespace OS {
 
 		return (s.st_mode & S_IFREG ? true : false);
 	}
-	static bool s_is_directory(string & path) {
+	static bool s_is_directory(const string & path) {
 
 		if (path.empty()) {
 			return false;
@@ -2218,13 +2227,13 @@ namespace OS {
 
 		return (s.st_mode & S_IFDIR ? true : false);
 	}
-	static bool s_is_writable(string & path) {
+	static bool s_is_writable(const string & path) {
 		if (!s_exists(path)) {
 			return false;
 		}
 		return (_access(path.c_str(), 2) == 0);
 	}
-	static string s_get_parent_path(string & path) {
+	static string s_get_parent_path(const string & path) {
 
 		if (path.empty()) {
 			return "";
@@ -2242,7 +2251,7 @@ namespace OS {
 		
 		return p.substr(0, f);
 	}
-	static string s_get_path_part(string & path) {
+	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
 			return s_remove_if_last(path, '\\');
@@ -2255,7 +2264,7 @@ namespace OS {
 
 		return path.substr(0, f);
 	}
-	static string s_get_filename_part(string & path) {
+	static string s_get_filename_part(const string & path) {
 
 		if (path.empty() || s_is_directory(path)) {
 			return "";
@@ -2268,7 +2277,7 @@ namespace OS {
 
 		return path.substr(f + 1);
 	}
-	static string s_get_entity_name_part(string & path) {
+	static string s_get_entity_name_part(const string & path) {
 		if (path.empty()) {
 			return "";
 		}
@@ -2284,7 +2293,7 @@ namespace OS {
 
 		return s_get_filename_part(path);
 	}
-	static string s_get_ext(string & path) {
+	static string s_get_ext(const string & path) {
 		int f = path.find_last_of(".");
 		if (f == string::npos) {
 			return "";
@@ -2321,7 +2330,7 @@ namespace OS {
 
 		return 0;
 	}
-	static TIME s_get_creation_date(string path) {
+	static TIME s_get_creation_date(const string & path) {
 
 		HANDLE hFile;
 		FILETIME ftCreate, ftAccess, ftWrite;
@@ -2342,7 +2351,7 @@ namespace OS {
 
 		return ftCreate;
 	}
-	static TIME s_get_modified_date(string path) {
+	static TIME s_get_modified_date(const string & path) {
 		HANDLE hFile;
 		FILETIME ftCreate, ftAccess, ftWrite;
 		long int ret = 0;
@@ -2363,7 +2372,7 @@ namespace OS {
 		return ftWrite;
 	}
 
-	static std::vector<File> s_list(string path) {
+	static std::vector<File> s_list(const string & path) {
 		std::vector<File> ret;
 		return ret;
 	}
@@ -2376,57 +2385,61 @@ namespace OS {
 	File::File() {
 	}
 	
-	File::File(string path) : path(path) {
+	File::File(const string & path) : path(path) {
 	}
 
 	File::~File() {
 	}
 
-	bool File::isRootPath(string path){
+	string File::getCwd() {
+		return s_get_cwd();
+	}
+
+	bool File::isRootPath(const string & path){
 		return s_is_root_path(path);
 	}
 
-	bool File::isFullpath(string path) {
+	bool File::isFullpath(const string & path) {
 		return s_is_fullpath(path);
 	}
 	
-	bool File::exists(string path){
+	bool File::exists(const string & path){
 		return s_exists(path);
 	}
 
-	bool File::isFile(string path){
+	bool File::isFile(const string & path){
 		return s_is_file(path);
 	}
 
-	bool File::isDirectory(string path){
+	bool File::isDirectory(const string & path){
 		return s_is_directory(path);
 	}
 
-	bool File::isWritable(string path) {
+	bool File::isWritable(const string & path) {
 		return s_is_writable(path);
 	}
 
-	string File::getParentPath(string path) {
+	string File::getParentPath(const string & path) {
 		return s_get_parent_path(path);
 	}
 
-	string File::getPathPart(string path){
+	string File::getPathPart(const string & path){
 		return s_get_path_part(path);
 	}
 
-	string File::getFileNamePart(string path){
+	string File::getFileNamePart(const string & path){
 		return s_get_filename_part(path);
 	}
 
-	string File::getExtension(string path){
+	string File::getExtension(const string & path){
 		return s_get_ext(path);
 	}
 
-	string File::getEntityNamePart(string path) {
+	string File::getEntityNamePart(const string & path) {
 		return s_get_entity_name_part(path);
 	}
 
-	bool File::compareExtension(string path, string extension){
+	bool File::compareExtension(const string & path, string extension){
 		
 		string a = s_get_ext(path);
 		string b = s_get_ext(extension);
@@ -2438,7 +2451,7 @@ namespace OS {
 		return (!a.compare(b));
 	}
 
-	int File::mkdir(string path) {
+	int File::mkdir(const string & path) {
 		return s_mkdir(path.c_str(), 0755);
 	}
 
@@ -2460,17 +2473,17 @@ namespace OS {
 		return dir + filename;
 	}
 
-	string File::getCreationDate(string path, string fmt) {
+	string File::getCreationDate(const string & path, string fmt) {
 		TIME t = s_get_creation_date(path);
 		return Date::format(fmt, t);
 	}
 	
-	string File::getModifiedDate(string path, string fmt) {
+	string File::getModifiedDate(const string & path, string fmt) {
 		TIME t = s_get_modified_date(path);
 		return Date::format(fmt, t);
 	}
 
-	vector<File> File::list(string path) {
+	vector<File> File::list(const string & path) {
 		return s_list(path);
 	}
 
@@ -2481,6 +2494,62 @@ namespace OS {
 	string File::toString() {
 		return path;
 	}
+
+	std::string File::getPath() {
+		return path;
+	}
+
+	bool File::isRootPath() {
+		return File::isRootPath(path);
+	}
+	bool File::isFullpath() {
+		return File::isFullpath(path);
+	}
+	bool File::exists() {
+		return File::exists(path);
+	}
+	bool File::isFile() {
+		return File::isFile(path);
+	}
+	bool File::isDirectory() {
+		return File::isDirectory(path);
+	}
+	bool File::isWritable() {
+		return File::isWritable(path);
+	}
+	string File::getParentPath() {
+		return File::getParentPath(path);
+	}
+	string File::getPathPart() {
+		return File::getPathPart(path);
+	}
+	string File::getFileNamePart() {
+		return File::getFileNamePart(path);
+	}
+	string File::getExtension() {
+		return File::getExtension(path);
+	}
+	string File::getEntityNamePart() {
+		return File::getEntityNamePart(path);
+	}
+	bool File::compareExtension(string extension) {
+		return File::compareExtension(path, extension);
+	}
+	int File::mkdir() {
+		return File::mkdir(path);
+	}
+	//string fullpath(string dir, string filename);
+	string File::getCreationDate(const string & fmt) {
+		return File::getCreationDate(path, fmt);
+	}
+	string File::getModifiedDate(const string & fmt) {
+		return File::getModifiedDate(path, fmt);
+	}
+	std::vector<File> File::list() {
+		return File::list(path);
+	}
+
+	
 	
 } /* OS */
 

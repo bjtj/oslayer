@@ -1,11 +1,3 @@
-//
-//  app.cpp
-//  http-server-console
-//
-//  Created by TJ on 2015. 10. 29..
-//  Copyright © 2015년 TJ. All rights reserved.
-//
-
 #include <iostream>
 #include <liboslayer/os.hpp>
 
@@ -22,5 +14,7 @@ int main(int argc, char * args[]) {
     
     cout << "program" << endl;
     
+	getchar();
+
     return 0;
 }

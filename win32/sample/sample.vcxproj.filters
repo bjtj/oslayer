@@ -36,7 +36,13 @@
     <ClCompile Include="..\..\examples\pollingTest.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\examples\sharedSelectorModel.cpp">
+    <ClCompile Include="..\..\examples\app.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\polling.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\examples\fileReadWrite.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

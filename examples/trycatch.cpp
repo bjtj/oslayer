@@ -1,11 +1,3 @@
-//
-//  trycatch.cpp
-//  http-server-console
-//
-//  Created by TJ on 2015. 10. 29..
-//  Copyright © 2015년 TJ. All rights reserved.
-//
-
 #include <iostream>
 
 using namespace std;

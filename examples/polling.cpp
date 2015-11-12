@@ -13,7 +13,7 @@ class Server : public SelectablePollee {
 private:
     ServerSocket server;
 public:
-    Server(SelectorPoller & poller, int port) : SelectablePollee(poller), server(port) {
+    Server(int port) : server(port) {
     }
     virtual ~Server() {
     }
@@ -22,8 +22,8 @@ public:
         server.setReuseAddr();
         server.bind();
         server.listen(5);
-        
-        registerSelecotr(server.getFd());
+
+		registerSelector(server.getFd());
     }
     
     void stop() {
@@ -49,7 +49,7 @@ private:
     Socket client;
 public:
     
-    Client(SelectorPoller & poller, const char * host, int port) : SelectablePollee(poller), client(host, port) {
+    Client(const char * host, int port) : client(host, port) {
     }
     
     virtual ~Client() {
@@ -59,7 +59,7 @@ public:
     void start() {
         client.connect();
         
-        registerSelecotr(client.getFd());
+        registerSelector(client.getFd());
     }
     
     void stop() {
@@ -82,9 +82,12 @@ int main(int argc, char * args[]) {
     bool done = false;
     SelectorPoller selectorPoller;
     
-    Server server(selectorPoller, 8084);
-    Client client(selectorPoller, "127.0.0.1", 8084);
+    Server server(8084);
+    Client client("127.0.0.1", 8084);
     
+	selectorPoller.registerSelectablePollee(&server);
+	selectorPoller.registerSelectablePollee(&client);
+
     server.start();
     client.start();
     

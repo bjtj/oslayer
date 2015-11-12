@@ -68,12 +68,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\liboslayer\FileReaderWriter.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
     <ClCompile Include="..\liboslayer\PollablePool.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\PollablePool.hpp" />
