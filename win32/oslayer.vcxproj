@@ -72,6 +72,7 @@
     <ClCompile Include="..\liboslayer\Logger.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
     <ClCompile Include="..\liboslayer\PollablePool.cpp" />
+    <ClCompile Include="..\liboslayer\RandomPortBinders.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +80,7 @@
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\PollablePool.hpp" />
+    <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
     <ClInclude Include="..\liboslayer\StringElement.hpp" />
     <ClInclude Include="..\liboslayer\Text.hpp" />
   </ItemGroup>
