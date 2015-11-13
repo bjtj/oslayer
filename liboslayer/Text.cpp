@@ -288,6 +288,11 @@ namespace UTIL {
 		return string(num);
 	}
 
+    string Text::toString(size_t i) {
+        char num[512] = {0,};
+        snprintf(num, sizeof(num), "%zu", i);
+        return string(num);
+    }
 
 	/**
 	 * @brief starts with

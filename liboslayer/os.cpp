@@ -1960,19 +1960,46 @@ namespace OS {
 
 	// file system
 #if defined(USE_UNIX_STD)
+    
+    static bool s_is_separator(char c, const string & separators);
 
-	static bool s_is_separator(char c) {
-		return (c == '/');
-	}
-	static string s_remove_if_last(const string & path, char m) {
-		SUPPRESS_WARNING(m);
-		if (!path.empty()
-			&& path.length() > 1
-			&& s_is_separator(*(path.rbegin())) ) {
-			return path.substr(0, path.length() - 1); // trailing last / character
-		}
-		return path;
-	}
+    static string s_get_separators() {
+        return "/";
+    }
+    static bool s_is_separator(char c) {
+        return s_is_separator(c, s_get_separators());
+    }
+    static bool s_is_separator(char c, const string & separators) {
+        for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+            char sep = *iter;
+            if (sep == c) {
+                return true;
+            }
+        }
+        return false;
+    }
+    static string s_append_separator_if_not(const string & path, const string & separators) {
+        
+        if (path.empty() || separators.empty()) {
+            return path;
+        }
+        
+        char end = *(path.rbegin());
+        for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+            char sep = *iter;
+            if (sep == end) {
+                return path;
+            }
+        }
+        
+        return path + *(separators.begin());
+    }
+    static string s_remove_last_separator(const string & path) {
+        if (!path.empty() && path.length() > 1 && s_is_separator(*(path.rbegin())) ) {
+            return path.substr(0, path.length() - 1); // trailing last / character
+        }
+        return path;
+    }
 	static bool s_is_fullpath(const string & path) {
 		return !path.empty() && s_is_separator(path[0]);
 	}
@@ -2030,8 +2057,8 @@ namespace OS {
 			return "";
 		}
 
-		string p = s_remove_if_last(path, '/');
-		size_t f = p.find_last_of("/");
+        string p = s_remove_last_separator(path);
+		size_t f = p.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return "";
 		}
@@ -2041,10 +2068,10 @@ namespace OS {
 	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
-			return s_remove_if_last(path, '/');
+			return s_remove_last_separator(path);
 		}
 
-		size_t f = path.find_last_of("/");
+		size_t f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return path;
 		}
@@ -2057,7 +2084,7 @@ namespace OS {
 			return "";
 		}
 		
-		size_t f = path.find_last_of("/");
+		size_t f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return path;
 		}
@@ -2070,8 +2097,8 @@ namespace OS {
 		}
 
 		if (s_is_directory(path)) {
-			string p = s_remove_if_last(path, '/');
-			size_t f = p.find_last_of("/");
+            string p = s_remove_last_separator(path);
+			size_t f = p.find_last_of(s_get_separators());
 			if (f == string::npos) {
 				return p;
 			}

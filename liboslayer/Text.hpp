@@ -52,6 +52,7 @@ namespace UTIL {
 									   std::string line_sep = ", ");
 		static int toInt(std::string str, int radix = 10);
 		static std::string toString(int i);
+        static std::string toString(size_t i);
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
 		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
 		static int compareIgnoreCase(std::string a, std::string b);
