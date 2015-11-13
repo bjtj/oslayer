@@ -15,12 +15,18 @@ namespace UTIL {
     class Pollee {
         
     private:
+        Poller * selfPoller;
+        
     public:
         
-        Pollee() {}
+        Pollee() : selfPoller(NULL) {}
         virtual ~Pollee() {}
         
+        virtual void onIdle() = 0;
         virtual void listen(Poller & poller) = 0;
+        
+        void setSelfPoller(Poller * selfPoller) {this->selfPoller = selfPoller;}
+        Poller * getSelfPoller() {return selfPoller;}
     };
     
     
@@ -39,9 +45,22 @@ namespace UTIL {
         virtual void registerPollee(Pollee * pollee);
         virtual void unregisterPollee(Pollee * pollee);
         virtual void poll(unsigned long timeout) = 0;
+        virtual void onIdle();
         virtual void listen();
     };
     
+    /**
+     * @brief LoopPoller
+     */
+    class LoopPoller : public Poller {
+    private:
+    public:
+        
+        LoopPoller();
+        virtual ~LoopPoller();
+        
+        virtual void poll(unsigned long timeout);
+    };
     
     class SelectablePollee;
     
@@ -54,20 +73,29 @@ namespace UTIL {
         
     private:
         OS::Selector selector;
+        SelectorPoller * parent;
+        std::vector<SelectorPoller*> children;
         
     public:
         
         SelectorPoller();
         virtual ~SelectorPoller();
         
+        void setParentSelectorPoller(SelectorPoller * parent);
+        
         void registerSelector(int fd);
         void unregisterSelector(int fd);
+        bool isSelected(int fd);
         
         void registerSelectablePollee(SelectablePollee * pollee);
         void unregisterSelectablePollee(SelectablePollee * pollee);
         
+        void registerSelectorPoller(SelectorPoller * poller);
+        void unregisterSelectorPoller(SelectorPoller * poller);
+        
         virtual void poll(unsigned long timeout);
-        bool isSelected(int fd);
+        virtual void onIdle();
+        virtual void listen();
     };
     
     
@@ -89,11 +117,8 @@ namespace UTIL {
         SelectorPoller * getSelectorPoller();
         void setSelectorPoller(SelectorPoller * selectorPoller);
         
-        SelectorPoller & getSelfSelectorPoller();
-        
         void registerSelector(int fd);
         void unregisterSelector(int fd);
-        
         
         virtual void listen(Poller & poller);
         virtual void listen(SelectorPoller & poller) = 0;
@@ -107,11 +132,11 @@ namespace UTIL {
      */
     class PollingThread : public OS::Thread {
     private:
-        Poller & poller;
+        Poller * poller;
         unsigned long timeout;
         
     public:
-        PollingThread(Poller & poller, unsigned long timeout);
+        PollingThread(Poller * poller, unsigned long timeout);
         virtual ~PollingThread();
         
         virtual void run();

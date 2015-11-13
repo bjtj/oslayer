@@ -19,6 +19,12 @@ namespace UTIL {
     void Poller::unregisterPollee(Pollee * pollee) {
         pollees.erase(std::remove(pollees.begin(), pollees.end(), pollee), pollees.end());
     }
+    void Poller::onIdle() {
+        for (size_t i = 0; i < pollees.size(); i++) {
+            Pollee * pollee = pollees[i];
+            pollee->onIdle();
+        }
+    }
     void Poller::listen() {
         for (size_t i = 0; i < pollees.size(); i++) {
             Pollee * pollee = pollees[i];
@@ -26,20 +32,47 @@ namespace UTIL {
         }
     }
     
+    /**
+     * @brief SelectorPoller
+     */
+    
+    LoopPoller::LoopPoller() {
+        
+    }
+    LoopPoller::~LoopPoller() {
+        
+    }
+    
+    void LoopPoller::poll(unsigned long timeout) {
+        onIdle();
+        listen();
+    }
     
     /**
      * @brief SelectorPoller
      */
     
-    SelectorPoller::SelectorPoller() {
+    SelectorPoller::SelectorPoller() : parent(NULL) {
     }
     SelectorPoller::~SelectorPoller() {
     }
+    void SelectorPoller::setParentSelectorPoller(SelectorPoller * parent) {
+        this->parent = parent;
+    }
     void SelectorPoller::registerSelector(int fd) {
         selector.set(fd);
+        if (parent) {
+            parent->registerSelector(fd);
+        }
     }
     void SelectorPoller::unregisterSelector(int fd) {
         selector.unset(fd);
+        if (parent) {
+            parent->unregisterSelector(fd);
+        }
+    }
+    bool SelectorPoller::isSelected(int fd) {
+        return (selector.isSelected(fd) || (parent && parent->isSelected(fd)));
     }
     void SelectorPoller::registerSelectablePollee(SelectablePollee * pollee) {
         pollee->setSelectorPoller(this);
@@ -49,17 +82,33 @@ namespace UTIL {
         pollee->setSelectorPoller(NULL);
         unregisterPollee(pollee);
     }
+    void SelectorPoller::registerSelectorPoller(SelectorPoller * poller) {
+        poller->setParentSelectorPoller(this);
+        children.push_back(poller);
+    }
+    void SelectorPoller::unregisterSelectorPoller(SelectorPoller * poller) {
+        poller->setParentSelectorPoller(NULL);
+        children.erase(std::remove(children.begin(), children.end(), poller), children.end());
+        
+    }
     void SelectorPoller::poll(unsigned long timeout) {
         if (selector.select(timeout) > 0) {
             listen();
         }
+        onIdle();
     }
-    
-    bool SelectorPoller::isSelected(int fd) {
-        return selector.isSelected(fd);
+    void SelectorPoller::onIdle() {
+        Poller::onIdle();
+        for (size_t i = 0; i < children.size(); i++) {
+            children[i]->onIdle();
+        }
     }
-    
-    
+    void SelectorPoller::listen() {
+        Poller::listen();
+        for (size_t i = 0; i < children.size(); i++) {
+            children[i]->listen();
+        }
+    }
     
     
     /**
@@ -68,6 +117,7 @@ namespace UTIL {
     
     SelectablePollee::SelectablePollee() : selectorPoller(NULL) {
         selfPoller.registerPollee(this);
+        setSelfPoller(&selfPoller);
     }
     SelectablePollee::~SelectablePollee() {
         selfPoller.unregisterPollee(this);
@@ -77,9 +127,6 @@ namespace UTIL {
     }
     void SelectablePollee::setSelectorPoller(SelectorPoller * selectorPoller) {
         this->selectorPoller = selectorPoller;
-    }
-    SelectorPoller & SelectablePollee::getSelfSelectorPoller() {
-        return selfPoller;
     }
     void SelectablePollee::registerSelector(int fd) {
         selfPoller.registerSelector(fd);
@@ -102,7 +149,7 @@ namespace UTIL {
      * @brief PollingThread
      */
     
-    PollingThread::PollingThread(Poller & poller, unsigned long timeout) : poller(poller), timeout(timeout) {
+    PollingThread::PollingThread(Poller * poller, unsigned long timeout) : poller(poller), timeout(timeout) {
         
     }
     PollingThread::~PollingThread() {
@@ -110,7 +157,7 @@ namespace UTIL {
     
     void PollingThread::run() {
         while (!interrupted()) {
-            poller.poll(timeout);
+            poller->poll(timeout);
         }
     }
 }
