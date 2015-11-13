@@ -69,6 +69,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\liboslayer\FileReaderWriter.cpp" />
+    <ClCompile Include="..\liboslayer\Iteration.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
     <ClCompile Include="..\liboslayer\PollablePool.cpp" />
@@ -77,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
+    <ClInclude Include="..\liboslayer\Iteration.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\PollablePool.hpp" />

@@ -659,13 +659,19 @@ public: \
 	class File {
 	private:
 		std::string path;
+
 	public:
 		File();
 		File(const std::string & path);
 		virtual ~File();
 
+		static std::string mergePaths(const std::string & dir, const std::string & filename);
+		static std::string mergePaths(const std::string & dir, const std::string & filename, const std::string & separators);
+		static std::string fullpath(const std::string & dir, const std::string & filename);
+		static std::string fullpath(const std::string & dir, const std::string & filename, const std::string & separators);
 		static std::string getCwd();
 
+		/* */
 		static bool isRootPath(const std::string & path);
 		static bool isFullpath(const std::string & path);
 		static bool exists(const std::string & path);
@@ -679,7 +685,6 @@ public: \
 		static std::string getEntityNamePart(const std::string & path);
 		static bool compareExtension(const std::string & path, std::string extension);
 		static int mkdir(const std::string & path);
-		static std::string fullpath(std::string dir, std::string filename);
 		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static std::string getModifiedDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static std::vector<File> list(const std::string & path);
@@ -701,7 +706,6 @@ public: \
 		std::string getEntityNamePart();
 		bool compareExtension(std::string extension);
 		int mkdir();
-		//std::string fullpath(std::string dir, std::string filename);
 		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT);
 		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT);
 		std::vector<File> list();

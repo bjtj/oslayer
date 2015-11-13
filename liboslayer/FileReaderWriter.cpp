@@ -4,6 +4,7 @@
 
 namespace UTIL {
 
+	using namespace std;
 	using namespace OS;
 
 	/**
@@ -91,6 +92,16 @@ namespace UTIL {
 	void FileReader::close() {
 		CHECK_NOT_IMPL_THROW(impl);
 		impl->close();
+	}
+
+	string FileReader::dumpAsString() {
+		string ret;
+		char buffer[1024] = {0,};
+		size_t len;
+		while ((len = read(buffer, sizeof(buffer))) > 0) {
+			ret.append(buffer, len);
+		}
+		return ret;
 	}
 	
 	File & FileReader::getFile() {

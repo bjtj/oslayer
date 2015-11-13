@@ -2,6 +2,7 @@
 #define __FILE_READER_WRITER_HPP__
 
 #include "os.hpp"
+#include <string>
 
 namespace UTIL {
 
@@ -22,6 +23,8 @@ namespace UTIL {
 
 		virtual size_t read(char * buffer, size_t len);
 		virtual void close();
+
+		std::string dumpAsString();
 
 		OS::File & getFile();
 	};

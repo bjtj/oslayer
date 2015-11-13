@@ -2151,7 +2151,9 @@ namespace OS {
 	
 #elif defined(USE_MS_WIN)
 
+	static string s_get_separators();
 	static bool s_is_separator(char c);
+	static bool s_is_separator(char c, const string & separators);
 	static string s_remove_if_last(const string & path, char m);
 	static bool s_is_fullpath(const string & path);
 	static bool s_is_root_path(const string & path);
@@ -2167,14 +2169,51 @@ namespace OS {
 	static TIME s_get_creation_date(const string & path);
 	static TIME s_get_modified_date(const string & path);
 
-
-	static bool s_is_separator(char c) {
-		return (c == '/' || c == '\\');
+	static string s_get_separators() {
+		return "\\/";
 	}
-	static string s_remove_if_last(const string & path, char m) {
-		if (!path.empty()
-			&& path.length() > 1
-			&& s_is_separator(*(path.rbegin())) ) {
+	static bool s_is_separator(char c) {
+		return s_is_separator(c, s_get_separators());
+	}
+	static bool s_is_separator(char c, const string & separators) {
+		for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+			char sep = *iter;
+			if (sep == c) {
+				return true;
+			}
+		}
+		return false;
+	}
+	static char s_get_default_seprator() {
+		return *(s_get_separators().begin());
+	}
+	static string s_get_default_seprator_in_string() {
+		return string(1, s_get_default_seprator());
+	}
+	static string s_append_separator_if_not(const string & path) {
+		if (!s_is_separator(*(path.rbegin()))) {
+			return path + s_get_default_seprator();
+		}
+		return path;
+	}
+	static string s_append_separator_if_not(const string & path, const string & separators) {
+
+		if (path.empty() || separators.empty()) {
+			return path;
+		}
+
+		char end = *(path.rbegin());
+		for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+			char sep = *iter;
+			if (sep == end) {
+				return path;
+			}
+		}
+
+		return path + *(separators.begin());
+	}
+	static string s_remove_last_separator(const string & path) {
+		if (!path.empty() && path.length() > 1 && s_is_separator(*(path.rbegin())) ) {
 			return path.substr(0, path.length() - 1); // trailing last / character
 		}
 		return path;
@@ -2192,7 +2231,7 @@ namespace OS {
 	}
 
 	static bool s_is_root_path(const string & path) {
-		return !path.compare("/") || !path.compare("\\");
+		return (path.length() == 1 && s_is_separator(*path.begin()));
 	}
 	static bool s_exists(const string & path) {
 
@@ -2250,8 +2289,8 @@ namespace OS {
 			return "";
 		}
 
-		string p = s_remove_if_last(path, '\\');
-		int f = p.find_last_of("\\");
+		string p = s_remove_last_separator(path);
+		int f = p.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return "";
 		}
@@ -2261,10 +2300,10 @@ namespace OS {
 	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
-			return s_remove_if_last(path, '\\');
+			return s_remove_last_separator(path);
 		}
 
-		int f = path.find_last_of("\\");
+		int f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return path;
 		}
@@ -2277,7 +2316,7 @@ namespace OS {
 			return "";
 		}
 		
-		int f = path.find_last_of("\\");
+		int f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
 			return path;
 		}
@@ -2290,8 +2329,8 @@ namespace OS {
 		}
 
 		if (s_is_directory(path)) {
-			string p = s_remove_if_last(path, '\\');
-			int f = p.find_last_of("\\");
+			string p = s_remove_last_separator(path);
+			int f = p.find_last_of(s_get_separators());
 			if (f == string::npos) {
 				return p;
 			}
@@ -2320,15 +2359,15 @@ namespace OS {
 		snprintf(tmp, sizeof(tmp),"%s",dir);
 		len = strlen(tmp);
 
-		if(tmp[len - 1] == '\\') {
+		if(s_is_separator(tmp[len - 1])) {
 			tmp[len - 1] = 0;
 		}
 
 		for(p = tmp + 1; *p; p++) {
-			if(*p == '\\') {
+			if(s_is_separator(*p)) {
 				*p = 0;
 				_mkdir(tmp);
-				*p = '\\';
+				*p = s_get_default_seprator();
 			}
 		}
 	
@@ -2398,6 +2437,33 @@ namespace OS {
 	File::~File() {
 	}
 
+	string File::mergePaths(const string & dir, const string & filename) {
+		return fullpath(dir, filename);
+	}
+
+	string File::mergePaths(const string & dir, const string & filename, const string & separators) {
+		return fullpath(dir, filename, separators);
+	}
+
+	string File::fullpath(const string & dir, const string & filename) {
+		return fullpath(dir, filename, s_get_separators());
+	}
+
+	string File::fullpath(const string & dir, const string & filename, const string & separators) {
+		
+		string d = dir;
+		string fname = filename;
+
+		d = s_append_separator_if_not(d, separators);
+
+		if (!fname.empty()) {
+			size_t f = fname.find_first_not_of(separators);
+			fname = (f != string::npos ? fname.substr(f) : "");
+		}
+
+		return (d + fname);
+	}
+
 	string File::getCwd() {
 		return s_get_cwd();
 	}
@@ -2462,24 +2528,6 @@ namespace OS {
 		return s_mkdir(path.c_str(), 0755);
 	}
 
-	string File::fullpath(string dir, string filename) {
-		
-		if (dir.length() > 0 && *dir.rbegin() != '/') {
-			dir += "/";
-		}
-
-		if (filename.length() > 0) {
-			size_t f = filename.find_first_not_of('/');
-			if (f != string::npos) {
-				filename = filename.substr(f);
-			} else {
-				filename = "";
-			}
-		}
-
-		return dir + filename;
-	}
-
 	string File::getCreationDate(const string & path, string fmt) {
 		TIME t = s_get_creation_date(path);
 		return Date::format(fmt, t);
@@ -2493,19 +2541,15 @@ namespace OS {
 	vector<File> File::list(const string & path) {
 		return s_list(path);
 	}
-
 	string File::getName() {
 		return getEntityNamePart(path);
 	}
-
 	string File::toString() {
 		return path;
 	}
-
 	std::string File::getPath() {
 		return path;
 	}
-
 	bool File::isRootPath() {
 		return File::isRootPath(path);
 	}
@@ -2545,7 +2589,6 @@ namespace OS {
 	int File::mkdir() {
 		return File::mkdir(path);
 	}
-	//string fullpath(string dir, string filename);
 	string File::getCreationDate(const string & fmt) {
 		return File::getCreationDate(path, fmt);
 	}
