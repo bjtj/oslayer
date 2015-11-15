@@ -61,6 +61,8 @@
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
+// #	define _WIN32_WINNT 0x501 /* force to use windows xp APIs */
+
 #	define USE_MS_WIN
 #	define USE_WIN_THREAD
 #	define USE_WINSOCK2
