@@ -402,6 +402,41 @@ public: \
         static std::vector<NetworkInterface> getNetworkInterfaces();
 
 	};
+    
+    /**
+     * @brief selection
+     */
+    class Selection {
+        
+    private:
+        int fd;
+        bool readable;
+        bool writeable;
+        
+    public:
+        Selection(int fd, bool readable, bool writeable);
+        virtual ~Selection();
+        
+        int getFd();
+        bool isReadable();
+        bool isWritable();
+    };
+    
+    class Selector;
+    
+    /**
+     * @brief Selectable interface
+     */
+    class Selectable {
+    public:
+        Selectable() {}
+        virtual ~Selectable() {}
+        
+        virtual int getFd() = 0;
+        virtual void registerSelector(Selector & selector) = 0;
+        virtual void unregisterSelector(Selector & selector) = 0;
+        virtual bool isSelected(Selector & selector) = 0;
+    };
 
 	/**
 	 * @brief selector
@@ -410,8 +445,11 @@ public: \
 	private:
 		int maxfds;
         fd_set readfds;
-		fd_set curfds;
-		std::vector<int> selected;
+        fd_set writefds;
+		fd_set curreadfds;
+        fd_set curwritefds;
+		std::vector<Selection> selected;
+        
 	public:
 		Selector();
 		virtual ~Selector();
@@ -419,22 +457,16 @@ public: \
 		virtual void set(int fd);
 		virtual void unset(int fd);
 		virtual int select(unsigned long timeout_milli);
-		virtual std::vector<int> & getSelected();
+		virtual std::vector<Selection> & getSelected();
 		virtual bool isSelected(int fd);
+        virtual bool isSelected(Selectable & selectable);
+        virtual bool isReadableSelected(int fd);
+        virtual bool isReadableSelected(Selectable & selectable);
+        virtual bool isWriteableSelected(int fd);
+        virtual bool isWriteableSelected(Selectable & selectable);
 	};
 
-	/**
-	 * @brief Selectable interface
-	 */
-	class Selectable {
-	public:
-		Selectable() {}
-		virtual ~Selectable() {}
-
-		virtual void registerSelector(Selector & selector) = 0;
-        virtual void unregisterSelector(Selector & selector) = 0;
-        virtual bool isSelected(Selector & selector) = 0;
-	};
+	
 
 	/**
 	 * @brief socket util

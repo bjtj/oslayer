@@ -558,13 +558,37 @@ namespace OS {
     vector<NetworkInterface> Network::getNetworkInterfaces() {
         return s_get_all_network_interfaces();
     }
+    
+    /* SELECTION */
+    
+    Selection::Selection(int fd, bool readable, bool writeable)
+    : fd(fd), readable(readable), writeable(writeable) {
+        
+    }
+    Selection::~Selection() {
+        
+    }
+    
+    int Selection::getFd() {
+        return fd;
+    }
+    
+    bool Selection::isReadable() {
+        return readable;
+    }
+    
+    bool Selection::isWritable() {
+        return writeable;
+    }
 
 
 	/* SELECTOR */
 
 	Selector::Selector() : maxfds(0) {
 		FD_ZERO(&readfds);
-		FD_ZERO(&curfds);
+        FD_ZERO(&writefds);
+		FD_ZERO(&curreadfds);
+        FD_ZERO(&curwritefds);
 	}
 	
 	Selector::~Selector() {
@@ -574,33 +598,63 @@ namespace OS {
 			maxfds = fd;
 		}
 		FD_SET(fd, &readfds);
+        FD_SET(fd, &writefds);
 	}
 	void Selector::unset(int fd) {
 		FD_CLR(fd, &readfds);
+        FD_CLR(fd, &writefds);
 	}
 	int Selector::select(unsigned long timeout_milli) {
 
 		struct timeval timeout;
 		
-		curfds = readfds;
-		timeout.tv_sec = timeout_milli / 1000;
+		curreadfds = readfds;
+        curwritefds = writefds;
+        timeout.tv_sec = timeout_milli / 1000;
 		timeout.tv_usec = (timeout_milli % 1000) * 1000;
 		
-		return ::select(maxfds + 1, &curfds, NULL, NULL, &timeout);
+		return ::select(maxfds + 1, &curreadfds, &curwritefds, NULL, &timeout);
 	}
-	vector<int> & Selector::getSelected() {
+	vector<Selection> & Selector::getSelected() {
 		selected.clear();
 		for (int i = 0; i < maxfds + 1; i++) {
-			if (FD_ISSET(i, &curfds)) {
-				selected.push_back(i);
-			}
+            
+            bool readable = FD_ISSET(i, &curreadfds);
+            bool writeable = FD_ISSET(i, &curwritefds);
+            
+            if (readable || writeable) {
+                selected.push_back(Selection(i, readable, writeable));
+            }
 		}
 		return selected;
 	}
 
 	bool Selector::isSelected(int fd) {
-		return FD_ISSET(fd, &curfds) ? true : false;
+        bool readable = FD_ISSET(fd, &curreadfds);
+        bool writeable = FD_ISSET(fd, &curwritefds);
+        
+        return readable || writeable;
 	}
+    
+    bool Selector::isSelected(Selectable & selectable) {
+        return isSelected(selectable.getFd());
+    }
+    
+    bool Selector::isReadableSelected(int fd) {
+        return FD_ISSET(fd, &curreadfds) ? true : false;
+    }
+    
+    bool Selector::isReadableSelected(Selectable & selectable) {
+        return isReadableSelected(selectable.getFd());
+    }
+    
+    bool Selector::isWriteableSelected(int fd) {
+        return FD_ISSET(fd, &curwritefds) ? true : false;
+    }
+    
+    bool Selector::isWriteableSelected(Selectable & selectable) {
+        return isWriteableSelected(selectable.getFd());
+    }
 
 	/**
 	 *

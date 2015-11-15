@@ -85,7 +85,8 @@ namespace UTIL {
         
         void registerSelector(int fd);
         void unregisterSelector(int fd);
-        bool isSelected(int fd);
+        bool isReadableSelected(int fd);
+        bool isWriteableSelected(int fd);
         
         void registerSelectablePollee(SelectablePollee * pollee);
         void unregisterSelectablePollee(SelectablePollee * pollee);

@@ -1,10 +1,13 @@
 #include "PollablePool.hpp"
 #include <algorithm>
+#include "Logger.hpp"
 
 namespace UTIL {
     
     using namespace std;
     using namespace OS;
+    
+    static const Logger & logger = LoggerFactory::getDefaultLogger();
 
     /**
      * @brief Poller
@@ -44,8 +47,8 @@ namespace UTIL {
     }
     
     void LoopPoller::poll(unsigned long timeout) {
-        onIdle();
         listen();
+        onIdle();
     }
     
     /**
@@ -71,8 +74,11 @@ namespace UTIL {
             parent->unregisterSelector(fd);
         }
     }
-    bool SelectorPoller::isSelected(int fd) {
-        return (selector.isSelected(fd) || (parent && parent->isSelected(fd)));
+    bool SelectorPoller::isReadableSelected(int fd) {
+        return (selector.isReadableSelected(fd) || (parent && parent->isReadableSelected(fd)));
+    }
+    bool SelectorPoller::isWriteableSelected(int fd) {
+        return (selector.isWriteableSelected(fd) || (parent && parent->isWriteableSelected(fd)));
     }
     void SelectorPoller::registerSelectablePollee(SelectablePollee * pollee) {
         pollee->setSelectorPoller(this);
