@@ -619,8 +619,8 @@ namespace OS {
 		selected.clear();
 		for (int i = 0; i < maxfds + 1; i++) {
             
-            bool readable = FD_ISSET(i, &curreadfds);
-            bool writeable = FD_ISSET(i, &curwritefds);
+            bool readable = FD_ISSET(i, &curreadfds) ? true : false;
+            bool writeable = FD_ISSET(i, &curwritefds) ? true : false;
             
             if (readable || writeable) {
                 selected.push_back(Selection(i, readable, writeable));
@@ -630,8 +630,8 @@ namespace OS {
 	}
 
 	bool Selector::isSelected(int fd) {
-        bool readable = FD_ISSET(fd, &curreadfds);
-        bool writeable = FD_ISSET(fd, &curwritefds);
+        bool readable = FD_ISSET(fd, &curreadfds) ? true : false;
+        bool writeable = FD_ISSET(fd, &curwritefds) ? true : false;
         
         return readable || writeable;
 	}
@@ -881,7 +881,11 @@ namespace OS {
 			if (this->socket() == INVALID_SOCKET) {
                 throw IOException("invalid socket error", -1, 0);
 			}
-			return ::send(this->socket(), buffer, length, 0);
+			int ret = ::send(this->socket(), buffer, length, 0);;
+			if (ret <= 0) {
+                throw IOException("write() error", (int)ret, 0);
+            }
+			return ret;
 		}
 
 		virtual void shutdown(/* type */) {
