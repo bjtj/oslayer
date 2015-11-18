@@ -45,5 +45,8 @@
     <ClCompile Include="..\..\examples\fileReadWrite.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\examples\ThreadPoolTest.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
