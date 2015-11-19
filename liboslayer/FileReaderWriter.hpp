@@ -12,7 +12,7 @@ namespace UTIL {
     class FileReader {
 	private:
 		FileReader * impl;
-		OS::File & file;
+		OS::File file;
 
 	protected:
 		FileReader(FileReader * impl, OS::File & file);
@@ -35,7 +35,7 @@ namespace UTIL {
 	class FileWriter {
 	private:
 		FileWriter * impl;
-		OS::File & file;
+		OS::File file;
 
 	protected:
 		FileWriter(FileWriter * impl, OS::File & file);
