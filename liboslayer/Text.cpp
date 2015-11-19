@@ -294,6 +294,12 @@ namespace UTIL {
         return string(num);
     }
 
+	string Text::toString(unsigned long long i) {
+		char num[512] = {0,};
+		snprintf(num, sizeof(num), "%llu", i);
+        return string(num);
+	}
+
 	string Text::toHexString(int i) {
 		char num[512] = {0,};
 		snprintf(num, sizeof(num), "%x", i);

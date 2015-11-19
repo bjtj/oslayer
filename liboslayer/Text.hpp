@@ -53,6 +53,7 @@ namespace UTIL {
 		static int toInt(std::string str, int radix = 10);
 		static std::string toString(int i);
         static std::string toString(size_t i);
+		static std::string toString(unsigned long long i);
 		static std::string toHexString(int i);
         static std::string toHexString(size_t i);
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);

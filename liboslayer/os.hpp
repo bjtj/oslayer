@@ -5,6 +5,7 @@
  * @brief standard header
  */
 #include <string>
+#include <fstream>
 #include <vector>
 #include <cstdio>
 #include <cstdlib>
@@ -182,18 +183,18 @@ public: \
 	/**
 	 * @brief Exception
 	 */
-	class Exception {
+	class Exception : public std::exception {
 	private:
 		std::string message;
 		int errorCode;
 		int subErrorCode;
 	public:
-		Exception() : errorCode(-1), subErrorCode(-1) {
+		explicit Exception() : errorCode(-1), subErrorCode(-1) {
 		}
-		Exception(const std::string & message, int errorCode, int subErrorCode) :
+		explicit Exception(const std::string & message, int errorCode, int subErrorCode) :
 			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {
 		}
-		Exception(const char * message, int errorCode, int subErrorCode) :
+		explicit Exception(const char * message, int errorCode, int subErrorCode) :
 			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {
 		}
 		virtual ~Exception() {
@@ -688,8 +689,13 @@ public: \
 	};
 
 	/**
-	 * @brief file
+	 * @brief File
 	 */
+
+	typedef unsigned long long filesize_t; // file size type
+
+	// class File
+
 	class File {
 	private:
 		std::string path;
@@ -721,6 +727,7 @@ public: \
 		static int mkdir(const std::string & path);
 		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static std::string getModifiedDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
+		static filesize_t getSize(const std::string & path);
 		static std::vector<File> list(const std::string & path);
 
 		std::string getName();
@@ -742,6 +749,7 @@ public: \
 		int mkdir();
 		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT);
 		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT);
+		filesize_t getSize();
 		std::vector<File> list();
 	};
 	

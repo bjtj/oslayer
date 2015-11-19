@@ -2236,6 +2236,9 @@ namespace OS {
 	
 #elif defined(USE_MS_WIN)
 
+#define STAT_STRUCT struct _stat64
+#define STAT_FUNC __stat64
+
 	static string s_get_separators();
 	static bool s_is_separator(char c);
 	static bool s_is_separator(char c, const string & separators);
@@ -2336,8 +2339,8 @@ namespace OS {
 			return false;
 		}
 
-		struct stat s;
-		if (stat(path.c_str(), &s) != 0) {
+		STAT_STRUCT s;
+		if (STAT_FUNC(path.c_str(), &s) != 0) {
 			// error
 			return false;
 		}
@@ -2350,8 +2353,8 @@ namespace OS {
 			return false;
 		}
 		
-		struct stat s;
-		if (stat(path.c_str(), &s) != 0) {
+		STAT_STRUCT s;
+		if (STAT_FUNC(path.c_str(), &s) != 0) {
 			// error
 			return false;
 		}
@@ -2503,8 +2506,21 @@ namespace OS {
 		return ftWrite;
 	}
 
+	static filesize_t s_get_file_size(const string & path) {
+
+		STAT_STRUCT st;
+		int ret = STAT_FUNC(path.c_str(), &st);
+		if (ret != 0) {
+			// error
+			throw Exception("stat() failed", -1, 0);
+		}
+
+		return (filesize_t)st.st_size;
+	}
+
 	static std::vector<File> s_list(const string & path) {
 		std::vector<File> ret;
+		// TODO: implement it
 		return ret;
 	}
 	
@@ -2622,7 +2638,9 @@ namespace OS {
 		TIME t = s_get_modified_date(path);
 		return Date::format(fmt, t);
 	}
-
+	filesize_t File::getSize(const string & path) {
+		return s_get_file_size(path);
+	}
 	vector<File> File::list(const string & path) {
 		return s_list(path);
 	}
@@ -2680,7 +2698,10 @@ namespace OS {
 	string File::getModifiedDate(const string & fmt) {
 		return File::getModifiedDate(path, fmt);
 	}
-	std::vector<File> File::list() {
+	filesize_t File::getSize() {
+		return File::getSize(path);
+	}
+	vector<File> File::list() {
 		return File::list(path);
 	}
 
