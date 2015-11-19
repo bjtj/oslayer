@@ -282,33 +282,61 @@ namespace UTIL {
 	/**
 	 * @brief to string
 	 */
-	string Text::toString(int i) {
-		char num[512] = {0,};
-		snprintf(num, sizeof(num), "%d", i);
-		return string(num);
-	}
-
-    string Text::toString(size_t i) {
+    
+    string Text::toString(short i) {
+        return toString((long long)i);
+    }
+    string Text::toString(int i) {
+        return toString((long long)i);
+    }
+    string Text::toString(long i) {
+        return toString((long long)i);
+    }
+    string Text::toString(long long i) {
         char num[512] = {0,};
-		snprintf(num, sizeof(num), "%lu", (unsigned long)i);
+        snprintf(num, sizeof(num), "%lld", i);
         return string(num);
     }
-
-	string Text::toString(unsigned long long i) {
-		char num[512] = {0,};
-		snprintf(num, sizeof(num), "%llu", i);
-        return string(num);
-	}
-
-	string Text::toHexString(int i) {
-		char num[512] = {0,};
-		snprintf(num, sizeof(num), "%x", i);
-		return string(num);
-	}
-
-    string Text::toHexString(size_t i) {
+    string Text::toString(unsigned short i) {
+        return toString((unsigned long long)i);
+    }
+    string Text::toString(unsigned int i) {
+        return toString((unsigned long long)i);
+    }
+    string Text::toString(unsigned long i) {
+        return toString((unsigned long long)i);
+    }
+    string Text::toString(unsigned long long i) {
         char num[512] = {0,};
-		snprintf(num, sizeof(num), "%lx", (unsigned long)i);
+        snprintf(num, sizeof(num), "%llu", i);
+        return string(num);
+    }
+    string Text::toHexString(short i) {
+        return toHexString((long long)i);
+    }
+    string Text::toHexString(int i) {
+        return toHexString((long long)i);
+    }
+    string Text::toHexString(long i) {
+        return toHexString((long long)i);
+    }
+    string Text::toHexString(long long i) {
+        char num[512] = {0,};
+        snprintf(num, sizeof(num), "%llx", i);
+        return string(num);
+    }
+    string Text::toHexString(unsigned short i) {
+        return toHexString((unsigned long long)i);
+    }
+    string Text::toHexString(unsigned int i) {
+        return toHexString((unsigned long long)i);
+    }
+    string Text::toHexString(unsigned long i) {
+        return toHexString((unsigned long long)i);
+    }
+    string Text::toHexString(unsigned long long i) {
+        char num[512] = {0,};
+        snprintf(num, sizeof(num), "%llx", i);
         return string(num);
     }
 

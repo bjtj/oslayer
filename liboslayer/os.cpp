@@ -2215,6 +2215,14 @@ namespace OS {
 
 		return (long int)st.st_mtime;
 	}
+    
+    static filesize_t s_get_file_size(const string & path) {
+        
+        struct stat st;
+        lstat(path.c_str(), &st);
+        
+        return st.st_size;
+    }
 
 	static std::vector<File> s_list(const string & path) {
 		std::vector<File> ret;

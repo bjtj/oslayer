@@ -45,7 +45,7 @@ int main(int argc, char * args[]) {
 	} else {
 		s_test(args[1]);
 	}
-
+    
 	getchar();
 
 	return 0;

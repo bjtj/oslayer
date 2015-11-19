@@ -692,7 +692,17 @@ public: \
 	 * @brief File
 	 */
 
-	typedef unsigned long long filesize_t; // file size type
+#if defined(USE_UNIX_STD)
+    
+	typedef off_t filesize_t; // file size type
+    
+#elif defined(USE_MS_WIN)
+    
+    typedef unsigned long long filesize_t; // file size type
+    
+#else
+    
+#endif
 
 	// class File
 
