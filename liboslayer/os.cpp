@@ -103,11 +103,11 @@ namespace OS {
 		*handle = dispatch_semaphore_create(initial);
 	}
 
-	static void s_sem_wait(const SEM_HANDLE * handle) {
+	static void s_sem_wait(SEM_HANDLE * handle) {
 		dispatch_semaphore_wait(*handle, DISPATCH_TIME_FOREVER);
 	}
 
-	static void s_sem_post(const SEM_HANDLE * handle) {
+	static void s_sem_post(SEM_HANDLE * handle) {
 		dispatch_semaphore_signal(*handle);
 	}
 
@@ -122,11 +122,11 @@ namespace OS {
 		sem_init(handle, 0, initial);
 	}
 
-	static void s_sem_wait(const SEM_HANDLE * handle) {
+	static void s_sem_wait(SEM_HANDLE * handle) {
 		sem_wait(handle);
 	}
 
-	static void s_sem_post(const SEM_HANDLE * handle) {
+	static void s_sem_post(SEM_HANDLE * handle) {
 		sem_post(handle);
 	}
 
@@ -144,11 +144,11 @@ namespace OS {
 			NULL);		// unnamed semaphore
 	}
 
-	static void s_sem_wait(const SEM_HANDLE * handle) {
+	static void s_sem_wait(SEM_HANDLE * handle) {
 		WaitForSingleObject(*handle, INFINITE);
 	}
 
-	static void s_sem_post(const SEM_HANDLE * handle) {
+	static void s_sem_post(SEM_HANDLE * handle) {
 		ReleaseSemaphore( 
                         *handle,	// handle to semaphore
                         1,			// increase count by one

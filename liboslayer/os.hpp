@@ -168,15 +168,15 @@ namespace OS {
 
 #define DECL_NAMED_ONLY_EXCEPTION(NAME) class NAME : public Exception { \
 public: \
-    NAME() { \
+    explicit NAME() { \
     } \
-    NAME(const std::string & message, int errorCode, int subErrorCode) \
+    explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
     : Exception(message, errorCode, subErrorCode) { \
     } \
-    NAME(const char * message, int errorCode, int subErrorCode) \
+    explicit NAME(const char * message, int errorCode, int subErrorCode) \
     : Exception(message, errorCode, subErrorCode) { \
     } \
-    virtual ~NAME() { \
+    virtual ~NAME() throw() { \
     } \
 }
 
@@ -197,7 +197,7 @@ public: \
 		explicit Exception(const char * message, int errorCode, int subErrorCode) :
 			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {
 		}
-		virtual ~Exception() {
+		virtual ~Exception() throw() {
 		}
 		int getErrorCode() {
 			return errorCode;
@@ -263,7 +263,7 @@ public: \
 	class Semaphore {
 	private:
 		int initial;
-		SEM_HANDLE handle;
+		mutable SEM_HANDLE handle;
 	public:
 		Semaphore(int initial);
 		Semaphore(const Semaphore & other);
