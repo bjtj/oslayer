@@ -166,15 +166,15 @@ typedef SOCKET SOCK_HANDLE;
 
 namespace OS {
 
-#define DECL_NAMED_ONLY_EXCEPTION(NAME) class NAME : public Exception { \
+#define DECL_NAMED_ONLY_EXCEPTION(NAME) class NAME : public OS::Exception { \
 public: \
     explicit NAME() { \
     } \
     explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
-    : Exception(message, errorCode, subErrorCode) { \
+    : OS::Exception(message, errorCode, subErrorCode) { \
     } \
     explicit NAME(const char * message, int errorCode, int subErrorCode) \
-    : Exception(message, errorCode, subErrorCode) { \
+    : OS::Exception(message, errorCode, subErrorCode) { \
     } \
     virtual ~NAME() throw() { \
     } \
@@ -225,6 +225,7 @@ public: \
 		}
 	};
     
+    DECL_NAMED_ONLY_EXCEPTION(NullException);
     DECL_NAMED_ONLY_EXCEPTION(IOException);
     DECL_NAMED_ONLY_EXCEPTION(NotImplementedException);
 
@@ -449,7 +450,7 @@ public: \
         fd_set writefds;
 		fd_set curreadfds;
         fd_set curwritefds;
-		std::vector<Selection> selected;
+		std::vector<Selection> selections;
         
 	public:
 		Selector();
@@ -458,7 +459,7 @@ public: \
 		virtual void set(int fd);
 		virtual void unset(int fd);
 		virtual int select(unsigned long timeout_milli);
-		virtual std::vector<Selection> & getSelected();
+		virtual std::vector<Selection> & getSelections();
 		virtual bool isSelected(int fd);
         virtual bool isSelected(Selectable & selectable);
         virtual bool isReadableSelected(int fd);

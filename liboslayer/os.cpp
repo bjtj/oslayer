@@ -615,18 +615,18 @@ namespace OS {
 		
 		return ::select(maxfds + 1, &curreadfds, &curwritefds, NULL, &timeout);
 	}
-	vector<Selection> & Selector::getSelected() {
-		selected.clear();
+	vector<Selection> & Selector::getSelections() {
+		selections.clear();
 		for (int i = 0; i < maxfds + 1; i++) {
             
             bool readable = FD_ISSET(i, &curreadfds) ? true : false;
             bool writeable = FD_ISSET(i, &curwritefds) ? true : false;
             
             if (readable || writeable) {
-                selected.push_back(Selection(i, readable, writeable));
+                selections.push_back(Selection(i, readable, writeable));
             }
 		}
-		return selected;
+		return selections;
 	}
 
 	bool Selector::isSelected(int fd) {
@@ -699,44 +699,51 @@ namespace OS {
 	 */
 	class BsdSocket : public Socket {
 	private:
+        struct addrinfo * res;
 	public:
-		BsdSocket(SOCK_HANDLE sock) : Socket(sock) {
+		BsdSocket(SOCK_HANDLE sock) : res(NULL), Socket(sock) {
 		}
 		BsdSocket(const char * host, int port) {
 			setAddress(host, port);
+            
+            struct addrinfo hints;
+            char portStr[10] = {0,};
+            
+            SOCK_HANDLE sock = -1;
+            socket(-1);
+            snprintf(portStr, sizeof(port), "%d", getPort());
+            
+            memset(&hints, 0, sizeof(hints));
+            hints.ai_family = AF_UNSPEC;
+            hints.ai_socktype = SOCK_STREAM;
+            if (::getaddrinfo(getHost(), portStr, &hints, &res) < 0) {
+                throw IOException("getaddrinfo() error", -1, 0);
+            }
+            
+            if (!res) {
+                throw IOException("getaddrinfo() error", -1, 0);
+            }
+            
+            sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            if (sock < 0) {
+                freeaddrinfo(res);
+                res = NULL;
+                throw IOException("socket() error", -1, 0);
+            }
+            
+            socket(sock);
 		}
 		virtual ~BsdSocket() {
 		}
 		virtual int connect() {
             
-			int ret = 0;
-			struct addrinfo hints, * res = NULL;
-			char port[10] = {0,};
-
-			SOCK_HANDLE sock = -1;
-			socket(-1);
-			snprintf(port, sizeof(port), "%d", getPort());
-            
             ScopedConnection scopedConnection(&res);
 
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_STREAM;
-			if (::getaddrinfo(getHost(), port, &hints, &res) < 0) {
-                throw IOException("getaddrinfo() error", -1, 0);
-			}
-
-			sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-			if (sock < 0) {
-                throw IOException("socket() error", -1, 0);
-			}
-
-			if (::connect(sock, res->ai_addr, res->ai_addrlen) < 0) {
-				::close(sock);
+            int ret = ::connect(socket(), res->ai_addr, res->ai_addrlen);
+			if (ret < 0) {
+				::close(socket());
                 throw IOException("connect() error", -1, 0);
 			}
-
-			socket(sock);
 			
 			return ret;
 		}

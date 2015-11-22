@@ -339,6 +339,25 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llx", i);
         return string(num);
     }
+    
+    string Text::toString(const NameValueList & lst, const string & item_sep, const string & line_sep) {
+        string ret;
+        bool first = true;
+        for (NameValueList::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
+            
+            if (first) {
+                first = false;
+            } else {
+                ret.append(line_sep);
+            }
+            
+            const NameValue & nv = *iter;
+            ret.append(nv.getName());
+            ret.append(item_sep);
+            ret.append(nv.getValue());
+        }
+        return ret;
+    }
 
 	/**
 	 * @brief starts with

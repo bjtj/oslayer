@@ -31,6 +31,18 @@ namespace UTIL {
 			return (!this->name.compare(name) ? true : false);
 		}
 	};
+    
+    /**
+     * @brief name value list
+     */
+    class NameValueList : public std::vector<NameValue> {
+    private:
+    public:
+        NameValueList() {
+        }
+        virtual ~NameValueList() {
+        }
+    };
 
 	/**
 	 * @brief string map
@@ -203,6 +215,41 @@ namespace UTIL {
 			return elements[index];
 		}
 	};
+    
+    /**
+     * @brief string list map
+     */
+    class StringListMap : public std::map<std::string, std::vector<std::string> > {
+    private:
+    public:
+        StringListMap() {
+        }
+        
+        virtual ~StringListMap() {
+        }
+        
+        void append(const std::string & name, const std::string & value) {
+            this->operator[](name).push_back(value);
+        }
+        
+        std::string getFirstValue(const std::string & name) {
+            return this->operator[](name)[0];
+        }
+        
+        NameValueList toNameValueList() const {
+            NameValueList lst;
+            
+            for (StringListMap::const_iterator iter = begin(); iter != end(); iter++) {
+                std::string name = iter->first;
+                const std::vector<std::string> & values = iter->second;
+                
+                for (size_t i = 0; i < values.size(); i++) {
+                    lst.push_back(NameValue(name, values[i]));
+                }
+            }
+            return lst;
+        }
+    };
 }
 
 #endif

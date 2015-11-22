@@ -27,6 +27,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include "StringElement.hpp"
 
 namespace UTIL {
 
@@ -67,6 +68,9 @@ namespace UTIL {
         static std::string toHexString(unsigned int i);
         static std::string toHexString(unsigned long i);
         static std::string toHexString(unsigned long long i);
+        
+        static std::string toString(const NameValueList & lst, const std::string & item_sep = ": ", const std::string & line_sep = ", ");
+        
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
 		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
 		static int compareIgnoreCase(std::string a, std::string b);
