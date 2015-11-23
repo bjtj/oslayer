@@ -42,6 +42,9 @@
     <ClCompile Include="..\liboslayer\AutoRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\liboslayer\Measurement.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\os.hpp">
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\AutoRef.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\Measurement.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
