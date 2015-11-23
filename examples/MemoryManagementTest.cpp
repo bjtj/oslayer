@@ -207,23 +207,26 @@ void s_ref() {
 }
 
 void s_void() {
-    AutoRef<void> ref(new Item(1));
+	//AutoRef<void> ref;
+    //AutoRef<void> ref(new Item(1));
 }
 
 int main(int argc, char * args[]) {
     
-//    s_container();
-//    s_work();
-//    s_lazy();
-//    s_exchange();
-//    s_test_thread_bypass();
-//    s_replace();
-//    s_recycle();
-//    s_initialize();
-//    s_nil();
-//    s_ref();
-    
-    s_void();
+    //s_container();
+    //s_work();
+    //s_lazy();
+    //s_exchange();
+    //s_test_thread_bypass();
+    //s_replace();
+    //s_recycle();
+    //s_initialize();
+    //s_nil();
+    //s_ref();
+    //s_void();
+
+	printf("press any key to exit.");
+	getchar();
     
     return 0;
 }

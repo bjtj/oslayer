@@ -68,6 +68,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\liboslayer\AutoRef.cpp" />
     <ClCompile Include="..\liboslayer\FileReaderWriter.cpp" />
     <ClCompile Include="..\liboslayer\Iteration.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
@@ -78,6 +79,7 @@
     <ClCompile Include="..\liboslayer\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\liboslayer\AutoRef.hpp" />
     <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
     <ClInclude Include="..\liboslayer\Iteration.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />

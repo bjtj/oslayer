@@ -799,8 +799,9 @@ namespace OS {
 		Winsock2Socket(const char * host, int port) : targetAddr(NULL) {
 			
 			struct addrinfo hints;
-			
+			struct addrinfo * addr = NULL;
 			char portStr[10] = {0,};
+			SOCK_HANDLE sock = INVALID_SOCKET;
 
 			this->socket(INVALID_SOCKET);
 			setAddress(host, port);
@@ -816,6 +817,25 @@ namespace OS {
 				targetAddr = NULL;
 				throw IOException("getaddrinfo() error", -1, 0);
 			}
+
+			if (!targetAddr) {
+				throw IOException("getaddrinfo() error/resource is null", -1, 0);
+			}
+
+			for (addr = targetAddr; addr; addr = addr->ai_next) {
+				// try to connect until one succeeds
+				sock = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
+				if (sock == INVALID_SOCKET) {
+					// error
+					freeaddrinfo(targetAddr);
+				}
+			}
+
+			if (sock == INVALID_SOCKET) {
+				throw IOException("socket() error", -1, 0);
+			}
+
+			this->socket(sock);
 		}
 
 		virtual ~Winsock2Socket() {
@@ -828,7 +848,6 @@ namespace OS {
 
 			struct addrinfo * addr = NULL;
 			int ret;
-			SOCK_HANDLE sock;
 
 			if (!targetAddr) {
 				// error
@@ -837,18 +856,8 @@ namespace OS {
 
 			for (addr = targetAddr; addr; addr = addr->ai_next) {
 				// try to connect until one succeeds
-				sock = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-				if (sock == INVALID_SOCKET) {
-					// error
-					freeaddrinfo(targetAddr);
-					throw IOException("socket() error", -1, 0);
-				}
-
-				ret = ::connect(sock, addr->ai_addr, (int)addr->ai_addrlen);
+				ret = ::connect(socket(), addr->ai_addr, (int)addr->ai_addrlen);
 				if (ret == SOCKET_ERROR) {
-					// error
-					::closesocket(sock);
-					sock = INVALID_SOCKET;
 					continue;
 				}
 				break;
@@ -857,11 +866,10 @@ namespace OS {
 			freeaddrinfo(targetAddr);
 			targetAddr = NULL;
 
-			if (sock == INVALID_SOCKET) {
-				throw IOException("invalid socket error", -1, 0);
+			if (ret == SOCKET_ERROR) {
+				this->close();
+				throw IOException("connect() error", -1, 0);
 			}
-
-			this->socket(sock);
 
 			return 0;
 		}
