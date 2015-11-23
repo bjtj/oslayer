@@ -711,7 +711,7 @@ namespace OS {
             
             SOCK_HANDLE sock = -1;
             socket(-1);
-            snprintf(portStr, sizeof(port), "%d", getPort());
+            snprintf(portStr, sizeof(portStr), "%d", getPort());
             
             memset(&hints, 0, sizeof(hints));
             hints.ai_family = AF_UNSPEC;
@@ -721,7 +721,7 @@ namespace OS {
             }
             
             if (!res) {
-                throw IOException("getaddrinfo() error", -1, 0);
+                throw IOException("getaddrinfo() error/null", -1, 0);
             }
             
             sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
@@ -734,16 +734,30 @@ namespace OS {
             socket(sock);
 		}
 		virtual ~BsdSocket() {
+            if (res) {
+                freeaddrinfo(res);
+                res = NULL;
+            }
 		}
 		virtual int connect() {
             
             ScopedConnection scopedConnection(&res);
-
-            int ret = ::connect(socket(), res->ai_addr, res->ai_addrlen);
-			if (ret < 0) {
-				::close(socket());
+            
+            int ret = -1;
+            struct addrinfo * addr = NULL;
+            
+            for (addr = res; addr; addr = addr->ai_next) {
+                ret = ::connect(socket(), addr->ai_addr, addr->ai_addrlen);
+                if (ret < 0) {
+                    continue;
+                }
+                break;
+            }
+            
+            if (ret < 0) {
+                ::close(socket());
                 throw IOException("connect() error", -1, 0);
-			}
+            }
 			
 			return ret;
 		}
