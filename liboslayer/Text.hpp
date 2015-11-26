@@ -41,7 +41,7 @@ namespace UTIL {
 		static std::string trim(std::string str);
 		static bool match(std::string f, std::string s);
 		static std::vector<std::string> split(std::string target, std::string sep);
-		static std::string join(std::vector<std::string> & vec, std::string glue);
+		static std::string join(const std::vector<std::string> & vec, const std::string & glue);
 		static bool contains(std::vector<std::string> & vec, std::string target);
 		static std::string replaceAll(std::string src, std::string match, std::string rep);
 		static std::string quote(std::string str, std::string q = "'");

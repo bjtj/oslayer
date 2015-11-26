@@ -188,7 +188,7 @@ namespace UTIL {
 	/**
 	 * @brief join vector items
 	 */
-	string Text::join(vector<string> & vec, string glue) {
+	string Text::join(const vector<string> & vec, const string & glue) {
 
 		string ret;
 		
