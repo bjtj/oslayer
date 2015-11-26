@@ -228,6 +228,7 @@ public: \
     DECL_NAMED_ONLY_EXCEPTION(NullException);
     DECL_NAMED_ONLY_EXCEPTION(IOException);
     DECL_NAMED_ONLY_EXCEPTION(NotImplementedException);
+    DECL_NAMED_ONLY_EXCEPTION(IllegalArgumentException);
 
 	/**
 	 * @brief no meaningful version string to distinguish
