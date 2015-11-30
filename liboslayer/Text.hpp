@@ -38,7 +38,9 @@ namespace UTIL {
 		Text(const Text&);
 		Text & operator=(const Text&);
 	public:
-		static std::string trim(std::string str);
+		static std::string trim(const std::string & str);
+		static std::string ltrim(const std::string & str);
+		static std::string rtrim(const std::string & str);
 		static bool match(std::string f, std::string s);
 		static std::vector<std::string> split(std::string target, std::string sep);
 		static std::string join(const std::vector<std::string> & vec, const std::string & glue);

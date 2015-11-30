@@ -75,6 +75,7 @@
     <ClCompile Include="..\liboslayer\Measurement.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
     <ClCompile Include="..\liboslayer\PollablePool.cpp" />
+    <ClCompile Include="..\liboslayer\Properties.cpp" />
     <ClCompile Include="..\liboslayer\ThreadPool.cpp" />
     <ClCompile Include="..\liboslayer\RandomPortBinders.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
@@ -87,6 +88,7 @@
     <ClInclude Include="..\liboslayer\Measurement.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\PollablePool.hpp" />
+    <ClInclude Include="..\liboslayer\Properties.hpp" />
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
     <ClInclude Include="..\liboslayer\StringElement.hpp" />

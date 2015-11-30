@@ -25,6 +25,7 @@ namespace UTIL {
 		virtual void close();
 
 		std::string dumpAsString();
+		std::string dumpAsStringWithLimit(size_t limit);
 
 		OS::File & getFile();
 	};

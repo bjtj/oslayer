@@ -24,10 +24,12 @@ namespace UTIL {
 	Text::~Text() {
 	}
 
+	static string spaces = " \t\r\n";
+
 	/**
 	 * @breif trim
 	 */
-	string Text::trim(string str) {
+	string Text::trim(const string & str) {
 		
 		size_t f = 0;
 		size_t e = 0;
@@ -36,17 +38,44 @@ namespace UTIL {
 			return "";
 		}
 
-		f = str.find_first_not_of(" \t\n");
+		f = str.find_first_not_of(spaces);
 		if (f == string::npos) {
 			return "";
 		}
 
-		e = str.find_last_not_of(" \t\n");
+		e = str.find_last_not_of(spaces);
 		if (e == string::npos) {
 			return str.substr(f);
 		}
 
 		return str.substr(f, e - f + 1);
+	}
+
+	string Text::ltrim(const string & str) {
+
+		if (str.empty()) {
+			return "";
+		}
+
+		size_t f = str.find_first_not_of(spaces);
+		if (f == string::npos) {
+			return "";
+		}
+
+		return str.substr(f);
+
+	}
+	string Text::rtrim(const string & str) {
+		if (str.empty()) {
+			return "";
+		}
+
+		size_t f = str.find_last_not_of(spaces);
+		if (f == string::npos) {
+			return "";
+		}
+
+		return str.substr(0, f);
 	}
 
 	/**

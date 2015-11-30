@@ -103,6 +103,24 @@ namespace UTIL {
 		}
 		return ret;
 	}
+
+	string FileReader::dumpAsStringWithLimit(size_t limit) {
+		string ret;
+		char buffer[1024] = {0,};
+		size_t total = 0;
+		size_t len;
+		while ((total < limit) && (len = read(buffer, sizeof(buffer))) > 0) {
+
+			size_t writeLen = len;
+			if (total + len > limit) {
+				writeLen = limit - total;
+			}
+
+			ret.append(buffer, writeLen);
+			total += writeLen;
+		}
+		return ret;
+	}
 	
 	File & FileReader::getFile() {
 		return file;
