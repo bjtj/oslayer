@@ -339,6 +339,36 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llx", i);
         return string(num);
     }
+
+	string Text::toUpperHexString(short i) {
+        return toUpperHexString((long long)i);
+    }
+    string Text::toUpperHexString(int i) {
+        return toUpperHexString((long long)i);
+    }
+    string Text::toUpperHexString(long i) {
+        return toUpperHexString((long long)i);
+    }
+    string Text::toUpperHexString(long long i) {
+        char num[512] = {0,};
+        snprintf(num, sizeof(num), "%llX", i);
+        return string(num);
+    }
+    string Text::toUpperHexString(unsigned short i) {
+        return toUpperHexString((unsigned long long)i);
+    }
+    string Text::toUpperHexString(unsigned int i) {
+        return toUpperHexString((unsigned long long)i);
+    }
+    string Text::toUpperHexString(unsigned long i) {
+        return toUpperHexString((unsigned long long)i);
+    }
+    string Text::toUpperHexString(unsigned long long i) {
+        char num[512] = {0,};
+        snprintf(num, sizeof(num), "%llX", i);
+        return string(num);
+    }
+
     
     string Text::toString(const NameValueList & lst, const string & item_sep, const string & line_sep) {
         string ret;
