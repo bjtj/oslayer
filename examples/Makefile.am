@@ -1,4 +1,5 @@
 noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo
+
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
 main_CXXFLAGS=$(PTHREAD_CXXFLAGS)
@@ -22,12 +23,3 @@ networkInfo_CPPFLAGS=-I$(top_srcdir)
 networkInfo_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 networkInfo_LDFLAGS=$(PTHREAD_CFLAGS)
 networkInfo_LDADD=../liboslayer/liboslayer.la
-
-# FileTest.cpp
-# TextTest.cpp
-# fileReadWrite.cpp
-# logTest.cpp
-# polling.cpp
-# pollingTest.cpp
-# stringElementTest.cpp
-# trycatch.cpp
