@@ -80,5 +80,8 @@
     <ClInclude Include="..\liboslayer\Measurement.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\liboslayer\Utils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

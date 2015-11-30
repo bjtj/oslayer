@@ -2556,8 +2556,29 @@ namespace OS {
 	}
 
 	static std::vector<File> s_list(const string & path) {
+
 		std::vector<File> ret;
-		// TODO: implement it
+
+		string dir = path;
+		dir.append("\\*");
+
+		WIN32_FIND_DATAA ffd;
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+		DWORD dwError = 0;
+
+		hFind = FindFirstFileA(dir.c_str(), &ffd);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			throw IOException("FindFirstFileA() failed", -1, 0);
+		}
+
+		do {
+			
+			ret.push_back(File::fullpath(path, ffd.cFileName));
+
+		} while (FindNextFileA(hFind, &ffd) != 0);
+
+		FindClose(hFind);
+
 		return ret;
 	}
 	
