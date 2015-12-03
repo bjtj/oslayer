@@ -1591,16 +1591,21 @@ namespace OS {
 		virtual void setReuseAddr() {
 			int status;
 			int on = 1;
-			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
-								  (const char*)&on, sizeof(on));
+			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
 			if (status != 0) {
 				throw IOException("setsockopt() error", -1, 0);
 			}
 		}
 		virtual void setBroadcast() {
 			int broadcast = 1;
-			setsockopt(socket(), SOL_SOCKET, SO_BROADCAST,
-					   (char *)&broadcast, sizeof(broadcast));
+			if (setsockopt(socket(), SOL_SOCKET, SO_BROADCAST, (char *)&broadcast, sizeof(broadcast)) != 0) {
+				throw IOException("setsockopt() error", -1, 0);
+			}
+		}
+		virtual void setTTL(int ttl) {
+			if (setsockopt(socket(), IPPROTO_IP, IP_MULTICAST_TTL, (char*)&ttl, sizeof(ttl)) != 0) {
+				throw IOException("setsockopt() error", -1, 0);
+			}
 		}
 		virtual int bind() {
 			
@@ -1912,6 +1917,10 @@ namespace OS {
 	void DatagramSocket::setBroadcast() {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		socketImpl->setBroadcast();
+	}
+	void DatagramSocket::setTTL(int ttl) {
+		CHECK_NOT_IMPL_THROW(socketImpl);
+		socketImpl->setTTL(ttl);
 	}
 	int DatagramSocket::bind() {
 		CHECK_NOT_IMPL_THROW(socketImpl);

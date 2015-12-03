@@ -647,6 +647,7 @@ public: \
 	public:
 		virtual void setReuseAddr();
 		virtual void setBroadcast();
+		virtual void setTTL(int ttl);
 		virtual int joinGroup(const std::string & group);
 		virtual int joinGroup(const char * group);
 		virtual int bind();
