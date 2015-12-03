@@ -73,7 +73,9 @@ namespace OS {
     public:
         MSSystemImpl() {
             WSADATA wsaData;
-            WSAStartup(MAKEWORD(2,2), &wsaData);
+            if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
+				throw Exception("WSAStartup() failed", -1, 0);
+			}
         }
         virtual ~MSSystemImpl() {
             WSACleanup();
