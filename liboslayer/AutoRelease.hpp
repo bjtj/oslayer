@@ -13,7 +13,9 @@ namespace UTIL {
 		virtual ~AutoRelease() {
 			release(target);
 		}
-		virtual void release(T * target) = 0;
+		virtual void release(T * target) {
+			delete target;
+		}
 
 		T & operator*() {
 			return *target;

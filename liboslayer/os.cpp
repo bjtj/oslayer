@@ -344,14 +344,14 @@ namespace OS {
     
     /* InetAddress */
     
-    InetAddress::InetAddress() : info(NULL), port(0) {
+    InetAddress::InetAddress() : port(-1) {
     }
-    InetAddress::InetAddress(const string & host, int port) : info(NULL), host(host), port(port) {
+    InetAddress::InetAddress(const string & host, int port) : host(host), port(port) {
     }
-	InetAddress::InetAddress(int port) : info(NULL), port(port) {
+	InetAddress::InetAddress(int port) : port(port) {
 	}
-    InetAddress::InetAddress(struct sockaddr * addr) : info(NULL), port(0) {
-        setAddress(addr);
+    InetAddress::InetAddress(struct sockaddr * addr) : port(-1) {
+        setAddressWithSockAddr(addr);
     }
     InetAddress::~InetAddress() {
     }
@@ -376,7 +376,7 @@ namespace OS {
     void InetAddress::setPort(int port) {
         this->port = port;
     }
-	void InetAddress::setAddress(struct sockaddr * addr) {
+	void InetAddress::setAddressWithSockAddr(struct sockaddr * addr) {
 		if (addr->sa_family == AF_INET) {
             setInetVersion(InetAddress::InetVersion::INET4);
 		} else if (addr->sa_family == AF_INET6) {
@@ -385,15 +385,57 @@ namespace OS {
 			throw IOException("Unknown spec", -1, 0);
 		}
         host = InetAddress::getIPAddress(addr);
+		port = InetAddress::getPort(addr);
 	}
 	void InetAddress::setAddress(const InetAddress & addr) {
 		this->host = addr.host;
 		this->port = addr.port;
 	}
+	
+	struct addrinfo * InetAddress::resolve(int socktype) {
 
-	// TODO: implement it
-	/*void InetAddress::resolveAddress(struct addrinfo hints) {
-	}*/
+		char portStr[10] = {0,};
+		snprintf(portStr, sizeof(portStr), "%d", port);
+
+		struct addrinfo hints, * res;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = socktype;
+		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
+			throw IOException("getaddrinfo()", -1, 0);
+		}
+		return res;
+	}
+	struct addrinfo * InetAddress::resolveNumeric(int socktype) {
+
+		char portStr[10] = {0,};
+		snprintf(portStr, sizeof(portStr), "%d", port);
+
+		struct addrinfo hints, * res;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_UNSPEC;
+		hints.ai_socktype = socktype;
+		hints.ai_flags = AI_NUMERICHOST;
+		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
+			throw IOException("getaddrinfo()", -1, 0);
+		}
+		return res;
+	}
+	struct addrinfo * InetAddress::resolvePassive(int family, int socktype) {
+
+		char portStr[10] = {0,};
+		snprintf(portStr, sizeof(portStr), "%d", port);
+
+		struct addrinfo hints, * res;
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = family;
+		hints.ai_socktype = socktype;
+		hints.ai_flags = AI_PASSIVE;
+		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
+			throw IOException("getaddrinfo()", -1, 0);
+		}
+		return res;
+	}
 
     string InetAddress::getIPAddress(struct sockaddr * addr) {
         char ipstr[INET6_ADDRSTRLEN] = {0,};
@@ -1745,11 +1787,12 @@ namespace OS {
 			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
 				(struct sockaddr*)&client_addr, &client_addr_size);
 
-			if (ret > 0) {
-				packet.setLength(ret);
-                packet.setRemoteAddr(InetAddress::getIPAddress((struct sockaddr*)&client_addr));
-                packet.setRemotePort(InetAddress::getPort((struct sockaddr*)&client_addr));
+			if (ret <= 0) {
+				throw IOException("recvfrom() error", -1, 0);
 			}
+
+			InetAddress remoteAddr((struct sockaddr*)&client_addr);
+			packet.setRemoteAddr(remoteAddr);
 			
 			return ret;
 		}
@@ -1760,17 +1803,12 @@ namespace OS {
 			
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), buffer, max, 0, 
-				(struct sockaddr*)&client_addr, &client_addr_size);
+			int ret = (int)::recvfrom(socket(), buffer, max, 0,  (struct sockaddr*)&client_addr, &client_addr_size);
 
 			return ret;
 		}
 
-		virtual int send(const char * host,
-						 int port,
-						 const char * buffer,
-						 size_t length) {
-
+		virtual int send(const char * host, int port, const char * buffer, size_t length) {
 
 			int ret = -1;
 			char portstr[10] = {0,};
@@ -1783,8 +1821,7 @@ namespace OS {
 			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
 				return -1;
 			}
-			ret = (int)::sendto(socket(), buffer, length,
-				0, res->ai_addr, res->ai_addrlen);
+			ret = (int)::sendto(socket(), buffer, length, 0, res->ai_addr, res->ai_addrlen);
 
 			freeaddrinfo(res);
 
@@ -1812,7 +1849,7 @@ namespace OS {
 	 */
 
 	DatagramPacket::DatagramPacket(char * data, size_t maxSize)
-    : data(data), maxSize(maxSize), length(0), remotePort(0) {
+    : data(data), maxSize(maxSize), length(0)/*, remotePort(0)*/ {
         
         System::getInstance();
 	}
@@ -1847,29 +1884,36 @@ namespace OS {
 	void DatagramPacket::setLength(size_t length) {
 		this->length = length;
 	}
+	
+	//string DatagramPacket::getRemoteAddr() {
+	//	return remoteAddr;
+	//}
+	//
+	//string DatagramPacket::getRemoteAddr() const {
+	//	return remoteAddr;
+	//}
 
-	string DatagramPacket::getRemoteAddr() {
+	//int DatagramPacket::getRemotePort() {
+	//	return remotePort;
+	//}
+
+	//int DatagramPacket::getRemotePort() const {
+	//	return remotePort;
+	//}
+
+	//void DatagramPacket::setRemoteAddr(string remoteAddr) {
+	//	this->remoteAddr = remoteAddr;
+	//}
+
+	//void DatagramPacket::setRemotePort(int remotePort) {
+	//	this->remotePort = remotePort;
+	//}
+
+	InetAddress & DatagramPacket::getRemoteAddr() {
 		return remoteAddr;
 	}
-    
-    string DatagramPacket::getRemoteAddr() const {
-        return remoteAddr;
-    }
-
-	int DatagramPacket::getRemotePort() {
-		return remotePort;
-	}
-    
-    int DatagramPacket::getRemotePort() const {
-        return remotePort;
-    }
-
-	void DatagramPacket::setRemoteAddr(string remoteAddr) {
-		this->remoteAddr = remoteAddr;
-	}
-
-	void DatagramPacket::setRemotePort(int remotePort) {
-		this->remotePort = remotePort;
+	void DatagramPacket::setRemoteAddr(InetAddress & addr) {
+		this->remoteAddr.setAddress(addr);
 	}
 
 

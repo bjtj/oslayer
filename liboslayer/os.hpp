@@ -350,8 +350,7 @@ public: \
     private:
         std::string host;
         int port;
-		struct addrinfo * info;
-        
+		
         InetVersion inetVersion;
         
     public:
@@ -369,10 +368,12 @@ public: \
         void setHost(const std::string & host);
         int getPort() const;
         void setPort(int port);
-		void setAddress(struct sockaddr * addr);
+		void setAddressWithSockAddr(struct sockaddr * addr);
 		void setAddress(const InetAddress & addr);
-		// TODO: implement it
-		// void resolveAddress(struct addrinfo hints);
+		
+		struct addrinfo * resolve(int socktype);
+		struct addrinfo * resolveNumeric(int socktype);
+		struct addrinfo * resolvePassive(int family, int socktype);
         
         static std::string getIPAddress(struct sockaddr * addr);
         static int getPort(struct sockaddr * addr);
@@ -609,8 +610,10 @@ public: \
 		char * data;
 		size_t length;
 		size_t maxSize;
-		std::string remoteAddr;
-		int remotePort;
+		//std::string remoteAddr;
+		//int remotePort;
+
+		InetAddress remoteAddr;
         
 	public:
 		DatagramPacket(char * data, size_t maxSize);
@@ -622,12 +625,14 @@ public: \
 		size_t getMaxSize();
         size_t getMaxSize() const;
 		void setLength(size_t length);
-		std::string getRemoteAddr();
-        std::string getRemoteAddr() const;
-		int getRemotePort();
-        int getRemotePort() const;
-		void setRemoteAddr(std::string remoteAddr);
-		void setRemotePort(int remotePort);
+		//std::string getRemoteAddr();
+		//std::string getRemoteAddr() const;
+		//int getRemotePort();
+		//int getRemotePort() const;
+		//void setRemoteAddr(std::string remoteAddr);
+		//void setRemotePort(int remotePort);
+		InetAddress & getRemoteAddr();
+		void setRemoteAddr(InetAddress & addr);
 	};
 
 	/*

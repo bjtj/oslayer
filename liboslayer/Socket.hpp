@@ -14,62 +14,30 @@ namespace XOS {
 	class DatagramSocket {
 	private:
 		DatagramSocket * impl;
-		OS::InetAddress localAddr;
-		OS::InetAddress remoteAddr;
 		int port;
 
 	public:
 		DatagramSocket();
+		DatagramSocket(int port);
+		DatagramSocket(OS::InetAddress & addr);
 		virtual ~DatagramSocket();
-		/*DatagramSocket(int port);
-		DatagramSocket(int port, OS::InetAddress addr);*/
 
-		virtual void bind(int port);
+		virtual void bind(OS::InetAddress & addr);
 		virtual void connect(OS::InetAddress & addr);
 		virtual void disconnect();
 
 		virtual int recv(OS::DatagramPacket & packet);
 		virtual int send(OS::DatagramPacket & packet);
 
-		OS::InetAddress & getLocalAddress();
-		OS::InetAddress & getRemoteAddress();
-
-		void setReuseAddr(bool reuseAddr);
-		bool getReuseAddr();
+		virtual void setReuseAddr(bool reuseAddr);
+		virtual bool getReuseAddr();
 
 	protected:
-		bool hasImpl();
-		virtual void setImpl(DatagramSocket * impl);
+		void createImpl();
+		void createImpl(int port);
+		void createImpl(OS::InetAddress & addr);
 		virtual DatagramSocket & getImpl();
 	};
-
-
-
-	class MulticastSocket : public DatagramSocket {
-	private:
-	public:
-		MulticastSocket();
-		virtual ~MulticastSocket();
-		//DatagramSocket(int port);
-		//DatagramSocket(int port, OS::InetAddress addr);
-
-		//virtual void bind(int port);
-		//virtual void connect(OS::InetAddress & addr);
-		//virtual void disconnect();
-		virtual void joinGroup(OS::InetAddress & addr);
-		virtual void setTimeToLive(int ttl);
-
-		//virtual int recv(OS::DatagramPacket & packet);
-		//virtual int send(OS::DatagramPacket & packet);
-
-		//OS::InetAddress & getLocalAddress();
-		//OS::InetAddress & getRemoteAddress();
-
-	protected:
-		virtual DatagramSocket & getImpl();
-		virtual MulticastSocket & getMulticastImpl();
-	};
-
 }
 
 #endif

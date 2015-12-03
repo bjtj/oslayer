@@ -32,52 +32,61 @@ namespace XOS {
 	private:
 
 		SOCKET sock;
+		struct addrinfo * res;
+		bool reuseAddr;
 
 	public:
-		DatagramSocketImpl(int port) : sock(INVALID_SOCKET) {
+		DatagramSocketImpl() : sock(INVALID_SOCKET), res(NULL), reuseAddr(false) {
+			sock = ::socket(AF_INET, SOCK_DGRAM, 0);
+			if (sock == INVALID_SOCKET) {
+				throw OS::IOException("socket() error", -1, 0);
+			}
+		}
+		DatagramSocketImpl(int port) : sock(INVALID_SOCKET), res(NULL), reuseAddr(false) {
+			OS::InetAddress addr(port);
+			bind(addr);
+		}
+		DatagramSocketImpl(OS::InetAddress & addr) : sock(INVALID_SOCKET), res(NULL), reuseAddr(false) {
+			connect(addr);
+		}
+		virtual ~DatagramSocketImpl() {
+			if (res) {
+				freeaddrinfo(res);
+			}
+		}
 
-			struct addrinfo hints;
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			hints.ai_flags = AI_PASSIVE;
+		virtual void bind(OS::InetAddress & addr) {
 
-			AddrInfoAutoRelease res(SocketUtil::getAddrInfo(NULL, port, hints));
+			res = addr.resolvePassive(AF_INET, SOCK_DGRAM);
 
 			sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 			if (sock == INVALID_SOCKET) {
 				throw OS::IOException("socket() error", -1, 0);
 			}
 
-		}
-		virtual ~DatagramSocketImpl() {
-		}
-
-		virtual void bind(int port) {
-
-			// TODO: implement it
-			/*if (::bind(sock, res->ai_addr, res->ai_addrlen) != 0) {
-				throw OS::IOException("bind() error", -1, 0);
+			if (reuseAddr) {
+				int on = 1;
+				if (::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on)) != 0) {
+					throw OS::IOException("setsockopt() error", -1, 0);
+				}
 			}
 
-			getLocalAddress().setAddress(res->ai_addr);
-			getLocalAddress().setPort(port);*/
+			if (::bind(sock, res->ai_addr, res->ai_addrlen) != 0) {
+				throw OS::IOException("bind() error", -1, 0);
+			}
 		}
 		virtual void connect(OS::InetAddress & addr) {
 
-			struct addrinfo hints;
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			hints.ai_protocol = IPPROTO_UDP;
+			res = addr.resolve(SOCK_DGRAM);
 
-			AddrInfoAutoRelease res(SocketUtil::getAddrInfo(addr.getHost().c_str(), addr.getPort(), hints));
+			sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			if (sock == INVALID_SOCKET) {
+				throw OS::IOException("socket() error", -1, 0);
+			}
 
 			if (::connect(sock, res->ai_addr, res->ai_addrlen) != 0) {
 				throw OS::IOException("connect() error", -1, 0);
 			}
-
-			getRemoteAddress().setAddress(addr);
 		}
 
 		virtual void disconnect() {
@@ -86,9 +95,56 @@ namespace XOS {
 		}
 
 		virtual int recv(OS::DatagramPacket & packet) {
+			
+			struct sockaddr_in client_addr4;
+			struct sockaddr_in6 client_addr6;
+
+			struct sockaddr * client_addr = NULL;
+			socklen_t client_addr_size;
+
+			if (res->ai_family == AF_INET) {
+				client_addr = (struct sockaddr *)&client_addr4;
+				client_addr_size = sizeof(client_addr4);
+			} else if (res->ai_family == AF_INET6) {
+				client_addr = (struct sockaddr *)&client_addr6;
+				client_addr_size = sizeof(client_addr6);
+			} else {
+				throw OS::IOException("Unknown family", -1, 0);
+			}
+
+			int ret = (int)::recvfrom(sock, packet.getData(), packet.getMaxSize(), 0, client_addr, &client_addr_size);
+
+			if (ret <= 0) {
+				throw OS::IOException("recvfrom() error", -1, 0);
+			}
+			
+			packet.setLength(ret);
+			OS::InetAddress remoteAddr(client_addr);
+			packet.setRemoteAddr(remoteAddr);
+			
+			return ret;
 		}
 
 		virtual int send(OS::DatagramPacket & packet) {
+
+			int ret = -1;
+			char portstr[10] = {0,};
+
+			AddrInfoAutoRelease autoRel(packet.getRemoteAddr().resolve(SOCK_DGRAM));
+			
+			ret = (int)::sendto(sock, packet.getData(), packet.getLength(), 0, autoRel->ai_addr, autoRel->ai_addrlen);
+			if (ret <= 0) {
+				throw OS::IOException("sendto() error", -1, 0);
+			}
+
+			return ret;
+		}
+
+		virtual void setReuseAddr(bool reuseAddr) {
+			this->reuseAddr = reuseAddr;
+		}
+		virtual bool getReuseAddr() {
+			return reuseAddr;
 		}
 
 		virtual DatagramSocket & getImpl() {
@@ -101,13 +157,22 @@ namespace XOS {
 	DatagramSocket::DatagramSocket() : impl(NULL) {
 		OS::System::getInstance();
 	}
-	DatagramSocket::~DatagramSocket() {
+	DatagramSocket::DatagramSocket(int port) : impl(NULL) {
+		OS::System::getInstance();
+		createImpl(port);
 	}
-	/*DatagramSocket(int port);
-	DatagramSocket(int port, OS::InetAddress addr);*/
+	DatagramSocket::DatagramSocket(OS::InetAddress & addr) : impl(NULL) {
+		OS::System::getInstance();
+		createImpl(addr);
+	}
+	DatagramSocket::~DatagramSocket() {
+		if (impl) {
+			delete impl;
+		}
+	}
 
-	void DatagramSocket::bind(int port) {
-		getImpl().bind(port);
+	void DatagramSocket::bind(OS::InetAddress & addr) {
+		getImpl().bind(addr);
 	}
 	void DatagramSocket::connect(OS::InetAddress & addr) {
 		getImpl().connect(addr);
@@ -121,146 +186,34 @@ namespace XOS {
 	int DatagramSocket::send(OS::DatagramPacket & packet) {
 		return getImpl().send(packet);
 	}
-	OS::InetAddress & DatagramSocket::getLocalAddress() {
-		return localAddr;
-	}
-	OS::InetAddress & DatagramSocket::getRemoteAddress() {
-		return remoteAddr;
-	}
 
 	void DatagramSocket::setReuseAddr(bool reuseAddr) {
-		
+		getImpl().setReuseAddr(reuseAddr);
 	}
 	bool DatagramSocket::getReuseAddr() {
-		return false;
+		return getImpl().getReuseAddr();
 	}
 
-	bool DatagramSocket::hasImpl() {
-		return impl != NULL;
+	void DatagramSocket::createImpl() {
+		if (!impl) {
+			impl = new DatagramSocketImpl;
+		}
 	}
-
-	void DatagramSocket::setImpl(DatagramSocket * impl) {
-		this->impl = impl;
+	void DatagramSocket::createImpl(int port) {
+		if (!impl) {
+			impl = new DatagramSocketImpl(port);
+		}
 	}
-
+	void DatagramSocket::createImpl(OS::InetAddress & addr) {
+		if (!impl) {
+			impl = new DatagramSocketImpl(addr);
+		}
+	}
+	
 	DatagramSocket & DatagramSocket::getImpl() {
 		if (!impl) {
-			// TODO: implement it
-			// impl = new DatagramSocketImpl;
+			createImpl();
 		}
 		return *impl;
-	}
-
-
-#if defined(USE_WINSOCK2)
-
-	class MulticastSocketImpl : public MulticastSocket {
-	private:
-		SOCKET sock;
-	public:
-		MulticastSocketImpl() : sock(INVALID_SOCKET) {
-		}
-
-		virtual ~MulticastSocketImpl() {
-		}
-
-		virtual void joinGroup(OS::InetAddress & addr) {
-
-			struct addrinfo hints;
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_flags = AI_NUMERICHOST;
-
-			AddrInfoAutoRelease groupRes(SocketUtil::getAddrInfo(addr.getHost().c_str(), 0, hints));
-			
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = groupRes->ai_family;
-			hints.ai_protocol = SOCK_DGRAM;
-			hints.ai_flags = AI_PASSIVE;
-
-			AddrInfoAutoRelease localRes(SocketUtil::getAddrInfo(NULL, addr.getPort(), hints));
-
-			sock = ::socket(localRes->ai_family, localRes->ai_socktype, localRes->ai_protocol);
-			if (sock == INVALID_SOCKET) {
-				throw OS::IOException("socket() error", -1, 0);
-			}
-
-			if (::bind(sock, localRes->ai_addr, localRes->ai_addrlen) != 0) {
-				throw OS::IOException("bind() error", -1, 0);
-			}
-
-			if (groupRes->ai_family == AF_INET) {
-
-				struct ip_mreq mreq;
-				struct sockaddr_in * addr = (struct sockaddr_in*)groupRes->ai_addr;
-				memcpy(&mreq.imr_multiaddr, &(addr->sin_addr), sizeof(mreq.imr_multiaddr));
-				mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-				if (::setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) != 0) {
-					throw OS::IOException("setsockopt() error", -1, 0);
-				}
-
-			} else if (groupRes->ai_family == AF_INET6) {
-
-				struct ipv6_mreq mreq;
-				struct sockaddr_in6 * addr = (struct sockaddr_in6*)groupRes->ai_addr;
-
-				memcpy(&(mreq.ipv6mr_multiaddr), &(addr->sin6_addr), sizeof(mreq.ipv6mr_multiaddr));
-				mreq.ipv6mr_interface = 0;
-
-				if (setsockopt(sock, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq)) != 0) {
-					throw OS::IOException("setsockopt() error", -1, 0);
-					return;
-				}
-
-			} else {
-				throw OS::IOException("Unknown family", -1, 0);
-			}
-		}
-
-		virtual void setTimeToLive(int ttl) {
-		}
-
-
-		DatagramSocket & getImpl() {
-			throw OS::NotImplementedException();
-		}
-	};
-
-#endif
-
-
-	MulticastSocket::MulticastSocket() {
-		OS::System::getInstance();
-	}
-	MulticastSocket::~MulticastSocket() {
-	}
-	//DatagramSocket(int port);
-	//DatagramSocket(int port, OS::InetAddress addr);
-
-	//virtual void bind(int port);
-	//virtual void connect(OS::InetAddress & addr);
-	//virtual void disconnect();
-	void MulticastSocket::joinGroup(OS::InetAddress & addr) {
-		getMulticastImpl().joinGroup(addr);
-	}
-	void MulticastSocket::setTimeToLive(int ttl) {
-		getMulticastImpl().setTimeToLive(ttl);
-	}
-
-	//virtual int recv(OS::DatagramPacket & packet);
-	//virtual int send(OS::DatagramPacket & packet);
-
-	//OS::InetAddress & getLocalAddress();
-	//OS::InetAddress & getRemoteAddress();
-
-
-	DatagramSocket & MulticastSocket::getImpl() {
-		if (!hasImpl()) {
-			setImpl(new MulticastSocketImpl);
-		}
-		return DatagramSocket::getImpl();
-	}
-	MulticastSocket & MulticastSocket::getMulticastImpl() {
-		return (MulticastSocket&)getImpl();
 	}
 }
