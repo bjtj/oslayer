@@ -544,7 +544,7 @@ namespace OS {
             
             if (tmp->ifa_addr && (tmp->ifa_addr->sa_family == AF_INET || tmp->ifa_addr->sa_family == AF_INET6)) {
                 NetworkInterface & iface = s_obtain_network_interface(ifaces, tmp->ifa_name);
-                iface.setInetAddress(InetAddress((sockaddr_in*)tmp->ifa_addr));
+                iface.setInetAddress(InetAddress((struct sockaddr*)tmp->ifa_addr));
             }
             
             tmp = tmp->ifa_next;
@@ -1578,8 +1578,12 @@ namespace OS {
 
 			if (ret > 0) {
 				packet.setLength(ret);
-                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
-                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
+                
+                InetAddress addr((struct sockaddr*)&client_addr);
+                packet.setRemoteAddr(addr);
+                
+//                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
+//                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
 			}
 			
 			return ret;

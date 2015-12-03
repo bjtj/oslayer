@@ -13,7 +13,8 @@ namespace UTIL {
 	}
 
 	void Properties::loadFromFile(const string & filepath) {
-		loadFromFile(File(filepath));
+        File file(filepath);
+		loadFromFile(file);
 	}
 
 	void Properties::loadFromFile(File & file) {
@@ -23,7 +24,8 @@ namespace UTIL {
 	}
 
 	void Properties::writeToFile(const string & filepath) {
-		writeToFile(File(filepath));
+        File file(filepath);
+		writeToFile(file);
 	}
 
 	void Properties::writeToFile(File & file) {
