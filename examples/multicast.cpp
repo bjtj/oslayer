@@ -40,7 +40,7 @@ void s_listen() {
 		sock.recv(packet);
 
 		printf("%s:%d\n", packet.getRemoteAddr().c_str(), packet.getRemotePort());
-		//printf("%s", packet.getData());
+		printf("%s", packet.getData());
 	}
 }
 

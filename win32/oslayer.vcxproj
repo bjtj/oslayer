@@ -76,12 +76,14 @@
     <ClCompile Include="..\liboslayer\os.cpp" />
     <ClCompile Include="..\liboslayer\PollablePool.cpp" />
     <ClCompile Include="..\liboslayer\Properties.cpp" />
+    <ClCompile Include="..\liboslayer\Socket.cpp" />
     <ClCompile Include="..\liboslayer\ThreadPool.cpp" />
     <ClCompile Include="..\liboslayer\RandomPortBinders.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\AutoRef.hpp" />
+    <ClInclude Include="..\liboslayer\AutoRelease.hpp" />
     <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
     <ClInclude Include="..\liboslayer\Iteration.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
@@ -89,6 +91,7 @@
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\PollablePool.hpp" />
     <ClInclude Include="..\liboslayer\Properties.hpp" />
+    <ClInclude Include="..\liboslayer\Socket.hpp" />
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
     <ClInclude Include="..\liboslayer\StringElement.hpp" />

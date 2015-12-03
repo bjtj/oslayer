@@ -327,6 +327,10 @@ public: \
      */
     class InetAddress {
     public:
+
+		/**
+		 * @brief InetVersion
+		 */
         class InetVersion {
         public:
             static const int UNKNOWN = 0;
@@ -344,29 +348,35 @@ public: \
         };
         
     private:
-        std::string address;
+        std::string host;
         int port;
+		struct addrinfo * info;
         
         InetVersion inetVersion;
         
     public:
         InetAddress();
-        InetAddress(const std::string & address, int port);
-        InetAddress(sockaddr_in * addr);
+        InetAddress(const std::string & host, int port);
+		InetAddress(int port);
+        InetAddress(struct sockaddr * addr);
         virtual ~InetAddress();
         
         bool inet4();
         bool inet6();
         void setInetVersion(int version);
         
-        std::string getAddress() const;
-        void setAddress(const std::string & address);
+        std::string getHost() const;
+        void setHost(const std::string & host);
         int getPort() const;
         void setPort(int port);
+		void setAddress(struct sockaddr * addr);
+		void setAddress(const InetAddress & addr);
+		// TODO: implement it
+		// void resolveAddress(struct addrinfo hints);
         
-        static std::string getIPAddress(sockaddr_in * addr);
-        static int getPortNumber(sockaddr_in * addr);
-        
+        static std::string getIPAddress(struct sockaddr * addr);
+        static int getPort(struct sockaddr * addr);
+		static struct addrinfo * getAddrInfo(const char * host, int port, struct addrinfo hints);
     };
     
     /**

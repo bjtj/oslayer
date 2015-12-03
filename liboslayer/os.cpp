@@ -344,17 +344,14 @@ namespace OS {
     
     /* InetAddress */
     
-    InetAddress::InetAddress() : address("0.0.0.0"), port(0) {
+    InetAddress::InetAddress() : info(NULL), port(0) {
     }
-    InetAddress::InetAddress(const string & address, int port) : address(address), port(port) {
+    InetAddress::InetAddress(const string & host, int port) : info(NULL), host(host), port(port) {
     }
-    InetAddress::InetAddress(sockaddr_in * addr) : port(0) {
-        if (addr->sin_family == AF_INET) {
-            setInetVersion(InetAddress::InetVersion::INET4);
-        } else {
-            setInetVersion(InetAddress::InetVersion::INET6);
-        }
-        address = InetAddress::getIPAddress(addr);
+	InetAddress::InetAddress(int port) : info(NULL), port(port) {
+	}
+    InetAddress::InetAddress(struct sockaddr * addr) : info(NULL), port(0) {
+        setAddress(addr);
     }
     InetAddress::~InetAddress() {
     }
@@ -367,11 +364,11 @@ namespace OS {
     void InetAddress::setInetVersion(int version) {
         inetVersion = version;
     }
-    string InetAddress::getAddress() const {
-        return address;
+    string InetAddress::getHost() const {
+        return host;
     }
-    void InetAddress::setAddress(const string & address) {
-        this->address = address;
+    void InetAddress::setHost(const string & host) {
+        this->host = host;
     }
     int InetAddress::getPort() const {
         return port;
@@ -379,13 +376,33 @@ namespace OS {
     void InetAddress::setPort(int port) {
         this->port = port;
     }
-    string InetAddress::getIPAddress(sockaddr_in * addr) {
+	void InetAddress::setAddress(struct sockaddr * addr) {
+		if (addr->sa_family == AF_INET) {
+            setInetVersion(InetAddress::InetVersion::INET4);
+		} else if (addr->sa_family == AF_INET6) {
+            setInetVersion(InetAddress::InetVersion::INET6);
+        } else {
+			throw IOException("Unknown spec", -1, 0);
+		}
+        host = InetAddress::getIPAddress(addr);
+	}
+	void InetAddress::setAddress(const InetAddress & addr) {
+		this->host = addr.host;
+		this->port = addr.port;
+	}
+
+	// TODO: implement it
+	/*void InetAddress::resolveAddress(struct addrinfo hints) {
+	}*/
+
+    string InetAddress::getIPAddress(struct sockaddr * addr) {
         char ipstr[INET6_ADDRSTRLEN] = {0,};
         
 #if (!defined(USE_WINSOCK2) || _WIN32_WINNT >= 0x0600)
-        inet_ntop(addr->sin_family, (addr->sin_family == AF_INET ?
-                                     (void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
-                  ipstr, sizeof(ipstr));
+
+		inet_ntop(addr->sa_family, (addr->sa_family == AF_INET ?
+			(void*)&((struct sockaddr_in*)addr)->sin_addr : (void*)&((struct sockaddr_in6 *)addr)->sin6_addr),
+			ipstr, sizeof(ipstr));
         
 #else
         char * ptr = NULL;
@@ -396,10 +413,21 @@ namespace OS {
         
         return string(ipstr);
     }
-    int InetAddress::getPortNumber(sockaddr_in * addr) {
-        return ntohs((addr->sin_family == AF_INET ?
+    int InetAddress::getPort(struct sockaddr * addr) {
+        return ntohs((addr->sa_family == AF_INET ?
                       ((struct sockaddr_in*)addr)->sin_port: ((struct sockaddr_in6 *)addr)->sin6_port));
     }
+	struct addrinfo * InetAddress::getAddrInfo(const char * host, int port, struct addrinfo hints) {
+		struct addrinfo * res;
+		char portStr[10] = {0,};
+		snprintf(portStr, sizeof(portStr), "%d", port);
+		memset(&hints, 0, sizeof(hints));
+		if (getaddrinfo(host, (port == 0 ? NULL : portStr), &hints, &res) != 0) {
+			throw OS::IOException("getaddrinfo() error", -1, 0);
+		}
+		return res;
+	}
+
     
     /* Network Interface */
     
@@ -438,8 +466,8 @@ namespace OS {
 
         for (size_t i = 0; i < inetAddresses.size(); i++) {
             InetAddress & addr = inetAddresses[i];
-            if (!addr.getAddress().compare("127.0.0.1") ||
-                !addr.getAddress().compare("::1")) {
+            if (!addr.getHost().compare("127.0.0.1") ||
+                !addr.getHost().compare("::1")) {
                 return true;
             }
         }
@@ -526,7 +554,7 @@ namespace OS {
 			while( pIpAddress != 0 ) {
 
 				InetAddress address;
-				address.setAddress(pAdapterInfo->IpAddressList.IpAddress.String);
+				address.setHost(pAdapterInfo->IpAddressList.IpAddress.String);
 				address.setInetVersion(InetAddress::InetVersion::INET4);
 				iface.setInetAddress(address);
 
@@ -1719,8 +1747,8 @@ namespace OS {
 
 			if (ret > 0) {
 				packet.setLength(ret);
-                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
-                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
+                packet.setRemoteAddr(InetAddress::getIPAddress((struct sockaddr*)&client_addr));
+                packet.setRemotePort(InetAddress::getPort((struct sockaddr*)&client_addr));
 			}
 			
 			return ret;
