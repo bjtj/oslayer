@@ -57,7 +57,7 @@ void s_multicast_test() {
 	while (1) {
 		packet.clear();
 		server.recv(packet);
-		std::string & host = packet.getRemoteAddr().getHost();
+		std::string host = packet.getRemoteAddr().getHost();
 		int port = packet.getRemoteAddr().getPort();
 
 		//if (!host.compare("192.168.0.10")) {

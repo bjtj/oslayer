@@ -1574,7 +1574,7 @@ namespace OS {
 		virtual int recv(DatagramPacket & packet) {
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
+			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getSize(), 0,
 				(struct sockaddr*)&client_addr, &client_addr_size);
 
 			if (ret > 0) {

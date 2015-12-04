@@ -32,11 +32,12 @@ namespace XOS {
             }
         }
         
-        virtual void bind(OS::InetAddress & addr) {
+        void bind(struct addrinfo * addrInfo) {
             
-            res = addr.resolvePassive(AF_INET, SOCK_DGRAM);
+            DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
+            AddrInfoAutoRelease infoMem(addrInfo);
             
-            sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            sock = ::socket(addrInfo->ai_family, addrInfo->ai_socktype, addrInfo->ai_protocol);
             if (sock < 0) {
                 throw OS::IOException("socket() error", -1, 0);
             }
@@ -48,9 +49,16 @@ namespace XOS {
                 }
             }
             
-            if (::bind(sock, res->ai_addr, res->ai_addrlen) != 0) {
+            if (::bind(sock, addrInfo->ai_addr, addrInfo->ai_addrlen) != 0) {
                 throw OS::IOException("bind() error", -1, 0);
             }
+            
+            infoMem.forget();
+            setAddrInfo(addrInfo);
+        }
+        
+        virtual void bind(OS::InetAddress & addr) {
+            bind(addr.resolvePassive(AF_UNSPEC, SOCK_DGRAM));
         }
         virtual void connect(OS::InetAddress & addr) {
             
@@ -71,7 +79,7 @@ namespace XOS {
         }
 
 		virtual void close() {
-			close(sock);
+			::close(sock);
 			sock = -1;
 		}
         
@@ -93,7 +101,7 @@ namespace XOS {
                 throw OS::IOException("Unknown family", -1, 0);
             }
             
-            int ret = (int)::recvfrom(sock, packet.getData(), packet.getMaxSize(), 0, client_addr, &client_addr_size);
+            int ret = (int)::recvfrom(sock, packet.getData(), packet.getSize(), 0, client_addr, &client_addr_size);
             
             if (ret <= 0) {
                 throw OS::IOException("recvfrom() error", -1, 0);
@@ -126,6 +134,27 @@ namespace XOS {
         }
         virtual bool getReuseAddr() {
             return reuseAddr;
+        }
+        
+        bool resolvedAddrInfo() {
+            return res != NULL;
+        }
+        
+        void setAddrInfo(struct addrinfo * res) {
+            if (this->res) {
+                freeaddrinfo(this->res);
+            }
+            this->res = res;
+        }
+        
+        struct addrinfo * getAddrInfo() {
+            return res;
+        }
+        
+        void setOption(int level, int optname, const char * optval, int optlen) {
+            if (setsockopt(sock, level, optname, optval, optlen) != 0) {
+                throw OS::IOException("setsockopt() error", -1, 0);
+            }
         }
         
         virtual DatagramSocket & getImpl() {
@@ -374,6 +403,61 @@ namespace XOS {
 	}
 
 #if defined(USE_BSD_SOCKET)
+    
+    class MulticastSocketImpl : public DatagramSocketImpl {
+    private:
+        OS::InetAddress localAddr;
+    public:
+        MulticastSocketImpl() {
+            setReuseAddr(true);
+        }
+        MulticastSocketImpl(int port) {
+            setReuseAddr(true);
+            localAddr.setPort(port);
+        }
+        MulticastSocketImpl(OS::InetAddress & addr) {
+            setReuseAddr(true);
+            localAddr.setAddress(addr);
+        }
+        virtual ~MulticastSocketImpl() {
+        }
+        
+        virtual void joinGroup(const std::string & group) {
+            
+            OS::InetAddress groupAddr(group, -1);
+            DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
+            AddrInfoAutoRelease groupInfo(groupAddr.resolveNumeric(SOCK_DGRAM));
+            
+            bind(localAddr.resolvePassive(groupInfo->ai_family, groupInfo->ai_socktype));
+            
+            if (groupInfo->ai_family == AF_INET) {
+                struct ip_mreq mreq;
+                struct sockaddr_in * addr = (struct sockaddr_in*)groupInfo->ai_addr;
+                
+                memcpy(&mreq.imr_multiaddr, &(addr->sin_addr), sizeof(mreq.imr_multiaddr));
+                mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+                
+                setOption(IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&mreq, sizeof(mreq));
+                
+            } else if (groupInfo->ai_family == AF_INET6) {
+                
+                struct ipv6_mreq mreq;
+                struct sockaddr_in6 * addr = (struct sockaddr_in6*)groupInfo->ai_addr;
+                
+                memcpy(&(mreq.ipv6mr_multiaddr), &(addr->sin6_addr), sizeof(mreq.ipv6mr_multiaddr));
+                mreq.ipv6mr_interface = 0;
+                
+                setOption(IPPROTO_IPV6, IPV6_JOIN_GROUP, (char*)&mreq, sizeof(mreq));
+                
+            } else {
+                throw OS::IOException("Unknown family", -1, 0);
+            }
+        }
+        virtual void setTimeToLive(int ttl) {
+            // TODO: implement it
+        }
+    };
+    
 #elif defined(USE_WINSOCK2)
 
 	class MulticastSocketImpl : public DatagramSocketImpl {
