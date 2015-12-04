@@ -2,6 +2,7 @@
 #define __UTIL_HPP__
 
 #include "AutoRef.hpp"
+#include "AutoRelease.hpp"
 #include "FileReaderWriter.hpp"
 #include "Iteration.hpp"
 #include "Logger.hpp"

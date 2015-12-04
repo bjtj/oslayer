@@ -13,7 +13,6 @@ namespace OS {
 		return "0.1";
 	}
 
-
 	/**
 	 * @brief milliseconds sleep
 	 */
@@ -1790,7 +1789,7 @@ namespace OS {
 			
 			struct sockaddr_in client_addr;
 			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getMaxSize(), 0, 
+			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getSize(), 0, 
 				(struct sockaddr*)&client_addr, &client_addr_size);
 
 			if (ret <= 0) {
@@ -1854,13 +1853,17 @@ namespace OS {
 	 * Datagram Packet
 	 */
 
-	DatagramPacket::DatagramPacket(char * data, size_t maxSize)
-    : data(data), maxSize(maxSize), length(0)/*, remotePort(0)*/ {
+	DatagramPacket::DatagramPacket(char * data, size_t size)
+    : data(data), size(size), length(0) {
         
         System::getInstance();
 	}
 
 	DatagramPacket::~DatagramPacket() {
+	}
+
+	void DatagramPacket::clear() {
+		memset(data, 0, size);
 	}
 
 	char * DatagramPacket::getData() {
@@ -1871,50 +1874,18 @@ namespace OS {
         return data;
     }
 
-	size_t DatagramPacket::getLength() {
-		return length;
-	}
-    
     size_t DatagramPacket::getLength() const {
         return length;
     }
 
-	size_t DatagramPacket::getMaxSize() {
-		return maxSize;
-	}
-    
-    size_t DatagramPacket::getMaxSize() const {
-        return maxSize;
+    size_t DatagramPacket::getSize() const {
+        return size;
     }
 
 	void DatagramPacket::setLength(size_t length) {
 		this->length = length;
 	}
 	
-	//string DatagramPacket::getRemoteAddr() {
-	//	return remoteAddr;
-	//}
-	//
-	//string DatagramPacket::getRemoteAddr() const {
-	//	return remoteAddr;
-	//}
-
-	//int DatagramPacket::getRemotePort() {
-	//	return remotePort;
-	//}
-
-	//int DatagramPacket::getRemotePort() const {
-	//	return remotePort;
-	//}
-
-	//void DatagramPacket::setRemoteAddr(string remoteAddr) {
-	//	this->remoteAddr = remoteAddr;
-	//}
-
-	//void DatagramPacket::setRemotePort(int remotePort) {
-	//	this->remotePort = remotePort;
-	//}
-
 	InetAddress & DatagramPacket::getRemoteAddr() {
 		return remoteAddr;
 	}

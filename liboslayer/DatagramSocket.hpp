@@ -5,12 +5,6 @@
 
 namespace XOS {
 
-	class SocketUtil {
-	private:
-	public:
-		static struct addrinfo * getAddrInfo(const char * host, int port, struct addrinfo hints);
-	};
-
 	class DatagramSocket {
 	private:
 		DatagramSocket * impl;
@@ -25,6 +19,7 @@ namespace XOS {
 		virtual void bind(OS::InetAddress & addr);
 		virtual void connect(OS::InetAddress & addr);
 		virtual void disconnect();
+		virtual void close();
 
 		virtual int recv(OS::DatagramPacket & packet);
 		virtual int send(OS::DatagramPacket & packet);
@@ -33,10 +28,30 @@ namespace XOS {
 		virtual bool getReuseAddr();
 
 	protected:
-		void createImpl();
-		void createImpl(int port);
-		void createImpl(OS::InetAddress & addr);
+		bool createdImpl();
+		void setImpl(DatagramSocket * impl);
+		virtual void createImpl();
+		virtual void createImpl(int port);
+		virtual void createImpl(OS::InetAddress & addr);
 		virtual DatagramSocket & getImpl();
+	};
+
+
+	class MulticastSocket : public DatagramSocket {
+	private:
+	public:
+		MulticastSocket();
+		MulticastSocket(int port);
+		MulticastSocket(OS::InetAddress & addr);
+		virtual ~MulticastSocket();
+
+		virtual void joinGroup(const std::string & group);
+		virtual void setTimeToLive(int ttl);
+
+	protected:
+		virtual void createImpl();
+		virtual void createImpl(int port);
+		virtual void createImpl(OS::InetAddress & addr);
 	};
 }
 

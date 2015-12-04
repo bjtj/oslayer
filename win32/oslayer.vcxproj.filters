@@ -48,7 +48,7 @@
     <ClCompile Include="..\liboslayer\Properties.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\liboslayer\Socket.cpp">
+    <ClCompile Include="..\liboslayer\DatagramSocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -92,10 +92,10 @@
     <ClInclude Include="..\liboslayer\Properties.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\liboslayer\Socket.hpp">
+    <ClInclude Include="..\liboslayer\AutoRelease.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\liboslayer\AutoRelease.hpp">
+    <ClInclude Include="..\liboslayer\DatagramSocket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

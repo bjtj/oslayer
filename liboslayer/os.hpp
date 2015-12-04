@@ -609,28 +609,19 @@ public: \
 	private:
 		char * data;
 		size_t length;
-		size_t maxSize;
-		//std::string remoteAddr;
-		//int remotePort;
+		size_t size;
 
 		InetAddress remoteAddr;
         
 	public:
 		DatagramPacket(char * data, size_t maxSize);
 		virtual ~DatagramPacket();
+		void clear();
 		char * getData();
         const char * getData() const;
-		size_t getLength();
         size_t getLength() const;
-		size_t getMaxSize();
-        size_t getMaxSize() const;
+        size_t getSize() const;
 		void setLength(size_t length);
-		//std::string getRemoteAddr();
-		//std::string getRemoteAddr() const;
-		//int getRemotePort();
-		//int getRemotePort() const;
-		//void setRemoteAddr(std::string remoteAddr);
-		//void setRemotePort(int remotePort);
 		InetAddress & getRemoteAddr();
 		void setRemoteAddr(InetAddress & addr);
 	};
