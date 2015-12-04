@@ -60,10 +60,8 @@ void s_multicast_test() {
 		std::string host = packet.getRemoteAddr().getHost();
 		int port = packet.getRemoteAddr().getPort();
 
-		//if (!host.compare("192.168.0.10")) {
-			printf("RECV FROM: %s:%d\n", host.c_str(), port);
-			printf("%s\n", packet.getData());
-		//}
+		printf("RECV FROM: %s:%d\n", host.c_str(), port);
+		printf("%s\n", packet.getData());
 	}
 	
 }
