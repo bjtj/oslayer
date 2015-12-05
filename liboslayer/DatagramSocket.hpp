@@ -5,6 +5,9 @@
 
 namespace XOS {
 
+	/**
+	 * @brief DatagramSocket
+	 */
 	class DatagramSocket {
 	private:
 		DatagramSocket * impl;
@@ -13,11 +16,11 @@ namespace XOS {
 	public:
 		DatagramSocket();
 		DatagramSocket(int port);
-		DatagramSocket(OS::InetAddress & addr);
+		DatagramSocket(const OS::InetAddress & addr);
 		virtual ~DatagramSocket();
 
-		virtual void bind(OS::InetAddress & addr);
-		virtual void connect(OS::InetAddress & addr);
+		virtual void bind(const OS::InetAddress & addr);
+		virtual void connect(const OS::InetAddress & bindAddr);
 		virtual void disconnect();
 		virtual void close();
 
@@ -32,17 +35,20 @@ namespace XOS {
 		void setImpl(DatagramSocket * impl);
 		virtual void createImpl();
 		virtual void createImpl(int port);
-		virtual void createImpl(OS::InetAddress & addr);
+		virtual void createImpl(const OS::InetAddress & bindAddr);
 		virtual DatagramSocket & getImpl();
 	};
 
 
+	/**
+	 * @brief MulticastSocket
+	 */
 	class MulticastSocket : public DatagramSocket {
 	private:
 	public:
 		MulticastSocket();
 		MulticastSocket(int port);
-		MulticastSocket(OS::InetAddress & addr);
+		MulticastSocket(const OS::InetAddress & addr);
 		virtual ~MulticastSocket();
 
 		virtual void joinGroup(const std::string & group);
@@ -51,7 +57,7 @@ namespace XOS {
 	protected:
 		virtual void createImpl();
 		virtual void createImpl(int port);
-		virtual void createImpl(OS::InetAddress & addr);
+		virtual void createImpl(const OS::InetAddress & bindAddr);
 	};
 }
 

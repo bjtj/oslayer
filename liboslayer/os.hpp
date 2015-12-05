@@ -143,6 +143,8 @@ typedef HANDLE THREAD_HANDLE;
 
 typedef int SOCK_HANDLE;
 
+#define INVALID_SOCKET -1
+
 #elif defined(USE_WINSOCK2) /* winsock2 */
 
 // reference: https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms737629%28v=vs.85%29.aspx
@@ -229,6 +231,7 @@ public: \
     DECL_NAMED_ONLY_EXCEPTION(IOException);
     DECL_NAMED_ONLY_EXCEPTION(NotImplementedException);
     DECL_NAMED_ONLY_EXCEPTION(IllegalArgumentException);
+	DECL_NAMED_ONLY_EXCEPTION(BufferOverflowException);
 
 	/**
 	 * @brief no meaningful version string to distinguish
@@ -360,8 +363,9 @@ public: \
         InetAddress(struct sockaddr * addr);
         virtual ~InetAddress();
         
-        bool inet4();
-        bool inet6();
+		int getFamilyCode() const;
+        bool inet4() const;
+        bool inet6() const;
         void setInetVersion(int version);
         
         std::string getHost() const;
@@ -371,9 +375,13 @@ public: \
 		void setAddressWithSockAddr(struct sockaddr * addr);
 		void setAddress(const InetAddress & addr);
 		
-		struct addrinfo * resolve(int socktype);
-		struct addrinfo * resolveNumeric(int socktype);
-		struct addrinfo * resolvePassive(int family, int socktype);
+		struct addrinfo * resolve(int socktype) const;
+		struct addrinfo * resolveNumeric(int socktype) const;
+		struct addrinfo * resolvePassive(int family, int socktype) const;
+
+	private:
+		static addrinfo * getAddressInfo(const char * node, const char * service, struct addrinfo * hints);
+	public:
         
         static std::string getIPAddress(struct sockaddr * addr);
         static int getPort(struct sockaddr * addr);
@@ -447,9 +455,10 @@ public: \
         virtual ~Selectable() {}
         
         virtual int getFd() = 0;
-        virtual void registerSelector(Selector & selector) = 0;
-        virtual void unregisterSelector(Selector & selector) = 0;
-        virtual bool isSelected(Selector & selector) = 0;
+        
+		virtual void registerSelector(Selector & selector);
+		virtual void unregisterSelector(Selector & selector);
+		virtual bool isSelected(Selector & selector);
     };
 
 	/**
@@ -491,10 +500,11 @@ public: \
 		SocketUtil();
 		virtual ~SocketUtil();
 		static void checkValidSocket(SOCK_HANDLE sock);
+		static void throwSocketException(const std::string & message);
 	};
 
     /**
-     * @brief socket binder
+     * @brief RandomPortBinder
      */
     class RandomPortBinder {
     public:
@@ -505,6 +515,25 @@ public: \
         virtual bool wantFinish() = 0;
         virtual int getSelectedPort() = 0;
     };
+
+	/**
+     * @brief SocketOptions
+     */
+	class SocketOptions {
+	private:
+		bool reuseAddr;
+		bool broadcast;
+		int ttl;
+	public:
+		SocketOptions();
+		virtual ~SocketOptions();
+		void setResuseAddr(bool reuseAddr);
+		bool getReuseAddr();
+		void setBroadcast(bool broadcast);
+		bool getBroadcast();
+		void setTimeToLive(int ttl);
+		int getTimeToLive();
+	};
 
 	/*
 	 * @brief Socket
@@ -531,10 +560,6 @@ public: \
 
 	public:
 		virtual int connect();
-
-		virtual void registerSelector(Selector & selector);
-        virtual void unregisterSelector(Selector & selector);
-        virtual bool isSelected(Selector & selector);
         
 		virtual bool compareFd(int fd);
 		virtual int getFd();
@@ -578,10 +603,6 @@ public: \
 
 	public:
 		virtual void setReuseAddr();
-
-		virtual void registerSelector(Selector & selector);
-        virtual void unregisterSelector(Selector & selector);
-        virtual bool isSelected(Selector & selector);
         
 		virtual bool compareFd(int fd);
 		virtual int getFd();
@@ -614,16 +635,18 @@ public: \
 		InetAddress remoteAddr;
         
 	public:
-		DatagramPacket(char * data, size_t maxSize);
+		DatagramPacket(char * data, size_t size);
 		virtual ~DatagramPacket();
 		void clear();
 		char * getData();
         const char * getData() const;
         size_t getLength() const;
         size_t getSize() const;
+		void write(const char * data, size_t size);
+		void write(const std::string & data);
 		void setLength(size_t length);
 		InetAddress & getRemoteAddr();
-		void setRemoteAddr(InetAddress & addr);
+		void setRemoteAddr(const InetAddress & addr);
 	};
 
 	/*
@@ -659,10 +682,6 @@ public: \
 		virtual int bind();
         virtual int randomBind(RandomPortBinder & portBinder);
 		virtual int connect();
-
-		virtual void registerSelector(Selector & selector);
-        virtual void unregisterSelector(Selector & selector);
-        virtual bool isSelected(Selector & selector);
         
 		virtual bool compareFd(int fd);
 		virtual int getFd();

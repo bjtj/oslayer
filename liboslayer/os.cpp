@@ -356,10 +356,19 @@ namespace OS {
     }
     InetAddress::~InetAddress() {
     }
-    bool InetAddress::inet4() {
+	int InetAddress::getFamilyCode() const {
+		if (inet4()) {
+			return AF_INET;
+		}
+		if (inet6()) {
+			return AF_INET6;
+		}
+		return AF_UNSPEC;
+	}
+    bool InetAddress::inet4() const {
         return inetVersion == InetVersion::INET4;
     }
-    bool InetAddress::inet6() {
+    bool InetAddress::inet6() const {
         return inetVersion == InetVersion::INET6;
     }
     void InetAddress::setInetVersion(int version) {
@@ -393,47 +402,47 @@ namespace OS {
 		this->port = addr.port;
 	}
 	
-	struct addrinfo * InetAddress::resolve(int socktype) {
+	struct addrinfo * InetAddress::resolve(int socktype) const {
 
 		char portStr[10] = {0,};
 		snprintf(portStr, sizeof(portStr), "%d", port);
 
-		struct addrinfo hints, * res;
+		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = socktype;
-		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
-			throw IOException("getaddrinfo()", -1, 0);
-		}
-		return res;
+		return getAddressInfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints);
 	}
-	struct addrinfo * InetAddress::resolveNumeric(int socktype) {
+	struct addrinfo * InetAddress::resolveNumeric(int socktype) const {
 
 		char portStr[10] = {0,};
 		snprintf(portStr, sizeof(portStr), "%d", port);
 
-		struct addrinfo hints, * res;
+		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
 		hints.ai_socktype = socktype;
 		hints.ai_flags = AI_NUMERICHOST;
-		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
-			throw IOException("getaddrinfo()", -1, 0);
-		}
-		return res;
+		return getAddressInfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints);
 	}
-	struct addrinfo * InetAddress::resolvePassive(int family, int socktype) {
+	struct addrinfo * InetAddress::resolvePassive(int family, int socktype) const {
 
 		char portStr[10] = {0,};
 		snprintf(portStr, sizeof(portStr), "%d", port);
 
-		struct addrinfo hints, * res;
+		struct addrinfo hints;
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = family;
 		hints.ai_socktype = socktype;
 		hints.ai_flags = AI_PASSIVE;
-		if (getaddrinfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints, &res) != 0) {
-			throw IOException("getaddrinfo()", -1, 0);
+		
+		return getAddressInfo((host.empty() ? NULL : host.c_str()), (port == -1 ? NULL : portStr), &hints);
+	}
+
+	addrinfo * InetAddress::getAddressInfo(const char * node, const char * service, struct addrinfo * hints) {
+		struct addrinfo * res;
+		if (getaddrinfo(node, service, hints, &res) != 0) {
+			SocketUtil::throwSocketException("getaddrinfo() error");
 		}
 		return res;
 	}
@@ -652,8 +661,17 @@ namespace OS {
         return writeable;
     }
 
-
 	/* SELECTOR */
+
+	void Selectable::registerSelector(Selector & selector) {
+		selector.set(getFd());
+	}
+	void Selectable::unregisterSelector(Selector & selector) {
+		selector.unset(getFd());
+	}
+	bool Selectable::isSelected(Selector & selector) {
+		return selector.isSelected(getFd());
+	}
 
 	Selector::Selector() : maxfds(0) {
 		FD_ZERO(&readfds);
@@ -743,6 +761,20 @@ namespace OS {
 #endif
 	}
 
+void SocketUtil::throwSocketException(const std::string & message) {
+
+#if defined(USE_WINSOCK2)
+		int err = WSAGetLastError();
+		char text[1024];
+		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+						FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err,
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
+		throw IOException(message + " / " + string(text), err, 0);
+#else
+		throw IOException("getaddrinfo()", -1, 0);
+#endif
+}
+
 	/**
 	 * @brief scoped connection (auto free)
 	 */
@@ -759,7 +791,32 @@ namespace OS {
             }
         }
     };
-	
+
+	/**
+	 * @brief scoped connection (auto free)
+	 */
+	SocketOptions::SocketOptions() : reuseAddr(false), broadcast(false), ttl(0) {
+	}
+	SocketOptions::~SocketOptions() {
+	}
+	void SocketOptions::setResuseAddr(bool reuseAddr) {
+		this->reuseAddr = reuseAddr;
+	}
+	bool SocketOptions::getReuseAddr() {
+		return reuseAddr;
+	}
+	void SocketOptions::setBroadcast(bool broadcast) {
+		this->broadcast = broadcast;
+	}
+	bool SocketOptions::getBroadcast() {
+		return broadcast;
+	}
+	void SocketOptions::setTimeToLive(int ttl) {
+		this->ttl = ttl;
+	}
+	int SocketOptions::getTimeToLive() {
+		return ttl;
+	}
 
 	/* SOCKET implementation */
 	
@@ -1060,17 +1117,6 @@ namespace OS {
         CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->connect();
 	}
-
-	void Socket::registerSelector(Selector & selector) {
-        selector.set(getFd());
-	}
-    void Socket::unregisterSelector(Selector & selector) {
-        selector.unset(getFd());
-    }
-    
-    bool Socket::isSelected(Selector & selector) {
-        return selector.isSelected(getFd());
-    }
 	bool Socket::compareFd(int fd) {
         CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->compareFd(fd);
@@ -1358,20 +1404,7 @@ namespace OS {
 	void ServerSocket::setReuseAddr() {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
 		serverSocketImpl->setReuseAddr();
-
 	}
-
-	void ServerSocket::registerSelector(Selector & selector) {
-        selector.set(getFd());
-	}
-    
-    void ServerSocket::unregisterSelector(Selector & selector) {
-        selector.unset(getFd());
-    }
-    
-    bool ServerSocket::isSelected(Selector & selector) {
-        return selector.isSelected(getFd());
-    }
 
 	bool ServerSocket::compareFd(int fd) {
         CHECK_NOT_IMPL_THROW(serverSocketImpl);
@@ -1881,7 +1914,16 @@ namespace OS {
     size_t DatagramPacket::getSize() const {
         return size;
     }
-
+	void DatagramPacket::write(const char * data, size_t size) {
+		if (this->size < size) {
+			throw BufferOverflowException("buffer overflowed", -1, 0);
+		}
+		memcpy(this->data, data, size);
+		setLength(size);
+	}
+	void DatagramPacket::write(const std::string & data) {
+		write(data.c_str(), data.size());
+	}
 	void DatagramPacket::setLength(size_t length) {
 		this->length = length;
 	}
@@ -1889,7 +1931,7 @@ namespace OS {
 	InetAddress & DatagramPacket::getRemoteAddr() {
 		return remoteAddr;
 	}
-	void DatagramPacket::setRemoteAddr(InetAddress & addr) {
+	void DatagramPacket::setRemoteAddr(const InetAddress & addr) {
 		this->remoteAddr.setAddress(addr);
 	}
 
@@ -2000,15 +2042,6 @@ namespace OS {
 		return socketImpl->connect();
 	}
 
-	void DatagramSocket::registerSelector(Selector & selector) {
-        selector.set(getFd());
-	}
-    void DatagramSocket::unregisterSelector(Selector & selector) {
-        selector.unset(getFd());
-    }
-    bool DatagramSocket::isSelected(Selector & selector) {
-        return selector.isSelected(getFd());
-    }
 	bool DatagramSocket::compareFd(int fd) {
 		CHECK_NOT_IMPL_THROW(socketImpl);
 		return socketImpl->compareFd(fd);

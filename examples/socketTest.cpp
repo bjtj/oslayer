@@ -1,76 +1,69 @@
 #include <liboslayer/os.hpp>
-#include <liboslayer/DatagramSocket.hpp>
+#include <liboslayer/Socket.hpp>
 
-using namespace std;
 using namespace XOS;
 
-class DatagramServerThread : public OS::Thread {
+class ServerSocketThread : public OS::Thread {
 private:
 public:
-	DatagramServerThread() {
+	ServerSocketThread() {
 	}
-	virtual ~DatagramServerThread() {
+	virtual ~ServerSocketThread() {
 	}
 	virtual void run() {
-		DatagramSocket server(9000);
+		ServerSocket server(8080);
 
-		char buffer[1024] = {0,};
-		OS::DatagramPacket packet(buffer, sizeof(buffer));
-		server.recv(packet);
+		server.setResuseAddr(true);
+		server.bind();
+		server.listen(5);
 
-		printf("Recv from: %s:%d\n", packet.getRemoteAddr().getHost().c_str(), packet.getRemoteAddr().getPort());
-		printf("%s\n", packet.getData());
+		Socket * client = server.accept();
+		if (client) {
+			client->send("hello", 5);
+			char buffer[1024] = {0,};
+			client->recv(buffer, sizeof(buffer));
+			printf("RECV FROM CLIENT: %s\n", buffer);
+			client->close();
+		}
 
-		printf("done\n");
+		server.close();
 	}
 };
 
-void s_datagram_server_client() {
-
-	DatagramServerThread server;
+void s_server_client_test() {
+	ServerSocketThread server;
 
 	server.start();
 
-	OS::idle(100);
-
-	DatagramSocket client;
-	char message[1024] = {0,};
-	snprintf(message, sizeof(message), "hello");
-	OS::DatagramPacket packet(message, sizeof(message));
-	packet.setLength(strlen(message));
-	OS::InetAddress remoteAddr("127.0.0.1", 9000);
-	packet.setRemoteAddr(remoteAddr);
-	client.send(packet);
+	Socket client(OS::InetAddress("127.0.0.1", 8080));
+	char buffer[1024] = {0,};
+	client.recv(buffer, sizeof(buffer));
+	printf("RECV FROM SERVER: %s\n", buffer);
+	client.send("bye~", 4);
 
 	client.close();
 }
 
-void s_multicast_test() {
+void s_client_test() {
 
-	MulticastSocket server(1900);
+	Socket sock;
 
-	server.joinGroup("239.255.255.250");
+	sock.connect(OS::InetAddress("www.google.com", 80));
+	std::string packet = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
+	sock.send(packet.c_str(), packet.size());
 
-	char buffer[1024] = {0,};
-	OS::DatagramPacket packet(buffer, sizeof(buffer));
+	char buffer[4096] = {0,};
+	sock.recv(buffer, sizeof(buffer));
 
-	while (1) {
-		packet.clear();
-		server.recv(packet);
-		std::string host = packet.getRemoteAddr().getHost();
-		int port = packet.getRemoteAddr().getPort();
-
-		printf("RECV FROM: %s:%d\n", host.c_str(), port);
-		printf("%s\n", packet.getData());
-	}
-	
+	printf("RECV: %s\n", buffer);
+	sock.close();
 }
 
 int main(int argc, char * args[]) {
 
-	//s_datagram_server_client();
-	s_multicast_test();
-	
+	//s_client_test();
+	s_server_client_test();
+
 	getchar();
 
 	return 0;
