@@ -94,11 +94,9 @@ namespace XOS {
 
 		virtual int send(OS::DatagramPacket & packet) {
 
-			int ret = -1;
+			AddrInfoAutoRelease remoteInfo(packet.getRemoteAddr().resolve(SOCK_DGRAM));
 
-			AddrInfoAutoRelease client_info = packet.getRemoteAddr().resolve(SOCK_DGRAM);
-
-			ret = (int)::sendto(sock, packet.getData(), packet.getLength(), 0, client_info->ai_addr, client_info->ai_addrlen);
+			int ret = (int)::sendto(sock, packet.getData(), packet.getLength(), 0, remoteInfo->ai_addr, remoteInfo->ai_addrlen);
 			if (ret <= 0) {
 				OS::SocketUtil::throwSocketException("sendto() error");
 			}

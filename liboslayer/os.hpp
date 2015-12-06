@@ -388,6 +388,26 @@ public: \
 		static struct addrinfo * getAddrInfo(const char * host, int port, struct addrinfo hints);
     };
 
+	class Inet4Address : public InetAddress {
+	private:
+	public:
+		Inet4Address() { setInetVersion(InetVersion::INET4); }
+		Inet4Address(const std::string & host, int port) : InetAddress(host, port) { setInetVersion(InetVersion::INET4); }
+		Inet4Address(int port) : InetAddress(port) { setInetVersion(InetVersion::INET4); }
+		Inet4Address(struct sockaddr * addr) : InetAddress(addr) { setInetVersion(InetVersion::INET4); }
+		virtual ~Inet4Address() {}
+	};
+
+	class Inet6Address : public InetAddress {
+	private:
+	public:
+		Inet6Address() { setInetVersion(InetVersion::INET6); }
+		Inet6Address(const std::string & host, int port) : InetAddress(host, port) { setInetVersion(InetVersion::INET6); }
+		Inet6Address(int port) : InetAddress(port) { setInetVersion(InetVersion::INET6); }
+		Inet6Address(struct sockaddr * addr) : InetAddress(addr) { setInetVersion(InetVersion::INET6); }
+		virtual ~Inet6Address() {}
+	};
+
 	/*
 	 * @brief SocketAddress
 	 */
