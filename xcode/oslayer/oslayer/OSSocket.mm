@@ -13,7 +13,7 @@ using namespace OS;
 
 @interface OSSocket ()
 {
-    Socket * socket;
+    // Socket * socket;
 }
 
 @property (nonatomic) NSString * hostname;
@@ -27,29 +27,31 @@ using namespace OS;
 {
     self = [super init];
     if (self) {
-        socket = new Socket([hostname UTF8String], port);
+        // socket = new Socket([hostname UTF8String], port);
     }
     return self;
 }
 
 - (void)connect
 {
-    socket->connect();
+    // socket->connect();
 }
 
 - (NSInteger)send:(const char *)buffer :(int)max
 {
-    return socket->send(buffer, max);
+    // return socket->send(buffer, max);
+    return 0;
 }
 
 - (NSInteger)recv:(char *)buffer :(int)max
 {
-    return socket->recv(buffer, max);
+    // return socket->recv(buffer, max);
+    return 0;
 }
 
 - (void)close
 {
-    socket->close();
+    // socket->close();
 }
 
 @end

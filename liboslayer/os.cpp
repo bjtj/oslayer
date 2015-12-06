@@ -805,7 +805,14 @@ namespace OS {
 
 	void SocketUtil::throwSocketException(const std::string & message) {
 
-#if defined(USE_WINSOCK2)
+#if defined(USE_BSD_SOCKET)
+        
+        int err = errno;
+        char text[1024] = {0,};
+        strerror_r(err, text, sizeof(text));
+        throw IOException(message + " / " + string(text), err, 0);
+        
+#elif defined(USE_WINSOCK2)
 		int err = WSAGetLastError();
 		char text[1024];
 		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |

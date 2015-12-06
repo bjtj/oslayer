@@ -9,7 +9,7 @@ namespace XOS {
 
 	class DatagramSocketImpl : public DatagramSocket, public OS::SocketAddressResolver {
 	private:
-		SOCKET sock;
+		SOCK_HANDLE sock;
 	public:
 		DatagramSocketImpl() : sock(INVALID_SOCKET) {
 			OS::InetAddress addr(0);
@@ -24,6 +24,8 @@ namespace XOS {
 		DatagramSocketImpl(const OS::InetAddress & addr) : sock(INVALID_SOCKET) {
 			bind(addr);
 		}
+        DatagramSocketImpl(DatagramSocketImpl * impl) {
+        }
 		virtual ~DatagramSocketImpl() {
 		}
 		SOCK_HANDLE getSocket() {
@@ -93,8 +95,6 @@ namespace XOS {
 		virtual int send(OS::DatagramPacket & packet) {
 
 			int ret = -1;
-			char portstr[10] = {0,};
-
 
 			AddrInfoAutoRelease client_info = packet.getRemoteAddr().resolve(SOCK_DGRAM);
 
@@ -203,14 +203,14 @@ namespace XOS {
 	private:
 		OS::InetAddress localAddr;
 	public:
-		MulticastSocketImpl() {
+        MulticastSocketImpl() : DatagramSocketImpl(this) {
 			setReuseAddr(true);
 		}
-		MulticastSocketImpl(int port) {
+        MulticastSocketImpl(int port) : DatagramSocketImpl(this) {
 			setReuseAddr(true);
 			localAddr.setPort(port);
 		}
-		MulticastSocketImpl(const OS::InetAddress & addr) {
+		MulticastSocketImpl(const OS::InetAddress & addr) : DatagramSocketImpl(this) {
 			setReuseAddr(true);
 			localAddr.setAddress(addr);
 		}

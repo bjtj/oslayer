@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E89501391C109933009434B1 /* socketTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501361C109933009434B1 /* socketTest.cpp */; };
+		E89501481C146396009434B1 /* datagramsocketTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501441C146396009434B1 /* datagramsocketTest.cpp */; };
 		E8FAB22C1BD7C6A300E89DC5 /* liboslayer-cocoa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FAB2271BD7C5EA00E89DC5 /* liboslayer-cocoa.a */; };
 /* End PBXBuildFile section */
 
@@ -61,6 +61,9 @@
 		E89501351C109933009434B1 /* FileListTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileListTest.cpp; path = ../../../examples/FileListTest.cpp; sourceTree = "<group>"; };
 		E89501361C109933009434B1 /* socketTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = socketTest.cpp; path = ../../../examples/socketTest.cpp; sourceTree = "<group>"; };
 		E89501371C109933009434B1 /* TrimTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TrimTest.cpp; path = ../../../examples/TrimTest.cpp; sourceTree = "<group>"; };
+		E89501431C146396009434B1 /* autoReleaseTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = autoReleaseTest.cpp; path = ../../../examples/autoReleaseTest.cpp; sourceTree = "<group>"; };
+		E89501441C146396009434B1 /* datagramsocketTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = datagramsocketTest.cpp; path = ../../../examples/datagramsocketTest.cpp; sourceTree = "<group>"; };
+		E89501461C146396009434B1 /* PropertiesTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PropertiesTest.cpp; path = ../../../examples/PropertiesTest.cpp; sourceTree = "<group>"; };
 		E8B161451BFDF8FB002D68C7 /* FileTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileTest.cpp; path = ../../../examples/FileTest.cpp; sourceTree = "<group>"; };
 		E8B161461BFDF8FB002D68C7 /* ThreadPoolTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadPoolTest.cpp; path = ../../../examples/ThreadPoolTest.cpp; sourceTree = "<group>"; };
 		E8B1614E1BFE08ED002D68C7 /* TextTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TextTest.cpp; path = ../../../examples/TextTest.cpp; sourceTree = "<group>"; };
@@ -102,6 +105,9 @@
 		E8FAB1F61BD7C2C200E89DC5 /* oslayer sample */ = {
 			isa = PBXGroup;
 			children = (
+				E89501431C146396009434B1 /* autoReleaseTest.cpp */,
+				E89501441C146396009434B1 /* datagramsocketTest.cpp */,
+				E89501461C146396009434B1 /* PropertiesTest.cpp */,
 				E89501351C109933009434B1 /* FileListTest.cpp */,
 				E89501361C109933009434B1 /* socketTest.cpp */,
 				E89501371C109933009434B1 /* TrimTest.cpp */,
@@ -213,7 +219,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E89501391C109933009434B1 /* socketTest.cpp in Sources */,
+				E89501481C146396009434B1 /* datagramsocketTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

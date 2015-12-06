@@ -108,8 +108,8 @@ void s_send_multicast_test(int inetVersion, const std::string & group) {
 
 int main(int argc, char * args[]) {
 
-	s_datagram_server_client();
-	//s_multicast_test("239.255.255.250");
+	//s_datagram_server_client();
+	s_multicast_test("239.255.255.250");
 	//s_multicast_test("[FF02::C]");
 	//s_send_multicast_test(OS::InetAddress::InetVersion::INET4, "239.255.255.250");
 	//s_send_multicast_test(OS::InetAddress::InetVersion::INET6, "[FF02::C]");
