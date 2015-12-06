@@ -8,16 +8,18 @@ namespace XOS {
 	/**
 	 * @brief DatagramSocket
 	 */
-	class DatagramSocket {
+	class DatagramSocket : public OS::SocketOptions, public OS::Selectable {
 	private:
 		DatagramSocket * impl;
-		int port;
 
 	public:
 		DatagramSocket();
 		DatagramSocket(int port);
 		DatagramSocket(const OS::InetAddress & addr);
 		virtual ~DatagramSocket();
+
+		virtual SOCK_HANDLE getSocket();
+		virtual int getFd();
 
 		virtual void bind(const OS::InetAddress & addr);
 		virtual void connect(const OS::InetAddress & bindAddr);
@@ -27,11 +29,8 @@ namespace XOS {
 		virtual int recv(OS::DatagramPacket & packet);
 		virtual int send(OS::DatagramPacket & packet);
 
-		virtual void setReuseAddr(bool reuseAddr);
-		virtual bool getReuseAddr();
-
 	protected:
-		bool createdImpl();
+		bool created();
 		void setImpl(DatagramSocket * impl);
 		virtual void createImpl();
 		virtual void createImpl(int port);

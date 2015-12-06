@@ -387,6 +387,25 @@ public: \
         static int getPort(struct sockaddr * addr);
 		static struct addrinfo * getAddrInfo(const char * host, int port, struct addrinfo hints);
     };
+
+	/*
+	 * @brief SocketAddress
+	 */
+	class SocketAddress {
+	private:
+		struct sockaddr_in in4;
+		struct sockaddr_in6 in6;
+		struct sockaddr * in;
+		socklen_t len;
+	public:
+		SocketAddress();
+		SocketAddress(int spec);
+		virtual ~SocketAddress();
+
+		void select(int spec);
+		struct sockaddr * getAddr();
+		socklen_t * getAddrLen();
+	};
     
     /**
      * @brief network interface
@@ -459,6 +478,8 @@ public: \
 		virtual void registerSelector(Selector & selector);
 		virtual void unregisterSelector(Selector & selector);
 		virtual bool isSelected(Selector & selector);
+		virtual bool isReadalbeSelected(Selector & selector);
+		virtual bool isWriteableSelected(Selector & selector);
     };
 
 	/**
@@ -500,7 +521,9 @@ public: \
 		SocketUtil();
 		virtual ~SocketUtil();
 		static void checkValidSocket(SOCK_HANDLE sock);
+		static bool isValidSocket(SOCK_HANDLE sock);
 		static void throwSocketException(const std::string & message);
+		static void closeSocket(SOCK_HANDLE sock);
 	};
 
     /**
@@ -517,17 +540,34 @@ public: \
     };
 
 	/**
+     * @brief GlobalSocketConfiguration
+     */
+	class GlobalSocketConfiguration {
+	private:
+		static int preferedInetVersion;
+	private:
+		GlobalSocketConfiguration();
+		virtual ~GlobalSocketConfiguration();
+
+	public:
+		static int getPreferedInetVersion();
+		static void setPreferedInetVersion(int preferedInetVersion);
+	};
+
+	/**
      * @brief SocketOptions
      */
 	class SocketOptions {
 	private:
+		SocketOptions * delegator;
 		bool reuseAddr;
 		bool broadcast;
 		int ttl;
 	public:
 		SocketOptions();
 		virtual ~SocketOptions();
-		void setResuseAddr(bool reuseAddr);
+		void setDelegator(SocketOptions * delegator);
+		void setReuseAddr(bool reuseAddr);
 		bool getReuseAddr();
 		void setBroadcast(bool broadcast);
 		bool getBroadcast();
@@ -535,94 +575,21 @@ public: \
 		int getTimeToLive();
 	};
 
-	/*
-	 * @brief Socket
+	/**
+	 *
 	 */
-	class Socket : public Selectable {
+	class SocketAddressResolver {
 	private:
-		SOCK_HANDLE sock;
-		Socket * socketImpl;
-		char host[2048];
-		int port;
-		
-	protected:
-		Socket();
-
+		struct addrinfo * info;
 	public:
-		Socket(SOCK_HANDLE sock);
-		Socket(const char * host, int port);
-		virtual ~Socket();
-
-	protected:
-		void init();
-		void setAddress(const char * host, int port);
-		void setHost(const char * host);
-
-	public:
-		virtual int connect();
-        
-		virtual bool compareFd(int fd);
-		virtual int getFd();
-
-		virtual int recv(char * buffer, size_t max);
-		virtual int send(const char * buffer, size_t length);
-
-		virtual void shutdown(/* type */);
-		virtual void close();
-		virtual bool isClosed();
-
-		char * getHost();
-		int getPort();
-
-		SOCK_HANDLE socket();
-
-	protected:
-		void socket(SOCK_HANDLE sock);
+		SocketAddressResolver();
+		virtual ~SocketAddressResolver();
+		bool resolved();
+		void releaseAddrInfo();
+		void setAddrInfo(struct addrinfo * info);
+		struct addrinfo * getAddrInfo();
+	};
 	
-	};
-
-	/*
-	 * @brief Server Socket
-	 */
-	class ServerSocket : public Selectable {
-	private:
-		SOCK_HANDLE sock;
-		ServerSocket * serverSocketImpl;
-		int port;
-		
-	protected:
-		ServerSocket();
-		
-	public:
-		ServerSocket(int port);
-		virtual ~ServerSocket();
-
-	protected:
-		void init();
-		void setPort(int port);
-
-	public:
-		virtual void setReuseAddr();
-        
-		virtual bool compareFd(int fd);
-		virtual int getFd();
-
-		virtual int bind();
-        virtual int randomBind(RandomPortBinder & portBinder);
-		virtual int listen(int max);
-		virtual Socket * accept();
-		virtual void close();
-		virtual bool isClosed();
-
-		int getPort();
-
-		SOCK_HANDLE socket();
-
-	protected:
-		void socket(SOCK_HANDLE sock);
-
-	};
-
 	/**
 	 * @brief Datagram packet
 	 */
@@ -648,63 +615,7 @@ public: \
 		InetAddress & getRemoteAddr();
 		void setRemoteAddr(const InetAddress & addr);
 	};
-
-	/*
-	 * @brief Datagram Socket
-	 */
-	class DatagramSocket : public Selectable {
-	private:
-		SOCK_HANDLE sock;
-		DatagramSocket * socketImpl;
-		char host[2048];
-		int port;
-		
-	protected:
-		DatagramSocket();
-
-	public:
-		DatagramSocket(int port);
-		DatagramSocket(const char * host, int port);
-		virtual ~DatagramSocket();
-
-	protected:
-		void init();
-		void setPort(int port);
-		void setAddress(const char * host, int port);
-		void setHost(const char * host);
-
-	public:
-		virtual void setReuseAddr();
-		virtual void setBroadcast();
-		virtual void setTTL(int ttl);
-		virtual int joinGroup(const std::string & group);
-		virtual int joinGroup(const char * group);
-		virtual int bind();
-        virtual int randomBind(RandomPortBinder & portBinder);
-		virtual int connect();
-        
-		virtual bool compareFd(int fd);
-		virtual int getFd();
-
-		virtual int recv(DatagramPacket & packet);
-		virtual int recv(char * buffer, size_t max);
-		virtual int send(const char * host, int port, const char * buffer, size_t length);
-
-		virtual void shutdown(/* type */);
-		virtual void close();
-		virtual bool isClosed();
-
-		char * getHost();
-		int getPort();
-
-		SOCK_HANDLE socket();
-
-	protected:
-		void socket(SOCK_HANDLE sock);
-	};
 	
-
-
 	/**
 	 * @brief date
 	 */

@@ -13,12 +13,20 @@ public:
 	virtual void run() {
 		ServerSocket server(8080);
 
-		server.setResuseAddr(true);
+		server.setReuseAddr(true);
 		server.bind();
 		server.listen(5);
 
+		OS::InetAddress serverAddr = server.getLocalInetAddress();
+		printf("Listen %s:%d\n", serverAddr.getHost().c_str(), serverAddr.getPort());
+
 		Socket * client = server.accept();
 		if (client) {
+
+			OS::InetAddress localAddr = client->getLocalInetAddress();
+			OS::InetAddress remoteAddr = client->getRemoteInetAddress();
+			printf("RECV FROM: %s:%d via %s:%d\n", remoteAddr.getHost().c_str(), remoteAddr.getPort(), localAddr.getHost().c_str(), localAddr.getPort());
+
 			client->send("hello", 5);
 			char buffer[1024] = {0,};
 			client->recv(buffer, sizeof(buffer));
@@ -61,7 +69,7 @@ void s_client_test() {
 
 int main(int argc, char * args[]) {
 
-	//s_client_test();
+	s_client_test();
 	s_server_client_test();
 
 	getchar();

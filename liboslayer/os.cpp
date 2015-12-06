@@ -480,6 +480,33 @@ namespace OS {
 		return res;
 	}
 
+	/* Socket Address */
+
+	SocketAddress::SocketAddress() : in(NULL), len(0) {
+	}
+	SocketAddress::SocketAddress(int spec) : in(NULL), len(0) {
+		select(spec);
+	}
+	SocketAddress::~SocketAddress() {
+	}
+
+	void SocketAddress::select(int spec) {
+		if (spec == AF_INET) {
+			in = (struct sockaddr *)&in4;
+			len = sizeof(in4);
+		} else if (spec == AF_INET6) {
+			in = (struct sockaddr *)&in6;
+			len = sizeof(in6);
+		} else {
+			throw OS::IOException("Unknown family", -1, 0);
+		}
+	}
+	struct sockaddr * SocketAddress::getAddr() {
+		return in;
+	}
+	socklen_t * SocketAddress::getAddrLen() {
+		return &len;
+	}
     
     /* Network Interface */
     
@@ -661,7 +688,7 @@ namespace OS {
         return writeable;
     }
 
-	/* SELECTOR */
+	/* Selectable */
 
 	void Selectable::registerSelector(Selector & selector) {
 		selector.set(getFd());
@@ -672,6 +699,14 @@ namespace OS {
 	bool Selectable::isSelected(Selector & selector) {
 		return selector.isSelected(getFd());
 	}
+	bool Selectable::isReadalbeSelected(Selector & selector) {
+		return selector.isReadableSelected(getFd());
+	}
+	bool Selectable::isWriteableSelected(Selector & selector) {
+		return selector.isWriteableSelected(getFd());
+	}
+
+	/* Selector */
 
 	Selector::Selector() : maxfds(0) {
 		FD_ZERO(&readfds);
@@ -749,19 +784,26 @@ namespace OS {
 	 *
 	 */
 	void SocketUtil::checkValidSocket(SOCK_HANDLE sock) {
+		if (!isValidSocket(sock)) {
+			throw IOException("invalid socket", -1, 0);
+		}
+	}
+
+	bool SocketUtil::isValidSocket(SOCK_HANDLE sock) {
 #if defined(USE_BSD_SOCKET)
 		if (sock < 0) {
-            throw IOException("invalid socket", -1, 0);
+            return false;
         }
 
 #elif defined(USE_WINSOCK2)
 		if (sock == INVALID_SOCKET) {
-			throw IOException("invalid socket", -1, 0);
+			return false;
 		}
 #endif
+		return true;
 	}
 
-void SocketUtil::throwSocketException(const std::string & message) {
+	void SocketUtil::throwSocketException(const std::string & message) {
 
 #if defined(USE_WINSOCK2)
 		int err = WSAGetLastError();
@@ -773,7 +815,16 @@ void SocketUtil::throwSocketException(const std::string & message) {
 #else
 		throw IOException("getaddrinfo()", -1, 0);
 #endif
-}
+	}
+
+	void SocketUtil::closeSocket(SOCK_HANDLE sock) {
+#if defined(USE_BSD_SOCKET)
+		close(sock);
+#elif defined(USE_WINSOCK2)
+		closesocket(sock);
+#endif
+	}
+
 
 	/**
 	 * @brief scoped connection (auto free)
@@ -792,1095 +843,86 @@ void SocketUtil::throwSocketException(const std::string & message) {
         }
     };
 
+	int GlobalSocketConfiguration::preferedInetVersion = InetAddress::InetVersion::INET4;
+
+	int GlobalSocketConfiguration::getPreferedInetVersion() {
+		return preferedInetVersion;
+	}
+
+	void GlobalSocketConfiguration::setPreferedInetVersion(int preferedInetVersion) {
+		GlobalSocketConfiguration::preferedInetVersion = preferedInetVersion;
+	}
+
 	/**
-	 * @brief scoped connection (auto free)
+	 * @brief SocketOptions
 	 */
-	SocketOptions::SocketOptions() : reuseAddr(false), broadcast(false), ttl(0) {
+	SocketOptions::SocketOptions() : delegator(NULL), reuseAddr(false), broadcast(false), ttl(0) {
 	}
 	SocketOptions::~SocketOptions() {
 	}
-	void SocketOptions::setResuseAddr(bool reuseAddr) {
+	void SocketOptions::setDelegator(SocketOptions * delegator) {
+		this->delegator = delegator;
+	}
+	void SocketOptions::setReuseAddr(bool reuseAddr) {
+		if (delegator) {
+			delegator->setReuseAddr(reuseAddr);
+		}
 		this->reuseAddr = reuseAddr;
 	}
 	bool SocketOptions::getReuseAddr() {
+		if (delegator) {
+			return delegator->getReuseAddr();
+		}
 		return reuseAddr;
 	}
 	void SocketOptions::setBroadcast(bool broadcast) {
+		if (delegator) {
+			delegator->setBroadcast(broadcast);
+		}
 		this->broadcast = broadcast;
 	}
 	bool SocketOptions::getBroadcast() {
+		if (delegator) {
+			return delegator->getBroadcast();
+		}
 		return broadcast;
 	}
 	void SocketOptions::setTimeToLive(int ttl) {
+		if (delegator) {
+			delegator->setTimeToLive(ttl);
+		}
 		this->ttl = ttl;
 	}
 	int SocketOptions::getTimeToLive() {
+		if (delegator) {
+			return delegator->getTimeToLive();
+		}
 		return ttl;
 	}
 
-	/* SOCKET implementation */
-	
-#if defined(USE_BSD_SOCKET)
+	/* */
 
-	/**
-	 * @brief BSD socket
-	 */
-	class BsdSocket : public Socket {
-	private:
-        struct addrinfo * res;
-	public:
-		BsdSocket(SOCK_HANDLE sock) : res(NULL), Socket(sock) {
-		}
-		BsdSocket(const char * host, int port) {
-			setAddress(host, port);
-            
-            struct addrinfo hints;
-            char portStr[10] = {0,};
-            
-            SOCK_HANDLE sock = -1;
-            socket(-1);
-            snprintf(portStr, sizeof(portStr), "%d", getPort());
-            
-            memset(&hints, 0, sizeof(hints));
-            hints.ai_family = AF_UNSPEC;
-            hints.ai_socktype = SOCK_STREAM;
-            if (::getaddrinfo(getHost(), portStr, &hints, &res) < 0) {
-                throw IOException("getaddrinfo() error", -1, 0);
-            }
-            
-            if (!res) {
-                throw IOException("getaddrinfo() error/null", -1, 0);
-            }
-            
-            sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-            if (sock < 0) {
-                freeaddrinfo(res);
-                res = NULL;
-                throw IOException("socket() error", -1, 0);
-            }
-            
-            socket(sock);
-		}
-		virtual ~BsdSocket() {
-            if (res) {
-                freeaddrinfo(res);
-                res = NULL;
-            }
-		}
-		virtual int connect() {
-            
-            ScopedConnection scopedConnection(&res);
-            
-            int ret = -1;
-            struct addrinfo * addr = NULL;
-            
-            for (addr = res; addr; addr = addr->ai_next) {
-                ret = ::connect(socket(), addr->ai_addr, addr->ai_addrlen);
-                if (ret < 0) {
-                    continue;
-                }
-                break;
-            }
-            
-            if (ret < 0) {
-                ::close(socket());
-                throw IOException("connect() error", -1, 0);
-            }
-			
-			return ret;
-		}
-		virtual bool compareFd(int fd) {
-			return socket() == fd;
-		}
-		virtual int getFd() {
-			return socket();
-		}
-		virtual int recv(char * buffer, size_t max) {
-            ssize_t ret = ::read(socket(), buffer, max);
-            if (ret <= 0) {
-                throw IOException("read() error", (int)ret, 0);
-            }
-			return (int)ret;
-		}
-		virtual int send(const char * buffer, size_t length) {
-            ssize_t ret = ::write(socket(), buffer, length);
-            if (ret <= 0) {
-                throw IOException("write() error", (int)ret, 0);
-            }
-			return (int)ret;
-		}
-		virtual void shutdown(/* type */) {}
-		virtual void close() {
-            try {
-                ::close(this->socket());
-                this->socket(-1);
-            } catch (IOException e) {
-                // ignore
-            }
-			
-		}
-	};
-
-#elif defined(USE_WINSOCK2)
-
-	/*
-	 * Winsock2Socket
-	 * reference
-	 * - winsock: http://www.joinc.co.kr/modules/moniwiki/wiki.php/Site/win_network_prog/doc/winsock_basic
-	 * - MSDN: https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms737889%28v=vs.85%29.aspx
-	 */
-	class Winsock2Socket : public Socket {
-	private:
-		struct addrinfo * targetAddr;
-
-	private:
-		
-	public:
-		Winsock2Socket(SOCKET sock) : Socket(sock), targetAddr(NULL) {
-		}
-		Winsock2Socket(const char * host, int port) : targetAddr(NULL) {
-			
-			struct addrinfo hints;
-			struct addrinfo * addr = NULL;
-			char portStr[10] = {0,};
-			SOCK_HANDLE sock = INVALID_SOCKET;
-
-			this->socket(INVALID_SOCKET);
-			setAddress(host, port);
-
-			ZeroMemory(&hints, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_STREAM;
-			hints.ai_protocol = IPPROTO_TCP;
-
-			snprintf(portStr, sizeof(portStr), "%d", port);
-			if (getaddrinfo(host, portStr, &hints, &targetAddr) != 0) {
-				// error
-				targetAddr = NULL;
-				throw IOException("getaddrinfo() error", -1, 0);
-			}
-
-			if (!targetAddr) {
-				throw IOException("getaddrinfo() error/resource is null", -1, 0);
-			}
-
-			for (addr = targetAddr; addr; addr = addr->ai_next) {
-				// try to connect until one succeeds
-				sock = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-				if (sock == INVALID_SOCKET) {
-					// error
-					freeaddrinfo(targetAddr);
-				}
-			}
-
-			if (sock == INVALID_SOCKET) {
-				throw IOException("socket() error", -1, 0);
-			}
-
-			this->socket(sock);
-		}
-
-		virtual ~Winsock2Socket() {
-			if (targetAddr) {
-				freeaddrinfo(targetAddr);
-			}
-		}
-
-		virtual int connect() {
-
-			struct addrinfo * addr = NULL;
-			int ret;
-
-			if (!targetAddr) {
-				// error
-				throw IOException("no target address error", -1, 0);
-			}
-
-			for (addr = targetAddr; addr; addr = addr->ai_next) {
-				// try to connect until one succeeds
-				ret = ::connect(socket(), addr->ai_addr, (int)addr->ai_addrlen);
-				if (ret == SOCKET_ERROR) {
-					continue;
-				}
-				break;
-			}
-
-			freeaddrinfo(targetAddr);
-			targetAddr = NULL;
-
-			if (ret == SOCKET_ERROR) {
-				this->close();
-				throw IOException("connect() error", -1, 0);
-			}
-
-			return 0;
-		}
-		virtual bool compareFd(int fd) {
-			return (int)this->socket() == fd;
-		}
-		virtual int getFd() {
-			return (int)this->socket();
-		}
-		virtual int recv(char * buffer, size_t max) {
-			if (this->socket() == INVALID_SOCKET) {
-				throw IOException("invalid socket error", -1, 0);
-			}
-            int ret = ::recv(this->socket(), buffer, max, 0);
-            
-            if (ret <= 0) {
-                throw IOException("recv() error", ret, 0);
-            }
-            
-			return ret;
-		}
-
-		virtual int send(const char * buffer, size_t length) {
-			if (this->socket() == INVALID_SOCKET) {
-                throw IOException("invalid socket error", -1, 0);
-			}
-			int ret = ::send(this->socket(), buffer, length, 0);;
-			if (ret <= 0) {
-                throw IOException("write() error", (int)ret, 0);
-            }
-			return ret;
-		}
-
-		virtual void shutdown(/* type */) {
-		}
-
-		virtual void close() {
-			try {
-				closesocket(this->socket());
-				this->socket(INVALID_SOCKET);
-			} catch (IOException e) {
-				//
-			}
-		}
-	};
-
-#endif
-
-/*
-	 * Socket
-	 */
-
-	Socket::Socket() : sock(0), socketImpl(NULL), port(0) {
-		init();
-		setHost(NULL);
+	SocketAddressResolver::SocketAddressResolver() : info(NULL) {
 	}
-
-	Socket::Socket(SOCK_HANDLE sock) {
-		init();
-		this->sock = sock;
+	SocketAddressResolver::~SocketAddressResolver() {
+		releaseAddrInfo();
 	}
-	
-	Socket::Socket(const char * host, int port) {
-		init();
-		setAddress(host, port);
-
-#if defined(USE_BSD_SOCKET)
-		socketImpl = new BsdSocket(host, port);
-#elif defined(USE_WINSOCK2)
-		socketImpl = new Winsock2Socket(host, port);
-#endif
+	bool SocketAddressResolver::resolved() {
+		return info != NULL;
 	}
-
-	Socket::~Socket() {
-		if (socketImpl) {
-			delete socketImpl;
+	void SocketAddressResolver::releaseAddrInfo() {
+		if (this->info) {
+			freeaddrinfo(this->info);
 		}
 	}
-
-	void Socket::init() {
-        
-        System::getInstance();
-        
-		sock = 0;
-		socketImpl = NULL;
-		port = 0;
-		setHost(NULL);
+	void SocketAddressResolver::setAddrInfo(struct addrinfo * info) {
+		releaseAddrInfo();
+		this->info = info;
+	}
+	struct addrinfo * SocketAddressResolver::getAddrInfo() {
+		return info;
 	}
 
-	void Socket::setAddress(const char * host, int port) {
-		setHost(host);
-		this->port = port;
-	}
-	
-	void Socket::setHost(const char * host) {
-		memset(this->host, 0, sizeof(this->host));
-		if (host) {
-			snprintf(this->host, sizeof(this->host), "%s", host);
-		}
-	}	
-
-	int Socket::connect() {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->connect();
-	}
-	bool Socket::compareFd(int fd) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->compareFd(fd);
-	}
-	int Socket::getFd() {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->getFd();
-	}
-	int Socket::recv(char * buffer, size_t max) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->recv(buffer, max);
-	}
-	
-	int Socket::send(const char * buffer, size_t length) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->send(buffer, length);
-	}
-
-	void Socket::shutdown(/* type */) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->shutdown();
-	}
-	
-	void Socket::close() {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->close();
-	}
-
-	bool Socket::isClosed() {
-		try {
-			this->socket();
-			return false;
-		} catch (IOException e) {
-			return true;
-		}
-	}
-
-	char * Socket::getHost() {
-		return host;
-	}
-
-	int Socket::getPort() {
-		return port;
-	}
-
-	SOCK_HANDLE Socket::socket() {
-		SocketUtil::checkValidSocket(sock);
-		return sock;
-	}
-
-	void Socket::socket(SOCK_HANDLE sock) {
-		this->sock = sock;
-	}
-
-	/* Server Socket implementation */
-	
-#if defined(USE_BSD_SOCKET)
-	/*
-	 * BsdServerSocket
-	 * http://www.joinc.co.kr/modules/moniwiki/wiki.php/Site/Network_Programing/Documents/socket_beginning
-	 */
-	class BsdServerSocket : public ServerSocket{
-	private:
-	public:
-		BsdServerSocket(int port) {
-
-			SOCK_HANDLE sock;
-			
-			setPort(port);
-			sock = ::socket(AF_INET, SOCK_STREAM, 0);
-			if (sock < 0) {
-                throw IOException("socket() error", -1, 0);
-			}
-
-			socket(sock);
-		}
-		
-		virtual ~BsdServerSocket() {
-			close();
-		}
-
-		virtual void setReuseAddr() {
-			int status;
-			int on = 1;
-			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-			if (status != 0) {
-				::close(socket());
-			}
-		}
-
-		virtual bool compareFd(int fd) {
-			return socket() == fd;
-		}
-		virtual int getFd() {
-			return socket();
-		}
-
-		virtual int bind() {
-            int ret;
-			struct sockaddr_in addr;
-
-			memset(&addr, 0, sizeof(addr));
-			addr.sin_family = AF_INET;
-			addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			addr.sin_port = htons(getPort());
-			if ((ret = ::bind(socket(), (struct sockaddr*)&addr, sizeof(addr))) != 0) {
-				close();
-			}
-			return ret;
-		}
-	
-		virtual int listen(int max) {
-            int ret;
-			if ((ret = ::listen(socket(), max)) < 0) {
-                throw IOException("listen() error", -1, 0);
-			}
-            return ret;
-		}
-	
-		virtual Socket * accept() {
-			struct sockaddr_in clientaddr;
-			socklen_t clientaddr_len = 0;
-			SOCK_HANDLE client = ::accept(socket(), (struct sockaddr*)&clientaddr, &clientaddr_len);
-			if (client < 0) {
-				return NULL;
-			}
-
-			return new BsdSocket(client);
-		}
-
-		virtual void close() {
-            try {
-                ::close(this->socket());
-                this->socket(-1);
-            } catch (IOException e) {
-                // ignore
-            }
-			
-		}
-	};
-#elif defined(USE_WINSOCK2)
-
-	class Winsock2ServerSocket : public ServerSocket {
-	private:
-		struct addrinfo * addr;
-
-	private:
-        
-	public:
-		Winsock2ServerSocket(int port) : addr(NULL) {
-			SOCK_HANDLE sock;
-			struct addrinfo hints;
-			char portStr[10] = {0,};
-
-			setPort(port);
-
-			ZeroMemory(&hints, sizeof(hints));
-			hints.ai_family = AF_INET;
-			hints.ai_socktype = SOCK_STREAM;
-			hints.ai_protocol = IPPROTO_TCP;
-			hints.ai_flags = AI_PASSIVE;
-
-			snprintf(portStr, sizeof(portStr), "%d", port);
-
-			// Resolve the server address and port
-			if (getaddrinfo(NULL, portStr, &hints, &addr) != 0) {
-				// error
-				return;
-			}
-
-			sock = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-			if (sock == SOCKET_ERROR) {
-				// error
-				freeaddrinfo(addr);
-				return;
-			}
-
-			socket(sock);
-		}
-
-		virtual ~Winsock2ServerSocket() {
-			close();
-		}
-
-		virtual void setReuseAddr() {
-			int status;
-			int on = 1;
-			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
-								  (const char*)&on, sizeof(on));
-			if (status != 0) {
-				throw IOException("setsockopt() error", -1, 0);
-			}
-		}
-		virtual bool compareFd(int fd) {
-			return (int)socket() == fd;
-		}
-		virtual int getFd() {
-			return (int)socket();
-		}
-
-		virtual int bind() {
-
-			int ret = ::bind(socket(), addr->ai_addr, (int)addr->ai_addrlen);
-			if (ret == SOCKET_ERROR) {
-				freeaddrinfo(addr);
-				close();
-                return ret;
-			}
-
-			freeaddrinfo(addr);
-
-			return ret;
-		}
-	
-		virtual int listen(int max) {
-
-			int ret = ::listen(this->socket(), max); // SOMAXCONN
-			if (ret == SOCKET_ERROR) {
-                throw IOException("listen() error", -1, 0);
-			}
-            return ret;
-		}
-	
-		virtual Socket * accept() {
-			SOCK_HANDLE client = ::accept(socket(), (sockaddr*)NULL, (int*)NULL);
-			if (client == INVALID_SOCKET) {
-				// error
-				return NULL;
-			}
-
-			return new Winsock2Socket(client);
-		}
-
-		virtual void close() {
-            try {
-                closesocket(this->socket());
-                this->socket(INVALID_SOCKET);
-            } catch (IOException e) {
-                // ignore
-            }
-			
-		}
-	};
-
-#endif
-
-	/*
-	 * ServerSocket
-	 */
-	ServerSocket::ServerSocket() {
-		init();
-	}
-
-	ServerSocket::ServerSocket(int port) {
-		
-		init();
-		this->port = port;
-
-#if defined(USE_BSD_SOCKET)
-		serverSocketImpl = new BsdServerSocket(port);
-#elif defined(USE_WINSOCK2)
-		serverSocketImpl = new Winsock2ServerSocket(port);
-#endif
-
-	}
-
-	ServerSocket::~ServerSocket() {
-		if (serverSocketImpl) {
-			delete serverSocketImpl;
-		}
-	}
-
-	void ServerSocket::init() {
-        
-        System::getInstance();
-        
-		serverSocketImpl = NULL;
-		port = 0;
-	}
-
-	void ServerSocket::setPort(int port) {
-		this->port = port;
-	}
-
-	void ServerSocket::setReuseAddr() {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		serverSocketImpl->setReuseAddr();
-	}
-
-	bool ServerSocket::compareFd(int fd) {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		return serverSocketImpl->compareFd(fd);
-	}
-
-	int ServerSocket::getFd() {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		return serverSocketImpl->getFd();
-	}
-	
-	int ServerSocket::bind() {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		return serverSocketImpl->bind();
-	}
-    
-    int ServerSocket::randomBind(RandomPortBinder & portBinder) {
-        int ret = -1;
-        portBinder.start();
-        while (!portBinder.wantFinish()) {
-            setPort(portBinder.getNextPort());
-            ret = bind();
-            if (ret >= 0) {
-                break;
-            }
-        }
-        return ret;
-    }
-	
-	int ServerSocket::listen(int max) {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		return serverSocketImpl->listen(max);
-	}
-	
-	Socket * ServerSocket::accept() {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-		return serverSocketImpl->accept();
-	}
-
-	void ServerSocket::close() {
-        CHECK_NOT_IMPL_THROW(serverSocketImpl);
-        serverSocketImpl->close();
-	}
-
-	bool ServerSocket::isClosed() {
-		try {
-			this->socket();
-			return false;
-		} catch (IOException e) {
-			return true;
-		}
-	}
-
-	int ServerSocket::getPort() {
-		return port;
-	}
-
-	SOCK_HANDLE ServerSocket::socket() {
-		return sock;
-	}
-
-	void ServerSocket::socket(SOCK_HANDLE sock) {
-		this->sock = sock;
-	}
-
-
-	/* Datagram Socket Implementation */
-	
-#if defined(USE_BSD_SOCKET)
-
-	/**
-	 * @brief BSD Datagram Socket
-	 */
-	class BsdDatagramSocket : public DatagramSocket {
-	private:
-	public:
-		BsdDatagramSocket(int port) {
-			setPort(port);
-			SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
-			if (sock < 0) {
-				throw IOException("socket() error", -1, 0);
-			}
-			socket(sock);
-		}
-		BsdDatagramSocket(const char * host, int port) {
-			setAddress(host, port);
-            SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
-            if (sock < 0) {
-                throw IOException("socket() error", -1, 0);
-            }
-            socket(sock);
-            
-//			if (connect() < 0) {
-//				throw IOException("connect() error", -1, 0);
-//			}
-		}
-		virtual ~BsdDatagramSocket() {
-		}
-		virtual void setReuseAddr() {
-			int status;
-			int on = 1;
-			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR,
-								  (const char*)&on, sizeof(on));
-			if (status != 0) {
-				// error
-				::close(socket());
-                throw IOException("setsockopt() error", -1, 0);
-			}
-            
-            // http://stackoverflow.com/a/4766262
-#ifdef __APPLE__
-            status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEPORT, &on, sizeof(on));
-            if (status != 0) {
-                // error
-                ::close(socket());
-                throw IOException("setsockopt() error", -1, 0);
-            }
-#endif
-		}
-		virtual void setBroadcast() {
-			int broadcast = 1;
-			setsockopt(socket(), SOL_SOCKET, SO_BROADCAST,
-					   &broadcast, sizeof(broadcast));
-		}
-		virtual int bind() {
-			
-			struct sockaddr_in server_addr;
-
-			SOCK_HANDLE sock = socket();
-			
-			memset(&server_addr, 0, sizeof(server_addr));
-			server_addr.sin_family = AF_INET;
-			server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			server_addr.sin_port = htons(getPort());
-            
-			return ::bind(sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
-		}
-		virtual int joinGroup(const char * group) {
-			
-			struct ip_mreq mreq;
-
-			SOCK_HANDLE sock = socket();
-			int ret = 0;
-
-			if ((ret = bind()) < 0) {
-				throw IOException("bind() error", -1, 0);
-			}
-
-			mreq.imr_multiaddr.s_addr = ::inet_addr(group);
-			mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-			ret = ::setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq));
-			return ret;
-		}
-		virtual int connect() {
-
-			int ret = 0;
-			struct addrinfo hints, * res = NULL;
-			char port[10] = {0,};
-
-			SOCK_HANDLE sock = -1;
-			socket(-1);
-			snprintf(port, sizeof(port), "%d", getPort());
-
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			if (::getaddrinfo(getHost(), port, &hints, &res) < 0) {
-				ret = -1;
-				goto exit;
-			}
-
-			sock = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-			if (sock < 0) {
-				ret = -1;
-				goto exit;
-			}
-
-			if (::connect(sock, res->ai_addr, res->ai_addrlen) < 0) {
-				::close(sock);
-				ret = -1;
-				goto exit;
-			}
-
-			socket(sock);
-
-		exit:
-			if (res) {
-				freeaddrinfo(res);
-				res = NULL;
-			}
-			
-			return ret;
-		}
-		virtual bool compareFd(int fd) {
-			return socket() == fd;
-		}
-		virtual int getFd() {
-			return socket();
-		}
-		virtual int recv(DatagramPacket & packet) {
-			struct sockaddr_in client_addr;
-			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getSize(), 0,
-				(struct sockaddr*)&client_addr, &client_addr_size);
-
-			if (ret > 0) {
-				packet.setLength(ret);
-                
-                InetAddress addr((struct sockaddr*)&client_addr);
-                packet.setRemoteAddr(addr);
-                
-//                packet.setRemoteAddr(InetAddress::getIPAddress(&client_addr));
-//                packet.setRemotePort(InetAddress::getPortNumber(&client_addr));
-			}
-			
-			return ret;
-		}
-		virtual int recv(char * buffer, size_t max) {
-			struct sockaddr_in client_addr;
-			socklen_t client_addr_size = sizeof(client_addr);
-			return (int)::recvfrom(socket(), buffer, max, 0,
-							  (struct sockaddr*)&client_addr, &client_addr_size);
-		}
-		virtual int send(const char * host,
-						 int port,
-						 const char * buffer,
-						 size_t length) {
-
-			int ret = -1;
-			char portstr[10] = {0,};
-			
-			struct addrinfo hints, * res = NULL;
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			snprintf(portstr, sizeof(portstr), "%d", port);
-			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
-				throw IOException("getaddrinfo() error", -1, 0);
-			}
-			ret = (int)::sendto(socket(), buffer, length,
-						   0, res->ai_addr, res->ai_addrlen);
-
-			freeaddrinfo(res);
-			
-			return ret;
-		}
-		virtual void shutdown(/* type */) {}
-		virtual void close() {
-            try {
-                ::close(this->socket());
-                this->socket(-1);
-            } catch (IOException e) {
-                // ignore
-            }
-		}
-	};
-
-#elif defined(USE_WINSOCK2)
-
-	/*
-	 * Winsock2Socket
-	 * reference
-	 * - winsock: http://www.joinc.co.kr/modules/moniwiki/wiki.php/Site/win_network_prog/doc/winsock_basic
-	 * - MSDN: https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms737889%28v=vs.85%29.aspx
-	 */
-	class Winsock2DatagramSocket : public DatagramSocket {
-	private:
-
-	private:
-		
-	public:
-		Winsock2DatagramSocket(int port) {
-			setPort(port);
-
-			SOCK_HANDLE sock = ::socket(AF_INET, SOCK_DGRAM, 0);
-			if (sock == INVALID_SOCKET) {
-				throw IOException("socket() error", -1, 0);
-			}
-
-			socket(sock);
-		}
-		Winsock2DatagramSocket(const char * host, int port) {
-			setAddress(host, port);
-
-			if (connect() < 0) {
-				throw IOException("connect() error", -1, 0);
-			}
-		}
-
-		virtual ~Winsock2DatagramSocket() {
-		}
-		virtual void setReuseAddr() {
-			int status;
-			int on = 1;
-			status = ::setsockopt(socket(), SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
-			if (status != 0) {
-				throw IOException("setsockopt() error", -1, 0);
-			}
-		}
-		virtual void setBroadcast() {
-			int broadcast = 1;
-			if (setsockopt(socket(), SOL_SOCKET, SO_BROADCAST, (char *)&broadcast, sizeof(broadcast)) != 0) {
-				throw IOException("setsockopt() error", -1, 0);
-			}
-		}
-		virtual void setTTL(int ttl) {
-			if (setsockopt(socket(), IPPROTO_IP, IP_MULTICAST_TTL, (char*)&ttl, sizeof(ttl)) != 0) {
-				throw IOException("setsockopt() error", -1, 0);
-			}
-		}
-		virtual int bind() {
-			
-			struct sockaddr_in server_addr;
-
-			SOCK_HANDLE sock = socket();
-			
-			memset(&server_addr, 0, sizeof(server_addr));
-			server_addr.sin_family = AF_INET;
-			server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			server_addr.sin_port = htons(getPort());
-			
-			return ::bind(this->socket(),
-						  (struct sockaddr*)&server_addr,
-						  sizeof(server_addr));
-		}
-		virtual int joinGroup(const char * group) {
-			
-			struct ip_mreq mreq;
-
-			SOCK_HANDLE sock = socket();
-			int ret = 0;
-
-			if (bind() < 0) {
-				throw IOException("bind() error", -1, 0);
-			}
-
-			mreq.imr_multiaddr.s_addr = ::inet_addr(group);
-			mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-			ret = ::setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (const char*)&mreq, sizeof(mreq));
-			return ret;
-		}
-		virtual int connect() {
-
-			struct addrinfo hints;
-			struct addrinfo * targetAddr = NULL;
-			struct addrinfo * addr = NULL;
-			int ret = 0;
-			SOCK_HANDLE sock;
-
-			char portStr[10] = {0,};
-			
-			socket(INVALID_SOCKET);
-
-			ZeroMemory(&hints, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			hints.ai_protocol = IPPROTO_UDP;
-
-			snprintf(portStr, sizeof(portStr), "%d", getPort());
-			if (getaddrinfo(getHost(), portStr, &hints, &targetAddr) != 0) {
-				targetAddr = NULL;
-				ret = -1;
-				goto exit;
-			}
-
-
-			for (addr = targetAddr; addr; addr = addr->ai_next) {
-				// try to connect until one succeeds
-				sock = ::socket(addr->ai_family, addr->ai_socktype, addr->ai_protocol);
-				if (sock == INVALID_SOCKET) {
-					// error
-					freeaddrinfo(targetAddr);
-					ret = -1;
-					goto exit;
-				}
-
-				ret = ::connect(sock, addr->ai_addr, (int)addr->ai_addrlen);
-				if (ret == SOCKET_ERROR) {
-					// error
-					::closesocket(sock);
-					sock = INVALID_SOCKET;
-					continue;
-				}
-				break;
-			}
-
-			freeaddrinfo(targetAddr);
-			targetAddr = NULL;
-
-			if (sock == INVALID_SOCKET) {
-				ret = -1;
-				goto exit;
-			}
-
-			this->socket(sock);
-
-			exit:
-
-			if (targetAddr) {
-				freeaddrinfo(targetAddr);
-			}
-
-			return ret;
-		}
-		virtual bool compareFd(int fd) {
-			return (int)socket() == fd;
-		}
-		virtual int getFd() {
-			return (int)socket();
-		}
-		virtual int recv(DatagramPacket & packet) {
-			if (socket() == INVALID_SOCKET) {
-				return -1;
-			}
-			
-			struct sockaddr_in client_addr;
-			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), packet.getData(), packet.getSize(), 0, 
-				(struct sockaddr*)&client_addr, &client_addr_size);
-
-			if (ret <= 0) {
-				throw IOException("recvfrom() error", -1, 0);
-			}
-
-			InetAddress remoteAddr((struct sockaddr*)&client_addr);
-			packet.setRemoteAddr(remoteAddr);
-			
-			return ret;
-		}
-		virtual int recv(char * buffer, size_t max) {
-			if (socket() == INVALID_SOCKET) {
-				return -1;
-			}
-			
-			struct sockaddr_in client_addr;
-			socklen_t client_addr_size = sizeof(client_addr);
-			int ret = (int)::recvfrom(socket(), buffer, max, 0,  (struct sockaddr*)&client_addr, &client_addr_size);
-
-			return ret;
-		}
-
-		virtual int send(const char * host, int port, const char * buffer, size_t length) {
-
-			int ret = -1;
-			char portstr[10] = {0,};
-			
-			struct addrinfo hints, * res = NULL;
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = AF_UNSPEC;
-			hints.ai_socktype = SOCK_DGRAM;
-			snprintf(portstr, sizeof(portstr), "%d", port);
-			if (::getaddrinfo(host, portstr, &hints, &res) < 0) {
-				return -1;
-			}
-			ret = (int)::sendto(socket(), buffer, length, 0, res->ai_addr, res->ai_addrlen);
-
-			freeaddrinfo(res);
-
-			return ret;
-		}
-
-		virtual void shutdown(/* type */) {
-		}
-
-		virtual void close() {
-            try {
-                closesocket(this->socket());
-                this->socket(INVALID_SOCKET);
-            } catch (IOException e) {
-                // ignore
-            }
-			
-		}
-	};
-
-#endif
 
 	/*
 	 * Datagram Packet
@@ -1934,175 +976,6 @@ void SocketUtil::throwSocketException(const std::string & message) {
 	void DatagramPacket::setRemoteAddr(const InetAddress & addr) {
 		this->remoteAddr.setAddress(addr);
 	}
-
-
-	/*
-	 * Datagram Socket
-	 */
-
-	DatagramSocket::DatagramSocket() : sock(0), socketImpl(NULL), port(0) {
-		init();
-		setHost(NULL);
-	}
-
-	DatagramSocket::DatagramSocket(int port) {
-		init();
-		setPort(port);
-
-#if defined(USE_BSD_SOCKET)
-		socketImpl = new BsdDatagramSocket(port);
-#elif defined(USE_WINSOCK2)
-		socketImpl = new Winsock2DatagramSocket(port);
-#endif
-		
-	}
-	
-	DatagramSocket::DatagramSocket(const char * host, int port) {
-		init();
-		setAddress(host, port);
-
-#if defined(USE_BSD_SOCKET)
-		socketImpl = new BsdDatagramSocket(host, port);
-#elif defined(USE_WINSOCK2)
-		socketImpl = new Winsock2DatagramSocket(host, port);
-#endif
-	}
-
-	DatagramSocket::~DatagramSocket() {
-		if (socketImpl) {
-			delete socketImpl;
-		}
-	}
-
-	void DatagramSocket::init() {
-
-		System::getInstance();
-
-		sock = 0;
-		socketImpl = NULL;
-		port = 0;
-		setHost(NULL);
-	}
-
-	void DatagramSocket::setPort(int port) {
-		setHost(NULL);
-		this->port = port;
-	}
-
-	void DatagramSocket::setAddress(const char * host, int port) {
-		setHost(host);
-		this->port = port;
-	}
-	
-	void DatagramSocket::setHost(const char * host) {
-		memset(this->host, 0, sizeof(this->host));
-		if (host) {
-			snprintf(this->host, sizeof(this->host), "%s", host);
-		}
-	}
-
-	void DatagramSocket::setReuseAddr() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->setReuseAddr();
-	}
-	void DatagramSocket::setBroadcast() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->setBroadcast();
-	}
-	void DatagramSocket::setTTL(int ttl) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->setTTL(ttl);
-	}
-	int DatagramSocket::bind() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->bind();
-	}
-    int DatagramSocket::randomBind(RandomPortBinder & portBinder) {
-        CHECK_NOT_IMPL_THROW(socketImpl);
-        int ret = -1;
-        portBinder.start();
-        while (!portBinder.wantFinish()) {
-            socketImpl->setPort(portBinder.getNextPort());
-            ret = bind();
-            if (ret >= 0) {
-                break;
-            }
-        }
-        return ret;
-    }
-	int DatagramSocket::joinGroup(const string & group) {
-		return joinGroup(group.c_str());
-	}
-	int DatagramSocket::joinGroup(const char * host) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->joinGroup(host);
-	}
-	int DatagramSocket::connect() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->connect();
-	}
-
-	bool DatagramSocket::compareFd(int fd) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->compareFd(fd);
-	}
-	int DatagramSocket::getFd() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->getFd();
-	}
-
-	int DatagramSocket::recv(DatagramPacket & packet) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->recv(packet);
-	}
-
-	int DatagramSocket::recv(char * buffer, size_t max) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->recv(buffer, max);
-	}
-	
-	int DatagramSocket::send(const char * host, int port,
-							 const char * buffer, size_t length) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		return socketImpl->send(host, port, buffer, length);
-	}
-
-	void DatagramSocket::shutdown(/* type */) {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->shutdown();
-	}
-	
-	void DatagramSocket::close() {
-		CHECK_NOT_IMPL_THROW(socketImpl);
-		socketImpl->close();
-	}
-
-	bool DatagramSocket::isClosed() {
-		try {
-			this->socket();
-			return false;
-		} catch (IOException e) {
-			return true;
-		}
-	}
-
-	char * DatagramSocket::getHost() {
-		return host;
-	}
-
-	int DatagramSocket::getPort() {
-		return port;
-	}
-
-	SOCK_HANDLE DatagramSocket::socket() {
-		SocketUtil::checkValidSocket(sock);
-		return sock;
-	}
-
-	void DatagramSocket::socket(SOCK_HANDLE sock) {
-		this->sock = sock;
-	}
-
 	
 	/* Date */
 	

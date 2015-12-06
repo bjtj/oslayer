@@ -3,28 +3,28 @@
 
 namespace XOS {
 
-	static int PREFERED_INET_VERSION = OS::InetAddress::InetVersion::INET4;
 	DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
 
-#if defined(USE_WINSOCK2)
+#if defined(USE_BSD_SOCKET) || defined(USE_WINSOCK2)
 
-	class SocketImpl : public Socket {
+	class SocketImpl : public Socket, public OS::SocketAddressResolver {
 	private:
 		SOCK_HANDLE sock;
-		struct addrinfo * info;
 	public:
-		SocketImpl() : sock(INVALID_SOCKET), info(NULL) {
+		SocketImpl() : sock(INVALID_SOCKET) {
 		}
-		SocketImpl(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : sock(sock), info(NULL) {
+		SocketImpl(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : sock(sock) {
 			OS::InetAddress inetAddr(addr);
-			info = inetAddr.resolve(SOCK_STREAM);
+			setAddrInfo(inetAddr.resolve(SOCK_STREAM));
 		}
-		SocketImpl(const OS::InetAddress & remoteAddr) : sock(INVALID_SOCKET), info(NULL) {
+		SocketImpl(const OS::InetAddress & remoteAddr) : sock(INVALID_SOCKET) {
 			connect(remoteAddr);
 		}
 		virtual ~SocketImpl() {
 		}
-
+		SOCK_HANDLE getSocket() {
+			return sock;
+		}
 		virtual void connect(const OS::InetAddress & remoteAddr) {
 			AddrInfoAutoRelease info(remoteAddr.resolve(SOCK_STREAM));
 
@@ -42,7 +42,7 @@ namespace XOS {
 			close();
 		}
 		virtual void close() {
-			closesocket(sock);
+			OS::SocketUtil::closeSocket(sock);
 			sock = INVALID_SOCKET;
 		}
 		virtual int recv(char * buffer, size_t size) {
@@ -59,17 +59,19 @@ namespace XOS {
 			}
 			return ret;
 		}
-		bool resolvedAddrInfo() {
-			return info != NULL;
-		}
-		void setAddrInfo(struct addrinfo * info) {
-			if (this->info) {
-				freeaddrinfo(this->info);
+		OS::InetAddress getLocalInetAddress() {
+			OS::SocketAddress sa(getAddrInfo()->ai_family);
+			if (getsockname(sock, sa.getAddr(), sa.getAddrLen()) != 0) {
+				OS::SocketUtil::throwSocketException("getsockname() error");
 			}
-			this->info = info;
+			return OS::InetAddress(sa.getAddr());
 		}
-		struct addrinfo * getAddrInfo() {
-			return info;
+		OS::InetAddress getRemoteInetAddress() {
+			if (!resolved()) {
+				throw OS::IOException("unresolved socket", -1, 0);
+			}
+			struct addrinfo * info = getAddrInfo();
+			return OS::InetAddress(info->ai_addr);
 		}
 		void setOption(int level, int optname, const char * optval, int optlen) {
 			if (setsockopt(sock, level, optname, optval, optlen) != 0) {
@@ -97,7 +99,12 @@ namespace XOS {
 			delete socketImpl;
 		}
 	}
-
+	SOCK_HANDLE Socket::getSocket() {
+		return getImpl().getSocket();
+	}
+	int Socket::getFd() {
+		return (int)getSocket();
+	}
 	void Socket::connect(const OS::InetAddress & remoteAddr) {
 		getImpl().connect(remoteAddr);
 	}
@@ -107,21 +114,32 @@ namespace XOS {
 	void Socket::close() {
 		getImpl().close();
 	}
-
+	bool Socket::isClosed() {
+		return OS::SocketUtil::isValidSocket(getSocket()) == false;
+	}
 	int Socket::recv(char * buffer, size_t size) {
 		return getImpl().recv(buffer, size);
 	}
 	int Socket::send(const char * data, size_t size) {
 		return getImpl().send(data, size);
 	}
+	OS::InetAddress Socket::getLocalInetAddress() {
+		return getImpl().getLocalInetAddress();
+	}
+	OS::InetAddress Socket::getRemoteInetAddress() {
+		return getImpl().getRemoteInetAddress();
+	}
 	void Socket::createImpl() {
 		socketImpl = new SocketImpl;
+		setDelegator(socketImpl);
 	}
 	void Socket::createImpl(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) {
 		socketImpl = new SocketImpl(sock, addr, addrlen);
+		setDelegator(socketImpl);
 	}
 	void Socket::createImpl(const OS::InetAddress & remoteAddr) {
 		socketImpl = new SocketImpl(remoteAddr);
+		setDelegator(socketImpl);
 	}
 	Socket & Socket::getImpl() {
 		if (!socketImpl) {
@@ -131,28 +149,31 @@ namespace XOS {
 	}
 
 
-#if defined(USE_WINSOCK2)
+#if defined(USE_BSD_SOCKET) || defined(USE_WINSOCK2)
 
-	class ServerSocketImpl : public ServerSocket {
+	class ServerSocketImpl : public ServerSocket, public OS::SocketAddressResolver {
 	private:
 		SOCK_HANDLE sock;
-		struct addrinfo * info;
 		OS::InetAddress bindAddr;
+		OS::SocketOptions options;
+
 	public:
-		ServerSocketImpl() : sock(INVALID_SOCKET), info(NULL) {
+		ServerSocketImpl() : sock(INVALID_SOCKET) {
 			bindAddr.setPort(0);
-			bindAddr.setInetVersion(PREFERED_INET_VERSION);
+			bindAddr.setInetVersion(OS::GlobalSocketConfiguration::getPreferedInetVersion());
 		}
-		ServerSocketImpl(int port) : sock(INVALID_SOCKET), info(NULL) {
+		ServerSocketImpl(int port) : sock(INVALID_SOCKET) {
 			bindAddr.setPort(port);
-			bindAddr.setInetVersion(PREFERED_INET_VERSION);
+			bindAddr.setInetVersion(OS::GlobalSocketConfiguration::getPreferedInetVersion());
 		}
-		ServerSocketImpl(const OS::InetAddress & bindAddr) : sock(INVALID_SOCKET), info(NULL) {
+		ServerSocketImpl(const OS::InetAddress & bindAddr) : sock(INVALID_SOCKET) {
 			this->bindAddr.setAddress(bindAddr);
 		}
 		virtual ~ServerSocketImpl() {
 		}
-
+		SOCK_HANDLE getSocket() {
+			return sock;
+		}
 		void bind(struct addrinfo * addrInfo) {
 
 			DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
@@ -190,48 +211,29 @@ namespace XOS {
 		}
 		virtual Socket * accept() {
 
-			if (!resolvedAddrInfo()) {
+			if (!resolved()) {
 				throw OS::IOException("unresolved socket", -1, 0);
 			}
 
-			struct sockaddr_in addr4;
-			struct sockaddr_in6 addr6;
-			struct sockaddr * addr;
-			socklen_t addrlen;
+			OS::SocketAddress sa(getAddrInfo()->ai_family);
 
-			if (getAddrInfo()->ai_family == AF_INET) {
-				addr = (struct sockaddr *)&addr4;
-				addrlen = sizeof(addr4);
-			} else if (getAddrInfo()->ai_family == AF_INET6) {
-				addr = (struct sockaddr *)&addr6;
-				addrlen = sizeof(addr6);
-			} else {
-				throw OS::IOException("Unknown family", -1, 0);
-			}
-
-			SOCK_HANDLE client = ::accept(sock, addr, &addrlen);
+			SOCK_HANDLE client = ::accept(sock, sa.getAddr(), sa.getAddrLen());
 			if (client == INVALID_SOCKET) {
 				OS::SocketUtil::throwSocketException("accept() error");
 			}
 
-			return new Socket(client, addr, addrlen);
+			return new Socket(client, sa.getAddr(), *sa.getAddrLen());
 		}
 		virtual void close() {
-			closesocket(sock);
+			OS::SocketUtil::closeSocket(sock);
 			sock = INVALID_SOCKET;
 		}
-
-		bool resolvedAddrInfo() {
-			return info != NULL;
-		}
-		void setAddrInfo(struct addrinfo * info) {
-			if (this->info) {
-				freeaddrinfo(this->info);
+		OS::InetAddress getLocalInetAddress() {
+			OS::SocketAddress sa(getAddrInfo()->ai_family);
+			if (getsockname(sock, sa.getAddr(), sa.getAddrLen()) != 0) {
+				OS::SocketUtil::throwSocketException("getsockname() error");
 			}
-			this->info = info;
-		}
-		struct addrinfo * getAddrInfo() {
-			return info;
+			return OS::InetAddress(sa.getAddr());
 		}
 		void setOption(int level, int optname, const char * optval, int optlen) {
 			if (setsockopt(sock, level, optname, optval, optlen) != 0) {
@@ -259,7 +261,12 @@ namespace XOS {
 			delete serverSocketImpl;
 		}
 	}
-
+	SOCK_HANDLE ServerSocket::getSocket() {
+		return getImpl().getSocket();
+	}
+	int ServerSocket::getFd() {
+		return (int)getSocket();
+	}
 	void ServerSocket::bind() {
 		getImpl().bind();
 	}
@@ -272,15 +279,23 @@ namespace XOS {
 	void ServerSocket::close() {
 		getImpl().close();
 	}
-
+	bool ServerSocket::isClosed() {
+		return OS::SocketUtil::isValidSocket(getSocket()) == false;
+	}
+	OS::InetAddress ServerSocket::getLocalInetAddress() {
+		return getImpl().getLocalInetAddress();
+	}
 	void ServerSocket::createImpl() {
 		serverSocketImpl = new ServerSocketImpl;
+		setDelegator(serverSocketImpl);
 	}
 	void ServerSocket::createImpl(int port) {
 		serverSocketImpl = new ServerSocketImpl(port);
+		setDelegator(serverSocketImpl);
 	}
 	void ServerSocket::createImpl(const OS::InetAddress & bindAddr) {
 		serverSocketImpl = new ServerSocketImpl(bindAddr);
+		setDelegator(serverSocketImpl);
 	}
 	ServerSocket & ServerSocket::getImpl() {
 		if (!serverSocketImpl) {
