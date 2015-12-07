@@ -57,6 +57,7 @@
 #	include <sys/types.h>
 #	include <ctime>
 #	include <dirent.h>
+#	include <errno.h>
 
 #	define TIME long int
 
@@ -623,6 +624,8 @@ public: \
         
 	public:
 		DatagramPacket(char * data, size_t size);
+		DatagramPacket(char * data, size_t size, const InetAddress & remoteAddr);
+		DatagramPacket(char * data, size_t size, const std::string & host, int port);
 		virtual ~DatagramPacket();
 		void clear();
 		char * getData();

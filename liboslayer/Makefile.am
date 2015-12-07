@@ -2,12 +2,16 @@ lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS=AutoRef.hpp \
+	AutoRelease.hpp \
+	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	Iteration.hpp \
 	Logger.hpp \
 	Measurement.hpp \
 	PollablePool.hpp \
+	Properties.hpp \
 	RandomPortBinders.hpp \
+	Socket.hpp \
 	StringElement.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
@@ -17,6 +21,9 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 
 liboslayer_la_SOURCES=AutoRef.cpp \
 	AutoRef.hpp \
+	AutoRelease.hpp \
+	DatagramSocket.cpp \
+	DatagramSocket.hpp \
 	FileReaderWriter.cpp \
 	FileReaderWriter.hpp \
 	Iteration.cpp \
@@ -27,8 +34,12 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Measurement.hpp \
 	PollablePool.cpp \
 	PollablePool.hpp \
+	Properties.cpp \
+	Properties.hpp \
 	RandomPortBinders.cpp \
 	RandomPortBinders.hpp \
+	Socket.cpp \
+	Socket.hpp \
 	StringElement.hpp \
 	Text.cpp \
 	Text.hpp \
@@ -37,6 +48,7 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Utils.hpp \
 	os.cpp \
 	os.hpp
+
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)

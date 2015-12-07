@@ -935,10 +935,17 @@ namespace OS {
 	 * Datagram Packet
 	 */
 
-	DatagramPacket::DatagramPacket(char * data, size_t size)
-    : data(data), size(size), length(0) {
-        
+	DatagramPacket::DatagramPacket(char * data, size_t size) : data(data), size(size), length(0) {
         System::getInstance();
+	}
+
+	DatagramPacket::DatagramPacket(char * data, size_t size, const InetAddress & remoteAddr)
+		: data(data), size(size), length(0), remoteAddr(remoteAddr) {
+		System::getInstance();
+	}
+	DatagramPacket::DatagramPacket(char * data, size_t size, const std::string & host, int port)
+		: data(data), size(size), length(0), remoteAddr(host, port) {
+		System::getInstance();
 	}
 
 	DatagramPacket::~DatagramPacket() {

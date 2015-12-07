@@ -1,16 +1,17 @@
 #include <iostream>
 #include <liboslayer/os.hpp>
+#include <liboslayer/DatagramSocket.hpp>
 
 using namespace std;
 using namespace OS;
-
+using namespace XOS;
 
 /**
  * @brief UDP multicast Server
  */
 class UDPMulticastServer : public Thread {
 private:
-	DatagramSocket * server;
+	MulticastSocket * server;
 	string group;
     int port;
     int cnt;
@@ -20,8 +21,8 @@ public:
 
     virtual void run() {
         Selector selector;
-        server = new DatagramSocket(port);
-		server->setReuseAddr();
+        server = new MulticastSocket(port);
+		server->setReuseAddr(true);
         server->joinGroup(group.c_str());
 
         server->registerSelector(selector);
@@ -35,8 +36,9 @@ public:
 					DatagramPacket packet(buffer, sizeof(buffer));
 					int len = server->recv(packet);
 					if (len > 0) {
-						cout << "[" << cnt++ << "] MCAST RECV (" << packet.getRemoteAddr() << ":" << packet.getRemotePort() << ") :" << packet.getData() << endl;
-						send(packet.getRemoteAddr().c_str(), packet.getRemotePort(), "Welcome!!");
+						InetAddress remoteAddr = packet.getRemoteAddr();
+						cout << "[" << cnt++ << "] MCAST RECV (" << remoteAddr.getHost() << ":" << remoteAddr.getPort() << ") :" << packet.getData() << endl;
+						send(remoteAddr.getHost().c_str(), remoteAddr.getPort(), "Welcome!!");
 					}
 				}
             }
@@ -46,7 +48,10 @@ public:
 
 	void send(const char * host, int port, const char * msg) {
 		int ret;
-		ret = server->send(host, port, msg, strlen(msg));
+		char buffer[1024] = {0,};
+		DatagramPacket packet(buffer, sizeof(buffer), host, port);
+		packet.write(msg);
+		ret = server->send(packet);
 	}
 };
 
@@ -65,10 +70,8 @@ public:
     virtual void run() {
         Selector selector;
         server = new DatagramSocket(port);
-        server->bind();
 
         server->registerSelector(selector);
-		
 
         while (!interrupted()) {
             if (selector.select(10) > 0) {
@@ -89,7 +92,10 @@ public:
 
 	void send(const char * host, int port, const char * msg) {
 		int ret;
-		ret = server->send(host, port, msg, strlen(msg));
+		char buffer[1024] = {0,};
+		DatagramPacket packet(buffer, sizeof(buffer), host, port);
+		packet.write(msg);
+		ret = server->send(packet);
 	}
 };
 
@@ -103,9 +109,12 @@ size_t readline(char * buffer, size_t max) {
 }
 
 void send(const char * host, int port, const char * msg) {
-	DatagramSocket socket(host, port);
+	DatagramSocket socket;
 	int ret;
-	ret = socket.send(host, port, msg, strlen(msg));
+	char buffer[1024] = {0,};
+	DatagramPacket packet(buffer, sizeof(buffer), host, port);
+	packet.write(msg);
+	ret = socket.send(packet);
 }
 
 int main(int argc, char * args[]) {

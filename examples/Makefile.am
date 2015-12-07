@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -23,3 +23,21 @@ networkInfo_CPPFLAGS=-I$(top_srcdir)
 networkInfo_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 networkInfo_LDFLAGS=$(PTHREAD_CFLAGS)
 networkInfo_LDADD=../liboslayer/liboslayer.la
+
+datagramSocketTest_SOURCES=datagramsocketTest.cpp
+datagramSocketTest_CPPFLAGS=-I$(top_srcdir)
+datagramSocketTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+datagramSocketTest_LDFLAGS=$(PTHREAD_CFLAGS)
+datagramSocketTest_LDADD=../liboslayer/liboslayer.la
+
+socketTest_SOURCES=socketTest.cpp
+socketTest_CPPFLAGS=-I$(top_srcdir)
+socketTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+socketTest_LDFLAGS=$(PTHREAD_CFLAGS)
+socketTest_LDADD=../liboslayer/liboslayer.la
+
+# _SOURCES=.cpp
+# _CPPFLAGS=-I$(top_srcdir)
+# _CXXFLAGS=$(PTHREAD_CXXFLAGS)
+# _LDFLAGS=$(PTHREAD_CFLAGS)
+# _LDADD=../liboslayer/liboslayer.la

@@ -7,7 +7,7 @@ using namespace OS;
 static void s_print_inet_addresses(const vector<InetAddress> & addrs) {
     for (size_t i = 0; i < addrs.size(); i++) {
         const InetAddress & addr = addrs[i];
-        cout << " - " << addr.getAddress() << endl;
+        cout << " - " << addr.getHost() << endl;
     }
 }
 
