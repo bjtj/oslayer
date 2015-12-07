@@ -2,7 +2,6 @@
 #include <liboslayer/DatagramSocket.hpp>
 
 using namespace std;
-using namespace XOS;
 
 class DatagramServerThread : public OS::Thread {
 private:
@@ -20,7 +19,9 @@ public:
 		sem.post();
 	}
 	virtual void run() {
-		DatagramSocket server(9000);
+		OS::DatagramSocket server(9000);
+
+		printf("[S]BOUND %s:%d\n", server.getLocalInetAddress().getHost().c_str(), server.getLocalInetAddress().getPort());
 
 		notify();
 
@@ -43,7 +44,10 @@ void s_datagram_server_client() {
 
 	server.wait();
 
-	DatagramSocket client;
+	OS::DatagramSocket client;
+
+	printf("[C]BOUND %s:%d\n", client.getLocalInetAddress().getHost().c_str(), client.getLocalInetAddress().getPort());
+
 	char buffer[1024] = {0,};
 	OS::DatagramPacket packet(buffer, sizeof(buffer));
 	packet.write("hello");
@@ -55,7 +59,7 @@ void s_datagram_server_client() {
 
 void s_multicast_test(const std::string & group) {
 
-	MulticastSocket server(1900);
+	OS::MulticastSocket server(1900);
 
 	server.joinGroup(group);
 
@@ -78,7 +82,7 @@ void s_send_multicast_test(int inetVersion, const std::string & group) {
 
 	OS::InetAddress addr(0);
 	addr.setInetVersion(inetVersion);
-	DatagramSocket sender(addr);
+	OS::DatagramSocket sender(addr);
 
 	std::string content = "M-SEARCH * HTTP/1.1\r\n"
 		"Host: 239.255.255.250:1900\r\n"
@@ -108,8 +112,8 @@ void s_send_multicast_test(int inetVersion, const std::string & group) {
 
 int main(int argc, char * args[]) {
 
-	//s_datagram_server_client();
-	s_multicast_test("239.255.255.250");
+	s_datagram_server_client();
+	//s_multicast_test("239.255.255.250");
 	//s_multicast_test("[FF02::C]");
 	//s_send_multicast_test(OS::InetAddress::InetVersion::INET4, "239.255.255.250");
 	//s_send_multicast_test(OS::InetAddress::InetVersion::INET6, "[FF02::C]");

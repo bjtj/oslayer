@@ -3,24 +3,24 @@
 
 #include "os.hpp"
 
-namespace XOS {
+namespace OS {
 
 	/**
 	 * @brief Socket
 	 */
-	class Socket : public OS::SocketOptions, public OS::Selectable {
+	class Socket : public SocketOptions, public Selectable {
 	private:
 		Socket * socketImpl;
 	public:
 		Socket();
 		Socket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
-		Socket(const OS::InetAddress & remoteAddr);
+		Socket(const InetAddress & remoteAddr);
 		virtual ~Socket();
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
 
-		virtual void connect(const OS::InetAddress & remoteAddr);
+		virtual void connect(const InetAddress & remoteAddr);
 		virtual void disconnect();
 		virtual void close();
 		virtual bool isClosed();
@@ -28,26 +28,26 @@ namespace XOS {
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
 
-		virtual OS::InetAddress getLocalInetAddress();
-		virtual OS::InetAddress getRemoteInetAddress();
+		virtual InetAddress getLocalInetAddress();
+		virtual InetAddress getRemoteInetAddress();
 
 	protected:
 		virtual void createImpl();
 		virtual void createImpl(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
-		virtual void createImpl(const OS::InetAddress & remoteAddr);
+		virtual void createImpl(const InetAddress & remoteAddr);
 		virtual Socket & getImpl();
 	};
 
 	/**
 	 * @brief ServerSocket
 	 */
-	class ServerSocket : public OS::SocketOptions, public OS::Selectable {
+	class ServerSocket : public SocketOptions, public Selectable {
 	private:
 		ServerSocket * serverSocketImpl;
 	public:
 		ServerSocket();
 		ServerSocket(int port);
-		ServerSocket(const OS::InetAddress & bindAddr);
+		ServerSocket(const InetAddress & bindAddr);
 		virtual ~ServerSocket();
 
 		virtual SOCK_HANDLE getSocket();
@@ -59,12 +59,12 @@ namespace XOS {
 		virtual void close();
 		virtual bool isClosed();
 
-		virtual OS::InetAddress getLocalInetAddress();
+		virtual InetAddress getLocalInetAddress();
 
 	protected:
 		virtual void createImpl();
 		virtual void createImpl(int port);
-		virtual void createImpl(const OS::InetAddress & bindAddr);
+		virtual void createImpl(const InetAddress & bindAddr);
 		virtual ServerSocket & getImpl();
 	};
 }

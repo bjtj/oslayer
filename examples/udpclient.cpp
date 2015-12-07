@@ -4,7 +4,6 @@
 
 using namespace std;
 using namespace OS;
-using namespace XOS;
 
 /**
  * @brief UDP multicast Server

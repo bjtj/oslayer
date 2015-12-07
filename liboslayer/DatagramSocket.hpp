@@ -3,38 +3,41 @@
 
 #include "os.hpp"
 
-namespace XOS {
+namespace OS {
 
 	/**
 	 * @brief DatagramSocket
 	 */
-	class DatagramSocket : public OS::SocketOptions, public OS::Selectable {
+	class DatagramSocket : public SocketOptions, public Selectable {
 	private:
 		DatagramSocket * impl;
 
 	public:
 		DatagramSocket();
 		DatagramSocket(int port);
-		DatagramSocket(const OS::InetAddress & addr);
+		DatagramSocket(const InetAddress & addr);
 		virtual ~DatagramSocket();
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
 
-		virtual void bind(const OS::InetAddress & addr);
-		virtual void connect(const OS::InetAddress & bindAddr);
+		virtual void bind(const InetAddress & addr);
+		virtual void connect(const InetAddress & bindAddr);
 		virtual void disconnect();
 		virtual void close();
+		virtual bool isClosed();
 
-		virtual int recv(OS::DatagramPacket & packet);
-		virtual int send(OS::DatagramPacket & packet);
+		virtual int recv(DatagramPacket & packet);
+		virtual int send(DatagramPacket & packet);
+
+		virtual InetAddress getLocalInetAddress();
 
 	protected:
 		bool created();
 		void setImpl(DatagramSocket * impl);
 		virtual void createImpl();
 		virtual void createImpl(int port);
-		virtual void createImpl(const OS::InetAddress & bindAddr);
+		virtual void createImpl(const InetAddress & bindAddr);
 		virtual DatagramSocket & getImpl();
 	};
 
@@ -47,7 +50,7 @@ namespace XOS {
 	public:
 		MulticastSocket();
 		MulticastSocket(int port);
-		MulticastSocket(const OS::InetAddress & addr);
+		MulticastSocket(const InetAddress & addr);
 		virtual ~MulticastSocket();
 
 		virtual void joinGroup(const std::string & group);
@@ -56,7 +59,7 @@ namespace XOS {
 	protected:
 		virtual void createImpl();
 		virtual void createImpl(int port);
-		virtual void createImpl(const OS::InetAddress & bindAddr);
+		virtual void createImpl(const InetAddress & bindAddr);
 	};
 }
 

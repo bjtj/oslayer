@@ -1,8 +1,6 @@
 #include <liboslayer/os.hpp>
 #include <liboslayer/Socket.hpp>
 
-using namespace XOS;
-
 class ServerSocketThread : public OS::Thread {
 private:
 public:
@@ -11,7 +9,7 @@ public:
 	virtual ~ServerSocketThread() {
 	}
 	virtual void run() {
-		ServerSocket server(8080);
+		OS::ServerSocket server(8080);
 
 		server.setReuseAddr(true);
 		server.bind();
@@ -20,7 +18,7 @@ public:
 		OS::InetAddress serverAddr = server.getLocalInetAddress();
 		printf("Listen %s:%d\n", serverAddr.getHost().c_str(), serverAddr.getPort());
 
-		Socket * client = server.accept();
+		OS::Socket * client = server.accept();
 		if (client) {
 
 			OS::InetAddress localAddr = client->getLocalInetAddress();
@@ -43,7 +41,7 @@ void s_server_client_test() {
 
 	server.start();
 
-	Socket client(OS::InetAddress("127.0.0.1", 8080));
+	OS::Socket client(OS::InetAddress("127.0.0.1", 8080));
 	char buffer[1024] = {0,};
 	client.recv(buffer, sizeof(buffer));
 	printf("RECV FROM SERVER: %s\n", buffer);
@@ -54,7 +52,7 @@ void s_server_client_test() {
 
 void s_client_test() {
 
-	Socket sock;
+	OS::Socket sock;
 
 	sock.connect(OS::InetAddress("www.google.com", 80));
 	std::string packet = "GET / HTTP/1.1\r\nContent-Length: 0\r\n\r\n";
