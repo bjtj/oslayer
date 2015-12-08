@@ -160,11 +160,11 @@ namespace OS {
 	public:
 		ServerSocketImpl() : sock(INVALID_SOCKET) {
 			bindAddr.setPort(0);
-			bindAddr.setInetVersion(GlobalSocketConfiguration::getPreferedInetVersion());
+			bindAddr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 		}
 		ServerSocketImpl(int port) : sock(INVALID_SOCKET) {
 			bindAddr.setPort(port);
-			bindAddr.setInetVersion(GlobalSocketConfiguration::getPreferedInetVersion());
+			bindAddr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 		}
 		ServerSocketImpl(const InetAddress & bindAddr) : sock(INVALID_SOCKET) {
 			this->bindAddr.setAddress(bindAddr);

@@ -565,14 +565,14 @@ public: \
      */
 	class GlobalSocketConfiguration {
 	private:
-		static int preferedInetVersion;
+		static int preferredInetVersion;
 	private:
 		GlobalSocketConfiguration();
 		virtual ~GlobalSocketConfiguration();
 
 	public:
-		static int getPreferedInetVersion();
-		static void setPreferedInetVersion(int preferedInetVersion);
+		static int getPreferredInetVersion();
+		static void setPreferredInetVersion(int preferredInetVersion);
 	};
 
 	/**

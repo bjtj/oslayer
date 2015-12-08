@@ -15,7 +15,7 @@ namespace OS {
 	public:
 		DatagramSocket();
 		DatagramSocket(int port);
-		DatagramSocket(const InetAddress & addr);
+		DatagramSocket(const InetAddress & bindAddr);
 		virtual ~DatagramSocket();
 
 		virtual SOCK_HANDLE getSocket();

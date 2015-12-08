@@ -13,16 +13,16 @@ namespace OS {
 	public:
 		DatagramSocketImpl() : sock(INVALID_SOCKET) {
 			InetAddress addr(0);
-			addr.setInetVersion(GlobalSocketConfiguration::getPreferedInetVersion());
+			addr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 			bind(addr);
 		}
 		DatagramSocketImpl(int port) : sock(INVALID_SOCKET) {
 			InetAddress addr(port);
-			addr.setInetVersion(GlobalSocketConfiguration::getPreferedInetVersion());
+			addr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 			bind(addr);
 		}
-		DatagramSocketImpl(const InetAddress & addr) : sock(INVALID_SOCKET) {
-			bind(addr);
+		DatagramSocketImpl(const InetAddress & bindAddr) : sock(INVALID_SOCKET) {
+			bind(bindAddr);
 		}
         DatagramSocketImpl(DatagramSocketImpl * impl) {
         }
@@ -52,8 +52,8 @@ namespace OS {
 			infoMem.forget();
 			setAddrInfo(addrInfo);
 		}
-		virtual void bind(const InetAddress & addr) {
-			bind(addr.resolvePassive(addr.getFamilyCode(), SOCK_DGRAM));
+		virtual void bind(const InetAddress & bindAddr) {
+			bind(bindAddr.resolvePassive(bindAddr.getFamilyCode(), SOCK_DGRAM));
 		}
 		virtual void connect(const InetAddress & addr) {
 

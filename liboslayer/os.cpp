@@ -862,14 +862,14 @@ namespace OS {
         }
     };
 
-	int GlobalSocketConfiguration::preferedInetVersion = InetAddress::InetVersion::INET4;
+	int GlobalSocketConfiguration::preferredInetVersion = InetAddress::InetVersion::INET4;
 
-	int GlobalSocketConfiguration::getPreferedInetVersion() {
-		return preferedInetVersion;
+	int GlobalSocketConfiguration::getPreferredInetVersion() {
+		return preferredInetVersion;
 	}
 
-	void GlobalSocketConfiguration::setPreferedInetVersion(int preferedInetVersion) {
-		GlobalSocketConfiguration::preferedInetVersion = preferedInetVersion;
+	void GlobalSocketConfiguration::setPreferredInetVersion(int preferredInetVersion) {
+		GlobalSocketConfiguration::preferredInetVersion = preferredInetVersion;
 	}
 
 	/**
