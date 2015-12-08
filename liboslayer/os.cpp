@@ -665,6 +665,18 @@ namespace OS {
     vector<NetworkInterface> Network::getNetworkInterfaces() {
         return s_get_all_network_interfaces();
     }
+
+	vector<InetAddress> Network::getAllInetAddress() {
+		vector<InetAddress> ret;
+		vector<NetworkInterface> ifaces = getNetworkInterfaces();
+		for (size_t i = 0; i < ifaces.size(); i++) {
+			vector<InetAddress> addrs = ifaces[i].getInetAddresses();
+			for (vector<InetAddress>::iterator iter = addrs.begin(); iter != addrs.end(); iter++) {
+				ret.push_back(*iter);
+			}
+		}
+		return ret;
+	}
     
     /* SELECTION */
     
@@ -905,6 +917,12 @@ namespace OS {
 			return delegator->getTimeToLive();
 		}
 		return ttl;
+	}
+	void SocketOptions::setMulticastInteface(const string & iface) {
+		if (delegator) {
+			delegator->setMulticastInteface(iface);
+		}
+		this->multicastIface = iface;
 	}
 
 	/* */

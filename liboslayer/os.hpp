@@ -462,7 +462,7 @@ public: \
 	public:
         static std::vector<InetAddress> getInetAddressesWithIfaceName(const std::string & ifaceName);
         static std::vector<NetworkInterface> getNetworkInterfaces();
-
+		static std::vector<InetAddress> getAllInetAddress();
 	};
     
     /**
@@ -584,16 +584,18 @@ public: \
 		bool reuseAddr;
 		bool broadcast;
 		int ttl;
+		std::string multicastIface;
 	public:
 		SocketOptions();
 		virtual ~SocketOptions();
 		void setDelegator(SocketOptions * delegator);
-		void setReuseAddr(bool reuseAddr);
-		bool getReuseAddr();
-		void setBroadcast(bool broadcast);
-		bool getBroadcast();
-		void setTimeToLive(int ttl);
-		int getTimeToLive();
+		virtual void setReuseAddr(bool reuseAddr);
+		virtual bool getReuseAddr();
+		virtual void setBroadcast(bool broadcast);
+		virtual bool getBroadcast();
+		virtual void setTimeToLive(int ttl);
+		virtual int getTimeToLive();
+		virtual void setMulticastInteface(const std::string & iface);
 	};
 
 	/**
