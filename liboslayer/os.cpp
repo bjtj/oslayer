@@ -844,6 +844,11 @@ namespace OS {
 #endif
 	}
 
+    void SocketUtil::setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen) {
+        if (setsockopt(sock, level, optname, optval, optlen) != 0) {
+            throw IOException("setsockopt() error", -1, 0);
+        }
+    }
 
 	/**
 	 * @brief scoped connection (auto free)

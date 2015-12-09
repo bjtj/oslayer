@@ -184,9 +184,10 @@ namespace OS {
 
 			if (getReuseAddr()) {
 				int on = 1;
-				if (::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on)) != 0) {
-					throw IOException("setsockopt() error", -1, 0);
-				}
+                setOption(SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on));
+#if defined(__APPLE__)
+                setOption(SOL_SOCKET, SO_REUSEPORT, (const char*)&on, sizeof(on));
+#endif
 			}
 
 			if (::bind(sock, addrInfo->ai_addr, addrInfo->ai_addrlen) != 0) {
@@ -236,9 +237,7 @@ namespace OS {
 			return InetAddress(sa.getAddr());
 		}
 		void setOption(int level, int optname, const char * optval, int optlen) {
-			if (setsockopt(sock, level, optname, optval, optlen) != 0) {
-				SocketUtil::throwSocketException("setsockopt() error");
-			}
+            SocketUtil::setSocketOption(sock, level, optname, optval, optlen);
 		}
 	};
 

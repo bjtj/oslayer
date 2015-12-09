@@ -545,6 +545,7 @@ public: \
 		static bool isValidSocket(SOCK_HANDLE sock);
 		static void throwSocketException(const std::string & message);
 		static void closeSocket(SOCK_HANDLE sock);
+        static void setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen);
 	};
 
     /**
