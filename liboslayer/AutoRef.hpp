@@ -8,10 +8,12 @@ namespace UTIL {
     class SharedCounter {
     private:
         int _count;
+        OS::Semaphore sem;
     public:
         SharedCounter();
         virtual ~SharedCounter();
         void countUp();
+        bool countDownAndCheckZero();
         void countDown();
         bool zero();
         int count();
@@ -28,21 +30,27 @@ namespace UTIL {
         
         AutoRef() : counter(NULL), _t(NULL) {
         }
+        
         AutoRef(T * _t) : counter(NULL), _t(_t) {
             retain();
         }
+        
         AutoRef(const AutoRef & other) : counter(NULL), _t(NULL) {
             copy(other);
         }
+        
         virtual ~AutoRef() {
             release();
         }
+        
         AutoRef<T> & operator= (T * _t) {
-            reset();
+            release();
+            counter = NULL;
             this->_t = _t;
             retain();
             return *this;
         }
+        
         AutoRef<T> & operator= (const AutoRef<T> & other) {
             copy(other);
             return *this;
@@ -54,12 +62,14 @@ namespace UTIL {
             }
             return *_t;
         }
+        
         T * operator-> () {
             if (!_t) {
                 throw OS::NullException("null exception", -1, 0);
             }
             return _t;
         }
+        
         T * operator& () {
             return _t;
         }
@@ -75,19 +85,20 @@ namespace UTIL {
     private:
         
         void retain() {
-            if (!counter) {
-                counter = new SharedCounter;
-            }
-            counter->countUp();
-        }
-        void release() {
-            if (counter) {
-                counter->countDown();
-                if (counter->zero()) {
-                    destroy();
+            if (_t) {
+                if (!counter) {
+                    counter = new SharedCounter;
                 }
+                counter->countUp();
             }
         }
+        
+        void release() {
+            if (counter && counter->countDownAndCheckZero()) {
+                destroy();
+            }
+        }
+        
         void destroy() {
             if (counter) {
                 delete counter;
@@ -98,6 +109,7 @@ namespace UTIL {
                 _t = NULL;
             }
         }
+        
         void copy(const AutoRef<T> & other) {
             if (_t != other._t) {
                 release();
@@ -105,10 +117,6 @@ namespace UTIL {
                 _t = other._t;
                 retain();
             }
-        }
-        void reset() {
-            release();
-            destroy();
         }
         
     };

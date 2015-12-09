@@ -1,12 +1,21 @@
 #include "AutoRef.hpp"
 
 namespace UTIL {
-    SharedCounter::SharedCounter() : _count(0) {
+    SharedCounter::SharedCounter() : _count(0), sem(1) {
     }
     SharedCounter::~SharedCounter() {
     }
     void SharedCounter::countUp() {
+        sem.wait();
         _count++;
+        sem.post();
+    }
+    bool SharedCounter::countDownAndCheckZero() {
+        sem.wait();
+        countDown();
+        bool z = zero();
+        sem.post();
+        return z;
     }
     void SharedCounter::countDown() {
         if (_count > 0) {
