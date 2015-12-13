@@ -104,5 +104,8 @@
     <ClInclude Include="..\liboslayer\Socket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\liboslayer\platform.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

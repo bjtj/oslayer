@@ -27,7 +27,7 @@ int main(int argc, char * args[]) {
 		"ST: upnp:rootdevice\r\n"
 		"Man: \"ssdp:discover\"\r\n"
 		"MX: 3\r\n"
-		"USER-AGENT: Android/23 UPnP/1.1 UPnPTool/1.4.3\r\n"
+		"USER-AGENT: Cross/0.1 UPnP/1.1 MyApp/0.1\r\n"
 		"\r\n");
 
 	for (size_t i = 0; i < addrs.size(); i++) {
