@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E89501481C146396009434B1 /* datagramsocketTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501441C146396009434B1 /* datagramsocketTest.cpp */; };
+		E84737DF1C1D38DA008350CD /* multicastTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E84737DE1C1D38DA008350CD /* multicastTest.cpp */; };
 		E8FAB22C1BD7C6A300E89DC5 /* liboslayer-cocoa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FAB2271BD7C5EA00E89DC5 /* liboslayer-cocoa.a */; };
 /* End PBXBuildFile section */
 
@@ -54,6 +54,7 @@
 		E8447C9C1BF4AE51000E2903 /* logTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = logTest.cpp; path = ../../../examples/logTest.cpp; sourceTree = "<group>"; };
 		E8447C9D1BF4AE51000E2903 /* pollingTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = pollingTest.cpp; path = ../../../examples/pollingTest.cpp; sourceTree = "<group>"; };
 		E8447C9E1BF4AE51000E2903 /* udpclient.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = udpclient.cpp; path = ../../../examples/udpclient.cpp; sourceTree = "<group>"; };
+		E84737DE1C1D38DA008350CD /* multicastTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = multicastTest.cpp; path = ../../../examples/multicastTest.cpp; sourceTree = "<group>"; };
 		E857BAF71BE2651000D2022F /* app.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = app.cpp; path = ../../../examples/app.cpp; sourceTree = "<group>"; };
 		E857BAF81BE2651000D2022F /* trycatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = trycatch.cpp; path = ../../../examples/trycatch.cpp; sourceTree = "<group>"; };
 		E857BB991BEE551000D2022F /* networkInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = networkInfo.cpp; path = ../../../examples/networkInfo.cpp; sourceTree = "<group>"; };
@@ -105,6 +106,7 @@
 		E8FAB1F61BD7C2C200E89DC5 /* oslayer sample */ = {
 			isa = PBXGroup;
 			children = (
+				E84737DE1C1D38DA008350CD /* multicastTest.cpp */,
 				E89501431C146396009434B1 /* autoReleaseTest.cpp */,
 				E89501441C146396009434B1 /* datagramsocketTest.cpp */,
 				E89501461C146396009434B1 /* PropertiesTest.cpp */,
@@ -219,7 +221,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E89501481C146396009434B1 /* datagramsocketTest.cpp in Sources */,
+				E84737DF1C1D38DA008350CD /* multicastTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -76,6 +76,7 @@
 		E8447C931BF4AC11000E2903 /* FileReaderWriter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FileReaderWriter.hpp; path = ../../liboslayer/FileReaderWriter.hpp; sourceTree = "<group>"; };
 		E8447C941BF4AC11000E2903 /* RandomPortBinders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RandomPortBinders.cpp; path = ../../liboslayer/RandomPortBinders.cpp; sourceTree = "<group>"; };
 		E8447C951BF4AC11000E2903 /* RandomPortBinders.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = RandomPortBinders.hpp; path = ../../liboslayer/RandomPortBinders.hpp; sourceTree = "<group>"; };
+		E84737DC1C1D387F008350CD /* platform.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = platform.hpp; path = ../../liboslayer/platform.hpp; sourceTree = "<group>"; };
 		E857BB371BE900CD00D2022F /* StringElement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StringElement.hpp; path = ../../liboslayer/StringElement.hpp; sourceTree = "<group>"; };
 		E857BB691BECD09800D2022F /* Logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Logger.cpp; path = ../../liboslayer/Logger.cpp; sourceTree = "<group>"; };
 		E857BB6A1BECD09800D2022F /* Logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Logger.hpp; path = ../../liboslayer/Logger.hpp; sourceTree = "<group>"; };
@@ -171,6 +172,7 @@
 				E8075A0F1C03634D00EBE4B8 /* Measurement.hpp */,
 				E882FE8A1BD5315300E1C8C7 /* os.cpp */,
 				E882FE8B1BD5315300E1C8C7 /* os.hpp */,
+				E84737DC1C1D387F008350CD /* platform.hpp */,
 				E857BB8A1BEDE13300D2022F /* PollablePool.cpp */,
 				E857BB8B1BEDE13300D2022F /* PollablePool.hpp */,
 				E8447C941BF4AC11000E2903 /* RandomPortBinders.cpp */,

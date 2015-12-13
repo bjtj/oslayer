@@ -16,7 +16,8 @@ int main(int argc, char * args[]) {
 
 	unsigned long optval;
 	int optlen = (int)sizeof(optval);
-	getsockopt(s, IPPROTO_IP, IP_MULTICAST_IF, (char*)&optval, &optlen);
+//	getsockopt(s, IPPROTO_IP, IP_MULTICAST_IF, (char*)&optval, &optlen);
+    SocketUtil::setSocketOption(s, IPPROTO_IP, IP_MULTICAST_IF, (const char*)&optval, optlen);
 
 	printf("IP_MULTICAST_IF: %ld\n", optval);
 
@@ -35,12 +36,14 @@ int main(int argc, char * args[]) {
 		sock.send(packet);
 	}
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 15; i++) {
 		packet.clear();
 		sock.recv(packet);
 		printf("%s", packet.getData());
 	}
 	
+    printf("Press any key to quit...\n");
+    
 	getchar();
 
 	return 0;
