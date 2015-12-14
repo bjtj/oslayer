@@ -16,7 +16,8 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
 	Utils.hpp \
-	os.hpp
+	os.hpp \
+	platform.hpp
 
 
 liboslayer_la_SOURCES=AutoRef.cpp \
@@ -47,7 +48,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	ThreadPool.hpp \
 	Utils.hpp \
 	os.cpp \
-	os.hpp
+	os.hpp \
+	platform.hpp
 
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
