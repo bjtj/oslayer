@@ -123,12 +123,13 @@ namespace OS {
 
 			unsigned char optval[sizeof(struct in6_addr)] = {0,};
 			int optlen = sizeof(optval);
-			int ret = inet_pton(AF_INET, iface.c_str(), optval);
+			int ret = inet_pton(getAddrInfo()->ai_family, iface.c_str(), optval);
 			if (ret == 0) {
 				throw IOException("inet_pton() error / Invalid Address Format", ret, 0);
 			} else if (ret < 0) {
 				SocketUtil::throwSocketException("inet_pton() error");
 			}
+
 			if (getAddrInfo()->ai_family == AF_INET) {
 				setOption(IPPROTO_IP, IP_MULTICAST_IF, (const char*)optval, optlen);
 			} else if (getAddrInfo()->ai_family == AF_INET6) {

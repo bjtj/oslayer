@@ -16,8 +16,8 @@ int main(int argc, char * args[]) {
 
 	unsigned long optval;
 	int optlen = (int)sizeof(optval);
-//	getsockopt(s, IPPROTO_IP, IP_MULTICAST_IF, (char*)&optval, &optlen);
-    SocketUtil::setSocketOption(s, IPPROTO_IP, IP_MULTICAST_IF, (const char*)&optval, optlen);
+	getsockopt(s, IPPROTO_IP, IP_MULTICAST_IF, (char*)&optval, &optlen);
+    //SocketUtil::setSocketOption(s, IPPROTO_IP, IP_MULTICAST_IF, (const char*)&optval, optlen);
 
 	printf("IP_MULTICAST_IF: %ld\n", optval);
 
@@ -32,7 +32,8 @@ int main(int argc, char * args[]) {
 		"\r\n");
 
 	for (size_t i = 0; i < addrs.size(); i++) {
-		sock.setMulticastInteface(addrs[i].getHost());
+		printf("setMulticastInteface/host: %s\n", addrs[i].getHost().c_str());
+		sock.setMulticastInterface(addrs[i].getHost());
 		sock.send(packet);
 	}
 

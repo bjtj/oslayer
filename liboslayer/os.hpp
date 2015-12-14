@@ -532,7 +532,7 @@ public: \
 		virtual bool getBroadcast();
 		virtual void setTimeToLive(int ttl);
 		virtual int getTimeToLive();
-		virtual void setMulticastInteface(const std::string & iface);
+		virtual void setMulticastInterface(const std::string & iface);
 	};
 
 	/**

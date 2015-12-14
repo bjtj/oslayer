@@ -923,9 +923,9 @@ namespace OS {
 		}
 		return ttl;
 	}
-	void SocketOptions::setMulticastInteface(const string & iface) {
+	void SocketOptions::setMulticastInterface(const string & iface) {
 		if (delegator) {
-			delegator->setMulticastInteface(iface);
+			delegator->setMulticastInterface(iface);
 		}
 		this->multicastIface = iface;
 	}

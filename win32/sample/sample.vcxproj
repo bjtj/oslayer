@@ -110,7 +110,9 @@ xcopy /y $(SolutionDir)\..\examples\res $(ProjectDir)\res</Command>
     <ClCompile Include="..\..\examples\MemoryManagementTest.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\examples\multicastTest.cpp" />
+    <ClCompile Include="..\..\examples\multicastTest.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\examples\networkInfo.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
