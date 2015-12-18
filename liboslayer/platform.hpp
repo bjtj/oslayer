@@ -20,6 +20,7 @@
 #	include <sys/types.h>
 #	include <ctime>
 #	include <dirent.h>
+#	include <fcntl.h>
 
 #	define TIME long int
 
@@ -41,6 +42,7 @@
 #	include <ctime>
 #	include <dirent.h>
 #	include <errno.h>
+#	include <fcntl.h>
 
 #	define TIME long int
 

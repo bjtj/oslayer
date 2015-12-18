@@ -49,8 +49,14 @@ namespace OS {
 			setNonblockingSocket(true);
 
 			int ret = ::connect(sock, getAddrInfo()->ai_addr, getAddrInfo()->ai_addrlen);
-			if (ret != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
-				SocketUtil::throwSocketException("connect() error");
+			if (ret != 0) {
+#if defined(USE_WINSOCK2)
+				if (WSAGetLastError() != WSAEWOULDBLOCK) {
+#elif defined(USE_BSD_SOCKET)
+				if (errno != EINPROGRESS) {
+#endif
+					SocketUtil::throwSocketException("connect() error");
+				}
 			}
 
 			Selector selector;
@@ -60,10 +66,8 @@ namespace OS {
 			}
 
 			int err;
-			int len = sizeof(err);
-			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&err, &len) != 0) {
-				throw IOException("connect() error", -1, 0);
-			}
+			socklen_t len = sizeof(err);
+			getOption(SOL_SOCKET, SO_ERROR, (char *)&err, &len);
 
 			if (err) {
 				throw IOException("connect() error", -1, 0);
@@ -72,10 +76,18 @@ namespace OS {
 			setNonblockingSocket(false);
 		}
 		void setNonblockingSocket(bool enable) {
+#if defined(USE_WINSOCK2)
 			u_long mode = enable ? 1 : 0;
 			if (ioctlsocket(sock, FIONBIO, &mode) != 0) {
 				SocketUtil::throwSocketException("ioctlsocket() error");
 			}
+#elif defined(USE_BSD_SOCKET)
+			int flags = fcntl(sock, F_GETFL);
+			flags = enable ? (flags | O_NONBLOCK) : (flags & ~O_NONBLOCK);
+			if (fcntl(sock, F_SETFL, flags) != 0) {
+				SocketUtil::throwSocketException("fcntl() error");
+			}
+#endif
 		}
 		virtual void disconnect() {
 			close();
@@ -112,6 +124,11 @@ namespace OS {
 			}
 			struct addrinfo * info = getAddrInfo();
 			return InetAddress(info->ai_addr);
+		}
+		void getOption(int level, int optname, char * optval, socklen_t * optlen) {
+			if (getsockopt(sock, level, optname, optval, optlen) != 0) {
+				SocketUtil::throwSocketException("getsockopt() error");
+			}
 		}
 		void setOption(int level, int optname, const char * optval, int optlen) {
 			if (setsockopt(sock, level, optname, optval, optlen) != 0) {
