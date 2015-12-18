@@ -162,6 +162,9 @@ public: \
 		virtual std::string toString() {
 			return message;
 		}
+		virtual const char * what() const throw () {
+			return message.c_str();
+		}
 	};
     
     DECL_NAMED_ONLY_EXCEPTION(NullException);
