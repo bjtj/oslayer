@@ -125,7 +125,7 @@ namespace OS {
 			int optlen = sizeof(optval);
 			int ret = inet_pton(getAddrInfo()->ai_family, iface.c_str(), optval);
 			if (ret == 0) {
-				throw IOException("inet_pton() error / Invalid Address Format", ret, 0);
+				throw IOException("inet_pton() error / Invalid Address Format (iface: " + iface + ")", ret, 0);
 			} else if (ret < 0) {
 				SocketUtil::throwSocketException("inet_pton() error");
 			}
