@@ -18,25 +18,64 @@ namespace OS {
 			setAddrInfo(inetAddr.resolve(SOCK_STREAM));
 		}
 		SocketImpl(const InetAddress & remoteAddr) : sock(INVALID_SOCKET) {
-			connect(remoteAddr);
+			setRemoteAddress(remoteAddr);
 		}
 		virtual ~SocketImpl() {
 		}
 		SOCK_HANDLE getSocket() {
 			return sock;
 		}
-		virtual void connect(const InetAddress & remoteAddr) {
-			AddrInfoAutoRelease info(remoteAddr.resolve(SOCK_STREAM));
-
-			sock = ::socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+		virtual void setRemoteAddress(const InetAddress & remoteAddr) {
+			close();
+			setAddrInfo(remoteAddr.resolve(SOCK_STREAM));
+			sock = ::socket(getAddrInfo()->ai_family, getAddrInfo()->ai_socktype, getAddrInfo()->ai_protocol);
 			SocketUtil::checkValidSocket(sock);
 
-			if (::connect(sock, info->ai_addr, info->ai_addrlen) != 0) {
+		}
+		virtual void connect() {
+			if (!resolved()) {
+				throw IOException("not resolved", -1, 0);
+			}
+
+			if (::connect(sock, getAddrInfo()->ai_addr, getAddrInfo()->ai_addrlen) != 0) {
+				SocketUtil::throwSocketException("connect() error");
+			}
+		}
+		virtual void connect(unsigned long timeout) {
+			if (!resolved()) {
+				throw IOException("not resolved", -1, 0);
+			}
+
+			setNonblockingSocket(true);
+
+			int ret = ::connect(sock, getAddrInfo()->ai_addr, getAddrInfo()->ai_addrlen);
+			if (ret != 0 && WSAGetLastError() != WSAEWOULDBLOCK) {
 				SocketUtil::throwSocketException("connect() error");
 			}
 
-			info.forget();
-			setAddrInfo(&info);
+			Selector selector;
+			selector.set(sock);
+			if (selector.select(timeout) <= 0) {
+				throw IOException("connection timeout", -1, 0);
+			}
+
+			int err;
+			int len = sizeof(err);
+			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&err, &len) != 0) {
+				throw IOException("connect() error", -1, 0);
+			}
+
+			if (err) {
+				throw IOException("connect() error", -1, 0);
+			}
+			
+			setNonblockingSocket(false);
+		}
+		void setNonblockingSocket(bool enable) {
+			u_long mode = enable ? 1 : 0;
+			if (ioctlsocket(sock, FIONBIO, &mode) != 0) {
+				SocketUtil::throwSocketException("ioctlsocket() error");
+			}
 		}
 		virtual void disconnect() {
 			close();
@@ -44,6 +83,7 @@ namespace OS {
 		virtual void close() {
 			SocketUtil::closeSocket(sock);
 			sock = INVALID_SOCKET;
+			setAddrInfo(NULL);
 		}
 		virtual int recv(char * buffer, size_t size) {
 			int ret = (int)::recv(sock, buffer, size, 0);
@@ -105,8 +145,14 @@ namespace OS {
 	int Socket::getFd() {
 		return (int)getSocket();
 	}
-	void Socket::connect(const InetAddress & remoteAddr) {
-		getImpl().connect(remoteAddr);
+	void Socket::setRemoteAddress(const InetAddress & remoteAddr) {
+		getImpl().setRemoteAddress(remoteAddr);
+	}
+	void Socket::connect() {
+		getImpl().connect();
+	}
+	void Socket::connect(unsigned long timeout) {
+		getImpl().connect(timeout);
 	}
 	void Socket::disconnect() {
 		getImpl().disconnect();
