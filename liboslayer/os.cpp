@@ -821,7 +821,8 @@ namespace OS {
         
         int err = errno;
         char text[1024] = {0,};
-        throw IOException(message + " / " + string(strerror_r(err, text, sizeof(text))), err, 0);
+        (void)strerror_r(err, text, sizeof(text));
+        throw IOException(message + " / " + string(text), err, 0);
         
 #elif defined(USE_WINSOCK2)
 		int err = WSAGetLastError();
