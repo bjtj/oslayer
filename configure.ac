@@ -32,7 +32,14 @@ AC_TYPE_SIZE_T
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_FUNC_MALLOC
-AC_CHECK_FUNCS([gettimeofday memset mkdir select socket])
+AC_CHECK_FUNCS([clock_gettime memset mkdir select socket])
+
+if test $ac_cv_func_clock_gettime = no; then
+    AC_CHECK_LIB(rt, clock_gettime,
+		[LIBS="-lrt $LIBS"
+			AC_DEFINE(HAVE_CLOCK_GETTIME, 1,
+				[Define to 1 if you have the 'clock_gettime' function.])])
+fi
 
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile

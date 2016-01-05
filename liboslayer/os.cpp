@@ -18,7 +18,13 @@ namespace OS {
 	 */
 	void idle(unsigned long timeout) {
 #if defined(USE_UNIX_STD)
-		usleep((useconds_t)timeout * 1000);
+		
+		// usleep((useconds_t)timeout * 1000);
+		
+		struct timespec ts;
+		ts.tv_sec = timeout / 1000;
+		ts.tv_nsec = (timeout % 1000) * 1000;
+		nanosleep(&ts, NULL);
 #elif defined(USE_MS_WIN)
 		Sleep(timeout);
 #else
@@ -32,11 +38,15 @@ namespace OS {
 	unsigned long tick_milli() {
 #if defined(USE_UNIX_STD)
 
-		struct timeval tv;
-		if( gettimeofday(&tv, NULL) != 0 )
-			return 0;
-		
-		return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+		// struct timeval tv;
+		// if (gettimeofday(&tv, NULL) != 0) {
+		// 	return 0;
+		// }
+		// return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+
+		struct timespec spec;
+		clock_gettime(CLOCK_MONOTONIC, &spec);
+		return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000000);
 		
 #elif defined(USE_MS_WIN)
 		return GetTickCount();
