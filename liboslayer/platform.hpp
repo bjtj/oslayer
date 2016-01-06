@@ -57,6 +57,9 @@
 
 #if _MSC_VER < 1900
 #	define snprintf _snprintf_s
+#endif
+
+#if _MSC_VER < 1400
 #	define strncpy strncpy_s
 #endif
 
