@@ -28,98 +28,131 @@ namespace UTIL {
         
     public:
         
-        AutoRef() : counter(NULL), _t(NULL) {
-        }
-        
-        AutoRef(T * _t) : counter(NULL), _t(_t) {
-            retain();
-        }
-        
-        AutoRef(const AutoRef & other) : counter(NULL), _t(NULL) {
-            copy(other);
-        }
-        
-        virtual ~AutoRef() {
-            release();
-        }
-        
-        AutoRef<T> & operator= (T * _t) {
-            release();
-            counter = NULL;
-            this->_t = _t;
-            retain();
-            return *this;
-        }
-        
-        AutoRef<T> & operator= (const AutoRef<T> & other) {
-            copy(other);
-            return *this;
-        }
-        
-        T & operator* () {
-            if (!_t) {
-                throw OS::NullException("null exception", -1, 0);
-            }
-            return *_t;
-        }
-        
-        T * operator-> () {
-            if (!_t) {
-                throw OS::NullException("null exception", -1, 0);
-            }
-            return _t;
-        }
-        
-        T * operator& () {
-            return _t;
-        }
-        
-        int count() {
-            return counter ? counter->count() : -1;
-        }
-        
-        bool empty() {
-            return _t == NULL;
-        }
-        
+        AutoRef();
+		AutoRef(T * _t);
+        AutoRef(const AutoRef & other);
+        virtual ~AutoRef();        
+        AutoRef<T> & operator= (T * _t);        
+        AutoRef<T> & operator= (const AutoRef<T> & other);
+        T & operator* ();
+        T * operator-> ();
+        T * operator& ();
+        int count();
+        bool empty();
+
     private:
-        
-        void retain() {
-            if (_t) {
-                if (!counter) {
-                    counter = new SharedCounter;
-                }
-                counter->countUp();
-            }
-        }
-        
-        void release() {
-            if (counter && counter->countDownAndCheckZero()) {
-                destroy();
-            }
-        }
-        
-        void destroy() {
-            if (counter) {
-                delete counter;
-                counter = NULL;
-            }
-            if (_t) {
-                delete _t;
-                _t = NULL;
-            }
-        }
-        
-        void copy(const AutoRef<T> & other) {
-            if (_t != other._t) {
-                release();
-                counter = other.counter;
-                _t = other._t;
-                retain();
-            }
-        }
+
+        void retain();
+        void release();
+        void destroy();
+        void copy(const AutoRef<T> & other);
         
     };
+
+
+	template <typename T>
+	AutoRef<T>::AutoRef() : counter(NULL), _t(NULL) {
+    }
+        
+	template <typename T>
+    AutoRef<T>::AutoRef(T * _t) : counter(NULL), _t(_t) {
+        retain();
+    }
+        
+	template <typename T>
+    AutoRef<T>::AutoRef(const AutoRef & other) : counter(NULL), _t(NULL) {
+        copy(other);
+    }
+        
+	template <typename T>
+    AutoRef<T>::~AutoRef() {
+        release();
+    }
+    
+	template <typename T>
+    AutoRef<T> & AutoRef<T>::operator= (T * _t) {
+        release();
+        counter = NULL;
+        this->_t = _t;
+        retain();
+        return *this;
+    }
+	
+	template <typename T>
+    AutoRef<T> & AutoRef<T>::operator= (const AutoRef<T> & other) {
+        copy(other);
+        return *this;
+    }
+	
+	template <typename T>
+    T & AutoRef<T>::operator* () {
+        if (!_t) {
+            throw OS::NullException("null exception (operator*)", -1, 0);
+        }
+        return *_t;
+    }
+
+	template <typename T>
+    T * AutoRef<T>::operator-> () {
+        if (!_t) {
+            throw OS::NullException("null exception (operator->)", -1, 0);
+        }
+        return _t;
+    }
+    
+	template <typename T>
+    T * AutoRef<T>::operator& () {
+        return _t;
+    }
+        
+	template <typename T>
+    int AutoRef<T>::count() {
+        return counter ? counter->count() : -1;
+    }
+        
+	template <typename T>
+    bool AutoRef<T>::empty() {
+        return _t == NULL;
+    }
+        
+	template <typename T>
+    void AutoRef<T>::retain() {
+        if (_t) {
+            if (!counter) {
+                counter = new SharedCounter;
+            }
+            counter->countUp();
+        }
+    }
+        
+	template <typename T>
+    void AutoRef<T>::release() {
+        if (counter && counter->countDownAndCheckZero()) {
+            destroy();
+        }
+    }
+        
+	template <typename T>
+    void AutoRef<T>::destroy() {
+        if (counter) {
+            delete counter;
+            counter = NULL;
+        }
+        if (_t) {
+            delete _t;
+            _t = NULL;
+        }
+    }
+        
+	template <typename T>
+    void AutoRef<T>::copy(const AutoRef<T> & other) {
+        if (_t != other._t) {
+            release();
+            counter = other.counter;
+            _t = other._t;
+            retain();
+        }
+    }
     
     template<>
     class AutoRef<void> {
