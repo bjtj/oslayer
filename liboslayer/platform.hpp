@@ -13,6 +13,7 @@
 #	define USE_APPLE_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
+#	define USE_SIGNAL
 
 #	include <unistd.h>
 #	include <sys/time.h>
@@ -21,6 +22,7 @@
 #	include <ctime>
 #	include <dirent.h>
 #	include <fcntl.h>
+#	include <signal.h>
 
 #	define TIME long int
 
@@ -30,6 +32,7 @@
 #	define USE_POSIX_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
+#	define USE_SIGNAL
 
 #	if !defined(__CYGWIN__)
 #		define USE_PRCTL
@@ -43,6 +46,7 @@
 #	include <dirent.h>
 #	include <errno.h>
 #	include <fcntl.h>
+#	include <signal.h>
 
 #	define TIME long int
 
@@ -74,7 +78,6 @@
 
 #	define __func__ __FUNCTION__
 
+#endif 
+
 #endif /* Platform Detection */
-
-
-#endif

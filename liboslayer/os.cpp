@@ -66,18 +66,28 @@ namespace OS {
         }
         virtual ~SystemImpl() {
         }
+		virtual void ignoreSigpipe() {
+		}
     };
     
 #if defined(USE_UNIX_STD)
+	
     class NixSystemImpl : public SystemImpl {
     public:
         NixSystemImpl() {
         }
         virtual ~NixSystemImpl() {
         }
+		virtual void ignoreSigpipe() {
+#if defined(USE_SIGNAL)
+			signal(SIGPIPE, SIG_IGN);
+#endif
+		}
     };
     static NixSystemImpl s_systemImpl;
+	
 #elif defined(USE_MS_WIN)
+	
     class MSSystemImpl : public SystemImpl {
     public:
         MSSystemImpl() {
@@ -91,8 +101,11 @@ namespace OS {
         }
     };
     static MSSystemImpl s_systemImpl;
+	
 #else
+	
     static SystemImpl s_systemImpl;
+	
 #endif
     
     System * System::systemImpl = &s_systemImpl;

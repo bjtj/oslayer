@@ -200,6 +200,7 @@ public: \
     public:
         virtual ~System();
         static System * getInstance();
+		virtual void ignoreSigpipe() = 0;
     };
 
 	/**

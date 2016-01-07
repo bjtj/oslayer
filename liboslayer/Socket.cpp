@@ -30,7 +30,6 @@ namespace OS {
 			setAddrInfo(remoteAddr.resolve(SOCK_STREAM));
 			sock = ::socket(getAddrInfo()->ai_family, getAddrInfo()->ai_socktype, getAddrInfo()->ai_protocol);
 			SocketUtil::checkValidSocket(sock);
-
 		}
 		virtual void connect() {
 			if (!resolved()) {
