@@ -15,7 +15,7 @@ int main(int argc, char * args[]) {
 	SOCK_HANDLE s = sock.getSocket();
 
 	unsigned long optval;
-	int optlen = (int)sizeof(optval);
+	socklen_t optlen = sizeof(optval);
 	getsockopt(s, IPPROTO_IP, IP_MULTICAST_IF, (char*)&optval, &optlen);
     //SocketUtil::setSocketOption(s, IPPROTO_IP, IP_MULTICAST_IF, (const char*)&optval, optlen);
 
@@ -32,9 +32,12 @@ int main(int argc, char * args[]) {
 		"\r\n");
 
 	for (size_t i = 0; i < addrs.size(); i++) {
-		printf("setMulticastInteface/host: %s\n", addrs[i].getHost().c_str());
-		sock.setMulticastInterface(addrs[i].getHost());
-		sock.send(packet);
+
+		if (addrs[i].inet4()) {
+			printf("setMulticastInteface/host: %s\n", addrs[i].getHost().c_str());
+			sock.setMulticastInterface(addrs[i].getHost());
+			sock.send(packet);
+		}
 	}
 
 	for (int i = 0; i < 15; i++) {
