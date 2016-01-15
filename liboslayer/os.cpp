@@ -17,18 +17,22 @@ namespace OS {
 	 * @brief milliseconds sleep
 	 */
 	void idle(unsigned long timeout) {
+        
 #if defined(USE_UNIX_STD)
-		
-		// usleep((useconds_t)timeout * 1000);
-		
+				
 		struct timespec ts;
 		ts.tv_sec = timeout / 1000;
 		ts.tv_nsec = (timeout % 1000) * 1000;
 		nanosleep(&ts, NULL);
+        
 #elif defined(USE_MS_WIN)
+        
 		Sleep(timeout);
+        
 #else
+        
 		// sleep
+        
 #endif
 	}
 
@@ -36,22 +40,35 @@ namespace OS {
 	 * @brief get tick count
 	 */
 	unsigned long tick_milli() {
-#if defined(USE_UNIX_STD)
-
-		// struct timeval tv;
-		// if (gettimeofday(&tv, NULL) != 0) {
-		// 	return 0;
-		// }
-		// return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+        
+#if defined(USE_APPLE_STD)
+        
+        // @ref http://stackoverflow.com/a/11681069
+        
+        struct timespec ts;
+        clock_serv_t cclock;
+        mach_timespec_t mts;
+        host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
+        clock_get_time(cclock, &mts);
+        mach_port_deallocate(mach_task_self(), cclock);
+        ts.tv_sec = mts.tv_sec;
+        ts.tv_nsec = mts.tv_nsec;
+        return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+        
+#elif defined(USE_POSIX_STD)
 
 		struct timespec spec;
 		clock_gettime(CLOCK_MONOTONIC, &spec);
 		return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000000);
 		
 #elif defined(USE_MS_WIN)
+        
 		return GetTickCount();
+        
 #else
+        
 		return 0;
+        
 #endif	
 	}
 

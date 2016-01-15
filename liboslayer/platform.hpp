@@ -10,6 +10,7 @@
 #if defined(__APPLE__) || defined(__MACH__) /* mac os x */
 
 #	define USE_UNIX_STD
+#   define USE_APPLE_STD
 #	define USE_APPLE_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
@@ -23,12 +24,15 @@
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <signal.h>
+#   include <mach/clock.h>
+#   include <mach/mach.h>
 
 #	define TIME long int
 
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
 #	define USE_UNIX_STD
+#   define USE_POSIX_STD
 #	define USE_POSIX_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
