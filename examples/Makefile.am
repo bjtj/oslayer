@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -47,3 +47,9 @@ multicastTest_CPPFLAGS=-I$(top_srcdir)
 multicastTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 multicastTest_LDFLAGS=$(PTHREAD_CFLAGS)
 multicastTest_LDADD=../liboslayer/liboslayer.la
+
+secureSocketTest_SOURCES=secureSocketTest.cpp
+secureSocketTest_CPPFLAGS=-I$(top_srcdir)
+secureSocketTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+secureSocketTest_LDFLAGS=$(PTHREAD_CFLAGS)
+secureSocketTest_LDADD=../liboslayer/liboslayer.la

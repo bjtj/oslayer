@@ -273,19 +273,23 @@ namespace OS {
 			}
 		}
 		virtual Socket * accept() {
-
+			SocketAddress sa;
+			SOCK_HANDLE client = accept(sa);
+			return new Socket(client, sa.getAddr(), *sa.getAddrLen());
+		}
+		virtual SOCK_HANDLE accept(SocketAddress & addr) {
 			if (!resolved()) {
 				throw IOException("unresolved socket", -1, 0);
 			}
 
-			SocketAddress sa(getAddrInfo()->ai_family);
+			addr.select(getAddrInfo()->ai_family);
 
-			SOCK_HANDLE client = ::accept(sock, sa.getAddr(), sa.getAddrLen());
+			SOCK_HANDLE client = ::accept(sock, addr.getAddr(), addr.getAddrLen());
 			if (client == INVALID_SOCKET) {
 				SocketUtil::throwSocketException("accept() error");
 			}
-
-			return new Socket(client, sa.getAddr(), *sa.getAddrLen());
+			
+			return client;
 		}
 		virtual void close() {
 			SocketUtil::closeSocket(sock);
@@ -304,7 +308,6 @@ namespace OS {
 	};
 
 #endif
-
 
 	ServerSocket::ServerSocket() : serverSocketImpl(NULL) {
 		System::getInstance();
@@ -336,6 +339,9 @@ namespace OS {
 	}
 	Socket * ServerSocket::accept() {
 		return getImpl().accept();
+	}
+	SOCK_HANDLE ServerSocket::accept(OS::SocketAddress & addr) {
+		return getImpl().accept(addr);
 	}
 	void ServerSocket::close() {
 		getImpl().close();

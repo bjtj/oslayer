@@ -58,6 +58,7 @@ namespace OS {
 		virtual void bind();
 		virtual void listen(int queueLimit);
 		virtual Socket * accept();
+		virtual SOCK_HANDLE accept(OS::SocketAddress & addr);
 		virtual void close();
 		virtual bool isClosed();
 

@@ -11,6 +11,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	PollablePool.hpp \
 	Properties.hpp \
 	RandomPortBinders.hpp \
+	SecureSocket.hpp \
 	Socket.hpp \
 	StringElement.hpp \
 	Text.hpp \
@@ -39,6 +40,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Properties.hpp \
 	RandomPortBinders.cpp \
 	RandomPortBinders.hpp \
+	SecureSocket.cpp \
+	SecureSocket.hpp \
 	Socket.cpp \
 	Socket.hpp \
 	StringElement.hpp \
