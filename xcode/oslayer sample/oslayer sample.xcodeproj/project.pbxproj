@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		E860A8781C24520D007ADE6D /* socketTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501361C109933009434B1 /* socketTest.cpp */; };
+		E87F364F1C4CFCA500970869 /* secureSocketTest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E87F364E1C4CFCA500970869 /* secureSocketTest.cpp */; };
 		E8FAB22C1BD7C6A300E89DC5 /* liboslayer-cocoa.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FAB2271BD7C5EA00E89DC5 /* liboslayer-cocoa.a */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +59,7 @@
 		E857BAF81BE2651000D2022F /* trycatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = trycatch.cpp; path = ../../../examples/trycatch.cpp; sourceTree = "<group>"; };
 		E857BB991BEE551000D2022F /* networkInfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = networkInfo.cpp; path = ../../../examples/networkInfo.cpp; sourceTree = "<group>"; };
 		E857BBAC1BEF022900D2022F /* stringElementTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = stringElementTest.cpp; path = ../../../examples/stringElementTest.cpp; sourceTree = "<group>"; };
+		E87F364E1C4CFCA500970869 /* secureSocketTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = secureSocketTest.cpp; path = ../../../examples/secureSocketTest.cpp; sourceTree = "<group>"; };
 		E89501351C109933009434B1 /* FileListTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileListTest.cpp; path = ../../../examples/FileListTest.cpp; sourceTree = "<group>"; };
 		E89501361C109933009434B1 /* socketTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = socketTest.cpp; path = ../../../examples/socketTest.cpp; sourceTree = "<group>"; };
 		E89501371C109933009434B1 /* TrimTest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TrimTest.cpp; path = ../../../examples/TrimTest.cpp; sourceTree = "<group>"; };
@@ -106,6 +107,7 @@
 		E8FAB1F61BD7C2C200E89DC5 /* oslayer sample */ = {
 			isa = PBXGroup;
 			children = (
+				E87F364E1C4CFCA500970869 /* secureSocketTest.cpp */,
 				E84737DE1C1D38DA008350CD /* multicastTest.cpp */,
 				E89501431C146396009434B1 /* autoReleaseTest.cpp */,
 				E89501441C146396009434B1 /* datagramsocketTest.cpp */,
@@ -221,7 +223,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E860A8781C24520D007ADE6D /* socketTest.cpp in Sources */,
+				E87F364F1C4CFCA500970869 /* secureSocketTest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,7 +320,16 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = ../../;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-lstdc++";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/ssl/openssl_x86_64/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-L/usr/local/ssl/openssl_x86_64/lib",
+					"-lssl",
+					"-lcrypto",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -328,7 +339,16 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = ../../;
 				OTHER_CFLAGS = "";
-				OTHER_LDFLAGS = "-lstdc++";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/ssl/openssl_x86_64/include",
+				);
+				OTHER_LDFLAGS = (
+					"-lstdc++",
+					"-L/usr/local/ssl/openssl_x86_64/lib",
+					"-lssl",
+					"-lcrypto",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

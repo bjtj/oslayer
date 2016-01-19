@@ -18,10 +18,11 @@ namespace OS {
 
 	
 
-	SecureSocket::SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) :
-		Socket(sock, addr, addrlen) {
+	SecureSocket::SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen) {
 
 		SecureContext::getInstance();
+        
+        setSelectable(false);
 
 		ssl = SSL_new(ctx);
 		SSL_set_fd(ssl, sock);
@@ -34,7 +35,7 @@ namespace OS {
 		bool done = false;
 		int len = 0;
 		while (!done) {
-			len = SSL_read(ssl, buffer, size);
+			len = SSL_read(ssl, buffer, (int)size);
 			int ssl_err = SSL_get_error(ssl, len);
 			switch (ssl_err) {
 			case SSL_ERROR_NONE:
@@ -49,7 +50,8 @@ namespace OS {
 				printf("write??\n");
 				break;
 			default:
-				throw IOException("SSL_read() error", -1, 0);
+				ERR_print_errors_fp(stderr);
+                throw IOException("SSL_read() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
 		return len;
@@ -58,7 +60,7 @@ namespace OS {
 		bool done = false;
 		int len = 0;
 		while (!done) {
-			len = SSL_write(ssl, data, size);
+			len = SSL_write(ssl, data, (int)size);
 			int ssl_err = SSL_get_error(ssl, len);
 			switch (ssl_err) {
 			case SSL_ERROR_NONE:
@@ -70,7 +72,8 @@ namespace OS {
 				printf("write again...\n");
 				break;
 			default:
-				throw IOException("SSL_write() error", -1, 0);
+                ERR_print_errors_fp(stderr);
+                    throw IOException("SSL_write() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
 		return len;
@@ -100,6 +103,8 @@ namespace OS {
 	void SecureServerSocket::initOpenSSL() {
 
 		SecureContext::getInstance();
+        
+        setSelectable(false);
 		
 		OpenSSL_add_all_algorithms();
 		SSL_load_error_strings();

@@ -430,11 +430,16 @@ public: \
      * @brief Selectable interface
      */
     class Selectable {
+    private:
+        bool selectable;
     public:
-        Selectable() {}
+        Selectable() : selectable(true) {}
         virtual ~Selectable() {}
         
         virtual int getFd() = 0;
+        
+        bool isSelectable();
+        void setSelectable(bool selectable);
         
 		virtual void registerSelector(Selector & selector);
 		virtual void unregisterSelector(Selector & selector);

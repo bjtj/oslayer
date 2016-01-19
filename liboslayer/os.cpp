@@ -741,6 +741,13 @@ namespace OS {
     }
 
 	/* Selectable */
+    
+    bool Selectable::isSelectable() {
+        return selectable;
+    }
+    void Selectable::setSelectable(bool selectable) {
+        this->selectable = selectable;
+    }
 
 	void Selectable::registerSelector(Selector & selector) {
 		selector.set(getFd());

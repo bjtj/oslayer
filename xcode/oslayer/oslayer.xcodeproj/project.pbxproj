@@ -19,6 +19,8 @@
 		E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
 		E857BB8C1BEDE13300D2022F /* PollablePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB8A1BEDE13300D2022F /* PollablePool.cpp */; };
 		E857BB8D1BEDE13300D2022F /* PollablePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB8A1BEDE13300D2022F /* PollablePool.cpp */; };
+		E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */; };
+		E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */; };
 		E882FE821BD5312600E1C8C7 /* oslayer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E882FE811BD5312600E1C8C7 /* oslayer.h */; };
 		E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FE831BD5312600E1C8C7 /* oslayer.mm */; };
 		E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8A1BD5315300E1C8C7 /* os.cpp */; };
@@ -82,6 +84,8 @@
 		E857BB6A1BECD09800D2022F /* Logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Logger.hpp; path = ../../liboslayer/Logger.hpp; sourceTree = "<group>"; };
 		E857BB8A1BEDE13300D2022F /* PollablePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PollablePool.cpp; path = ../../liboslayer/PollablePool.cpp; sourceTree = "<group>"; };
 		E857BB8B1BEDE13300D2022F /* PollablePool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = PollablePool.hpp; path = ../../liboslayer/PollablePool.hpp; sourceTree = "<group>"; };
+		E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SecureSocket.cpp; path = ../../liboslayer/SecureSocket.cpp; sourceTree = "<group>"; };
+		E87F364C1C4CF2AF00970869 /* SecureSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = SecureSocket.hpp; path = ../../liboslayer/SecureSocket.hpp; sourceTree = "<group>"; };
 		E882FE7E1BD5312600E1C8C7 /* liboslayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liboslayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E882FE811BD5312600E1C8C7 /* oslayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = oslayer.h; sourceTree = "<group>"; };
 		E882FE831BD5312600E1C8C7 /* oslayer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = oslayer.mm; sourceTree = "<group>"; };
@@ -177,6 +181,8 @@
 				E857BB8B1BEDE13300D2022F /* PollablePool.hpp */,
 				E8447C941BF4AC11000E2903 /* RandomPortBinders.cpp */,
 				E8447C951BF4AC11000E2903 /* RandomPortBinders.hpp */,
+				E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */,
+				E87F364C1C4CF2AF00970869 /* SecureSocket.hpp */,
 				E89501401C146379009434B1 /* Socket.cpp */,
 				E89501411C146379009434B1 /* Socket.hpp */,
 				E857BB371BE900CD00D2022F /* StringElement.hpp */,
@@ -277,6 +283,7 @@
 				E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
 				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
+				E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */,
 				E8B161421BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */,
 				6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */,
 			);
@@ -286,6 +293,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */,
 				E895014C1C146400009434B1 /* Socket.cpp in Sources */,
 				6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */,
 				E895013D1C1101C1009434B1 /* Properties.cpp in Sources */,
@@ -389,6 +397,8 @@
 		E882FE881BD5312600E1C8C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -398,6 +408,8 @@
 		E882FE891BD5312600E1C8C7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -408,7 +420,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/ssl/openssl_x86_64/include",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-L/usr/local/ssl/openssl_x86_64",
+					"-lssl",
+					"-lcrypto",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -419,7 +441,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-I/usr/local/ssl/openssl_x86_64/include",
+				);
+				OTHER_LDFLAGS = (
+					"-ObjC",
+					"-L/usr/local/ssl/openssl_x86_64",
+					"-lssl",
+					"-lcrypto",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
