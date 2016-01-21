@@ -36,7 +36,7 @@ typedef sem_t SEM_HANDLE;
 
 #elif defined(USE_WIN_SEMAPHORE)
 
-#	define SEM_HANDLE HANDLE // TODO: windows how to?
+#	define SEM_HANDLE HANDLE
 
 #endif
 
@@ -320,6 +320,10 @@ public: \
 		struct addrinfo * resolveNumeric(int socktype) const;
 		struct addrinfo * resolvePassive(int family, int socktype) const;
 
+		bool operator==(const InetAddress & other);
+
+		bool valid();
+
 	private:
 		static addrinfo * getAddressInfo(const char * node, const char * service, struct addrinfo * hints);
 	public:
@@ -329,6 +333,9 @@ public: \
 		static struct addrinfo * getAddrInfo(const char * host, int port, struct addrinfo hints);
     };
 
+	/**
+	 * @brief inet 4 address
+	 */
 	class Inet4Address : public InetAddress {
 	private:
 	public:
@@ -339,6 +346,9 @@ public: \
 		virtual ~Inet4Address() {}
 	};
 
+	/**
+	 * @brief inet 6 address
+	 */
 	class Inet6Address : public InetAddress {
 	private:
 	public:

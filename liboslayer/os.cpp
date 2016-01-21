@@ -519,6 +519,18 @@ namespace OS {
 		}
 		return res;
 	}
+	
+	bool InetAddress::operator==(const InetAddress & other) {
+		return (!host.compare(other.host) && port == other.port);
+	}
+
+	bool InetAddress::valid() {
+		// TODO:
+		if (port < 0) {
+			return false;
+		}
+		return true;
+	}
 
 	/* Socket Address */
 
