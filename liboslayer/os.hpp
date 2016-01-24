@@ -616,7 +616,7 @@ public: \
 		virtual ~Date();
 		static Date now();
 		static std::string format(const std::string & fmt, TIME seconds);
-
+        static std::string format(const std::string & fmt, const Date & date);
 		void setYear(int year);
 		void setMonth(int month);
 		void setDay(int day);
@@ -624,13 +624,13 @@ public: \
 		void setMinute(int minute);
 		void setSecond(int second);
 		void setMillisecond(int millisecond);
-		int getYear();
-		int getMonth();
-		int getDay();
-		int getHour();
-		int getMinute();
-		int getSecond();
-		int getMillisecond();
+		int getYear() const;
+		int getMonth() const;
+		int getDay() const;
+		int getHour() const;
+		int getMinute() const;
+		int getSecond() const;
+		int getMillisecond() const;
 	};
 
 	/**

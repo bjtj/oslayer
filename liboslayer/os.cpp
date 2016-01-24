@@ -45,15 +45,12 @@ namespace OS {
         
         // @ref http://stackoverflow.com/a/11681069
         
-        struct timespec ts;
         clock_serv_t cclock;
         mach_timespec_t mts;
         host_get_clock_service(mach_host_self(), SYSTEM_CLOCK, &cclock);
         clock_get_time(cclock, &mts);
         mach_port_deallocate(mach_task_self(), cclock);
-        ts.tv_sec = mts.tv_sec;
-        ts.tv_nsec = mts.tv_nsec;
-        return (ts.tv_sec * 1000) + (ts.tv_nsec / 1000000);
+        return (mts.tv_sec * 1000) + (mts.tv_nsec / 1000000);
         
 #elif defined(USE_POSIX_STD)
 
@@ -1091,11 +1088,6 @@ namespace OS {
 		snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
 		return string(buffer);
 	}
-	TIME s_get_now() {
-		SYSTEMTIME stime;
-		GetLocalTime(&stime);
-		return stime;
-	}
 #else
 	// sleep
 #endif
@@ -1108,8 +1100,46 @@ namespace OS {
 	}
 	Date Date::now() {
 		Date date;
-		TIME now = s_get_now();
-#if defined(USE_MS_WIN)
+
+#if defined(USE_APPLE_STD)
+        
+        // @ref http://stackoverflow.com/a/11681069
+        
+        clock_serv_t cclock;
+        mach_timespec_t mts;
+        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+        clock_get_time(cclock, &mts);
+        mach_port_deallocate(mach_task_self(), cclock);
+        time_t t = (time_t)mts.tv_sec;
+        struct tm info;
+        localtime_r(&t, &info);
+        date.setYear(1900 + info.tm_year);
+        date.setMonth(1 + info.tm_mon);
+        date.setDay(info.tm_mday);
+        date.setHour(info.tm_hour);
+        date.setMinute(info.tm_min);
+        date.setSecond(info.tm_sec);
+        date.setMillisecond(mts.tv_nsec / 1000000);
+        
+#elif defined(USE_POSIX_STD)
+        
+        struct timespec spec;
+        clock_gettime(CLOCK_REALTIME, &spec);
+        time_t t = (time_t)spec.tv_sec;
+        struct tm info;
+        localtime_r(&t, &info);
+        date.setYear(1900 + info.tm_year);
+        date.setMonth(1 + info.tm_mon);
+        date.setDay(info.tm_mday);
+        date.setHour(info.tm_hour);
+        date.setMinute(info.tm_min);
+        date.setSecond(info.tm_sec);
+        date.setMillisecond(spec.tv_nsec / 1000000);
+        
+#elif defined(USE_MS_WIN)
+        
+        SYSTEMTIME now;
+        GetLocalTime(&now);
 		date.setYear(now.wYear);
 		date.setMonth(now.wMonth);
 		date.setDay(now.wDay);
@@ -1117,6 +1147,7 @@ namespace OS {
 		date.setMinute(now.wMinute);
 		date.setSecond(now.wSecond);
 		date.setMillisecond(now.wMilliseconds);
+        
 #endif
 		return date;
 	}
@@ -1128,7 +1159,12 @@ namespace OS {
 	string Date::format(const string & fmt, TIME seconds) {
 		return s_date_format(fmt, seconds);
 	}
-	
+    string Date::format(const std::string & fmt, const Date & date) {
+        // TODO: real formatter
+        char buffer[1024] = {0,};
+        snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d", date.getYear(), date.getMonth(), date.getDay(), date.getHour(), date.getMinute(), date.getSecond());
+        return buffer;
+    }
 	void Date::setYear(int year) {
 		this->year = year;
 	}
@@ -1150,25 +1186,25 @@ namespace OS {
 	void Date::setMillisecond(int millisecond) {
 		this->millisecond = millisecond;
 	}
-	int Date::getYear() {
+	int Date::getYear() const {
 		return year;
 	}
-	int Date::getMonth() {
+	int Date::getMonth() const {
 		return month;
 	}
-	int Date::getDay() {
+	int Date::getDay() const {
 		return day;
 	}
-	int Date::getHour() {
+	int Date::getHour() const {
 		return hour;
 	}
-	int Date::getMinute() {
+	int Date::getMinute() const {
 		return minute;
 	}
-	int Date::getSecond() {
+	int Date::getSecond() const {
 		return second;
 	}
-	int Date::getMillisecond() {
+	int Date::getMillisecond() const {
 		return millisecond;
 	}
 
@@ -1360,7 +1396,7 @@ namespace OS {
 			return 0;
 		}
 
-		return (long int)st.st_ctime;
+		return st.st_ctime;
 	}
 
 	static TIME s_get_modified_date(const string & path) {
@@ -1369,7 +1405,7 @@ namespace OS {
 			return 0;
 		}
 
-		return (long int)st.st_mtime;
+		return st.st_mtime;
 	}
     
     static filesize_t s_get_file_size(const string & path) {

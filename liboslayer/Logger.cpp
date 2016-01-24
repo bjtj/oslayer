@@ -1,10 +1,12 @@
 #include "Logger.hpp"
+#include "os.hpp"
 #include <iostream>
 #include <algorithm>
 
 namespace UTIL {
 
 	using namespace std;
+    using namespace OS;
 
 	/**
 	 * @brief
@@ -70,7 +72,7 @@ namespace UTIL {
 	}
 
 	string LogMessage::toString() const {
-		return level.toMinialString() + " " + message;
+        return "[" + Date::format("", Date::now()) + "] " + level.toMinialString() + " " + message;
 	}
 
 

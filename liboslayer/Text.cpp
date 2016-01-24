@@ -479,4 +479,16 @@ namespace UTIL {
 		
 		return (!strcasecmp(a.c_str(), b.c_str()) ? true : false);
 	}
+    
+    /**
+     * @brief format
+     */
+    string Text::format(const char * fmt, ...) {
+        char buffer[1024] = {0,};
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf(buffer, sizeof(buffer), fmt, args);
+        va_end(args);
+        return buffer;
+    }
 }

@@ -27,7 +27,7 @@
 #   include <mach/clock.h>
 #   include <mach/mach.h>
 
-#	define TIME long int
+#	define TIME time_t
 
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
@@ -52,7 +52,7 @@
 #	include <fcntl.h>
 #	include <signal.h>
 
-#	define TIME long int
+#	define TIME time_t
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 

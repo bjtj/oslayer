@@ -65,6 +65,8 @@ namespace UTIL {
 		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
 		static int compareIgnoreCase(std::string a, std::string b);
 		static bool equalsIgnoreCase(std::string a, std::string b);
+        
+        static std::string format(const char * fmt, ...);
 	};
 }
 
