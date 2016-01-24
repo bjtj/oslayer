@@ -74,7 +74,7 @@
 #	define strcasecmp(x,y) _stricmp((x),(y))
 #	define strncasecmp(x,y,z) _strnicmp((x),(y),(z))
 
-#	define TIME FILETIME
+#	define TIME SYSTEMTIME
 
 #	include <direct.h>
 #	include <sys/stat.h>

@@ -604,8 +604,33 @@ public: \
 	private:
 	public:
 		static std::string DEFAULT_FORMAT;
+		int year;
+		int month;
+		int day;
+		int hour;
+		int minute;
+		int second;
+		int millisecond;
 	public:
+		Date();
+		virtual ~Date();
+		static Date now();
 		static std::string format(const std::string & fmt, TIME seconds);
+
+		void setYear(int year);
+		void setMonth(int month);
+		void setDay(int day);
+		void setHour(int hour);
+		void setMinute(int minute);
+		void setSecond(int second);
+		void setMillisecond(int millisecond);
+		int getYear();
+		int getMonth();
+		int getDay();
+		int getHour();
+		int getMinute();
+		int getSecond();
+		int getMillisecond();
 	};
 
 	/**

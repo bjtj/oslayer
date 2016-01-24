@@ -1085,16 +1085,41 @@ namespace OS {
 #elif defined(USE_MS_WIN)
 	static string s_date_format(const string & fmt, TIME time) {
 		char buffer[1024] = {0,};
-		SYSTEMTIME stUTC;
-		FileTimeToSystemTime(&time, &stUTC);
-		snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", stUTC.wYear, stUTC.wMonth, stUTC.wDay, stUTC.wHour, stUTC.wMinute, stUTC.wSecond);
+		// SYSTEMTIME stUTC;
+		// FileTimeToSystemTime(&time, &stUTC);
+		// snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", stUTC.wYear, stUTC.wMonth, stUTC.wDay, stUTC.wHour, stUTC.wMinute, stUTC.wSecond);
+		snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
 		return string(buffer);
+	}
+	TIME s_get_now() {
+		SYSTEMTIME stime;
+		GetLocalTime(&stime);
+		return stime;
 	}
 #else
 	// sleep
 #endif
 
 	string Date::DEFAULT_FORMAT = "%Y-%m-%d %H:%M:%S";
+
+	Date::Date() : year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	}
+	Date::~Date() {
+	}
+	Date Date::now() {
+		Date date;
+		TIME now = s_get_now();
+#if defined(USE_MS_WIN)
+		date.setYear(now.wYear);
+		date.setMonth(now.wMonth);
+		date.setDay(now.wDay);
+		date.setHour(now.wHour);
+		date.setMinute(now.wMinute);
+		date.setSecond(now.wSecond);
+		date.setMillisecond(now.wMilliseconds);
+#endif
+		return date;
+	}
 
 	/**
 	 * @brief seconds to string
@@ -1104,6 +1129,48 @@ namespace OS {
 		return s_date_format(fmt, seconds);
 	}
 	
+	void Date::setYear(int year) {
+		this->year = year;
+	}
+	void Date::setMonth(int month) {
+		this->month = month;
+	}
+	void Date::setDay(int day) {
+		this->day = day;
+	}
+	void Date::setHour(int hour) {
+		this->hour = hour;
+	}
+	void Date::setMinute(int minute) {
+		this->minute = minute;
+	}
+	void Date::setSecond(int second) {
+		this->second = second;
+	}
+	void Date::setMillisecond(int millisecond) {
+		this->millisecond = millisecond;
+	}
+	int Date::getYear() {
+		return year;
+	}
+	int Date::getMonth() {
+		return month;
+	}
+	int Date::getDay() {
+		return day;
+	}
+	int Date::getHour() {
+		return hour;
+	}
+	int Date::getMinute() {
+		return minute;
+	}
+	int Date::getSecond() {
+		return second;
+	}
+	int Date::getMillisecond() {
+		return millisecond;
+	}
 
 	// file system
 #if defined(USE_UNIX_STD)
@@ -1561,6 +1628,11 @@ namespace OS {
 
 		return 0;
 	}
+	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
+		SYSTEMTIME stime;
+		FileTimeToSystemTime(&ftime, &stime);
+		return stime;
+	}
 	static TIME s_get_creation_date(const string & path) {
 
 		HANDLE hFile;
@@ -1573,14 +1645,14 @@ namespace OS {
 
 		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 		if (hFile == INVALID_HANDLE_VALUE) {
-			return ftCreate;
+			return s_filetime_to_systemtime(ftCreate);
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			return ftCreate;
+			return s_filetime_to_systemtime(ftCreate);
 		}
 
-		return ftCreate;
+		return s_filetime_to_systemtime(ftCreate);
 	}
 	static TIME s_get_modified_date(const string & path) {
 		HANDLE hFile;
@@ -1593,14 +1665,14 @@ namespace OS {
 
 		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 		if (hFile == INVALID_HANDLE_VALUE) {
-			return ftWrite;
+			return s_filetime_to_systemtime(ftWrite);
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			return ftWrite;
+			return s_filetime_to_systemtime(ftWrite);
 		}
 
-		return ftWrite;
+		return s_filetime_to_systemtime(ftWrite);
 	}
 
 	static filesize_t s_get_file_size(const string & path) {
@@ -1751,7 +1823,6 @@ namespace OS {
 		TIME t = s_get_creation_date(path);
 		return Date::format(fmt, t);
 	}
-	
 	string File::getModifiedDate(const string & path, string fmt) {
 		TIME t = s_get_modified_date(path);
 		return Date::format(fmt, t);
@@ -1822,8 +1893,5 @@ namespace OS {
 	vector<File> File::list() {
 		return File::list(path);
 	}
-
-	
 	
 } /* OS */
-
