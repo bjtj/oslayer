@@ -1,5 +1,7 @@
 #include "SecureSocket.hpp"
 
+#if defined(USE_OPENSSL)
+
 namespace OS {
 
 	SecureContext * SecureContext::instance = NULL;
@@ -139,3 +141,5 @@ namespace OS {
 		SSL_CTX_free(ctx);
 	}
 }
+
+#endif

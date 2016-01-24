@@ -3,6 +3,8 @@
 
 #include "Socket.hpp"
 
+#if defined(USE_OPENSSL)
+
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
@@ -43,5 +45,7 @@ namespace OS {
 		virtual void close();
 	};
 }
+
+#endif // OPENSSL capability
 
 #endif

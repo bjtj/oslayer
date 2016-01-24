@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <exception>
+#include <cstdarg>
 
 /**
  * @brief common feature

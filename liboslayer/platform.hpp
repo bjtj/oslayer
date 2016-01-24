@@ -1,6 +1,15 @@
 #ifndef __PLATFORM_HPP__
 #define __PLATFORM_HPP__
 
+#if HAVE_CONFIG_H
+#	include <config.h>
+#	if HAVE_OPENSSL
+#		define USE_OPENSSL
+#	endif
+#else
+#	define USE_OPENSSL
+#endif
+
 /*
 * Predefined OS macros
 * ====================

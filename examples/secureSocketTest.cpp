@@ -4,6 +4,10 @@
 using namespace std;
 using namespace OS;
 
+#if !defined(USE_OPENSSL)
+#	error "OPENSSL not supported"
+#endif
+
 class ServerSocketThread : public OS::Thread {
 private:
 	string certPath;
