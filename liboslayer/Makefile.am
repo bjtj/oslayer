@@ -7,6 +7,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	FileReaderWriter.hpp \
 	Iteration.hpp \
 	Logger.hpp \
+	Lisp.hpp \
 	Measurement.hpp \
 	PollablePool.hpp \
 	Properties.hpp \
@@ -30,6 +31,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	FileReaderWriter.hpp \
 	Iteration.cpp \
 	Iteration.hpp \
+	Lisp.cpp \
+	Lisp.hpp \
 	Logger.cpp \
 	Logger.hpp \
 	Measurement.cpp \

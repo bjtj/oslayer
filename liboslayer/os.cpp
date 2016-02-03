@@ -877,7 +877,7 @@ namespace OS {
         
         int err = errno;
         char text[1024] = {0,};
-        (void)strerror_r(err, text, sizeof(text));
+        if (strerror_r(err, text, sizeof(text))) {}
         throw IOException(message + " / " + string(text), err, 0);
         
 #elif defined(USE_WINSOCK2)
