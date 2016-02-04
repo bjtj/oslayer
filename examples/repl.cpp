@@ -14,6 +14,8 @@ int main(int argc, char *args[]) {
 			repl(env);
 		} catch (const char * s) {
 			cout << " ** ERROR : " << s << endl;
+		} catch (const string & s) {
+			cout << " ** ERROR : " << s << endl;
 		}
 	}
     

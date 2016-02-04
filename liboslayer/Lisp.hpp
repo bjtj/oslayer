@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "os.hpp"
 #include "AutoRef.hpp"
 
 namespace LISP {
@@ -16,14 +17,14 @@ namespace LISP {
 	class Env;
 	class Var;
 
-	typedef Var (*fn_proc)(std::vector<Var> & args, Env & env);
+	typedef Var (*fn_proc)(Var name, std::vector<Var> & args, Env & env);
 
 	class Procedure {
 	private:
 	public:
 		Procedure() {}
 		virtual ~Procedure() {}
-		virtual Var proc(std::vector<Var> & args, Env & env) = 0;
+		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
 	};
 
 	class Var {
@@ -36,6 +37,7 @@ namespace LISP {
 		const static int FLOAT = 5;
 		const static int STRING = 6;
 		const static int FUNC = 7;
+		const static int FILE = 8;
 	private:
 		int type;
 		std::string symbol;
@@ -47,6 +49,7 @@ namespace LISP {
 		std::vector<Var> params;
 		std::vector<Var> body;
 		UTIL::AutoRef<Procedure> procedure;
+		OS::File file;
 	public:
 		Var() : type(NIL), bval(false), inum(0), fnum(0) {}
 		Var(std::string token) : type(NIL), inum(0), fnum(0) {
@@ -61,6 +64,9 @@ namespace LISP {
 			} else if (token.find_first_not_of("0123456789") == std::string::npos) {
 				type = INTEGER;
 				inum = atoi(token.c_str());
+			} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
+				type = FILE;
+				file = OS::File(token.substr(3, token.length() - 4));
 			} else {
 				type = SYMBOL;
 				symbol = token;
@@ -72,9 +78,13 @@ namespace LISP {
 		Var(float fnum) : type(FLOAT), bval(false), inum(0), fnum(fnum) {}
 		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), inum(0), fnum(fnum), params(params), body(body) {}
 		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), inum(0), fnum(0), procedure(procedure) {}
+		Var(OS::File & file) : type(FILE), bval(false), inum(0), fnum(0), file(file) {}
 		virtual ~Var() {}
 		int getType() { return type; }
 		std::string getTypeString() {
+			return getTypeString(type);
+		}
+		std::string getTypeString(int type) {
 			switch (type) {
 			case NIL:
 				return "nil";
@@ -92,10 +102,18 @@ namespace LISP {
 				return "string";
 			case FUNC:
 				return "function";
+			case FILE:
+				return "file";
 			default:
 				break;
 			}
 			throw "unknown variable type";
+		}
+		void checkTypeThrow(int t) {
+			if (type != t) {
+				throw "type not match (type: " + getTypeString() +
+					", but required: " + getTypeString(t) + ")";
+			}
 		}
 		bool nil() {return type == NIL;}
 		bool isList() {return type == LIST;}
@@ -105,15 +123,17 @@ namespace LISP {
 		bool isFloat() {return type == FLOAT;}
 		bool isString() {return type == STRING;}
 		bool isFunction() {return type == FUNC;}
-		std::string getSymbol() {return symbol;}
-		std::string getString() {return str;}
-		std::vector<Var> & getList() {return lst;}
-		bool getBoolean() {return bval;}
-		int getInteger() {return inum;}
-		float getFloat() {return fnum;}
-		Var getParams() {return Var(params);}
-		Var getBody() {return Var(body);}
-		virtual Var proc(std::vector<Var> & args, Env & env);
+		bool isFile() {return type == FILE;}
+		std::string getSymbol() {checkTypeThrow(SYMBOL); return symbol;}
+		std::string getString() {checkTypeThrow(STRING); return str;}
+		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
+		bool getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
+		int getInteger() {checkTypeThrow(INTEGER); return inum;}
+		float getFloat() {checkTypeThrow(FLOAT); return fnum;}
+		OS::File & getFile() {checkTypeThrow(FILE); return file;}
+		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
+		Var getBody() {checkTypeThrow(FUNC); return Var(body);}
+		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
 		std::string toString() {
 			switch (type) {
 			case NIL:
@@ -154,6 +174,8 @@ namespace LISP {
 					Var b(body);
 					return "#(PARAMS:" + p.toString() + ", BODY:" + b.toString() + ")";
 				}
+			case FILE:
+				return "#p\"" + file.getPath() + "\"";
 			default:
 				break;
 			}
@@ -163,15 +185,28 @@ namespace LISP {
 
 	class Env {
 	private:
+		Env * parent;
 		bool _quit;
 		std::map<std::string, Var> _vars;
 	public:
-		Env() : _quit(false) {}
+		Env() : parent(NULL), _quit(false) {}
+		Env(Env * parent) : parent(parent), _quit(false) {}
 		virtual ~Env() {}
 		Var & operator[] (const std::string & name) {
+			if (parent && _vars.find(name) == _vars.end()) {
+				return (*parent)[name];
+			}
 			return _vars[name];
 		}
-		void quit(bool q) {_quit = q;}
+		Var & local(const std::string & name) {
+			return _vars[name];
+		}
+		void quit(bool q) {
+			_quit = q;
+			if (parent) {
+				parent->quit(q);
+			}
+		}
 		bool quit() {return _quit;}
 		std::string toString() {
 			for (std::map<std::string, Var>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
@@ -180,6 +215,8 @@ namespace LISP {
 		}
 	};
 
+	extern Var pathname(Var path);
+	extern std::string text(const std::string & txt);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern Var parse(const std::string & cmd);

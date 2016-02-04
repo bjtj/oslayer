@@ -1358,11 +1358,12 @@ namespace OS {
 		return s_get_filename_part(path);
 	}
 	static string s_get_ext(const string & path) {
-		size_t f = path.find_last_of(".");
-		if (f == string::npos) {
+		string name = s_get_entity_name_part(path);
+		size_t f = name.find_last_of(".");
+		if (f == string::npos || f == 0) {
 			return "";
 		}
-		return path.substr(f+1);
+		return name.substr(f+1);
 	}
 
 	// http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
@@ -1628,11 +1629,12 @@ namespace OS {
 		return s_get_filename_part(path);
 	}
 	static string s_get_ext(const string & path) {
-		int f = path.find_last_of(".");
-		if (f == string::npos) {
+		string name = s_get_entity_name_part(path);
+		size_t f = name.find_last_of(".");
+		if (f == string::npos || f == 0) {
 			return "";
 		}
-		return path.substr(f+1);
+		return name.substr(f+1);
 	}
 
 	// http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix

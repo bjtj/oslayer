@@ -1,20 +1,22 @@
 #include "Lisp.hpp"
+#include "os.hpp"
 
-#define DECL_NATIVE(NAME,CLS,CODE)					\
-	class CLS : public Procedure {					\
-	private:										\
-	string name;									\
-	public:											\
-	CLS(const string & name) : name(name) {}		\
-	virtual ~CLS() {}								\
-	virtual Var proc(vector<Var> & args, Env & env)	\
-		CODE;										\
-	};												\
+#define DECL_NATIVE(NAME,CLS,CODE)								\
+	class CLS : public Procedure {								\
+	private:													\
+	string name;												\
+	public:														\
+	CLS(const string & name) : name(name) {}					\
+	virtual ~CLS() {}											\
+	virtual Var proc(Var name, vector<Var> & args, Env & env)	\
+		CODE;													\
+	};															\
 	env[NAME] = Var(UTIL::AutoRef<Procedure>(new CLS(NAME)));
 
 namespace LISP {
 
 	using namespace std;
+	using namespace OS;
 
 	static Var proc(Var & func, vector<Var> args, Env & env);
 
@@ -27,7 +29,18 @@ namespace LISP {
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
-	
+
+	Var pathname(Var path) {
+		if (path.isFile()) {
+			return path;
+		}
+		File file(path.toString());
+		return file;
+	}
+
+	string text(const string & txt) {
+		return "\"" + txt + "\"";
+	}
 
 	string replaceAll(string src, string match, string rep) {
 		string ret = src;
@@ -156,17 +169,20 @@ namespace LISP {
 					return eval(lv[3], env);
 				}
 			} else if (symbol == "dolist") {
-				Env e = env;
+				Env e(&env);
 				vector<Var> decl = lv[1].getList();
 				string param = decl[0].getSymbol();
-				vector<Var> lst = decl[1].getList();
+				vector<Var> lst = eval(decl[1], env).getList();
 				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-					e[param] = eval(*iter, e);
+					e.local(param) = eval(*iter, e);
 					eval(lv[2], e);
 				}
+			} else if (symbol == "list") {
+				vector<Var> elts(lv.begin() + 1, lv.end());
+				return Var(elts);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
-				return eval(lv[0], env).proc(args, env);
+				return eval(lv[0], env).proc(lv[0], args, env);
 			}
 		}
 	
@@ -174,22 +190,22 @@ namespace LISP {
 		return nil;
 	}
 
-	Var Var::proc(vector<Var> & args, Env & env) {
+	Var Var::proc(Var name, vector<Var> & args, Env & env) {
 
 		if (!isFunction()) {
-			throw "not function";
+			throw "not function / " + name.toString();
 		}
 
 		if (!procedure.empty()) {
-			return procedure->proc(args, env);
+			return procedure->proc(name, args, env);
 		}
 
-		Env e = env;
+		Env e(&env);
 		vector<Var> params = getParams().getList();
 		vector<Var>::iterator iparams = params.begin();
 		vector<Var>::iterator iargs = args.begin();
 		for (; iparams != params.end() && iargs != args.end(); iparams++, iargs++) {
-			e[iparams->getSymbol()] = eval(*iargs, env);
+			e.local(iparams->getSymbol()) = eval(*iargs, env);
 		}
 		Var var = getBody();
 		return eval(var, e);
@@ -210,6 +226,26 @@ namespace LISP {
 		DECL_NATIVE("not", Not, {
 				Var var = eval(args[0], env);
 				return (var.nil() ? true : !var.getBoolean());
+			});
+
+		DECL_NATIVE("or", Or, {
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+					Var var = eval(*iter, env);
+					if (!var.nil() && (!var.isBoolean() || var.getBoolean() == true)) {
+						return true;
+					}
+				}
+				return false;
+			});
+
+		DECL_NATIVE("and", And, {
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+					Var var = eval(*iter, env);
+					if (var.nil() || (var.isBoolean() && var.getBoolean() == false)) {
+						return false;
+					}
+				}
+				return true;
 			});
 	}
 
@@ -306,10 +342,49 @@ namespace LISP {
 			});
 	}
 	void builtin_file(Env & env) {
+		DECL_NATIVE("pathname", Pathname, {
+				return pathname(eval(args[0], env));
+			});
+		DECL_NATIVE("dir", Dir, {
+				Var path = args.size() > 0 ? pathname(eval(args[0], env)) : "#p\".\"";
+				vector<File> files = File::list(path.getFile().getPath());
+				vector<Var> lst;
+				for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
+					lst.push_back(*iter);
+				}
+				return lst;
+			});
+		DECL_NATIVE("dirp", Dirp, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return file.isDirectory();
+			});
+		DECL_NATIVE("filep", Filep, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return file.isFile();
+			});
+		DECL_NATIVE("pathname-name", PathnameName, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getFileNamePart());
+			});
+		DECL_NATIVE("pathname-type", PathnameType, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getExtension());
+			});
+		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getPathPart());
+			});
+		DECL_NATIVE("file-length", FileLength, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return (int)file.getSize();
+			});
 	}
 	void builtin_socket(Env & env) {
 	}
 	void builtin_system(Env & env) {
+		DECL_NATIVE("system", System, {
+				return Var(system(eval(args[0], env).toString().c_str()));
+			});
 	}
 	void builtin_date(Env & env) {
 	}
