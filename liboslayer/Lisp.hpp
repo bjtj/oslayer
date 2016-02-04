@@ -28,6 +28,29 @@ namespace LISP {
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
 		std::string & getName() {return name;}
 	};
+    
+    class Number {
+    private:
+        long long num;
+    public:
+        Number() : num(0) {}
+        Number(long long num) : num(num) {}
+        virtual ~Number() {}
+        long long & operator* () {return num;}
+        long long getNumber() const {return num;}
+        Number & operator+=(const Number & other) {num += other.num; return *this;}
+        Number & operator-=(const Number & other) {num -= other.num; return *this;}
+        Number & operator*=(const Number & other) {num *= other.num; return *this;}
+        Number & operator/=(const Number & other) {num /= other.num; return *this;}
+        
+        Number operator+ (const Number & other) const {return Number(num + other.num);}
+        Number operator- (const Number & other) const {return Number(num - other.num);}
+        Number operator* (const Number & other) const {return Number(num * other.num);}
+        Number operator/ (const Number & other) const {return Number(num / other.num);}
+        
+        bool operator== (const Number & other) const {return num == other.num;}
+        bool operator!= (const Number & other) const {return num != other.num;}
+    };
 
 	class Var {
 	public:
@@ -47,7 +70,8 @@ namespace LISP {
 		std::string str;
 		std::vector<Var> lst;
 		bool bval;
-		int inum;
+		// int inum;
+        Number inum;
 		float fnum;
 		std::vector<Var> params;
 		std::vector<Var> body;
@@ -55,8 +79,8 @@ namespace LISP {
 		OS::File file;
 		std::vector<Var> conscell;
 	public:
-		Var() : type(NIL), bval(false), inum(0), fnum(0) {}
-		Var(std::string token) : type(NIL), inum(0), fnum(0) {
+		Var() : type(NIL), bval(false), fnum(0) {}
+		Var(std::string token) : type(NIL), fnum(0) {
 			if (token == "nil") {
 				type = NIL;
 			} else if (token == "t") {
@@ -67,7 +91,12 @@ namespace LISP {
 				str = token;
 			} else if (token.find_first_not_of("0123456789") == std::string::npos) {
 				type = INTEGER;
-				inum = atoi(token.c_str());
+                long long n = 0;
+                for (size_t i = 0; i < token.length(); i++) {
+                    n *= 10;
+                    n += token[i] - '0';
+                }
+                inum = n;
 			} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
 				type = FILE;
 				file = OS::File(token.substr(3, token.length() - 4));
@@ -76,14 +105,14 @@ namespace LISP {
 				symbol = token;
 			}
 		}
-		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false), inum(0), fnum(0) {}
-		Var(bool bval) : type(BOOLEAN), bval(bval), inum(0), fnum(0) {}
-		Var(int inum) : type(INTEGER), bval(false), inum(inum), fnum(0) {}
-		Var(float fnum) : type(FLOAT), bval(false), inum(0), fnum(fnum) {}
-		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), inum(0), fnum(fnum), params(params), body(body) {}
-		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), inum(0), fnum(0), procedure(procedure) {}
-		Var(OS::File & file) : type(FILE), bval(false), inum(0), fnum(0), file(file) {}
-		Var(Var cons, Var cell) : type(PAIR), bval(false), inum(0), fnum(0), file(file) {
+		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false), fnum(0) {}
+		Var(bool bval) : type(BOOLEAN), bval(bval), fnum(0) {}
+		Var(Number inum) : type(INTEGER), bval(false), inum(inum), fnum(0) {}
+		Var(float fnum) : type(FLOAT), bval(false), fnum(fnum) {}
+		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), fnum(0), params(params), body(body) {}
+		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), fnum(0), procedure(procedure) {}
+		Var(OS::File & file) : type(FILE), bval(false), fnum(0), file(file) {}
+		Var(Var cons, Var cell) : type(PAIR), bval(false), fnum(0) {
 			conscell.clear();
 			conscell.push_back(cons);
 			conscell.push_back(cell);
@@ -140,7 +169,7 @@ namespace LISP {
 		std::string getString() {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
 		bool getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
-		int getInteger() {checkTypeThrow(INTEGER); return inum;}
+		Number getInteger() {checkTypeThrow(INTEGER); return inum;}
 		float getFloat() {checkTypeThrow(FLOAT); return fnum;}
 		OS::File & getFile() {checkTypeThrow(FILE); return file;}
 		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
@@ -171,7 +200,7 @@ namespace LISP {
 			case INTEGER:
 				{
 					char buffer[1024] = {0,};
-					snprintf(buffer, sizeof(buffer), "%d", inum);
+					snprintf(buffer, sizeof(buffer), "%lld", *inum);
 					return buffer;
 				}
 			case FLOAT:

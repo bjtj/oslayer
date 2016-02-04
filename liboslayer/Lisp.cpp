@@ -17,8 +17,6 @@ namespace LISP {
 	using namespace std;
 	using namespace OS;
 
-	static Var proc(Var & func, vector<Var> args, Env & env);
-
 	// builtin
 	static void builtin_logic(Env & env);
 	static void builtin_string(Env & env);
@@ -306,7 +304,7 @@ namespace LISP {
 	}
 	void builtin_artithmetic(Env & env) {
 		DECL_NATIVE("=", ArithmeticEqual, {
-				int val = eval(args[0], env).getInteger();
+				Number val = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).getInteger()) {
 						return false;
@@ -315,28 +313,28 @@ namespace LISP {
 				return true;
 			});
 		DECL_NATIVE("+", Plus, {
-				int sum = eval(args[0], env).getInteger();
+				Number sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum += eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("-", Minus, {
-				int sum = eval(args[0], env).getInteger();
+				Number sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum -= eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("*", Multitude, {
-				int sum = eval(args[0], env).getInteger();
+				Number sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum *= eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("/", Divide, {
-				int sum = eval(args[0], env).getInteger();
+				Number sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum /= eval(*iter, env).getInteger();
 				}
@@ -393,14 +391,14 @@ namespace LISP {
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return (int)file.getSize();
+				return Number(file.getSize());
 			});
 	}
 	void builtin_socket(Env & env) {
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE("system", System, {
-				return Var(system(eval(args[0], env).toString().c_str()));
+				return Number(system(eval(args[0], env).toString().c_str()));
 			});
 	}
 	void builtin_date(Env & env) {
