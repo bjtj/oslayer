@@ -4,9 +4,8 @@
 #define DECL_NATIVE(NAME,CLS,CODE)								\
 	class CLS : public Procedure {								\
 	private:													\
-	string name;												\
 	public:														\
-	CLS(const string & name) : name(name) {}					\
+	CLS(const string & name) : Procedure(name) {}				\
 	virtual ~CLS() {}											\
 	virtual Var proc(Var name, vector<Var> & args, Env & env)	\
 		CODE;													\
@@ -229,23 +228,25 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("or", Or, {
+				Var var;
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					Var var = eval(*iter, env);
+					var = eval(*iter, env);
 					if (!var.nil() && (!var.isBoolean() || var.getBoolean() == true)) {
-						return true;
+						break;
 					}
 				}
-				return false;
+				return var;
 			});
 
 		DECL_NATIVE("and", And, {
+				Var var("t");
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					Var var = eval(*iter, env);
+					var = eval(*iter, env);
 					if (var.nil() || (var.isBoolean() && var.getBoolean() == false)) {
-						return false;
+						break;
 					}
 				}
-				return true;
+				return var;
 			});
 	}
 
@@ -364,7 +365,7 @@ namespace LISP {
 			});
 		DECL_NATIVE("pathname-name", PathnameName, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getFileNamePart());
+				return text(file.getName());
 			});
 		DECL_NATIVE("pathname-type", PathnameType, {
 				File file = pathname(eval(args[0], env)).getFile();

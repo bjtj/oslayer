@@ -21,10 +21,12 @@ namespace LISP {
 
 	class Procedure {
 	private:
+		std::string name;
 	public:
-		Procedure() {}
+		Procedure(const std::string & name) : name(name) {}
 		virtual ~Procedure() {}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
+		std::string & getName() {return name;}
 	};
 
 	class Var {
@@ -87,23 +89,23 @@ namespace LISP {
 		std::string getTypeString(int type) {
 			switch (type) {
 			case NIL:
-				return "nil";
+				return "NIL";
 			case SYMBOL:
-				return "symbol";
+				return "SYMBOL";
 			case LIST:
-				return "list";
+				return "LIST";
 			case BOOLEAN:
-				return "boolean";
+				return "BOOLEAN";
 			case INTEGER:
-				return "integer";
+				return "INTEGER";
 			case FLOAT:
-				return "float";
+				return "FLOAT";
 			case STRING:
-				return "string";
+				return "STRING";
 			case FUNC:
-				return "function";
+				return "FUNCTION";
 			case FILE:
-				return "file";
+				return "FILE";
 			default:
 				break;
 			}
@@ -137,7 +139,7 @@ namespace LISP {
 		std::string toString() {
 			switch (type) {
 			case NIL:
-				return "'nil";
+				return "NIL";
 			case SYMBOL:
 				return symbol;
 			case LIST:
@@ -153,7 +155,7 @@ namespace LISP {
 					return ret;
 				}
 			case BOOLEAN:
-				return bval ? "true" : "false";
+				return bval ? "T" : "NIL";
 			case INTEGER:
 				{
 					char buffer[1024] = {0,};
@@ -170,6 +172,9 @@ namespace LISP {
 				return str.substr(1, str.length() - 2);
 			case FUNC:
 				{
+					if (!procedure.empty()) {
+						return "#<COMPILED FUNCTION>";
+					}
 					Var p(params);
 					Var b(body);
 					return "#(PARAMS:" + p.toString() + ", BODY:" + b.toString() + ")";
