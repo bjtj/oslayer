@@ -41,6 +41,15 @@ namespace LISP {
 		return "\"" + txt + "\"";
 	}
 
+	vector<Var> listy(Var var) {
+		if (var.isList()) {
+			return var.getList();
+		}
+		vector<Var> ret;
+		ret.push_back(var);
+		return ret;
+	}
+
 	string replaceAll(string src, string match, string rep) {
 		string ret = src;
 		size_t f = 0;
@@ -150,10 +159,8 @@ namespace LISP {
 			Var nil;
 			return nil;
 		} else {
-			
 			vector<Var> & lv = var.getList();
 			string symbol = lv[0].getSymbol();
-			
 			if (symbol == "quit") {
 				env.quit(true);
 			} else if (symbol == "defun") {
@@ -177,8 +184,17 @@ namespace LISP {
 					eval(lv[2], e);
 				}
 			} else if (symbol == "list") {
-				vector<Var> elts(lv.begin() + 1, lv.end());
+				vector<Var> elts;
+				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
+					Var elt = eval(*iter, env);
+					elts.push_back(elt);
+				}
 				return Var(elts);
+			} else if (symbol == "cons") {
+				Var cons = eval(lv[1], env);
+				Var cell = eval(lv[2], env);
+				Var var(cons, cell);
+				return var;
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
 				return eval(lv[0], env).proc(lv[0], args, env);

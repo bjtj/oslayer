@@ -40,6 +40,7 @@ namespace LISP {
 		const static int STRING = 6;
 		const static int FUNC = 7;
 		const static int FILE = 8;
+		const static int PAIR = 9;
 	private:
 		int type;
 		std::string symbol;
@@ -52,14 +53,15 @@ namespace LISP {
 		std::vector<Var> body;
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
+		std::vector<Var> conscell;
 	public:
 		Var() : type(NIL), bval(false), inum(0), fnum(0) {}
 		Var(std::string token) : type(NIL), inum(0), fnum(0) {
 			if (token == "nil") {
 				type = NIL;
-			} else if (token == "t" || token == "f") {
+			} else if (token == "t") {
 				type = BOOLEAN;
-				bval = (token == "t");
+				bval = true;
 			} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
 				type = STRING;
 				str = token;
@@ -81,6 +83,11 @@ namespace LISP {
 		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), inum(0), fnum(fnum), params(params), body(body) {}
 		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), inum(0), fnum(0), procedure(procedure) {}
 		Var(OS::File & file) : type(FILE), bval(false), inum(0), fnum(0), file(file) {}
+		Var(Var cons, Var cell) : type(PAIR), bval(false), inum(0), fnum(0), file(file) {
+			conscell.clear();
+			conscell.push_back(cons);
+			conscell.push_back(cell);
+		}
 		virtual ~Var() {}
 		int getType() { return type; }
 		std::string getTypeString() {
@@ -106,6 +113,8 @@ namespace LISP {
 				return "FUNCTION";
 			case FILE:
 				return "FILE";
+			case PAIR:
+				return "PAIR";
 			default:
 				break;
 			}
@@ -126,6 +135,7 @@ namespace LISP {
 		bool isString() {return type == STRING;}
 		bool isFunction() {return type == FUNC;}
 		bool isFile() {return type == FILE;}
+		bool isPair() {return type == PAIR;}
 		std::string getSymbol() {checkTypeThrow(SYMBOL); return symbol;}
 		std::string getString() {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
@@ -135,6 +145,8 @@ namespace LISP {
 		OS::File & getFile() {checkTypeThrow(FILE); return file;}
 		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
 		Var getBody() {checkTypeThrow(FUNC); return Var(body);}
+		Var & getCons() {checkTypeThrow(PAIR); return conscell[0];}
+		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
 		std::string toString() {
 			switch (type) {
@@ -147,7 +159,7 @@ namespace LISP {
 					std::string ret = "(";
 					for (std::vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
 						if (iter != lst.begin()) {
-							ret += ", ";
+							ret += " ";
 						}
 						ret += iter->toString();
 					}
@@ -181,6 +193,8 @@ namespace LISP {
 				}
 			case FILE:
 				return "#p\"" + file.getPath() + "\"";
+			case PAIR:
+				return "(" + conscell[0].toString() + " . " + conscell[1].toString() + ")";
 			default:
 				break;
 			}
@@ -214,9 +228,11 @@ namespace LISP {
 		}
 		bool quit() {return _quit;}
 		std::string toString() {
+			std::string ret;
 			for (std::map<std::string, Var>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
-				std::cout << iter->first << " : " << iter->second.toString() << std::endl;
+				ret.append(iter->first + " : " + iter->second.toString());
 			}
+			return ret;
 		}
 	};
 
