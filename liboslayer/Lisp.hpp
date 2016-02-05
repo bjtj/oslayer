@@ -29,27 +29,52 @@ namespace LISP {
 		std::string & getName() {return name;}
 	};
     
-    class Number {
+    class Integer {
     private:
         long long num;
     public:
-        Number() : num(0) {}
-        Number(long long num) : num(num) {}
-        virtual ~Number() {}
+        Integer() : num(0) {}
+        Integer(long long num) : num(num) {}
+        virtual ~Integer() {}
+
+		static bool isIntegerString(const std::string & istr) {
+			size_t f = 0;
+			if (*istr.begin() == '-' || *istr.begin() == '+') {
+				f = 1;
+			}
+			return (istr.length() - f > 0) &&
+				(istr.find_first_not_of("0123456789", f) == std::string::npos);
+		}
+
+		static long long toInteger(const std::string & istr) {
+			size_t f = (*istr.begin() == '-' || *istr.begin() == '+') ? 1 : 0;
+			bool negative = (*istr.begin() == '-');
+			long long n = 0;
+			for (size_t i = f; i < istr.length(); i++) {
+				n *= 10;
+				n += istr[i] - '0';
+			}
+			return (negative ? -n : n);
+		}
+		
         long long & operator* () {return num;}
-        long long getNumber() const {return num;}
-        Number & operator+=(const Number & other) {num += other.num; return *this;}
-        Number & operator-=(const Number & other) {num -= other.num; return *this;}
-        Number & operator*=(const Number & other) {num *= other.num; return *this;}
-        Number & operator/=(const Number & other) {num /= other.num; return *this;}
+        long long getInteger() const {return num;}
+        Integer & operator+=(const Integer & other) {num += other.num; return *this;}
+        Integer & operator-=(const Integer & other) {num -= other.num; return *this;}
+        Integer & operator*=(const Integer & other) {num *= other.num; return *this;}
+        Integer & operator/=(const Integer & other) {num /= other.num; return *this;}
         
-        Number operator+ (const Number & other) const {return Number(num + other.num);}
-        Number operator- (const Number & other) const {return Number(num - other.num);}
-        Number operator* (const Number & other) const {return Number(num * other.num);}
-        Number operator/ (const Number & other) const {return Number(num / other.num);}
-        
-        bool operator== (const Number & other) const {return num == other.num;}
-        bool operator!= (const Number & other) const {return num != other.num;}
+        Integer operator+ (const Integer & other) const {return Integer(num + other.num);}
+        Integer operator- (const Integer & other) const {return Integer(num - other.num);}
+        Integer operator* (const Integer & other) const {return Integer(num * other.num);}
+        Integer operator/ (const Integer & other) const {return Integer(num / other.num);}
+
+		bool operator> (const Integer & other) const {return num > other.num;}
+		bool operator< (const Integer & other) const {return num < other.num;}
+		bool operator>= (const Integer & other) const {return num >= other.num;}
+		bool operator<= (const Integer & other) const {return num <= other.num;}
+        bool operator== (const Integer & other) const {return num == other.num;}
+        bool operator!= (const Integer & other) const {return num != other.num;}
     };
 
 	class Var {
@@ -70,8 +95,7 @@ namespace LISP {
 		std::string str;
 		std::vector<Var> lst;
 		bool bval;
-		// int inum;
-        Number inum;
+        Integer inum;
 		float fnum;
 		std::vector<Var> params;
 		std::vector<Var> body;
@@ -89,14 +113,9 @@ namespace LISP {
 			} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
 				type = STRING;
 				str = token;
-			} else if (token.find_first_not_of("0123456789") == std::string::npos) {
+			} else if (Integer::isIntegerString(token)) {
 				type = INTEGER;
-                long long n = 0;
-                for (size_t i = 0; i < token.length(); i++) {
-                    n *= 10;
-                    n += token[i] - '0';
-                }
-                inum = n;
+                inum = Integer::toInteger(token);
 			} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
 				type = FILE;
 				file = OS::File(token.substr(3, token.length() - 4));
@@ -107,7 +126,7 @@ namespace LISP {
 		}
 		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false), fnum(0) {}
 		Var(bool bval) : type(BOOLEAN), bval(bval), fnum(0) {}
-		Var(Number inum) : type(INTEGER), bval(false), inum(inum), fnum(0) {}
+		Var(Integer inum) : type(INTEGER), bval(false), inum(inum), fnum(0) {}
 		Var(float fnum) : type(FLOAT), bval(false), fnum(fnum) {}
 		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), fnum(0), params(params), body(body) {}
 		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), fnum(0), procedure(procedure) {}
@@ -118,6 +137,7 @@ namespace LISP {
 			conscell.push_back(cell);
 		}
 		virtual ~Var() {}
+		
 		int getType() { return type; }
 		std::string getTypeString() {
 			return getTypeString(type);
@@ -169,7 +189,7 @@ namespace LISP {
 		std::string getString() {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
 		bool getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
-		Number getInteger() {checkTypeThrow(INTEGER); return inum;}
+		Integer getInteger() {checkTypeThrow(INTEGER); return inum;}
 		float getFloat() {checkTypeThrow(FLOAT); return fnum;}
 		OS::File & getFile() {checkTypeThrow(FILE); return file;}
 		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
@@ -214,7 +234,7 @@ namespace LISP {
 			case FUNC:
 				{
 					if (!procedure.empty()) {
-						return "#<COMPILED FUNCTION>";
+						return "#<COMPILED FUNCTION " + procedure->getName() + ">";
 					}
 					Var p(params);
 					Var b(body);

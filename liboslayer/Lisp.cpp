@@ -346,7 +346,7 @@ namespace LISP {
 	}
 	void builtin_artithmetic(Env & env) {
 		DECL_NATIVE("=", ArithmeticEqual, {
-				Number val = eval(args[0], env).getInteger();
+				Integer val = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).getInteger()) {
 						return false;
@@ -355,32 +355,56 @@ namespace LISP {
 				return true;
 			});
 		DECL_NATIVE("+", Plus, {
-				Number sum = eval(args[0], env).getInteger();
+				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum += eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("-", Minus, {
-				Number sum = eval(args[0], env).getInteger();
+				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum -= eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("*", Multitude, {
-				Number sum = eval(args[0], env).getInteger();
+				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum *= eval(*iter, env).getInteger();
 				}
 				return sum;
 			});
 		DECL_NATIVE("/", Divide, {
-				Number sum = eval(args[0], env).getInteger();
+				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum /= eval(*iter, env).getInteger();
 				}
 				return sum;
+			});
+
+		DECL_NATIVE(">", Greater, {
+				Integer a = eval(args[0], env).getInteger();
+				Integer b = eval(args[1], env).getInteger();
+				return a > b;
+			});
+
+		DECL_NATIVE("<", Less, {
+				Integer a = eval(args[0], env).getInteger();
+				Integer b = eval(args[1], env).getInteger();
+				return a < b;
+			});
+
+		DECL_NATIVE(">=", GreaterEq, {
+				Integer a = eval(args[0], env).getInteger();
+				Integer b = eval(args[1], env).getInteger();
+				return a >= b;
+			});
+
+		DECL_NATIVE("<=", LessEq, {
+				Integer a = eval(args[0], env).getInteger();
+				Integer b = eval(args[1], env).getInteger();
+				return a <= b;
 			});
 	}
 	void builtin_io(Env & env) {
@@ -396,6 +420,11 @@ namespace LISP {
 		DECL_NATIVE("print", Print, {
 				cout << eval(args[0], env).toString() << endl;
 				return args[0];
+			});
+		DECL_NATIVE("printf", Printf, {
+				Var ret = env["format"].proc("format", args, env);
+				cout << ret.toString() << endl;
+				return ret;
 			});
 	}
 	void builtin_file(Env & env) {
@@ -433,14 +462,14 @@ namespace LISP {
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return Number(file.getSize());
+				return Integer(file.getSize());
 			});
 	}
 	void builtin_socket(Env & env) {
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE("system", System, {
-				return Number(system(eval(args[0], env).toString().c_str()));
+				return Integer(system(eval(args[0], env).toString().c_str()));
 			});
 	}
 	void builtin_date(Env & env) {
