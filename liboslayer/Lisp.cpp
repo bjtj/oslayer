@@ -27,6 +27,44 @@ namespace LISP {
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 
+	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
+		string ret;
+		size_t f = 0;
+		size_t s = 0;
+		vector<Var>::iterator iter = args.begin() + offset;
+		while ((f = fmt.find("~", f)) != string::npos) {
+			if (f - s > 0) {
+				ret.append(fmt.substr(s, f - s));
+			}
+			if (fmt[f + 1] == 'a') {
+				ret.append(eval(*iter++, env).toString());
+				s = f = (f + 2);
+			} else if (fmt[f + 1] == 'd') {
+				string num = eval(*iter++, env).toString();
+				ret.append(num);
+				s = f = (f + 2);
+			} else if (fmt[f + 1] == ':' && fmt[f + 2] == 'd') {
+				string num = eval(*iter++, env).toString();
+				size_t len = num.length();
+				size_t cnt = (len - 1) / 3;
+				if (cnt > 0) {
+					size_t i = 3;
+					for (size_t pos = (len - i); i < len; i += 3, pos = (len - i)) {
+						num.insert(pos, ",");
+					}
+				}
+				ret.append(num);
+				s = f = (f + 3);
+			} else {
+				s = f = (f + 1);
+			}
+		}
+		if (s < fmt.length()) {
+			ret.append(fmt.substr(s));
+		}
+		return ret;
+	}
+
 	Var pathname(Var path) {
 		if (path.isFile()) {
 			return path;
@@ -97,13 +135,28 @@ namespace LISP {
 					throw "unexpected end of string";
 				}
 				for (; *iter != '\"'; iter++) {
+					char ch = *iter;
 					if (iter == s.end()) {
 						throw "unexpected end of string";
 					}
-					if (*iter == '\\') {
+					if (ch == '\\') {
 						iter++;
+						ch = *iter;
+						switch (ch) {
+						case 't':
+							ch = '\t';
+							break;
+						case 'n':
+							ch = '\n';
+							break;
+						case 'r':
+							ch = '\r';
+							break;
+						default:
+							break;
+						}
 					}
-					str.append(1, *iter);
+					str.append(1, ch);
 				}
 				tokens.push_back("\"" + str + "\"");
 			} else if (*iter == '(' || *iter == ')') {
@@ -288,18 +341,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("format", Format, {
-
-				string fmt = args[0].getString();
-				size_t f = 0;
-				size_t idx = 1;
-				string match = "~a";
-				while ((f = fmt.find(match, f)) != string::npos) {
-					string rep = eval(args[idx++], env).toString();
-					fmt.replace(f, match.length(), rep);
-					f += rep.length();
-				}
-
-				return fmt;
+				return format(env, args[0].getString(), args, 1);
 			});
 	}
 	void builtin_artithmetic(Env & env) {
