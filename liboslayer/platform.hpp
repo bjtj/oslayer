@@ -35,6 +35,7 @@
 #	include <signal.h>
 #   include <mach/clock.h>
 #   include <mach/mach.h>
+#   include <dlfcn.h>
 
 #	define TIME time_t
 
@@ -60,6 +61,7 @@
 #	include <errno.h>
 #	include <fcntl.h>
 #	include <signal.h>
+#   include <dlfcn.h>
 
 #	define TIME time_t
 

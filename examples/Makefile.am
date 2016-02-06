@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -59,3 +59,10 @@ repl_CPPFLAGS=-I$(top_srcdir)
 repl_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 repl_LDFLAGS=$(PTHREAD_CFLAGS)
 repl_LDADD=../liboslayer/liboslayer.la
+
+libTest_SOURCES=libTest.cpp
+libTest_CPPFLAGS=-I$(top_srcdir)
+libTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+libTest_LDFLAGS=$(PTHREAD_CFLAGS)
+libTest_LDADD=../liboslayer/liboslayer.la
+

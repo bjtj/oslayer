@@ -22,6 +22,21 @@
 #include "platform.hpp"
 
 /*
+ * Library
+ */
+#if defined(USE_UNIX_STD)
+
+typedef void * LIB_HANDLE;
+typedef void * SYM_HANDLE;
+
+#elif defined(USE_MS_WIN)
+
+typedef HMODULE LIB_HANDLE;
+typedef FARPROC SYM_HANDLE;
+
+#endif
+
+/*
  * Semaphore
  */
 
@@ -188,6 +203,25 @@ public: \
 	 * @brief get tick count
 	 */
 	unsigned long tick_milli();
+	
+
+	/**
+	 * @brief library
+	 */
+	class Library {
+	private:
+		LIB_HANDLE handle;
+		std::string path;
+		std::string name;
+	public:
+		Library(const std::string & path, const std::string name);
+		virtual ~Library();
+		std::string & getPath();
+		std::string & getName();
+		LIB_HANDLE getHandle();
+		SYM_HANDLE getSymbol(const std::string & sym);
+	};
+
     
     /**
      * @brief system wide operation

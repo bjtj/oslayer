@@ -69,6 +69,52 @@ namespace OS {
 #endif	
 	}
 
+	/**
+	 * @brief Library
+	 */
+
+	static string s_to_lib_name(const string & name) {
+#if defined(USE_APPLE_STD)
+		return "lib" + name + ".dylib";
+#elif defined(USE_UNIX_STD)
+		return "lib" + name + ".so";
+#elif defined(USE_MS_WIN)
+		return name + ".dll";
+#endif
+	}
+
+	Library::Library(const string & path, const string name) : path(path), name(name) {
+		string fullpath = File::mergePaths(path, s_to_lib_name(name));
+#if defined(USE_UNIX_STD)
+		handle = dlopen(fullpath.c_str(), RTLD_LAZY);
+#elif defined(USE_MS_WIN)
+		handle = LoadLibrary(fullpath.c_str());
+#endif
+	}
+	Library::~Library() {
+#if defined(USE_UNIX_STD)
+		dlclose(handle);
+#elif defined(USE_MS_WIN)
+		FreeLibrary(handle);
+#endif
+	}
+	string & Library::getPath() {
+		return path;
+	}
+	string & Library::getName() {
+		return name;
+	}
+	LIB_HANDLE Library::getHandle() {
+		return handle;
+	}
+	SYM_HANDLE Library::getSymbol(const std::string & sym) {
+#if defined(USE_UNIX_STD)
+		return dlsym(handle, sym.c_str());
+#elif defined(USE_MS_WIN)
+		return GetProcAddress(handle, sym.c_str());
+#endif
+	}
+
 
     /**
      * @brief System
