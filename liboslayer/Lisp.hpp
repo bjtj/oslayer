@@ -63,11 +63,13 @@ namespace LISP {
         Integer & operator-=(const Integer & other) {num -= other.num; return *this;}
         Integer & operator*=(const Integer & other) {num *= other.num; return *this;}
         Integer & operator/=(const Integer & other) {num /= other.num; return *this;}
+		Integer & operator%=(const Integer & other) {num %= other.num; return *this;}
         
         Integer operator+ (const Integer & other) const {return Integer(num + other.num);}
         Integer operator- (const Integer & other) const {return Integer(num - other.num);}
         Integer operator* (const Integer & other) const {return Integer(num * other.num);}
         Integer operator/ (const Integer & other) const {return Integer(num / other.num);}
+		Integer operator% (const Integer & other) const {return Integer(num % other.num);}
 
 		bool operator> (const Integer & other) const {return num > other.num;}
 		bool operator< (const Integer & other) const {return num < other.num;}

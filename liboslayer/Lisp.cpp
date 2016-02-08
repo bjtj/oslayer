@@ -1,5 +1,7 @@
 #include "Lisp.hpp"
 #include "os.hpp"
+#include "Text.hpp"
+#include "FileReaderWriter.hpp"
 
 #define DECL_NATIVE(NAME,CLS,CODE)								\
 	class CLS : public Procedure {								\
@@ -16,8 +18,10 @@ namespace LISP {
 
 	using namespace std;
 	using namespace OS;
+	using namespace UTIL;
 
 	// builtin
+	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
 	static void builtin_string(Env & env);
 	static void builtin_artithmetic(Env & env);
@@ -200,6 +204,25 @@ namespace LISP {
 		return read_from_tokens(iter, end);
 	}
 
+	Var & refeval(Var & var, Env & env) {
+		if (var.isSymbol()) {
+			return env[var.getSymbol()];
+		} else if (!var.isList()) {
+			throw "no reference";
+		} else if (var.getList().empty()) {
+			throw "cannot operate - no reference or value";
+		} else {
+			vector<Var> & lv = var.getList();
+			string symbol = lv[0].getSymbol();
+			if (symbol == "aref") {
+				vector<Var> & lst = refeval(lv[1], env).getList();
+				Integer idx = eval(lv[2], env).getInteger();
+				return lst[(size_t)idx.getInteger()];
+			}
+		}
+		throw "unknown error - reference operation failed";
+	}
+	
 	Var eval(Var & var, Env & env) {
 	
 		if (var.isSymbol()) {
@@ -216,7 +239,9 @@ namespace LISP {
 				env.quit(true);
 			} else if (symbol == "defun") {
 				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
-			} else if (symbol == "set") {
+			} else if (symbol == "setf") {
+				refeval(lv[1], env) = eval(lv[2], env);
+			} else if (symbol == "setq") {
 				env[lv[1].getSymbol()] = eval(lv[2], env);
 			} else if (symbol == "if") {
 				Var val = eval(lv[1], env);
@@ -278,6 +303,7 @@ namespace LISP {
 	}
 
 	void native(Env & env) {
+		builtin_list(env);
 		builtin_logic(env);
 		builtin_string(env);
 		builtin_artithmetic(env);
@@ -286,6 +312,30 @@ namespace LISP {
 		builtin_socket(env);
 		builtin_system(env);
 		builtin_date(env);
+	}
+
+	void builtin_list(Env & env) {
+		DECL_NATIVE("append", Append, {
+				vector<Var> ret;
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+					vector<Var> lst = eval(*iter, env).getList();
+					ret.insert(ret.end(), lst.begin(), lst.end());
+				}
+				return ret;
+			});
+		
+		DECL_NATIVE("remove", Remove, {
+				Var val = eval(args[0], env);
+				vector<Var> lst = eval(args[1], env).getList();
+				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
+					if (val.toString() == iter->toString()) {
+						iter = lst.erase(iter);
+					} else {
+						iter++;
+					}
+				}
+				return lst;
+			});
 	}
 
 	void builtin_logic(Env & env) {
@@ -383,6 +433,14 @@ namespace LISP {
 				return sum;
 			});
 
+		DECL_NATIVE("%", Rest, {
+				Integer sum = eval(args[0], env).getInteger();
+				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+					sum %= eval(*iter, env).getInteger();
+				}
+				return sum;
+			});
+
 		DECL_NATIVE(">", Greater, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
@@ -471,8 +529,32 @@ namespace LISP {
 		DECL_NATIVE("system", System, {
 				return Integer(system(eval(args[0], env).toString().c_str()));
 			});
+		DECL_NATIVE("load", Load, {
+				File file = pathname(eval(args[0], env)).getFile();
+				FileReader reader(file);
+				string src = reader.dumpAsString();
+				vector<string> lines = Text::split(src, "\n");
+				for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
+					string line = Text::trim(*iter);
+					if (!line.empty() && Text::startsWith(line, ";")) {
+						Var tokens = parse(line);
+						eval(tokens, env);
+					}
+				}
+				return true;
+			});
 	}
 	void builtin_date(Env & env) {
+		DECL_NATIVE("now", Now, {
+				char buffer[512];
+				memset(buffer, 0, sizeof(buffer));
+				Date date = Date::now();
+				snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d.%d",
+						 date.getYear(), date.getMonth(), date.getDay(),
+						 date.getHour(), date.getMinute(), date.getSecond(),
+						 date.getMillisecond());
+				return string(buffer);
+			});
 	}
 
 	void repl(Env & env) {
