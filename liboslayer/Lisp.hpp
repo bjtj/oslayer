@@ -26,7 +26,7 @@ namespace LISP {
 		Procedure(const std::string & name) : name(name) {}
 		virtual ~Procedure() {}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
-		std::string & getName() {return name;}
+		std::string getName() const {return name;}
 	};
     
     class Integer {
@@ -56,6 +56,8 @@ namespace LISP {
 			}
 			return (negative ? -n : n);
 		}
+
+		long long raw() const {return num;}
 		
         long long & operator* () {return num;}
         long long getInteger() const {return num;}
@@ -177,16 +179,16 @@ namespace LISP {
 					", but required: " + getTypeString(t) + ")";
 			}
 		}
-		bool nil() {return type == NIL;}
-		bool isList() {return type == LIST;}
-		bool isSymbol() {return type == SYMBOL;}
-		bool isBoolean() {return type == BOOLEAN;}
-		bool isInteger() {return type == INTEGER;}
-		bool isFloat() {return type == FLOAT;}
-		bool isString() {return type == STRING;}
-		bool isFunction() {return type == FUNC;}
-		bool isFile() {return type == FILE;}
-		bool isPair() {return type == PAIR;}
+		bool nil() const {return type == NIL;}
+		bool isList() const {return type == LIST;}
+		bool isSymbol() const {return type == SYMBOL;}
+		bool isBoolean() const {return type == BOOLEAN;}
+		bool isInteger() const {return type == INTEGER;}
+		bool isFloat() const {return type == FLOAT;}
+		bool isString() const {return type == STRING;}
+		bool isFunction() const {return type == FUNC;}
+		bool isFile() const {return type == FILE;}
+		bool isPair() const {return type == PAIR;}
 		std::string getSymbol() {checkTypeThrow(SYMBOL); return symbol;}
 		std::string getString() {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
@@ -199,7 +201,7 @@ namespace LISP {
 		Var & getCons() {checkTypeThrow(PAIR); return conscell[0];}
 		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
-		std::string toString() {
+		std::string toString() const {
 			switch (type) {
 			case NIL:
 				return "NIL";
@@ -208,7 +210,7 @@ namespace LISP {
 			case LIST:
 				{
 					std::string ret = "(";
-					for (std::vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
+					for (std::vector<Var>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
 						if (iter != lst.begin()) {
 							ret += " ";
 						}
@@ -222,7 +224,7 @@ namespace LISP {
 			case INTEGER:
 				{
 					char buffer[1024] = {0,};
-					snprintf(buffer, sizeof(buffer), "%lld", *inum);
+					snprintf(buffer, sizeof(buffer), "%lld", inum.raw());
 					return buffer;
 				}
 			case FLOAT:
@@ -232,7 +234,8 @@ namespace LISP {
 					return buffer;
 				}
 			case STRING:
-				return str.substr(1, str.length() - 2);
+				// return str.substr(1, str.length() - 2);
+				return str;
 			case FUNC:
 				{
 					if (!procedure.empty()) {

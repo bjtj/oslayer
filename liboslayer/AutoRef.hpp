@@ -35,10 +35,10 @@ namespace UTIL {
         AutoRef<T> & operator= (T * _t);        
         AutoRef<T> & operator= (const AutoRef<T> & other);
         T & operator* ();
-        T * operator-> ();
+        T * operator-> () const;
         T * operator& ();
         int count();
-        bool empty();
+        bool empty() const;
 
     private:
 
@@ -93,7 +93,7 @@ namespace UTIL {
     }
 
 	template <typename T>
-    T * AutoRef<T>::operator-> () {
+    T * AutoRef<T>::operator-> () const {
         if (!_t) {
             throw OS::NullException("null exception (operator->)", -1, 0);
         }
@@ -111,7 +111,7 @@ namespace UTIL {
     }
         
 	template <typename T>
-    bool AutoRef<T>::empty() {
+    bool AutoRef<T>::empty() const {
         return _t == NULL;
     }
         

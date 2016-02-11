@@ -1923,7 +1923,7 @@ namespace OS {
 	string File::toString() {
 		return path;
 	}
-	std::string File::getPath() {
+	std::string File::getPath() const {
 		return path;
 	}
 	bool File::isRootPath() {

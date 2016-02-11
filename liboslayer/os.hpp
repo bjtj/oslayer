@@ -722,7 +722,7 @@ public: \
 
 		std::string getName();
 		virtual std::string toString();
-		std::string getPath();
+		std::string getPath() const;
 
 		bool isRootPath();
 		bool isFullpath();

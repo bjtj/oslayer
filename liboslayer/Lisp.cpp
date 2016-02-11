@@ -20,6 +20,8 @@ namespace LISP {
 	using namespace OS;
 	using namespace UTIL;
 
+	static string untext(const string & txt);
+
 	// builtin
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
@@ -31,6 +33,13 @@ namespace LISP {
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 
+	string printVar(const Var & var) {
+		if (var.isString()) {
+			return untext(var.toString());
+		}
+		return var.toString();
+	}
+
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
 		size_t f = 0;
@@ -40,8 +49,12 @@ namespace LISP {
 			if (f - s > 0) {
 				ret.append(fmt.substr(s, f - s));
 			}
-			if (fmt[f + 1] == 'a') {
-				ret.append(eval(*iter++, env).toString());
+
+			if (fmt[f + 1] == '%') {
+				ret.append("\n");
+				s = f = (f + 2);
+			} else if (fmt[f + 1] == 'a') {
+				ret.append(printVar(eval(*iter++, env)));
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'd') {
 				string num = eval(*iter++, env).toString();
@@ -79,6 +92,10 @@ namespace LISP {
 
 	string text(const string & txt) {
 		return "\"" + txt + "\"";
+	}
+	
+	string untext(const string & txt) {
+		return txt.substr(1, txt.length() - 2);
 	}
 
 	vector<Var> listy(Var var) {
@@ -222,7 +239,7 @@ namespace LISP {
 		}
 		throw "unknown error - reference operation failed";
 	}
-	
+
 	Var eval(Var & var, Env & env) {
 	
 		if (var.isSymbol()) {
@@ -237,8 +254,12 @@ namespace LISP {
 			string symbol = lv[0].getSymbol();
 			if (symbol == "quit") {
 				env.quit(true);
+			} else if (symbol == "lambda") {
+				Var func(lv[1].getList(), lv[2].getList());
+				return func;
 			} else if (symbol == "defun") {
 				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
+				return lv[1].getSymbol();
 			} else if (symbol == "setf") {
 				refeval(lv[1], env) = eval(lv[2], env);
 			} else if (symbol == "setq") {
@@ -247,9 +268,15 @@ namespace LISP {
 				Var val = eval(lv[1], env);
 				if (!val.nil() && val.getBoolean()) {
 					return eval(lv[2], env);
-				} else {
+				} else if (lv.size() > 3) {
 					return eval(lv[3], env);
 				}
+			} else if (symbol == "progn") {
+				Var ret;
+				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
+					ret = eval(*iter, env);
+				}
+				return ret;
 			} else if (symbol == "dolist") {
 				Env e(&env);
 				vector<Var> decl = lv[1].getList();
@@ -271,6 +298,8 @@ namespace LISP {
 				Var cell = eval(lv[2], env);
 				Var var(cons, cell);
 				return var;
+			} else if (symbol == "aref") {
+				return refeval(var, env);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
 				return eval(lv[0], env).proc(lv[0], args, env);
@@ -391,7 +420,16 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("format", Format, {
-				return format(env, args[0].getString(), args, 1);
+				Var test = eval(args[0], env);
+				string str = format(env, printVar(args[1]), args, 2);
+				if (!test.nil()) {
+					fputs(str.c_str(), stdout);
+					fputs("\n", stdout);
+					Var nil;
+					return nil;
+				} else {
+					return text(str);
+				}
 			});
 	}
 	void builtin_artithmetic(Env & env) {
@@ -432,7 +470,6 @@ namespace LISP {
 				}
 				return sum;
 			});
-
 		DECL_NATIVE("%", Rest, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
@@ -476,13 +513,10 @@ namespace LISP {
 				return "nil";
 			});
 		DECL_NATIVE("print", Print, {
-				cout << eval(args[0], env).toString() << endl;
-				return args[0];
-			});
-		DECL_NATIVE("printf", Printf, {
-				Var ret = env["format"].proc("format", args, env);
-				cout << ret.toString() << endl;
-				return ret;
+				string msg = eval(args[0], env).toString();
+				fputs(msg.c_str(), stdout);
+				fputs("\n", stdout);
+				return msg;
 			});
 	}
 	void builtin_file(Env & env) {
@@ -497,6 +531,10 @@ namespace LISP {
 					lst.push_back(*iter);
 				}
 				return lst;
+			});
+		DECL_NATIVE("probe-file", ProbeFile, {
+				File file = pathname(eval(args[0], env)).getFile();
+				return file.exists();
 			});
 		DECL_NATIVE("dirp", Dirp, {
 				File file = pathname(eval(args[0], env)).getFile();
