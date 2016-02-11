@@ -57,6 +57,7 @@ namespace UTIL {
 		ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator);
 		virtual ~ThreadPool();
 
+        void init();
 		void start();
 		void stop();
 		void collectUnflaggedThreads();

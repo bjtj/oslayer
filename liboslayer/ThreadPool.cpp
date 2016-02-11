@@ -8,31 +8,26 @@ namespace UTIL {
 	
 	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
 
-		for (size_t i = 0; i < poolSize; i++) {
-			freeQueue.push_back(creator.createInstance());
-		}
+        init();
 	}
 
 	
 	ThreadPool::~ThreadPool() {
-
 		stop();
-
-		collectUnflaggedThreads();
-
-		for (deque<FlaggableThread*>::const_iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
-			FlaggableThread * thread = *iter;
-
-			thread->interrupt();
-			thread->join();
-
-			creator.releaseInstance(thread);
-		}
 	}
+    
+    void ThreadPool::init() {
+        stop();
+        for (size_t i = 0; i < poolSize; i++) {
+            freeQueue.push_back(creator.createInstance());
+        }
+    }
 
 	void ThreadPool::start() {
 
 		if (!running) {
+            
+            init();
 
 			for (deque<FlaggableThread*>::const_iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
 				FlaggableThread * thread = *iter;
@@ -53,6 +48,21 @@ namespace UTIL {
 				thread->setFlag(false);
 			}
 			workingQueueLock.post();
+            
+            collectUnflaggedThreads();
+            
+            for (deque<FlaggableThread*>::const_iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
+                FlaggableThread * thread = *iter;
+                
+                thread->interrupt();
+                thread->setFlag(false);
+                thread->join();
+                
+                creator.releaseInstance(thread);
+            }
+            
+            freeQueue.clear();
+            workingQueue.clear();
 
 			running = false;
 		}
@@ -86,17 +96,20 @@ namespace UTIL {
 
 		return thread;
 	}
+    
 	void ThreadPool::release(FlaggableThread * thread) {
 		freeQueueLock.wait();
 		freeQueue.push_back(thread);
 		freeQueueLock.post();
 	}
+    
 	void ThreadPool::enqueue(FlaggableThread * thread) {
 		workingQueueLock.wait();
 		workingQueue.push_back(thread);
 		thread->setFlag(true);
 		workingQueueLock.post();
 	}
+    
 	FlaggableThread * ThreadPool::dequeue() {
 		workingQueueLock.wait();
 		FlaggableThread * thread = workingQueue.size() > 0 ? workingQueue.front() : NULL;
