@@ -261,9 +261,13 @@ namespace LISP {
 				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
 				return lv[1].getSymbol();
 			} else if (symbol == "setf") {
-				refeval(lv[1], env) = eval(lv[2], env);
+				Var val = eval(lv[2], env);
+				refeval(lv[1], env) = val;
+				return val;
 			} else if (symbol == "setq") {
-				env[lv[1].getSymbol()] = eval(lv[2], env);
+				Var val = eval(lv[2], env);
+				env[lv[1].getSymbol()] = val;
+				return val;
 			} else if (symbol == "if") {
 				Var val = eval(lv[1], env);
 				if (!val.nil() && val.getBoolean()) {
