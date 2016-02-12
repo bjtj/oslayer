@@ -12,6 +12,10 @@ namespace UTIL {
 	Properties::~Properties() {
 	}
 
+	void Properties::clear() {
+		properties.clear();
+	}
+
 	void Properties::loadFromFile(const string & filepath) {
         File file(filepath);
 		loadFromFile(file);
@@ -90,12 +94,19 @@ namespace UTIL {
 		return properties.get(name).getValue();
 	}
 
-	int Properties::getIntegerProperty(const std::string & name) {
+	int Properties::getIntegerProperty(const std::string & name, int def) {
+		if (getProperty(name).empty()) {
+			return def;
+		}
 		return Text::toInt(getProperty(name));
 	}
 
 	void Properties::setProperty(const string & name, const string & value) {
 		properties.get(name).setValue(value);
+	}
+	
+	void Properties::setProperty(const string & name, int value) {
+		setProperty(name, Text::toString(value));
 	}
 
 	vector<string> Properties::getPropertyNames() {

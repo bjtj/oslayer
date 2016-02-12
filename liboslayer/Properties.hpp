@@ -30,12 +30,12 @@ namespace UTIL {
 
 	public:
 
+		void clear();
 		std::string getProperty(const std::string & name);
-		int getIntegerProperty(const std::string & name);
+		int getIntegerProperty(const std::string & name, int def = 0);
 		void setProperty(const std::string & name, const std::string & value);
-
+		void setProperty(const std::string & name, int value);
 		std::vector<std::string> getPropertyNames();
-
 		std::string & operator[] (const std::string & name);
 
 	};
