@@ -20,8 +20,6 @@ namespace LISP {
 	using namespace OS;
 	using namespace UTIL;
 
-	static string untext(const string & txt);
-
 	// builtin
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
@@ -32,13 +30,6 @@ namespace LISP {
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
-
-	string printVar(const Var & var) {
-		if (var.isString()) {
-			return untext(var.toString());
-		}
-		return var.toString();
-	}
 
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
@@ -54,7 +45,7 @@ namespace LISP {
 				ret.append("\n");
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'a') {
-				ret.append(printVar(eval(*iter++, env)));
+				ret.append(eval(*iter++, env).toString());
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'd') {
 				string num = eval(*iter++, env).toString();
@@ -425,7 +416,7 @@ namespace LISP {
 
 		DECL_NATIVE("format", Format, {
 				Var test = eval(args[0], env);
-				string str = format(env, printVar(args[1]), args, 2);
+				string str = format(env, args[1].toString(), args, 2);
 				if (!test.nil()) {
 					fputs(str.c_str(), stdout);
 					fputs("\n", stdout);
@@ -599,13 +590,20 @@ namespace LISP {
 			});
 	}
 
+	string printVar(const Var & var) {
+		if (var.isString()) {
+			return var.getString();
+		}
+		return var.toString();
+	}
+
 	void repl(Env & env) {
 		char line[1024] = {0,};
 		cout << "> ";
 		if (fgets(line, sizeof(line), stdin)) {
 			line[strlen(line) - 1] = '\0';
 			Var var = parse(line);
-			cout << eval(var, env).toString() << endl;
+			cout << printVar(eval(var, env)) << endl;
 		}
 	}
 }

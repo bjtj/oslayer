@@ -18,6 +18,9 @@ namespace LISP {
 	class Var;
 
 	typedef Var (*fn_proc)(Var name, std::vector<Var> & args, Env & env);
+	
+	extern std::string text(const std::string & txt);
+	extern std::string untext(const std::string & txt);
 
 	class Procedure {
 	private:
@@ -143,10 +146,10 @@ namespace LISP {
 		virtual ~Var() {}
 		
 		int getType() { return type; }
-		std::string getTypeString() {
+		std::string getTypeString() const {
 			return getTypeString(type);
 		}
-		std::string getTypeString(int type) {
+		std::string getTypeString(int type) const {
 			switch (type) {
 			case NIL:
 				return "NIL";
@@ -173,7 +176,7 @@ namespace LISP {
 			}
 			throw "unknown variable type";
 		}
-		void checkTypeThrow(int t) {
+		void checkTypeThrow(int t) const {
 			if (type != t) {
 				throw "type not match (type: " + getTypeString() +
 					", but required: " + getTypeString(t) + ")";
@@ -189,8 +192,8 @@ namespace LISP {
 		bool isFunction() const {return type == FUNC;}
 		bool isFile() const {return type == FILE;}
 		bool isPair() const {return type == PAIR;}
-		std::string getSymbol() {checkTypeThrow(SYMBOL); return symbol;}
-		std::string getString() {checkTypeThrow(STRING); return str;}
+		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
+		std::string getString() const {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
 		bool getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
 		Integer getInteger() {checkTypeThrow(INTEGER); return inum;}
@@ -234,8 +237,7 @@ namespace LISP {
 					return buffer;
 				}
 			case STRING:
-				// return str.substr(1, str.length() - 2);
-				return str;
+				return untext(str);
 			case FUNC:
 				{
 					if (!procedure.empty()) {
@@ -291,7 +293,6 @@ namespace LISP {
 	};
 
 	extern Var pathname(Var path);
-	extern std::string text(const std::string & txt);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern Var parse(const std::string & cmd);

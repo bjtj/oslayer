@@ -9,7 +9,6 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Logger.hpp \
 	Lisp.hpp \
 	Measurement.hpp \
-	PollablePool.hpp \
 	Properties.hpp \
 	RandomPortBinders.hpp \
 	SecureSocket.hpp \
@@ -37,8 +36,6 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Logger.hpp \
 	Measurement.cpp \
 	Measurement.hpp \
-	PollablePool.cpp \
-	PollablePool.hpp \
 	Properties.cpp \
 	Properties.hpp \
 	RandomPortBinders.cpp \

@@ -7,7 +7,6 @@
 #include "Iteration.hpp"
 #include "Logger.hpp"
 #include "Measurement.hpp"
-#include "PollablePool.hpp"
 #include "RandomPortBinders.hpp"
 #include "StringElement.hpp"
 #include "Text.hpp"
