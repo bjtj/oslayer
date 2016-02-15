@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -60,3 +60,8 @@ libTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 libTest_LDFLAGS=$(PTHREAD_CFLAGS)
 libTest_LDADD=../liboslayer/liboslayer.la
 
+xmlParserTest_SOURCES=xmlParserTest.cpp
+xmlParserTest_CPPFLAGS=-I$(top_srcdir)
+xmlParserTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+xmlParserTest_LDFLAGS=$(PTHREAD_CFLAGS)
+xmlParserTest_LDADD=../liboslayer/liboslayer.la
