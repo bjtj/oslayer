@@ -36,12 +36,6 @@ socketTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 socketTest_LDFLAGS=$(PTHREAD_CFLAGS)
 socketTest_LDADD=../liboslayer/liboslayer.la
 
-# _SOURCES=.cpp
-# _CPPFLAGS=-I$(top_srcdir)
-# _CXXFLAGS=$(PTHREAD_CXXFLAGS)
-# _LDFLAGS=$(PTHREAD_CFLAGS)
-# _LDADD=../liboslayer/liboslayer.la
-
 multicastTest_SOURCES=multicastTest.cpp
 multicastTest_CPPFLAGS=-I$(top_srcdir)
 multicastTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)

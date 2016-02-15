@@ -832,6 +832,11 @@ namespace OS {
 	Selector::~Selector() {
 	}
 	void Selector::set(int fd) {
+
+		if (fd < 0) {
+			throw IOException("Invalid fd", fd, 0);
+		}
+		
 		if (fd > maxfds) {
 			maxfds = fd;
 		}
@@ -839,6 +844,11 @@ namespace OS {
         FD_SET(fd, &writefds);
 	}
 	void Selector::unset(int fd) {
+
+		if (fd < 0) {
+			throw IOException("Invalid fd", fd, 0);
+		}
+		
 		FD_CLR(fd, &readfds);
         FD_CLR(fd, &writefds);
 	}
