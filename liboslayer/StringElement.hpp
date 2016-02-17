@@ -13,22 +13,24 @@ namespace UTIL {
 	 */
 	class NameValue {
 	private:
-		std::string name;
-		std::string value;
+		std::string _name;
+		std::string _value;
 
 	public:
 		NameValue() {}
-		NameValue(const std::string & name) : name(name) {}
-		NameValue(const std::string & name, const std::string & value) : name(name), value(value) {}
+		NameValue(const std::string & name) : _name(name) {}
+		NameValue(const std::string & name, const std::string & value) : _name(name), _value(value) {}
 		virtual ~NameValue() {}
-		void setName(const std::string & name) {this->name = name;}
-		void setValue(const std::string & value) {this->value = value;}
-		std::string & getName() {return name;}
-		std::string & getValue() {return value;}
-		const std::string & getName() const {return name;}
-		const std::string & getValue() const {return value;}
+		void setName(const std::string & name) {this->_name = name;}
+		void setValue(const std::string & value) {this->_value = value;}
+		std::string & getName() {return _name;}
+		std::string & getValue() {return _value;}
+		const std::string & getName() const {return _name;}
+		const std::string & getValue() const {return _value;}
+		std::string & name() { return _name; }
+		std::string & value() { return _value; }
 		bool operator==(const std::string & name) const {
-			return (!this->name.compare(name) ? true : false);
+			return (!this->_name.compare(name) ? true : false);
 		}
 	};
     

@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "AutoRef.hpp"
 
 namespace XML {
 
@@ -167,21 +168,100 @@ namespace XML {
 		}
 	};
 
+	class XmlEncoder {
+	private:
+	public:
+		XmlEncoder() {}
+		virtual ~XmlEncoder() {}
+		static std::string encode(const std::string & text) {
+			std::string ret;
+			for (std::string::const_iterator iter = text.begin(); iter != text.end(); iter++) {
+				switch (*iter) {
+				case '&':
+					ret.append("&amp;");
+					break;
+				case '<':
+					ret.append("&lt;");
+					break;
+				case '>':
+					ret.append("&gt;");
+					break;
+				default:
+					ret.append(1, *iter);
+					break;
+				}
+			}
+			return ret;
+		}
+	};
+
+	class XmlDecoder {
+	private:
+	public:
+		XmlDecoder() {}
+		virtual ~XmlDecoder() {}
+		static std::string decode(const std::string & text) {
+			std::string ret;
+			for (std::string::const_iterator iter = text.begin(); iter != text.end(); iter++) {
+				switch (*iter) {
+				case '&':
+					{
+						iter++;
+						std::string enc;
+						for (; *iter != ';'; iter++) {
+							if (iter == text.end()) {
+								throw "unexpected end of string";
+							}
+							enc.append(1, *iter);
+						}
+
+						if (enc == "amp") {
+							ret.append(1, '&');
+						} else if (enc == "lt") {
+							ret.append(1, '<');
+						} else if (enc == "gt") {
+							ret.append(1, '>');
+						} else {
+							// unknown
+						}
+					}
+					break;
+				default:
+					ret.append(1, *iter);
+					break;
+				}
+			}
+			return ret;
+		}
+	};
+
+	
 	class XmlDocument {
 	private:
 		std::string _firstLine;
-		XmlNode * _rootNode;
+		UTIL::AutoRef<XmlNode> _rootNode;
 	public:
-		XmlDocument() : _rootNode(NULL) {}
-		virtual ~XmlDocument() { if (_rootNode) { delete _rootNode; } }
+		XmlDocument() {}
+		virtual ~XmlDocument() {}
 		std::string & firstLine() {
 			return _firstLine;
 		}
-		XmlNode * getRootNode() {
+		UTIL::AutoRef<XmlNode> getRootNode() {
 			return _rootNode;
 		}
-		void setRootNode(XmlNode * root) {
+		void setRootNode(UTIL::AutoRef<XmlNode> root) {
 			_rootNode = root;
+		}
+		static std::string escapeString(const std::string & str) {
+			std::string ret;
+			for (std::string::const_iterator iter = str.begin(); iter != str.end(); iter++) {
+				if (*iter == '\"') {
+					ret.append("\\\"");
+				} else {
+					ret.append(1, *iter);
+				}
+			}
+			return ret;
 		}
 		static std::string toFullTagString(XmlNode * node) {
 			std::string xml = toTagNameString(node);
@@ -189,7 +269,7 @@ namespace XML {
 				xml.append(" ");
 			}
 			for (std::map<std::string, std::string>::iterator iter = node->attrs().begin(); iter != node->attrs().end(); iter++) {
-				xml.append(iter->first + "=\"" + iter->second + "\"");
+				xml.append(iter->first + "=\"" + escapeString(iter->second) + "\"");
 			}
 			return xml;
 		}
@@ -219,7 +299,7 @@ namespace XML {
 			if (!_firstLine.empty()) {
 				xml.append("<!" + _firstLine + ">\r\n");
 			}
-			xml.append(toString(_rootNode));
+			xml.append(toString(&_rootNode));
 			return xml;
 		}
 	};
@@ -278,25 +358,22 @@ namespace XML {
 			return ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n';
 		}
 
-		static void parseAttrs(const std::string & attrs, XmlNode * node) {
-			if (attrs.empty()) {
-				return;
-			}
+		static std::vector<std::string> tokenize(const std::string & str) {
 			std::vector<std::string> tokens;
-			for (std::string::const_iterator iter = attrs.begin(); iter != attrs.end(); iter++) {
+			for (std::string::const_iterator iter = str.begin(); iter != str.end(); iter++) {
 				if (*iter == '\"') {
 					std::string token;
 					iter++;
-					if (iter == attrs.end()) {
+					if (iter == str.end()) {
 						throw "unexpected end of string";
 					}
 					for(; *iter != '\"'; iter++) {
 						char ch = *iter;
-						if (iter == attrs.end()) {
+						if (iter == str.end()) {
 							throw "unexpected end of string";
 						}
 						if (*iter == '\\') {
-							char ch = *(++iter);
+							ch = *(++iter);
 							switch(ch) {
 							case 't':
 								ch = '\t';
@@ -318,13 +395,21 @@ namespace XML {
 					tokens.push_back("=");
 				} else if (!isSpace(*iter)) {
 					std::string token;
-					for(; iter != attrs.end() && !isSpace(*iter) && *iter != '='; iter++) {
+					for(; iter != str.end() && !isSpace(*iter) && *iter != '='; iter++) {
 						token.append(1, *iter);
 					}
 					tokens.push_back(token);
 					iter--;
 				}
 			}
+			return tokens;
+		}
+
+		static void parseAttrs(const std::string & attrs, XmlNode * node) {
+			if (attrs.empty()) {
+				return;
+			}
+			std::vector<std::string> tokens = tokenize(attrs);
 
 			for (std::vector<std::string>::iterator iter = tokens.begin(); iter != tokens.end(); iter++) {
 				std::string name = *iter;
