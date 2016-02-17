@@ -450,7 +450,7 @@ namespace XML {
 			XmlDocument doc;
 			XmlNodeCursor cursor(NULL);
 
-			bool first = true;
+//			bool first = true;
 
 			size_t s = text.find("<");
 			size_t l = 0;
