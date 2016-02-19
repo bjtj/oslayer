@@ -70,6 +70,7 @@
 
 /* Begin PBXFileReference section */
 		6C4A9F4B1C0BEE7800A45604 /* Utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Utils.hpp; path = ../../liboslayer/Utils.hpp; sourceTree = "<group>"; };
+		6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlParser.hpp; path = ../../liboslayer/XmlParser.hpp; sourceTree = "<group>"; };
 		6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatagramSocket.cpp; path = ../../liboslayer/DatagramSocket.cpp; sourceTree = "<group>"; };
 		6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatagramSocket.hpp; path = ../../liboslayer/DatagramSocket.hpp; sourceTree = "<group>"; };
 		E8075A0E1C03634D00EBE4B8 /* Measurement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Measurement.cpp; path = ../../liboslayer/Measurement.cpp; sourceTree = "<group>"; };
@@ -159,6 +160,7 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */,
 				E895012E1C109924009434B1 /* AutoRelease.hpp */,
 				E895012F1C109924009434B1 /* Properties.cpp */,
 				E89501301C109924009434B1 /* Properties.hpp */,
