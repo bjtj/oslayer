@@ -22,7 +22,7 @@ namespace OS {
 				
 		struct timespec ts;
 		ts.tv_sec = timeout / 1000;
-		ts.tv_nsec = (timeout % 1000) * 1000;
+		ts.tv_nsec = (timeout % 1000) * (1000 * 1000);
 		nanosleep(&ts, NULL);
         
 #elif defined(USE_MS_WIN)
