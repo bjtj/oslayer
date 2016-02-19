@@ -8,6 +8,9 @@
 
 namespace XML {
 
+	/**
+	 *
+	 */
 	class XmlNode {
 	public:
 		const static int NONE = 0;
@@ -119,11 +122,26 @@ namespace XML {
 			testType(ELEMENT);
 			return _children;
 		}
-		XmlNode * getElementByTagName(const std::string & tagName) {
-			if (_tagName == tagName) {
-				return this;
+		XmlNode * getElementByTagNameInDepth(const std::string & tagName, int depth) {
+			if (--depth <= 0) {
+				return NULL;
 			}
 			for (std::vector<XmlNode*>::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
+					return *iter;
+				}
+				XmlNode * elem = (*iter)->getElementByTagNameInDepth(tagName, depth);
+				if (elem) {
+					return elem;
+				}
+			}
+			return NULL;
+		}
+		XmlNode * getElementByTagName(const std::string & tagName) {
+			for (std::vector<XmlNode*>::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
+					return *iter;
+				}
 				XmlNode * elem = (*iter)->getElementByTagName(tagName);
 				if (elem) {
 					return elem;
@@ -131,12 +149,28 @@ namespace XML {
 			}
 			return NULL;
 		}
-		std::vector<XmlNode*> getElementsByTagName(const std::string & tagName) {
+		std::vector<XmlNode*> getElementsByTagNameInDepth(const std::string & tagName, int depth) {
 			std::vector<XmlNode*> lst;
-			if (_tagName == tagName) {
-				lst.push_back(this);
+			if (depth-- <= 0) {
+				return lst;
 			}
 			for (std::vector<XmlNode*>::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
+					lst.push_back(*iter);
+				}
+				std::vector<XmlNode*> ret = (*iter)->getElementsByTagNameInDepth(tagName, depth);
+				if (ret.size() > 0) {
+					lst.insert(lst.end(), ret.begin(), ret.end());
+				}
+			}
+			return lst;
+		}
+		std::vector<XmlNode*> getElementsByTagName(const std::string & tagName) {
+			std::vector<XmlNode*> lst;
+			for (std::vector<XmlNode*>::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
+					lst.push_back(*iter);
+				}
 				std::vector<XmlNode*> ret = (*iter)->getElementsByTagName(tagName);
 				if (ret.size() > 0) {
 					lst.insert(lst.end(), ret.begin(), ret.end());
@@ -168,6 +202,9 @@ namespace XML {
 		}
 	};
 
+	/**
+	 *
+	 */
 	class XmlEncoder {
 	private:
 	public:
@@ -195,6 +232,9 @@ namespace XML {
 		}
 	};
 
+	/**
+	 *
+	 */
 	class XmlDecoder {
 	private:
 	public:
@@ -235,7 +275,9 @@ namespace XML {
 		}
 	};
 
-	
+	/**
+	 *
+	 */
 	class XmlDocument {
 	private:
 		std::string _firstLine;
@@ -304,6 +346,9 @@ namespace XML {
 		}
 	};
 
+	/**
+	 *
+	 */
 	class XmlNodeCursor {
 	private:
 		XmlNode * _root;
@@ -339,6 +384,9 @@ namespace XML {
 		}
 	};
 
+	/**
+	 *
+	 */
 	class DomParser {
 	private:
 	public:
