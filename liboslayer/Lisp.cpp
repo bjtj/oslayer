@@ -21,6 +21,7 @@ namespace LISP {
 	using namespace UTIL;
 
 	// builtin
+	static void builtin_algorithm(Env & env);
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
 	static void builtin_string(Env & env);
@@ -245,6 +246,8 @@ namespace LISP {
 			string symbol = lv[0].getSymbol();
 			if (symbol == "quit") {
 				env.quit(true);
+			} else if (symbol == "symbol") {
+				return lv[1].getSymbol();
 			} else if (symbol == "lambda") {
 				Var func(lv[1].getList(), lv[2].getList());
 				return func;
@@ -253,7 +256,12 @@ namespace LISP {
 				return lv[1].getSymbol();
 			} else if (symbol == "setf") {
 				Var val = eval(lv[2], env);
-				refeval(lv[1], env) = val;
+				if (lv[1].isList() && lv[1].getList().size() > 0 &&
+					lv[1].getList()[0].isSymbol() && lv[1].getList()[0].getSymbol() == "subseq") {
+					eval(lv[1], env) = val;
+				} else {
+					refeval(lv[1], env) = val;
+				}
 				return val;
 			} else if (symbol == "setq") {
 				Var val = eval(lv[2], env);
@@ -293,7 +301,17 @@ namespace LISP {
 				Var cell = eval(lv[2], env);
 				Var var(cons, cell);
 				return var;
-			} else if (symbol == "aref") {
+			} else if (symbol == "subseq") {
+				vector<Var> & lst = refeval(lv[1], env).getList();
+				Integer start = eval(lv[2], env).getInteger();
+				Integer end = eval(lv[3], env).getInteger();
+				vector<Var*> ret;
+				vector<Var>::iterator iter = lst.begin() + start.getInteger();
+				for (int i = start.getInteger(); i < end.getInteger() && iter != lst.end(); i++, iter++) {
+					ret.push_back(&(*iter));
+				}
+				return ret;
+			} else if (symbol == "aref") { // bypass to refeval
 				return refeval(var, env);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
@@ -311,7 +329,7 @@ namespace LISP {
 			throw "not function / " + name.toString();
 		}
 
-		if (!procedure.empty()) {
+		if (!procedure.nil()) {
 			return procedure->proc(name, args, env);
 		}
 
@@ -327,6 +345,7 @@ namespace LISP {
 	}
 
 	void native(Env & env) {
+		builtin_algorithm(env);
 		builtin_list(env);
 		builtin_logic(env);
 		builtin_string(env);
@@ -336,6 +355,43 @@ namespace LISP {
 		builtin_socket(env);
 		builtin_system(env);
 		builtin_date(env);
+	}
+
+	void builtin_algorithm(Env & env) {
+		DECL_NATIVE("map", Map, {
+				Var sym = eval(args[0], env);
+				Var func = eval(args[1], env);
+				Var seq = eval(args[2], env);
+
+				vector<Var> ret;
+
+				vector<vector<Var> > lists;
+				size_t size = 0;
+				for (size_t i = 2; i < args.size(); i++) {
+					vector<Var> lst = eval(args[i], env).getList();
+					if (lst.size() > size) {
+						size = lst.size();
+					}
+					lists.push_back(lst);
+				}
+
+				for (size_t i = 0; i < size; i++) {
+					vector<Var> fargs;
+					for (vector<vector<Var> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
+						vector<Var> & lst = (*iter);
+						fargs.push_back((i < lst.size() ? lst[i] : "nil"));
+					}
+					ret.push_back(func.proc(fargs, env));
+				}
+				
+				// vector<Var> & lst = seq.getList();
+				// for (vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
+				// 	vector<Var> fargs;
+				// 	fargs.push_back(*iter);
+				// 	ret.push_back(func.proc(fargs, env));
+				// }
+				return ret;
+			});
 	}
 
 	void builtin_list(Env & env) {

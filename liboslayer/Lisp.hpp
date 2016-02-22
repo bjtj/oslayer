@@ -96,11 +96,13 @@ namespace LISP {
 		const static int FUNC = 7;
 		const static int FILE = 8;
 		const static int PAIR = 9;
+		const static int REF_LIST = 10;
 	private:
 		int type;
 		std::string symbol;
 		std::string str;
 		std::vector<Var> lst;
+		std::vector<Var*> rlst;
 		bool bval;
         Integer inum;
 		float fnum;
@@ -143,6 +145,7 @@ namespace LISP {
 			conscell.push_back(cons);
 			conscell.push_back(cell);
 		}
+		Var(std::vector<Var*> rlst) : type(REF_LIST), bval(false), fnum(0), rlst(rlst) {}
 		virtual ~Var() {}
 		
 		int getType() { return type; }
@@ -171,6 +174,8 @@ namespace LISP {
 				return "FILE";
 			case PAIR:
 				return "PAIR";
+			case REF_LIST:
+				return "REFERENCE LIST";
 			default:
 				break;
 			}
@@ -192,6 +197,7 @@ namespace LISP {
 		bool isFunction() const {return type == FUNC;}
 		bool isFile() const {return type == FILE;}
 		bool isPair() const {return type == PAIR;}
+		bool isRefList() const {return type == REF_LIST;}
 		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
 		std::string getString() const {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
@@ -203,6 +209,15 @@ namespace LISP {
 		Var getBody() {checkTypeThrow(FUNC); return Var(body);}
 		Var & getCons() {checkTypeThrow(PAIR); return conscell[0];}
 		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
+		UTIL::AutoRef<Procedure> getProcedure() {checkTypeThrow(FUNC); return procedure;}
+		std::vector<Var*> & getRefList() {checkTypeThrow(REF_LIST); return rlst;}
+		virtual Var proc(std::vector<Var> & args, Env & env) {
+			if (!procedure.nil()) {
+				return proc(procedure->getName(), args, env);
+			} else {
+				return proc("", args, env);
+			}
+		}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
 		std::string toString() const {
 			switch (type) {
@@ -251,10 +266,47 @@ namespace LISP {
 				return "#p\"" + file.getPath() + "\"";
 			case PAIR:
 				return "(" + conscell[0].toString() + " . " + conscell[1].toString() + ")";
+			case REF_LIST:
+				{
+					std::string ret = "(";
+					for (std::vector<Var*>::const_iterator iter = rlst.begin(); iter != rlst.end(); iter++) {
+						if (iter != rlst.begin()) {
+							ret += " ";
+						}
+						ret += (*iter)->toString();
+					}
+					ret += ")";
+					return ret;
+				}
 			default:
 				break;
 			}
 			throw "unknown variable type";
+		}
+
+		Var & operator= (const Var & other) {
+			
+			this->symbol = other.symbol;
+			this->str = other.str;
+			this->lst = other.lst;
+			this->bval = other.bval;
+			this->inum = other.inum;
+			this->fnum = other.fnum;
+			this->params = other.params;
+			this->body = other.body;
+			this->procedure = other.procedure;
+			this->file = other.file;
+			this->conscell = other.conscell;
+
+			if (this->type == REF_LIST && other.type == LIST) {
+				std::vector<Var>::const_iterator oi = other.lst.begin();
+				for (std::vector<Var*>::iterator iter = rlst.begin(); iter != rlst.end() && oi != other.lst.end(); iter++, oi++) {
+					*(*iter) = *oi;
+				}
+			} else {
+				this->type = other.type;
+			}
+			return *this;
 		}
 	};
 
