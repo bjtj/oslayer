@@ -17,6 +17,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
 	Utils.hpp \
+	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
 	os.hpp \
 	platform.hpp
@@ -50,6 +51,7 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	ThreadPool.cpp \
 	ThreadPool.hpp \
 	Utils.hpp \
+	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
 	os.cpp \
 	os.hpp \
