@@ -37,6 +37,9 @@ namespace LISP {
         long long num;
     public:
         Integer() : num(0) {}
+		Integer(short num) : num(num) {}
+		Integer(int num) : num(num) {}
+		Integer(long num) : num(num) {}
         Integer(long long num) : num(num) {}
         virtual ~Integer() {}
 

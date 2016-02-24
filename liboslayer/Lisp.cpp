@@ -267,6 +267,19 @@ namespace LISP {
 				Var val = eval(lv[2], env);
 				env[lv[1].getSymbol()] = val;
 				return val;
+			} else if (symbol == "let") {
+				Var ret;
+				vector<Var> & lets = lv[1].getList();
+				Env e(&env);
+				for (vector<Var>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
+					vector<Var> decl = (*iter).getList();
+					string symbol = decl[0].getSymbol();
+					e.local(symbol) = eval(decl[1], env);
+				}
+				for (vector<Var>::iterator iter = lv.begin() + 2; iter != lv.end(); iter++) {
+					ret = eval(*iter, e);
+				}
+				return ret;
 			} else if (symbol == "if") {
 				Var val = eval(lv[1], env);
 				if (!val.nil() && val.getBoolean()) {
@@ -384,12 +397,6 @@ namespace LISP {
 					ret.push_back(func.proc(fargs, env));
 				}
 				
-				// vector<Var> & lst = seq.getList();
-				// for (vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-				// 	vector<Var> fargs;
-				// 	fargs.push_back(*iter);
-				// 	ret.push_back(func.proc(fargs, env));
-				// }
 				return ret;
 			});
 	}
@@ -554,7 +561,25 @@ namespace LISP {
 			});
 	}
 	void builtin_io(Env & env) {
+
+		// TODO: need file descriptor type
+		// env["*standard-output*"] = stdout;
+		// env["*standard-input*"] = stdin;
+		
 		DECL_NATIVE("read", Read, {
+				char buffer[1024];
+				memset(buffer, 0, sizeof(buffer));
+				if (fgets(buffer, sizeof(buffer), stdin)) {
+					buffer[strlen(buffer) - 1] = '\0';
+					string line = Text::trim(string(buffer));
+					if (!line.empty() && !Text::startsWith(line, ";")) {
+						Var tokens = parse(line);
+						return eval(tokens, env);
+					}
+				}
+				return "nil";
+			});
+		DECL_NATIVE("read-line", ReadLine, {
 				char buffer[1024];
 				memset(buffer, 0, sizeof(buffer));
 				if (fgets(buffer, sizeof(buffer), stdin)) {
@@ -625,7 +650,7 @@ namespace LISP {
 				vector<string> lines = Text::split(src, "\n");
 				for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
 					string line = Text::trim(*iter);
-					if (!line.empty() && Text::startsWith(line, ";")) {
+					if (!line.empty() && !Text::startsWith(line, ";")) {
 						Var tokens = parse(line);
 						eval(tokens, env);
 					}
