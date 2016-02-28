@@ -24,7 +24,8 @@ namespace UTIL {
 			close();
 		}
 		virtual void open(File & file) {
-			if (!fopen(file.getPath().c_str(), "rb")) {
+			fd = fopen(file.getPath().c_str(), "rb");
+			if (!fd) {
 				throw IOException("fopen() error", -1, 0);
 			}
 		}
