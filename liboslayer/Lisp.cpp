@@ -315,6 +315,7 @@ namespace LISP {
 				Var var(cons, cell);
 				return var;
 			} else if (symbol == "subseq") {
+				// TODO: fix (subseq (list 1 2 3) 0 1) <-- not working
 				vector<Var> & lst = refeval(lv[1], env).getList();
 				Integer start = eval(lv[2], env).getInteger();
 				Integer end = eval(lv[3], env).getInteger();
@@ -464,6 +465,18 @@ namespace LISP {
 					}
 				}
 				return true;
+			});
+
+		DECL_NATIVE("string-prefix-p", StringPrefixP, {
+				string str = eval(args[0], env).toString();
+				string dst = eval(args[1], env).toString();
+				return Text::startsWith(str, dst);
+			});
+
+		DECL_NATIVE("string-suffix-p", StringSuffixP, {
+				string str = eval(args[0], env).toString();
+				string dst = eval(args[1], env).toString();
+				return Text::endsWith(str, dst);
 			});
 
 		DECL_NATIVE("string-append", StringAppend, {
