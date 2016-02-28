@@ -457,7 +457,7 @@ namespace LISP {
 
 	void builtin_string(Env & env) {
 
-		DECL_NATIVE("eq", LiteralEqual, {
+		DECL_NATIVE("string=", LiteralEqual, {
 				string val = eval(args[0], env).toString();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).toString()) {
