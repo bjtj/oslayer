@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest randomAcessFileTest
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -71,3 +71,10 @@ xmlEncodeDecodeTest_CPPFLAGS=-I$(top_srcdir)
 xmlEncodeDecodeTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 xmlEncodeDecodeTest_LDFLAGS=$(PTHREAD_CFLAGS)
 xmlEncodeDecodeTest_LDADD=../liboslayer/liboslayer.la
+
+randomAcessFileTest_SOURCES=randomAcessFileTest.cpp
+randomAcessFileTest_CPPFLAGS=-I$(top_srcdir)
+randomAcessFileTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+randomAcessFileTest_LDFLAGS=$(PTHREAD_CFLAGS)
+randomAcessFileTest_LDADD=../liboslayer/liboslayer.la
+

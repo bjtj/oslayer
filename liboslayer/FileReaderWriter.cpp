@@ -18,15 +18,16 @@ namespace UTIL {
 		FILE * fd;
 	public:
 		FileReaderImpl(File & file) : FileReader(NULL, file), fd(NULL) {
-			fd = fopen(file.getPath().c_str(), "rb");
-			if (!fd) {
-				throw IOException("fopen() error", -1, 0);
-			}
+			open(file);
 		}
 		virtual ~FileReaderImpl() {
 			close();
 		}
-
+		virtual void open(File & file) {
+			if (!fopen(file.getPath().c_str(), "rb")) {
+				throw IOException("fopen() error", -1, 0);
+			}
+		}
 		virtual size_t read(char * buffer, size_t len) {
 			return fread(buffer, 1, len, fd);
 		}
@@ -45,14 +46,16 @@ namespace UTIL {
 		FILE * fd;
 	public:
 		FileReaderImpl(File & file) : FileReader(NULL, file), fd(NULL) {
-			if (fopen_s(&fd, file.getPath().c_str(), "rb") != 0) {
-				throw IOException("fopen() error", -1, 0);
-			}
+			open(file);
 		}
 		virtual ~FileReaderImpl() {
 			close();
 		}
-
+		virtual void open(File & file) {
+			if (fopen_s(&fd, file.getPath().c_str(), "rb") != 0) {
+				throw IOException("fopen() error", -1, 0);
+			}
+		}
 		virtual size_t read(char * buffer, size_t len) {
 			size_t ret = fread(buffer, 1, len, fd);
 			return ret;
@@ -82,6 +85,11 @@ namespace UTIL {
 		if (impl) {
 			delete impl;
 		}
+	}
+
+	void FileReader::open(File & file) {
+		CHECK_NOT_IMPL_THROW(impl);
+		return impl->open(file);
 	}
 
 	size_t FileReader::read(char * buffer, size_t len) {
@@ -137,15 +145,17 @@ namespace UTIL {
 		FILE * fd;
 	public:
 		FileWriterImpl(File & file) : FileWriter(NULL, file), fd(NULL) {
+			open(file);
+		}
+		virtual ~FileWriterImpl() {
+			close();
+		}
+		virtual void open(OS::File & file) {
 			fd = fopen(file.getPath().c_str(), "wb");
 			if (!fd) {
 				throw IOException("fopen() error", -1, 0);
 			}
 		}
-		virtual ~FileWriterImpl() {
-			close();
-		}
-
 		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
 		}
@@ -164,15 +174,16 @@ namespace UTIL {
 		FILE * fd;
 	public:
 		FileWriterImpl(File & file) : FileWriter(NULL, file), fd(NULL) {
-			errno_t ret = fopen_s(&fd, file.getPath().c_str(), "wb");
-			if (ret != 0) {
-				throw IOException("fopen() error", -1, 0);
-			}
+			open(file);
 		}
 		virtual ~FileWriterImpl() {
 			close();
 		}
-
+		virtual void open(File & file) {
+			if (fopen_s(&fd, file.getPath().c_str(), "wb") != 0) {
+				throw IOException("fopen() error", -1, 0);
+			}
+		}
 		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
 		}
@@ -203,6 +214,11 @@ namespace UTIL {
 		}
 	}
 
+	void FileWriter::open(File & file) {
+		CHECK_NOT_IMPL_THROW(impl);
+		return impl->open(file);
+	}
+
 	size_t FileWriter::write(const char * data, size_t len) {
 		CHECK_NOT_IMPL_THROW(impl);
 		return impl->write(data, len);
@@ -217,4 +233,123 @@ namespace UTIL {
 		return file;
 	}
 
-}
+#if defined(USE_UNIX_STD)
+
+	class RandomAccessFileImpl : public RandomAccessFile {
+	private:
+		FILE * fd;
+	public:
+		RandomAccessFileImpl(File & file) : RandomAccessFile(NULL, file), fd(NULL) {
+			open(file);
+		}
+		virtual ~RandomAccessFileImpl() {
+			close();
+		}
+		virtual void open(OS::File & file) {
+			fd = fopen(file.getPath().c_str(), "wb+");
+			if (!fd) {
+				throw IOException("fopen() error", -1, 0);
+			}
+		}
+		virtual size_t read(char * buffer, size_t len) {
+			return fread(buffer, 1, len, fd);
+		}
+		virtual size_t write(const char * data, size_t len) {
+			return fwrite(data, 1, len, fd);
+		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
+		}
+		virtual void close() {
+			if (fd) {
+				fclose(fd);
+				fd = NULL;
+			}
+		}
+	};
+
+#elif defined(USE_MS_WIN)
+
+	class RandomAccessFileImpl : public RandomAccessFile {
+	private:
+		FILE * fd;
+	public:
+		RandomAccessFileImpl(File & file) : RandomAccessFile(NULL, file), fd(NULL) {
+			open(file);
+		}
+		virtual ~RandomAccessFileImpl() {
+			close();
+		}
+		virtual void open(File & file) {
+			if (fopen_s(&fd, file.getPath().c_str(), "wb+") != 0) {
+				throw IOException("fopen() error", -1, 0);
+			}
+		}
+		virtual size_t read(char * buffer, size_t len) {
+			size_t ret = fread(buffer, 1, len, fd);
+			return ret;
+		}
+		virtual size_t write(const char * data, size_t len) {
+			return fwrite(data, 1, len, fd);
+		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
+		}
+		virtual void close() {
+			if (fd) {
+				fclose(fd);
+				fd = NULL;
+			}
+		}
+	};
+
+#endif
+
+	/**
+	 * @brief FileWriter
+	 */
+
+	RandomAccessFile::RandomAccessFile(RandomAccessFile * impl, File & file) : impl(impl), file(file){
+	}
+	
+	RandomAccessFile::RandomAccessFile(File & file) : file(file) {
+		impl = new RandomAccessFileImpl(file);
+	}
+
+	RandomAccessFile::~RandomAccessFile() {
+		if (impl) {
+			delete impl;
+		}
+	}
+
+	void RandomAccessFile::open(File & file) {
+		CHECK_NOT_IMPL_THROW(impl);
+		return impl->open(file);
+	}
+
+	size_t RandomAccessFile::read(char * buffer, size_t len) {
+		CHECK_NOT_IMPL_THROW(impl);
+		return impl->read(buffer, len);
+	}
+
+	size_t RandomAccessFile::write(const char * data, size_t len) {
+		CHECK_NOT_IMPL_THROW(impl);
+		return impl->write(data, len);
+	}
+
+	void RandomAccessFile::seek(size_t pos) {
+		CHECK_NOT_IMPL_THROW(impl);
+		impl->seek(pos);
+	}
+
+	void RandomAccessFile::close() {
+		CHECK_NOT_IMPL_THROW(impl);
+		impl->close();
+	}
+	
+	File & RandomAccessFile::getFile() {
+		return file;
+	}
+
+
+} // namespace
