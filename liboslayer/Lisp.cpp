@@ -321,7 +321,7 @@ namespace LISP {
 				Integer end = eval(lv[3], env).getInteger();
 				vector<Var*> ret;
 				vector<Var>::iterator iter = lst.begin() + start.getInteger();
-				for (int i = start.getInteger(); i < end.getInteger() && iter != lst.end(); i++, iter++) {
+				for (long long i = start.getInteger(); i < end.getInteger() && iter != lst.end(); i++, iter++) {
 					ret.push_back(&(*iter));
 				}
 				return ret;
