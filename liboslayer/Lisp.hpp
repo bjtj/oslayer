@@ -137,6 +137,43 @@ namespace LISP {
         bool operator!= (const Float & other) const {return num != other.num;}
 	};
 
+	class FileDescriptor {
+	private:
+		FILE * _fd;
+	public:
+		FileDescriptor() : _fd(NULL) {}
+		FileDescriptor(FILE * _fd) : _fd(_fd) {}
+		virtual ~FileDescriptor() {}
+		FILE * fd() {return _fd;}
+		void testFd() {
+			if (!_fd) {
+				throw "nil file descriptor";
+			}
+		}
+		bool eof() {
+			testFd();
+			return feof(_fd) ? true : false;
+		}
+		std::string read() {
+			testFd();
+			char buffer[1024] = {0,};
+			if (fgets(buffer, sizeof(buffer), _fd)) {
+				buffer[strlen(buffer) - 1] = '\0';
+			}
+			return std::string(buffer);
+		}
+		void write(const std::string & data) {
+			testFd();
+			fputs(data.c_str(), _fd);
+		}
+		void close() {
+			if (_fd) {
+				fclose(_fd);
+				_fd = NULL;
+			}
+		}
+	};
+
 
 	/**
 	 * Var
@@ -154,6 +191,7 @@ namespace LISP {
 		const static int FILE = 8;
 		const static int PAIR = 9;
 		const static int REF_LIST = 10;
+		const static int FILE_DESCRIPTOR = 11;
 		
 	private:
 		int type;
@@ -169,6 +207,7 @@ namespace LISP {
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
 		std::vector<Var> conscell;
+		FileDescriptor fd;
 		
 	public:
 		Var() : type(NIL), bval(false) {}
@@ -208,6 +247,7 @@ namespace LISP {
 			conscell.push_back(cell);
 		}
 		Var(std::vector<Var*> rlst) : type(REF_LIST), bval(false), rlst(rlst) {}
+		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd) {}
 		virtual ~Var() {}
 		
 		int getType() { return type; }
@@ -238,6 +278,8 @@ namespace LISP {
 				return "PAIR";
 			case REF_LIST:
 				return "REFERENCE LIST";
+			case FILE_DESCRIPTOR:
+				return "FILE DESCRIPTOR";
 			default:
 				break;
 			}
@@ -260,6 +302,7 @@ namespace LISP {
 		bool isFile() const {return type == FILE;}
 		bool isPair() const {return type == PAIR;}
 		bool isRefList() const {return type == REF_LIST;}
+		bool isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
 		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
 		std::string getString() const {checkTypeThrow(STRING); return str;}
 		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
@@ -273,6 +316,7 @@ namespace LISP {
 		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
 		UTIL::AutoRef<Procedure> getProcedure() {checkTypeThrow(FUNC); return procedure;}
 		std::vector<Var*> & getRefList() {checkTypeThrow(REF_LIST); return rlst;}
+		FileDescriptor & getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
 		virtual Var proc(std::vector<Var> & args, Env & env) {
 			if (!procedure.nil()) {
 				return proc(procedure->getName(), args, env);
@@ -340,6 +384,8 @@ namespace LISP {
 					ret += ")";
 					return ret;
 				}
+			case FILE_DESCRIPTOR:
+				return "#<FD>";
 			default:
 				break;
 			}
@@ -359,6 +405,7 @@ namespace LISP {
 			this->procedure = other.procedure;
 			this->file = other.file;
 			this->conscell = other.conscell;
+			this->fd = other.fd;
 
 			if (this->type == REF_LIST && other.type == LIST) {
 				std::vector<Var>::const_iterator oi = other.lst.begin();

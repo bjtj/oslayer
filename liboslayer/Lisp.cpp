@@ -32,6 +32,32 @@ namespace LISP {
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 
+	class Options {
+	private:
+		map<string, Var> options;
+	public:
+		Options(vector<Var> & args) {
+			for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				if (testVarSymbolStartsWith(*iter, ":")) {
+					string name = iter->getSymbol();
+					Var val;
+					if (iter + 1 != args.end() && !testVarSymbolStartsWith(*(iter + 1), ":")) {
+						iter++;
+						val = *iter;
+					}
+					options[name] = val;
+				}
+			}
+		}
+		virtual ~Options() {}
+		bool testVarSymbolStartsWith(Var & var, const std::string & start) {
+			return (var.isSymbol() && Text::startsWith(var.getSymbol(), start));
+		}
+		bool has(const string & name) {
+			return options.find(name) != options.end();
+		}
+	};
+
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
 		size_t f = 0;
@@ -576,36 +602,59 @@ namespace LISP {
 	void builtin_io(Env & env) {
 
 		// TODO: need file descriptor type
-		// env["*standard-output*"] = stdout;
-		// env["*standard-input*"] = stdin;
+		env["*standard-output*"] = FileDescriptor(stdout);
+		env["*standard-input*"] = FileDescriptor(stdin);
 		
 		DECL_NATIVE("read", Read, {
-				char buffer[1024];
-				memset(buffer, 0, sizeof(buffer));
-				if (fgets(buffer, sizeof(buffer), stdin)) {
-					buffer[strlen(buffer) - 1] = '\0';
-					string line = Text::trim(string(buffer));
-					if (!line.empty() && !Text::startsWith(line, ";")) {
-						Var tokens = parse(line);
-						return eval(tokens, env);
-					}
+				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
+				if (fd.eof()) {
+					return true;
+				}
+				string line = Text::trim(fd.read());
+				if (!line.empty() && !Text::startsWith(line, ";")) {
+					Var tokens = parse(line);
+					return eval(tokens, env);
 				}
 				return "nil";
 			});
 		DECL_NATIVE("read-line", ReadLine, {
-				char buffer[1024];
-				memset(buffer, 0, sizeof(buffer));
-				if (fgets(buffer, sizeof(buffer), stdin)) {
-					buffer[strlen(buffer) - 1] = '\0';
-					return Var(string(buffer));
+				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
+				if (fd.eof()) {
+					return true;
 				}
-				return "nil";
+				string line = fd.read();
+				return text(line);
 			});
 		DECL_NATIVE("print", Print, {
+				FileDescriptor fd = env["*standard-output*"].getFileDescriptor();
+				if (args.size() == 2) {
+					fd = eval(args[1], env).getFileDescriptor();
+				}
 				string msg = eval(args[0], env).toString();
-				fputs(msg.c_str(), stdout);
-				fputs("\n", stdout);
-				return msg;
+				fd.write(msg);
+				fd.write("\n");
+				return text(msg);
+			});
+
+		DECL_NATIVE("write-string", WriteString, {
+				FileDescriptor fd = env["*standard-output*"].getFileDescriptor();
+				if (args.size() == 2) {
+					fd = eval(args[1], env).getFileDescriptor();
+				}
+				string msg = eval(args[0], env).toString();
+				fd.write(msg);
+				return text(msg);
+			});
+
+		DECL_NATIVE("write-line", WriteLine, {
+				FileDescriptor fd = env["*standard-output*"].getFileDescriptor();
+				if (args.size() == 2) {
+					fd = eval(args[1], env).getFileDescriptor();
+				}
+				string msg = eval(args[0], env).toString();
+				fd.write(msg);
+				fd.write("\n");
+				return text(msg);
 			});
 	}
 	void builtin_file(Env & env) {
@@ -648,6 +697,20 @@ namespace LISP {
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
 				return Integer(file.getSize());
+			});
+		DECL_NATIVE("open", Open, {
+				File file = pathname(eval(args[0], env)).getFile();
+				Options opts(args);
+				const char * opt = (opts.has(":create") ? "wb+" : "rb+");
+				FILE * fp = fopen(file.getPath().c_str(), opt);
+				if (fp) {
+					return FileDescriptor(fp);
+				}
+				return "nil";
+			});
+		DECL_NATIVE("close", Close, {
+				eval(args[0], env).getFileDescriptor().close();
+				return "nil";
 			});
 	}
 	void builtin_socket(Env & env) {
