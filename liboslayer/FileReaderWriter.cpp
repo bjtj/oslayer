@@ -240,14 +240,14 @@ namespace UTIL {
 	private:
 		FILE * fd;
 	public:
-		RandomAccessFileImpl(File & file) : RandomAccessFile(NULL, file), fd(NULL) {
-			open(file);
+		RandomAccessFileImpl(File & file, const string & mode) : RandomAccessFile(NULL, file), fd(NULL) {
+			open(file, mode);
 		}
 		virtual ~RandomAccessFileImpl() {
 			close();
 		}
-		virtual void open(OS::File & file) {
-			fd = fopen(file.getPath().c_str(), "wb+");
+		virtual void open(OS::File & file, const string & mode) {
+			fd = fopen(file.getPath().c_str(), mode.c_str());
 			if (!fd) {
 				throw IOException("fopen() error", -1, 0);
 			}
@@ -275,14 +275,14 @@ namespace UTIL {
 	private:
 		FILE * fd;
 	public:
-		RandomAccessFileImpl(File & file) : RandomAccessFile(NULL, file), fd(NULL) {
-			open(file);
+		RandomAccessFileImpl(File & file, const string & mode) : RandomAccessFile(NULL, file), fd(NULL) {
+			open(file, mode);
 		}
 		virtual ~RandomAccessFileImpl() {
 			close();
 		}
-		virtual void open(File & file) {
-			if (fopen_s(&fd, file.getPath().c_str(), "wb+") != 0) {
+		virtual void open(File & file, const string & mode) {
+			if (fopen_s(&fd, file.getPath().c_str(), mode.c_str()) != 0) {
 				throw IOException("fopen() error", -1, 0);
 			}
 		}
@@ -313,8 +313,8 @@ namespace UTIL {
 	RandomAccessFile::RandomAccessFile(RandomAccessFile * impl, File & file) : impl(impl), file(file){
 	}
 	
-	RandomAccessFile::RandomAccessFile(File & file) : file(file) {
-		impl = new RandomAccessFileImpl(file);
+	RandomAccessFile::RandomAccessFile(File & file, const string & mode) : file(file) {
+		impl = new RandomAccessFileImpl(file, mode);
 	}
 
 	RandomAccessFile::~RandomAccessFile() {
@@ -323,9 +323,9 @@ namespace UTIL {
 		}
 	}
 
-	void RandomAccessFile::open(File & file) {
+	void RandomAccessFile::open(File & file, const string & mode) {
 		CHECK_NOT_IMPL_THROW(impl);
-		return impl->open(file);
+		return impl->open(file, mode);
 	}
 
 	size_t RandomAccessFile::read(char * buffer, size_t len) {

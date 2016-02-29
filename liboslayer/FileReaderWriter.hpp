@@ -63,10 +63,10 @@ namespace UTIL {
 	protected:
 		RandomAccessFile(RandomAccessFile * impl, OS::File & file);
 	public:
-		RandomAccessFile(OS::File & file);
+		RandomAccessFile(OS::File & file, const std::string & mode);
 		virtual ~RandomAccessFile();
 
-		virtual void open(OS::File & file);
+		virtual void open(OS::File & file, const std::string & mode);
 		virtual size_t read(char * buffer, size_t len);
 		virtual size_t write(const char * data, size_t len);
 		virtual void seek(size_t pos);

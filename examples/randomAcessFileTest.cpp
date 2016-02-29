@@ -8,7 +8,7 @@ using namespace UTIL;
 int main(int argc, char *args[]) {
 
 	File file("hello.txt");
-	RandomAccessFile rf(file);
+	RandomAccessFile rf(file, "wb+");
 
 	rf.write("hello", 5);
 
