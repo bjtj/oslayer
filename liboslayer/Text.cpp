@@ -304,8 +304,12 @@ namespace UTIL {
 	/**
 	 * @brief to int
 	 */
-	int Text::toInt(string str, int radix) {
+	int Text::toInt(const string & str, int radix) {
 		return (int)strtol(str.c_str(), NULL, radix);
+	}
+
+	long Text::toLong(const string & str, int radix) {
+		return (long)strtol(str.c_str(), NULL, radix);
 	}
 
 	/**
