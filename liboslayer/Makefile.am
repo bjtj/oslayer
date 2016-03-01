@@ -3,6 +3,7 @@ lib_LTLIBRARIES = liboslayer.la
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS=AutoRef.hpp \
 	AutoRelease.hpp \
+	Base64.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	Hash.hpp \
@@ -26,6 +27,8 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 liboslayer_la_SOURCES=AutoRef.cpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
+	Base64.cpp \
+	Base64.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.cpp \

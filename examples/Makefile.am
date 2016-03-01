@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest randomAcessFileTest hashTest
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest randomAcessFileTest hashTest base64Test
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -83,3 +83,9 @@ hashTest_CPPFLAGS=-I$(top_srcdir)
 hashTest_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 hashTest_LDFLAGS=$(PTHREAD_CFLAGS)
 hashTest_LDADD=../liboslayer/liboslayer.la
+
+base64Test_SOURCES=base64Test.cpp
+base64Test_CPPFLAGS=-I$(top_srcdir)
+base64Test_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+base64Test_LDFLAGS=$(PTHREAD_CFLAGS)
+base64Test_LDADD=../liboslayer/liboslayer.la
