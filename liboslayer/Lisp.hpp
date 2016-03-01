@@ -412,6 +412,11 @@ namespace LISP {
 				for (std::vector<Var*>::iterator iter = rlst.begin(); iter != rlst.end() && oi != other.lst.end(); iter++, oi++) {
 					*(*iter) = *oi;
 				}
+			} else if (other.type == REF_LIST) {
+				for (std::vector<Var*>::const_iterator iter = other.rlst.begin(); iter != other.rlst.end(); iter++) {
+					lst.push_back(*(*iter));
+				}
+				this->type = LIST;
 			} else {
 				this->type = other.type;
 			}
