@@ -7,7 +7,6 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	Hash.hpp \
-	Iteration.hpp \
 	Logger.hpp \
 	Lisp.hpp \
 	Measurement.hpp \
@@ -34,8 +33,6 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	FileReaderWriter.cpp \
 	FileReaderWriter.hpp \
 	Hash.hpp \
-	Iteration.cpp \
-	Iteration.hpp \
 	Lisp.cpp \
 	Lisp.hpp \
 	Logger.cpp \
