@@ -41,7 +41,7 @@ namespace LISP {
 				if (testVarSymbolStartsWith(*iter, ":")) {
 					string name = iter->getSymbol();
 					Var val;
-					if (iter + 1 != args.end() && !testVarSymbolStartsWith(*(iter + 1), ":")) {
+					if (iter + 1 != args.end()) {
 						iter++;
 						val = *iter;
 					}
@@ -50,11 +50,15 @@ namespace LISP {
 			}
 		}
 		virtual ~Options() {}
+		
 		bool testVarSymbolStartsWith(Var & var, const std::string & start) {
 			return (var.isSymbol() && Text::startsWith(var.getSymbol(), start));
 		}
 		bool has(const string & name) {
 			return options.find(name) != options.end();
+		}
+		Var & operator[] (const string & name) {
+			return options[name];
 		}
 	};
 
@@ -701,12 +705,15 @@ namespace LISP {
 		DECL_NATIVE("open", Open, {
 				File file = pathname(eval(args[0], env)).getFile();
 				Options opts(args);
-				const char * opt = (opts.has(":create") ? "wb+" : "rb+");
-				FILE * fp = fopen(file.getPath().c_str(), opt);
-				if (fp) {
-					return FileDescriptor(fp);
+				const char * opt = "rb+";
+				if (opts[":if-does-not-exist"].isSymbol() && opts[":if-does-not-exist"].getSymbol() == ":create") {
+					opt = "wb+";
 				}
-				return "nil";
+				FILE * fp = fopen(file.getPath().c_str(), opt);
+				if (!fp) {
+					return "nil"; // or throw exception
+				}
+				return FileDescriptor(fp);
 			});
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
