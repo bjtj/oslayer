@@ -54,5 +54,6 @@ fi
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile
+				 tests/Makefile
 				 oslayer.pc])
 AC_OUTPUT
