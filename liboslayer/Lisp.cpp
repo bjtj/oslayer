@@ -532,6 +532,15 @@ namespace LISP {
 					return text(str);
 				}
 			});
+		
+		DECL_NATIVE("enough-namestring", EnoughNamestring, {
+				string org = eval(args[0], env).toString();
+				string prefix = eval(args[1], env).toString();
+				if (Text::startsWith(org, prefix)) {
+					return text(org.substr(prefix.length()));
+				}
+				return text(org);
+			});
 	}
 	void builtin_artithmetic(Env & env) {
 		DECL_NATIVE("=", ArithmeticEqual, {
