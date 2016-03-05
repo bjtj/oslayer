@@ -24,13 +24,34 @@ static void test_logic() {
 	ASSERT(compile("(or t nil)", env).nil(), ==, false);
 	ASSERT(compile("(or (and t nil) t))", env).nil(), ==, false);
 	ASSERT(compile("(and (or nil t) nil)", env).nil(), ==, true);
-	ASSERT(*compile("(if nil 1 0)", env).getInteger(), ==, 0);
-	ASSERT(*compile("(if t 1 0)", env).getInteger(), ==, 1);
 }
 
 static void test_type() {
 	Var var(false);
 	ASSERT(var.nil(), ==, true);
+}
+
+static void test_scope() {
+	Env env;
+	native(env);
+
+	ASSERT(compile("(let ((ret \"\")) ret)", env).toString(), ==, "");
+	ASSERT(compile("(let ((ret \"\")) (setq ret (list 1 2 3)) (print ret) ret)", env).getTypeString(), ==, "LIST");
+}
+
+static void test_cond() {
+	Env env;
+	native(env);
+
+	ASSERT(*compile("(if nil 1 0)", env).getInteger(), ==, 0);
+	ASSERT(*compile("(if t 1 0)", env).getInteger(), ==, 1);
+	ASSERT(*compile("(when t 1)", env).getInteger(), ==, 1);
+	ASSERT(compile("(when nil 1)", env).nil(), ==, true);
+	ASSERT(compile("(unless t 1)", env).nil(), ==, true);
+	ASSERT(*compile("(unless nil 1)", env).getInteger(), ==, 1);
+	compile("(setq a 5)", env);
+	ASSERT(*compile("(cond ((= a 5) 1) (t \"default\"))", env).getInteger(), ==, 1);
+	ASSERT(compile("(cond ((string= a \"hack\") \"foo\") (t \"default\"))", env).toString(), ==, "default");
 }
 
 static void test_read() {
@@ -117,7 +138,9 @@ int main(int argc, char *args[]) {
 
 	try {
 		test_type();
+		test_scope();
 		test_logic();
+		test_cond();
 		test_read();
 		test_string();
 		test_list();

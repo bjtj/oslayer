@@ -321,6 +321,25 @@ namespace LISP {
 				} else if (lv.size() > 3) {
 					return eval(lv[3], env);
 				}
+			} else if (symbol == "when") {
+				Var test = eval(lv[1], env);
+				if (!test.nil()) {
+					return eval(lv[2], env);
+				}
+			} else if (symbol == "unless") {
+				Var test = eval(lv[1], env);
+				if (test.nil()) {
+					return eval(lv[2], env);
+				}
+				return nil();
+			} else if (symbol == "cond") {
+				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
+					vector<Var> lst = iter->getList();
+					if (!eval(lst[0], env).nil()) {
+						return eval(lst[1], env);
+					}
+				}
+				return nil();
 			} else if (symbol == "progn") {
 				Var ret;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
