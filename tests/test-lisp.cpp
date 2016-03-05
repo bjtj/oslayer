@@ -19,11 +19,21 @@ static void test_read() {
 	Env env;
 	native(env);
 
+	ASSERT(BufferedCommandReader::testComplete("3\n"), ==, 1);
+
 	BufferedCommandReader reader;
 	vector<string> lines;
+	
+	lines.push_back("3");
 	lines.push_back("(+\n");
 	lines.push_back("1 2\n");
 	lines.push_back(") (* 1 3)\n");
+
+	ASSERT(BufferedCommandReader::testComplete(" 3\n"), >, 0);	
+
+	ASSERT(reader.read("3\n"), ==, 1);
+	ASSERT(reader.getCommands().size(), ==, 1);
+	
 	for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
 		if (reader.read(*iter) > 0) {
 			vector<string> & commands = reader.getCommands();

@@ -796,7 +796,21 @@ namespace LISP {
 	size_t BufferedCommandReader::testComplete(const string & text) {
 		size_t brace_count = 0;
 		bool ignore = false;
-		for (size_t i = 0; i < text.size(); i++) {
+		size_t i = text.find_first_not_of(" \t\r\n");
+		if (i == string::npos) {	
+			return 0;
+		}
+
+		if (text[i] != '(') {
+			size_t e = text.find_first_of(" \t\r\n", i);
+			if (e == string::npos) {
+				return text.length();
+			} else {
+				return e;
+			}
+		}
+		
+		for (; i < text.size(); i++) {
 			char ch = text[i];
 			switch (ch) {
 			case '(':

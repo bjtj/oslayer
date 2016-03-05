@@ -474,7 +474,7 @@ namespace LISP {
 
 		void clearCommands();
 		void clearBuffer();
-		size_t testComplete(const std::string & text);
+		static size_t testComplete(const std::string & text);
 		size_t read(const std::string & text);
 		size_t size();
 		std::vector<std::string> & getCommands();
