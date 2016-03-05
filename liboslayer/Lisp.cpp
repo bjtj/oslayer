@@ -763,6 +763,66 @@ namespace LISP {
 			});
 	}
 
+	BufferedCommandReader::BufferedCommandReader() {
+	}
+	BufferedCommandReader::~BufferedCommandReader() {
+	}
+	void BufferedCommandReader::clear() {
+		commands.clear();
+	}
+	size_t BufferedCommandReader::testComplete(const string & text) {
+		size_t brace_count = 0;
+		bool ignore = false;
+		for (size_t i = 0; i < text.size(); i++) {
+			char ch = text[i];
+			switch (ch) {
+			case '(':
+				brace_count++;
+				break;
+			case ')':
+				if (brace_count == 0) {
+					throw "unexpected end of command";
+				}
+				if (brace_count > 0) {
+					brace_count--;
+				}
+				if (brace_count == 0) {
+					return i + 1;
+				}
+				break;
+			case '\\':
+				if (ignore) {
+					i++;
+				}
+				break;
+			case '\"':
+				ignore = !ignore;
+				break;
+			default:
+				break;
+			}
+		}
+		return 0;
+	}
+	size_t BufferedCommandReader::read(const string & text) {
+		size_t c = 0;
+		buffer.append(text);
+		while ((c = testComplete(buffer)) > 0) {
+			commands.push_back(buffer.substr(0, c));
+			buffer = buffer.substr(c);
+		}
+		return commands.size();
+	}
+	size_t BufferedCommandReader::size() {
+		commands.size();
+	}
+	vector<string> & BufferedCommandReader::getCommands() {
+		return commands;
+	}
+	string & BufferedCommandReader::operator[] (size_t idx) {
+		return commands[idx];
+	}
+
 	string printVar(const Var & var) {
 		if (var.isString()) {
 			return var.getString();
@@ -771,12 +831,19 @@ namespace LISP {
 	}
 
 	void repl(Env & env) {
+		BufferedCommandReader reader;
 		char line[1024] = {0,};
 		cout << "> ";
-		if (fgets(line, sizeof(line), stdin)) {
-			line[strlen(line) - 1] = '\0';
-			Var var = parse(line);
-			cout << printVar(eval(var, env)) << endl;
+		while (fgets(line, sizeof(line), stdin)) {
+			if (reader.read(line) > 0) {
+				vector<string> & commands = reader.getCommands();
+				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
+					Var var = parse(*iter);
+					cout << printVar(eval(var, env)) << endl;
+				}
+				reader.clear();
+				return;
+			}
 		}
 	}
 }

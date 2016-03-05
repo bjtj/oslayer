@@ -14,6 +14,29 @@ static Var compile(const string & cmd, Env & env) {
 	return eval(var, env);
 }
 
+static void test_read() {
+
+	Env env;
+	native(env);
+
+	BufferedCommandReader reader;
+	vector<string> lines;
+	lines.push_back("(+\n");
+	lines.push_back("1 2\n");
+	lines.push_back(") (* 1 3)\n");
+	for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
+		if (reader.read(*iter) > 0) {
+			vector<string> & commands = reader.getCommands();
+			for (vector<string>::iterator cmd = commands.begin(); cmd != commands.end(); cmd++) {
+				Var ret = compile(*cmd, env);
+				cout << ret.toString() << endl;
+				ASSERT(*ret.getInteger(), ==, 3);
+			}
+			reader.clear();
+		}
+	}
+}
+
 static void test_string() {
 	Env env;
 	native(env);
@@ -34,6 +57,7 @@ static void test_string() {
 int main(int argc, char *args[]) {
 
 	try {
+		test_read();
 		test_string();
 	} catch (const char * e) {
 		cout << e << endl;

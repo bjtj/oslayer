@@ -458,6 +458,22 @@ namespace LISP {
 		}
 	};
 
+	class BufferedCommandReader {
+	private:
+		std::vector<std::string> commands;
+		std::string buffer;
+	public:
+		BufferedCommandReader();
+		virtual ~BufferedCommandReader();
+
+		void clear();
+		size_t testComplete(const std::string & text);
+		size_t read(const std::string & text);
+		size_t size();
+		std::vector<std::string> & getCommands();
+		std::string & operator[] (size_t idx);
+	};
+
 	extern Var pathname(Var path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
