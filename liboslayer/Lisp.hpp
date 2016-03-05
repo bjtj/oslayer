@@ -218,7 +218,7 @@ namespace LISP {
 			init(token);
 		}
 		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false) {}
-		Var(bool bval) : type(BOOLEAN), bval(bval) { std::cout << (bval ? "true" : "false") << std::endl;}
+		Var(bool bval) : type(BOOLEAN), bval(bval) {}
 		Var(Integer inum) : type(INTEGER), bval(false), inum(inum) {}
 		Var(Float fnum) : type(FLOAT), bval(false), fnum(fnum) {}
 		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), params(params), body(body) {}
