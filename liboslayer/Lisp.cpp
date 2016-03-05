@@ -817,7 +817,7 @@ namespace LISP {
 		return commands.size();
 	}
 	size_t BufferedCommandReader::size() {
-		commands.size();
+		return commands.size();
 	}
 	vector<string> & BufferedCommandReader::getCommands() {
 		return commands;
