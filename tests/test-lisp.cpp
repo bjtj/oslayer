@@ -14,6 +14,23 @@ static Var compile(const string & cmd, Env & env) {
 	return eval(var, env);
 }
 
+static void test_logic() {
+	Env env;
+	native(env);
+	ASSERT(compile("(or 1 1)", env).nil(), ==, false);
+	ASSERT(compile("(and t nil)", env).nil(), ==, true);
+	ASSERT(compile("(or t nil)", env).nil(), ==, false);
+	ASSERT(compile("(or (and t nil) t))", env).nil(), ==, false);
+	ASSERT(compile("(and (or nil t) nil)", env).nil(), ==, true);
+	ASSERT(*compile("(if nil 1 0)", env).getInteger(), ==, 0);
+	ASSERT(*compile("(if t 1 0)", env).getInteger(), ==, 1);
+}
+
+static void test_type() {
+	Var var(false);
+	ASSERT(var.nil(), ==, true);
+}
+
 static void test_read() {
 
 	Env env;
@@ -59,8 +76,8 @@ static void test_string() {
 
 	ASSERT(*compile("1", env).getInteger(), ==, 1);
 
-	ASSERT(compile("(string-prefix-p \".bashrc\" \".\")", env).getBoolean(), ==, true);
-	ASSERT(compile("(string-prefix-p \"bashrc\" \".\")", env).getBoolean(), !=, true);
+	ASSERT(compile("(string-prefix-p \".bashrc\" \".\")", env).nil(), ==, false);
+	ASSERT(compile("(string-prefix-p \"bashrc\" \".\")", env).nil(), ==, true);
 
 	ASSERT(compile("(string-append \"hello\" \" world\")", env).toString(), ==, "hello world");
 
@@ -97,6 +114,8 @@ static void test_algorithm() {
 int main(int argc, char *args[]) {
 
 	try {
+		test_type();
+		test_logic();
 		test_read();
 		test_string();
 		test_list();

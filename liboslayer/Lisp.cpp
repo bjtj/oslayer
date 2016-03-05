@@ -316,7 +316,7 @@ namespace LISP {
 				return ret;
 			} else if (symbol == "if") {
 				Var val = eval(lv[1], env);
-				if (!val.nil() && val.getBoolean()) {
+				if (!val.nil()) {
 					return eval(lv[2], env);
 				} else if (lv.size() > 3) {
 					return eval(lv[3], env);
@@ -478,14 +478,14 @@ namespace LISP {
 	void builtin_logic(Env & env) {
 		DECL_NATIVE("not", Not, {
 				Var var = eval(args[0], env);
-				return (var.nil() ? true : !var.getBoolean());
+				return !var.nil();
 			});
 
 		DECL_NATIVE("or", Or, {
 				Var var;
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
-					if (!var.nil() && (!var.isBoolean() || var.getBoolean() == true)) {
+					if (!var.nil()) {
 						break;
 					}
 				}
@@ -496,7 +496,7 @@ namespace LISP {
 				Var var("t");
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
-					if (var.nil() || (var.isBoolean() && var.getBoolean() == false)) {
+					if (var.nil()) {
 						break;
 					}
 				}
