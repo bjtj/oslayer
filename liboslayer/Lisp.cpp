@@ -478,7 +478,7 @@ namespace LISP {
 	void builtin_logic(Env & env) {
 		DECL_NATIVE("not", Not, {
 				Var var = eval(args[0], env);
-				return !var.nil();
+				return var.nil();
 			});
 
 		DECL_NATIVE("or", Or, {

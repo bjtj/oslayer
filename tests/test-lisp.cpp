@@ -17,6 +17,8 @@ static Var compile(const string & cmd, Env & env) {
 static void test_logic() {
 	Env env;
 	native(env);
+	ASSERT(compile("(not t)", env).nil(), ==, true);
+	ASSERT(compile("(not nil)", env).nil(), ==, false);
 	ASSERT(compile("(or 1 1)", env).nil(), ==, false);
 	ASSERT(compile("(and t nil)", env).nil(), ==, true);
 	ASSERT(compile("(or t nil)", env).nil(), ==, false);
