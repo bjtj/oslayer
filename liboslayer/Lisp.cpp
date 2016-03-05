@@ -308,7 +308,7 @@ namespace LISP {
 				for (vector<Var>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
 					vector<Var> decl = (*iter).getList();
 					string symbol = decl[0].getSymbol();
-					e.local(symbol) = eval(decl[1], env);
+					e.local()[symbol] = eval(decl[1], env);
 				}
 				for (vector<Var>::iterator iter = lv.begin() + 2; iter != lv.end(); iter++) {
 					ret = eval(*iter, e);
@@ -346,15 +346,32 @@ namespace LISP {
 					ret = eval(*iter, env);
 				}
 				return ret;
+			} else if (symbol == "while") {
+				Var pre_test = lv[1];
+				while (!eval(pre_test, env).nil()) {
+					eval(lv[2], env);
+				}
+				return nil();
 			} else if (symbol == "dolist") {
 				Env e(&env);
 				vector<Var> decl = lv[1].getList();
 				string param = decl[0].getSymbol();
 				vector<Var> lst = eval(decl[1], env).getList();
 				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-					e.local(param) = eval(*iter, e);
+					e.local()[param] = eval(*iter, e);
 					eval(lv[2], e);
 				}
+				return nil();
+			} else if (symbol == "dotimes") {
+				Env e(&env);
+				vector<Var> steps = lv[1].getList();
+				string sym = steps[0].getSymbol();
+				Integer limit = eval(steps[1], env).getInteger();
+				e.local()[sym] = Integer(0);
+				for (; e[sym].getInteger() < limit; e[sym] = e[sym].getInteger() + 1) {
+					eval(lv[2], e);
+				}
+				return nil();
 			} else if (symbol == "list") {
 				vector<Var> elts;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
@@ -405,7 +422,7 @@ namespace LISP {
 		vector<Var>::iterator iparams = params.begin();
 		vector<Var>::iterator iargs = args.begin();
 		for (; iparams != params.end() && iargs != args.end(); iparams++, iargs++) {
-			e.local(iparams->getSymbol()) = eval(*iargs, env);
+			e.local()[iparams->getSymbol()] = eval(*iargs, env);
 		}
 		Var var = getBody();
 		return eval(var, e);

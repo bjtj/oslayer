@@ -54,6 +54,16 @@ static void test_cond() {
 	ASSERT(compile("(cond ((string= a \"hack\") \"foo\") (t \"default\"))", env).toString(), ==, "default");
 }
 
+static void test_loop() {
+	Env env;
+	native(env);
+
+	compile("(setq num 0)", env);
+	ASSERT(compile("(while (< num 4) (progn (print num) (setq num (+ num 1)))))", env).nil(), ==, true);
+	ASSERT(compile("(dolist (x (list 1 2 3)) (print x))", env).nil(), ==, true);
+	ASSERT(compile("(dotimes (i 10) (print i))", env).nil(), ==, true);
+}
+
 static void test_read() {
 
 	Env env;
@@ -110,10 +120,17 @@ static void test_string() {
 static void test_arithmetic() {
 	Env env;
 	native(env);
-	ASSERT(compile("(= 1 1)", env).nil(), ==, false);
-	ASSERT(compile("(= 2 1)", env).nil(), ==, true);
-	ASSERT(compile("(= 3 1)", env).nil(), ==, true);
-	ASSERT(compile("(= 4 1)", env).nil(), ==, true);
+	ASSERT(!compile("(= 1 1)", env).nil(), ==, true);
+	ASSERT(!compile("(= 2 1)", env).nil(), ==, false);
+	ASSERT(!compile("(= 1 2)", env).nil(), ==, false);
+	ASSERT(!compile("(< 1 4)", env).nil(), ==, true);
+	ASSERT(!compile("(> 1 4)", env).nil(), ==, false);
+	ASSERT(!compile("(<= 1 1)", env).nil(), ==, true);
+	ASSERT(!compile("(<= 1 4)", env).nil(), ==, true);
+	ASSERT(!compile("(<= 4 1)", env).nil(), ==, false);
+	ASSERT(!compile("(>= 1 1)", env).nil(), ==, true);
+	ASSERT(!compile("(>= 1 4)", env).nil(), ==, false);
+	ASSERT(!compile("(>= 4 1)", env).nil(), ==, true);
 }
 
 static void test_list() {
@@ -141,6 +158,7 @@ int main(int argc, char *args[]) {
 		test_scope();
 		test_logic();
 		test_cond();
+		test_loop();
 		test_read();
 		test_string();
 		test_list();

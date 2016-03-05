@@ -449,8 +449,8 @@ namespace LISP {
 			}
 			return _vars[name];
 		}
-		Var & local(const std::string & name) {
-			return _vars[name];
+		std::map<std::string, Var> & local() {
+			return _vars;
 		}
 		void quit(bool q) {
 			_quit = q;
