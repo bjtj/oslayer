@@ -32,7 +32,7 @@ static void test_read() {
 				cout << ret.toString() << endl;
 				ASSERT(*ret.getInteger(), ==, 3);
 			}
-			reader.clear();
+			reader.clearCommands();
 		}
 	}
 }

@@ -767,8 +767,11 @@ namespace LISP {
 	}
 	BufferedCommandReader::~BufferedCommandReader() {
 	}
-	void BufferedCommandReader::clear() {
+	void BufferedCommandReader::clearCommands() {
 		commands.clear();
+	}
+	void BufferedCommandReader::clearBuffer() {
+		buffer = "";
 	}
 	size_t BufferedCommandReader::testComplete(const string & text) {
 		size_t brace_count = 0;
@@ -841,7 +844,7 @@ namespace LISP {
 					Var var = parse(*iter);
 					cout << printVar(eval(var, env)) << endl;
 				}
-				reader.clear();
+				reader.clearCommands();
 				return;
 			}
 		}
