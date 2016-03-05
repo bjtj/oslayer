@@ -132,21 +132,23 @@ namespace UTIL {
 	 */
 	class NameProperty {
 	private:
-		std::string name;
-		std::string value;
+		std::string _name;
+		std::string _value;
 		LinkedStringMap properties;
 
 	public:
 		NameProperty() {}
-		NameProperty(const std::string & name) : name(name) {}
-		NameProperty(const std::string & name, const std::string & value) : name(name), value(value) {}
+		NameProperty(const std::string & name) : _name(name) {}
+		NameProperty(const std::string & name, const std::string & value) : _name(name), _value(value) {}
 		virtual ~NameProperty() {}
-		void setName(const std::string & name) {this->name = name;}
-		void setValue(const std::string & value) {this->value = value;}
-		std::string & getName() {return name;}
-		std::string & getValue() {return value;}
-		const std::string & getName() const {return name;}
-		const std::string & getValue() const {return value;}
+		void setName(const std::string & name) {this->_name = name;}
+		void setValue(const std::string & value) {this->_value = value;}
+		std::string & name() {return _name;}
+		std::string & value() {return _value;}
+		std::string & getName() {return _name;}
+		std::string & getValue() {return _value;}
+		const std::string & getName() const {return _name;}
+		const std::string & getValue() const {return _value;}
 		LinkedStringMap & getProperties() {return properties;}
 		const LinkedStringMap & getProperties() const {return properties;}
 		std::string & getProperty(const std::string & name) {return properties[name];}
@@ -154,10 +156,10 @@ namespace UTIL {
 		void setProperty(const std::string & name, const std::string & value) {properties[name] = value;}
 		std::string & operator[] (const std::string & name) {return properties[name];}
 		bool operator==(const std::string & name) const {
-			return (!this->name.compare(name) ? true : false);
+			return (!this->_name.compare(name) ? true : false);
 		}
 		void operator=(const std::string & value) {
-			this->value = value;
+			this->_value = value;
 		}
 	};
 

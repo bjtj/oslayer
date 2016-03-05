@@ -211,7 +211,29 @@ namespace LISP {
 		
 	public:
 		Var() : type(NIL), bval(false) {}
-		Var(std::string token) : type(NIL) {
+		Var(const char * token) : type(NIL) {
+			init(std::string(token));
+		}
+		Var(const std::string & token) : type(NIL) {
+			init(token);
+		}
+		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false) {}
+		Var(bool bval) : type(BOOLEAN), bval(bval) { std::cout << (bval ? "true" : "false") << std::endl;}
+		Var(Integer inum) : type(INTEGER), bval(false), inum(inum) {}
+		Var(Float fnum) : type(FLOAT), bval(false), fnum(fnum) {}
+		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), params(params), body(body) {}
+		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), procedure(procedure) {}
+		Var(OS::File & file) : type(FILE), bval(false), file(file) {}
+		Var(Var cons, Var cell) : type(PAIR), bval(false) {
+			conscell.clear();
+			conscell.push_back(cons);
+			conscell.push_back(cell);
+		}
+		Var(std::vector<Var*> rlst) : type(REF_LIST), bval(false), rlst(rlst) {}
+		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd) {}
+		virtual ~Var() {}
+
+		void init(const std::string & token) {
 			if (token == "nil") {
 				type = NIL;
 			} else if (token == "t") {
@@ -234,22 +256,6 @@ namespace LISP {
 				symbol = token;
 			}
 		}
-		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false) {}
-		Var(bool bval) : type(BOOLEAN), bval(bval) {}
-		Var(Integer inum) : type(INTEGER), bval(false), inum(inum) {}
-		Var(Float fnum) : type(FLOAT), bval(false), fnum(fnum) {}
-		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), params(params), body(body) {}
-		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), procedure(procedure) {}
-		Var(OS::File & file) : type(FILE), bval(false), file(file) {}
-		Var(Var cons, Var cell) : type(PAIR), bval(false) {
-			conscell.clear();
-			conscell.push_back(cons);
-			conscell.push_back(cell);
-		}
-		Var(std::vector<Var*> rlst) : type(REF_LIST), bval(false), rlst(rlst) {}
-		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd) {}
-		virtual ~Var() {}
-		
 		int getType() { return type; }
 		std::string getTypeString() const {
 			return getTypeString(type);

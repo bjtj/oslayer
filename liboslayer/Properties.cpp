@@ -65,13 +65,11 @@ namespace UTIL {
 	bool Properties::isMeaningfulLine(const std::string & line) {
 
 		string ltrim = Text::ltrim(line);
-		if (ltrim.empty()) {
-			// empty line
+		if (ltrim.empty()) { // ignore empty string
 			return false;
 		}
 
-		if (Text::startsWith(ltrim, "#")) {
-			// comment line
+		if (Text::startsWith(ltrim, "#")) { // ignore comment
 			return false;
 		}
 
@@ -121,4 +119,11 @@ namespace UTIL {
 		return properties.get(name).getValue();
 	}
 
+	map<string, string> Properties::toStandardMap() {
+		map<string, string> ret;
+		for (size_t i = 0; i < properties.size(); i++) {
+			ret[properties[i].name()] = properties[i].value();
+		}
+		return ret;
+	}
 }

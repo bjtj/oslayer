@@ -29,7 +29,6 @@ static void test_read() {
 			vector<string> & commands = reader.getCommands();
 			for (vector<string>::iterator cmd = commands.begin(); cmd != commands.end(); cmd++) {
 				Var ret = compile(*cmd, env);
-				cout << ret.toString() << endl;
 				ASSERT(*ret.getInteger(), ==, 3);
 			}
 			reader.clearCommands();
@@ -52,6 +51,37 @@ static void test_string() {
 
 	ASSERT(compile("(string-prefix-p \".bashrc\" \".\")", env).getBoolean(), ==, true);
 	ASSERT(compile("(string-prefix-p \"bashrc\" \".\")", env).getBoolean(), !=, true);
+
+	ASSERT(compile("(string-append \"hello\" \" world\")", env).toString(), ==, "hello world");
+
+	ASSERT(*compile("(string-length \"hello world\")", env).getInteger(), ==, strlen("hello world"));
+}
+
+static void test_arithmetic() {
+	Env env;
+	native(env);
+	ASSERT(compile("(= 1 1)", env).nil(), ==, false);
+	ASSERT(compile("(= 2 1)", env).nil(), ==, true);
+	ASSERT(compile("(= 3 1)", env).nil(), ==, true);
+	ASSERT(compile("(= 4 1)", env).nil(), ==, true);
+}
+
+static void test_list() {
+
+	Env env;
+	native(env);
+	ASSERT(compile("(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))", env).getList().size(), ==, 2);
+}
+
+static void test_algorithm() {
+	Env env;
+	native(env);
+	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[0].getInteger(),
+		   ==, 2);
+	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[1].getInteger(),
+		   ==, 3);
+	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[2].getInteger(),
+		   ==, 4);
 }
 
 int main(int argc, char *args[]) {
@@ -59,6 +89,9 @@ int main(int argc, char *args[]) {
 	try {
 		test_read();
 		test_string();
+		test_list();
+		test_arithmetic();
+		test_algorithm();
 	} catch (const char * e) {
 		cout << e << endl;
 		exit(1);

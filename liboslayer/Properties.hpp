@@ -37,7 +37,7 @@ namespace UTIL {
 		void setProperty(const std::string & name, int value);
 		std::vector<std::string> getPropertyNames();
 		std::string & operator[] (const std::string & name);
-
+		std::map<std::string, std::string> toStandardMap();
 	};
 
 }

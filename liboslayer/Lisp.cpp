@@ -62,6 +62,10 @@ namespace LISP {
 		}
 	};
 
+	static Var nil() {
+		return Var("nil");
+	}
+
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
 		size_t f = 0;
@@ -423,7 +427,7 @@ namespace LISP {
 					vector<Var> fargs;
 					for (vector<vector<Var> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
 						vector<Var> & lst = (*iter);
-						fargs.push_back((i < lst.size() ? lst[i] : "nil"));
+						fargs.push_back((i < lst.size() ? lst[i] : nil()));
 					}
 					ret.push_back(func.proc(fargs, env));
 				}
@@ -447,6 +451,21 @@ namespace LISP {
 				vector<Var> lst = eval(args[1], env).getList();
 				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
 					if (val.toString() == iter->toString()) {
+						iter = lst.erase(iter);
+					} else {
+						iter++;
+					}
+				}
+				return lst;
+			});
+
+		DECL_NATIVE("remove-if", RemoveIf, {
+				Var func = eval(args[0], env);
+				vector<Var> lst = eval(args[1], env).getList();
+				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
+					vector<Var> fargs;
+					fargs.push_back(*iter);
+					if (!func.proc(fargs, env).nil()) {
 						iter = lst.erase(iter);
 					} else {
 						iter++;
@@ -491,7 +510,7 @@ namespace LISP {
 				string val = eval(args[0], env).toString();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).toString()) {
-						return false;
+						return nil();
 					}
 				}
 				return true;
@@ -509,15 +528,16 @@ namespace LISP {
 				return Text::endsWith(str, dst);
 			});
 
+		DECL_NATIVE("string-length", StringLength, {
+				return Integer((long long)eval(args[0], env).toString().length());
+			});
+
 		DECL_NATIVE("string-append", StringAppend, {
-				string sym = args[0].getSymbol();
-				Var val = eval(args[0], env);
-				string str = val.nil() ? "" : val.toString();
-				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					str += eval(*iter, env).toString();
+				string ret;
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+					ret.append(eval(*iter, env).toString());
 				}
-				env[sym] = str;
-				return env[sym];
+				return text(ret);
 			});
 
 		DECL_NATIVE("format", Format, {
@@ -547,7 +567,7 @@ namespace LISP {
 				Integer val = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).getInteger()) {
-						return false;
+						return nil();
 					}
 				}
 				return true;
@@ -628,7 +648,7 @@ namespace LISP {
 					Var tokens = parse(line);
 					return eval(tokens, env);
 				}
-				return "nil";
+				return nil();
 			});
 		DECL_NATIVE("read-line", ReadLine, {
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
@@ -720,13 +740,13 @@ namespace LISP {
 				}
 				FILE * fp = fopen(file.getPath().c_str(), opt);
 				if (!fp) {
-					return "nil"; // or throw exception
+					return nil(); // or throw exception
 				}
 				return FileDescriptor(fp);
 			});
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
-				return "nil";
+				return nil();
 			});
 	}
 	void builtin_socket(Env & env) {
