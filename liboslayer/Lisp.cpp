@@ -490,6 +490,34 @@ namespace LISP {
 				Var cell = eval(lv[2], env);
 				Var var(cons, cell);
 				return var;
+			} else if (symbol == "car") {
+				vector<Var> & lst = eval(lv[1], env).getList();
+				if (lst.size() > 0) {
+					return lst[0];
+				}
+				return nil();
+			} else if (symbol == "cdr") {
+				vector<Var> & lst = eval(lv[1], env).getList();
+				if (lst.size() > 1) {
+					vector<Var> rest = vector<Var>(lst.begin() + 1, lst.end());
+					return Var(rest);
+				}
+				return nil();
+			} else if (symbol == "nth") {
+				int idx = (int)(*eval(lv[1], env).getInteger());
+				vector<Var> & lst = eval(lv[2], env).getList();
+				if (idx < lst.size()) {
+					return lst[idx];
+				}
+				return nil();
+			} else if (symbol == "nthcdr") {
+				int idx = (int)(*eval(lv[1], env).getInteger());
+				vector<Var> & lst = eval(lv[2], env).getList();
+				if (idx < lst.size()) {
+					vector<Var> rest(lst.begin() + idx, lst.end());
+					return Var(rest);
+				}
+				return nil();
 			} else if (symbol == "subseq") {
 				// TODO: fix (subseq (list 1 2 3) 0 1) <-- not working
 				vector<Var> & lst = refeval(lv[1], env).getList();

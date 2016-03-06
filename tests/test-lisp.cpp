@@ -245,6 +245,24 @@ static void test_list() {
 	Env env;
 	native(env);
 	ASSERT(compile("(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))", env).getList().size(), ==, 2);
+	ASSERT(*compile("(car (list 1 2 3))", env).getInteger(), ==, 1);
+	ASSERT(compile("(cdr (list 1 2 3))", env).getList().size(), ==, 2);
+	ASSERT(*compile("(cdr (list 1 2 3))", env).getList()[0].getInteger(), ==, 2);
+	ASSERT(*compile("(cdr (list 1 2 3))", env).getList()[1].getInteger(), ==, 3);
+	ASSERT(*compile("(nth 0 (list 1 2 3))", env).getInteger(), ==, 1);
+	ASSERT(*compile("(nth 1 (list 1 2 3))", env).getInteger(), ==, 2);
+	ASSERT(*compile("(nth 2 (list 1 2 3))", env).getInteger(), ==, 3);
+	ASSERT(compile("(nth 10 (list 1 2 3))", env).nil(), ==, true);
+	ASSERT(compile("(nthcdr 0 (list 1 2 3))", env).getList().size(), ==, 3);
+	ASSERT(*compile("(nthcdr 0 (list 1 2 3))", env).getList()[0].getInteger(), ==, 1);
+	ASSERT(*compile("(nthcdr 0 (list 1 2 3))", env).getList()[1].getInteger(), ==, 2);
+	ASSERT(*compile("(nthcdr 0 (list 1 2 3))", env).getList()[2].getInteger(), ==, 3);
+	ASSERT(compile("(nthcdr 1 (list 1 2 3))", env).getList().size(), ==, 2);
+	ASSERT(*compile("(nthcdr 1 (list 1 2 3))", env).getList()[0].getInteger(), ==, 2);
+	ASSERT(*compile("(nthcdr 1 (list 1 2 3))", env).getList()[1].getInteger(), ==, 3);
+	ASSERT(compile("(nthcdr 2 (list 1 2 3))", env).getList().size(), ==, 1);
+	ASSERT(*compile("(nthcdr 2 (list 1 2 3))", env).getList()[0].getInteger(), ==, 3);
+	ASSERT(compile("(nthcdr 10 (list 1 2 3))", env).nil(), ==, true);
 }
 
 static void test_algorithm() {
