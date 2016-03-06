@@ -67,7 +67,8 @@ namespace LISP {
 		size_t ai = 0;
 		size_t i = 0;
 		for (; i < ec; i++, ai++) {
-			scope[proto[i].getSymbol()] = eval(args[ai], env);
+			Var val = eval(args[ai], env);
+			scope[proto[i].getSymbol()] = val;
 		}
 
 		if (i >= proto.size()) {
@@ -88,7 +89,8 @@ namespace LISP {
 			if (i + 1 >= proto.size()) {
 				throw "Wrong function declaration";
 			}
-			scope[proto[i + 1].getSymbol()] = extractRest(env, args, ai);
+			Var val = extractRest(env, args, ai);
+			scope[proto[i + 1].getSymbol()] = val;
 		}
 
 		keywords = extractKeywords(args);
@@ -114,7 +116,8 @@ namespace LISP {
 			}
 
 			if (j < args.size()) {
-				scope[sym] = eval(args[j], env);
+				Var val = eval(args[j], env);
+				scope[sym] = val;
 			}
 		}
 		return i - pstart;
