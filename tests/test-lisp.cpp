@@ -24,7 +24,7 @@ static void test_func() {
 	Arguments args(proto.getList());
 	Var input = parse("(1 2 3)");
 
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
@@ -36,7 +36,7 @@ static void test_func() {
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3)");
 	
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
@@ -49,7 +49,7 @@ static void test_func() {
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3 4)");
 
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
@@ -62,7 +62,7 @@ static void test_func() {
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3 4)");
 
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
@@ -76,7 +76,7 @@ static void test_func() {
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3 4 5 6 7)");
 
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
@@ -93,7 +93,7 @@ static void test_func() {
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3 4 5 6 7)");
 
-	args.mapArguments(env.local(), input.getList());
+	args.mapArguments(env, env.local(), input.getList());
 	ASSERT(*env["x"].getInteger(), ==, 1);
 	ASSERT(env["y"].getList().size(), ==, 6);
 	ASSERT(*env["y"].getList()[0].getInteger(), ==, 2);
@@ -119,6 +119,13 @@ static void test_func() {
 	ASSERT(*compile("(hello 1 2 3 t)", env).getInteger(), ==, 6);
 	compile("(defun hello (a &optional b &rest c) (list a b c))", env);
 	ASSERT(compile("(hello 1 2 3 4 5)", env).getList().size(), ==, 3);
+
+	//
+	env = Env();
+	native(env);
+	compile("(setq str \"\")", env);
+	compile("(defun wr (x) (setq str x))", env);
+	compile("(dolist (x (list 1 2 3)) (wr x))", env);
 }
 
 static void test_logic() {

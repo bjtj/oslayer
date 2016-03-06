@@ -59,7 +59,7 @@ namespace LISP {
 		}
 		return cnt;
 	}
-	void Arguments::mapArguments(map<string, Var> & scope, vector<Var> & args) {
+	void Arguments::mapArguments(Env & env, map<string, Var> & scope, vector<Var> & args) {
 
 		size_t ec = countPartArguments(proto, 0);
 		testArgumentCount(args, ec);
@@ -67,7 +67,7 @@ namespace LISP {
 		size_t ai = 0;
 		size_t i = 0;
 		for (; i < ec; i++, ai++) {
-			scope[proto[i].getSymbol()] = args[ai];
+			scope[proto[i].getSymbol()] = eval(args[ai], env);
 		}
 
 		if (i >= proto.size()) {
@@ -75,7 +75,7 @@ namespace LISP {
 		}
 
 		if (proto[i].getSymbol() == "&optional") {
-			size_t offset = mapOptionals(scope, proto, ++i, args, ai);
+			size_t offset = mapOptionals(env, scope, proto, ++i, args, ai);
 			i += offset;
 			ai += offset;
 		}
@@ -88,12 +88,12 @@ namespace LISP {
 			if (i + 1 >= proto.size()) {
 				throw "Wrong function declaration";
 			}
-			scope[proto[i + 1].getSymbol()] = extractRest(args, ai);
+			scope[proto[i + 1].getSymbol()] = extractRest(env, args, ai);
 		}
 
 		keywords = extractKeywords(args);
 	}
-	size_t Arguments::mapOptionals(map<string, Var> & scope, vector<Var> & proto, size_t pstart, vector<Var> & args, size_t astart) {
+	size_t Arguments::mapOptionals(Env & env, map<string, Var> & scope, vector<Var> & proto, size_t pstart, vector<Var> & args, size_t astart) {
 		size_t i = pstart;
 		size_t j = astart;
 		for (; i < proto.size(); i++, j++) {
@@ -114,15 +114,15 @@ namespace LISP {
 			}
 
 			if (j < args.size()) {
-				scope[sym] = args[j];
+				scope[sym] = eval(args[j], env);
 			}
 		}
 		return i - pstart;
 	}
-	vector<Var> Arguments::extractRest(vector<Var> & args, size_t start) {
+	vector<Var> Arguments::extractRest(Env & env, vector<Var> & args, size_t start) {
 		vector<Var> rest;
 		for (size_t i = start; i < args.size(); i++) {
-			rest.push_back(args[i]);
+			rest.push_back(eval(args[i], env));
 		}
 		return rest;
 	}
@@ -554,7 +554,7 @@ namespace LISP {
 		Env e(&env);
 		vector<Var> proto = getParams().getList();
 		Arguments binder(proto);
-		binder.mapArguments(e.local(), args);
+		binder.mapArguments(e, e.local(), args);
 		Var body = getBody();
 		return eval(body, e);
 	}

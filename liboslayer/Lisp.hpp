@@ -513,9 +513,9 @@ namespace LISP {
 		virtual ~Arguments();
 
 		size_t countPartArguments(std::vector<Var> & arr, size_t start);
-		void mapArguments(std::map<std::string, Var> & scope, std::vector<Var> & args);
-		size_t mapOptionals(std::map<std::string, Var> & scope, std::vector<Var> & proto, size_t pstart, std::vector<Var> & args, size_t astart);
-		std::vector<Var> extractRest(std::vector<Var> & args, size_t start);
+		void mapArguments(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & args);
+		size_t mapOptionals(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & proto, size_t pstart, std::vector<Var> & args, size_t astart);
+		std::vector<Var> extractRest(Env & env, std::vector<Var> & args, size_t start);
 		std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
 	};
 
