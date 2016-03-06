@@ -154,7 +154,7 @@ namespace LISP {
 			testFd();
 			return feof(_fd) ? true : false;
 		}
-		std::string read() {
+		std::string readline() {
 			testFd();
 			char buffer[1024] = {0,};
 			if (fgets(buffer, sizeof(buffer), _fd)) {

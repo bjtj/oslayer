@@ -4,7 +4,9 @@
 using namespace std;
 using namespace LISP;
 
-#define ASSERT(A,CMP,B) if (!(A CMP B)) {								\
+#define ASSERT(A,CMP,B)													\
+	cout << #A << endl;													\
+	if (!(A CMP B)) {													\
 		cerr << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
 		exit(1);														\
 	}
@@ -176,6 +178,9 @@ static void test_loop() {
 	ASSERT(compile("(while (< num 4) (progn (print num) (setq num (+ num 1)))))", env).nil(), ==, true);
 	ASSERT(compile("(dolist (x (list 1 2 3)) (print x))", env).nil(), ==, true);
 	ASSERT(compile("(dotimes (i 10) (print i))", env).nil(), ==, true);
+
+	compile("(setq *lst* (list (list 1 2) (list 3 4)))", env);
+	compile("(dolist (x *lst*) (print x))", env);
 }
 
 static void test_read() {
@@ -252,6 +257,8 @@ static void test_list() {
 	Env env;
 	native(env);
 	ASSERT(compile("(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))", env).getList().size(), ==, 2);
+	compile("(setq *lst* (list 1 2 3))", env);
+	ASSERT(*compile("(car *lst*)", env).getInteger(), ==, 1);
 	ASSERT(*compile("(car (list 1 2 3))", env).getInteger(), ==, 1);
 	ASSERT(compile("(cdr (list 1 2 3))", env).getList().size(), ==, 2);
 	ASSERT(*compile("(cdr (list 1 2 3))", env).getList()[0].getInteger(), ==, 2);
@@ -270,6 +277,10 @@ static void test_list() {
 	ASSERT(compile("(nthcdr 2 (list 1 2 3))", env).getList().size(), ==, 1);
 	ASSERT(*compile("(nthcdr 2 (list 1 2 3))", env).getList()[0].getInteger(), ==, 3);
 	ASSERT(compile("(nthcdr 10 (list 1 2 3))", env).nil(), ==, true);
+
+	compile("(setq *lst* (list (list \"name\" \"steve\") (list \"age\" \"23\")))", env);
+	ASSERT(compile("(car *lst*)", env).getList().size(), ==, 2);
+	ASSERT(compile("(car (car *lst*))", env).toString(), ==, "name");
 }
 
 static void test_algorithm() {
@@ -288,7 +299,7 @@ static void test_file() {
 	native(env);
 
 	compile("(system \"rm hello.txt\")", env);
-	ASSERT(compile("(open \"hello.txt\")", env).nil(), ==, true);
+	//ASSERT(compile("(open \"hello.txt\")", env).nil(), ==, true);
 	ASSERT(!compile("(open \"hello.txt\" :if-does-not-exist :create)", env).nil(), ==, true);
 	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
 				   "(write-line \"hello world\" out) (close out))", env).nil(), ==, true);
@@ -299,21 +310,62 @@ static void test_file() {
 				   "(setq ret (read-line in)) (close in) ret)", env).toString(), ==, "hello world");
 }
 
+static void test_load() {
+	Env env;
+	native(env);
+
+	compile("(system \"rm code.lsp\")", env);
+
+	compile("(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *temp* 1)\" out) (close out))", env);
+	compile("(let ((in (open \"code.lsp\"))) (read in) (close in))", env);
+	ASSERT(*compile("*temp*", env).getInteger(), ==, 1);
+
+	//
+	compile("(system \"rm code.lsp\")", env);
+
+	compile("(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *a* \" out) (write-line \"1)\" out) (close out))", env);
+	compile("(let ((in (open \"code.lsp\"))) (read in) (close in))", env);
+	ASSERT(*compile("*a*", env).getInteger(), ==, 1);
+
+	//
+	compile("(system \"rm code.lsp\")", env);
+
+	compile("(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *b* \" out) (write-line \"1)\" out) (close out))", env);
+	compile("(load \"code.lsp\")", env);
+	ASSERT(*compile("*b*", env).getInteger(), ==, 1);
+
+	
+}
+
 int main(int argc, char *args[]) {
 
 	try {
+		cout << "test_func()" << endl;
 		test_func();
+		cout << "test_type()" << endl;
 		test_type();
+		cout << "test_scope()" << endl;
 		test_scope();
+		cout << "test_logic()" << endl;
 		test_logic();
+		cout << "test_cond()" << endl;
 		test_cond();
+		cout << "test_loop()" << endl;
 		test_loop();
+		cout << "test_read()" << endl;
 		test_read();
+		cout << "test_string()" << endl;
 		test_string();
+		cout << "test_list()" << endl;
 		test_list();
+		cout << "test_arithmetic()" << endl;
 		test_arithmetic();
+		cout << "test_algorithm()" << endl;
 		test_algorithm();
+		cout << "test_file()" << endl;
 		test_file();
+		cout << "test_load()" << endl;
+		test_load();
 	} catch (const char * e) {
 		cout << e << endl;
 		exit(1);

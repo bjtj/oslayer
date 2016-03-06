@@ -464,7 +464,7 @@ namespace LISP {
 				string param = decl[0].getSymbol();
 				vector<Var> lst = eval(decl[1], env).getList();
 				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-					e.local()[param] = eval(*iter, e);
+					e.local()[param] = *iter;
 					eval(lv[2], e);
 				}
 				return nil();
@@ -491,28 +491,28 @@ namespace LISP {
 				Var var(cons, cell);
 				return var;
 			} else if (symbol == "car") {
-				vector<Var> & lst = eval(lv[1], env).getList();
+				vector<Var> lst = eval(lv[1], env).getList();
 				if (lst.size() > 0) {
 					return lst[0];
 				}
 				return nil();
 			} else if (symbol == "cdr") {
-				vector<Var> & lst = eval(lv[1], env).getList();
+				vector<Var> lst = eval(lv[1], env).getList();
 				if (lst.size() > 1) {
 					vector<Var> rest = vector<Var>(lst.begin() + 1, lst.end());
 					return Var(rest);
 				}
 				return nil();
 			} else if (symbol == "nth") {
-				int idx = (int)(*eval(lv[1], env).getInteger());
-				vector<Var> & lst = eval(lv[2], env).getList();
+				int idx = (int)(*(eval(lv[1], env).getInteger()));
+				vector<Var> lst = eval(lv[2], env).getList();
 				if (idx < lst.size()) {
 					return lst[idx];
 				}
 				return nil();
 			} else if (symbol == "nthcdr") {
 				int idx = (int)(*eval(lv[1], env).getInteger());
-				vector<Var> & lst = eval(lv[2], env).getList();
+				vector<Var> lst = eval(lv[2], env).getList();
 				if (idx < lst.size()) {
 					vector<Var> rest(lst.begin() + idx, lst.end());
 					return Var(rest);
@@ -806,23 +806,27 @@ namespace LISP {
 		env["*standard-input*"] = FileDescriptor(stdin);
 		
 		DECL_NATIVE("read", Read, {
+				Var ret;
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
 					return true;
 				}
-				string line = Text::trim(fd.read());
-				if (!line.empty() && !Text::startsWith(line, ";")) {
-					Var tokens = parse(line);
-					return eval(tokens, env);
+				BufferedCommandReader reader;
+				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
+
+				vector<string> commands = reader.getCommands();
+				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
+					Var tokens = parse(*iter);
+					ret = eval(tokens, env);
 				}
-				return nil();
+				return ret;
 			});
 		DECL_NATIVE("read-line", ReadLine, {
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
 					return true;
 				}
-				string line = fd.read();
+				string line = fd.readline();
 				return text(line);
 			});
 		DECL_NATIVE("print", Print, {
@@ -907,7 +911,7 @@ namespace LISP {
 				}
 				FILE * fp = fopen(file.getPath().c_str(), opt);
 				if (!fp) {
-					return nil(); // or throw exception
+					throw "Cannot open file";
 				}
 				return FileDescriptor(fp);
 			});
@@ -924,14 +928,17 @@ namespace LISP {
 			});
 		DECL_NATIVE("load", Load, {
 				File file = pathname(eval(args[0], env)).getFile();
-				FileReader reader(file);
-				string src = reader.dumpAsString();
-				vector<string> lines = Text::split(src, "\n");
-				for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
-					string line = Text::trim(*iter);
-					if (!line.empty() && !Text::startsWith(line, ";")) {
-						Var tokens = parse(line);
-						eval(tokens, env);
+				FileReader fileReader(file);
+				string dump = fileReader.dumpAsString();
+				vector<string> lines = Text::split(dump, "\n");
+				BufferedCommandReader reader;
+				for (vector<string>::iterator iter = lines.begin(); !env.quit() && iter != lines.end(); iter++) {
+					if (reader.read(*iter + "\n") > 0) {
+						vector<string> commands = reader.getCommands();
+						for (vector<string>::iterator cmd = commands.begin(); !env.quit() && cmd != commands.end(); cmd++) {
+							Var tokens = parse(*cmd);
+							eval(tokens, env);
+						}
 					}
 				}
 				return true;
