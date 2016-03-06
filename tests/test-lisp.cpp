@@ -14,6 +14,113 @@ static Var compile(const string & cmd, Env & env) {
 	return eval(var, env);
 }
 
+static void test_func() {
+
+	Env env;
+	native(env);
+
+	//
+	Var proto = parse("(a b c)");
+	Arguments args(proto.getList());
+	Var input = parse("(1 2 3)");
+
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional x)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3)");
+	
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(env["x"].nil(), ==, true);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional x)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3 4)");
+
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(*env["x"].getInteger(), ==, 4);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional x &rest y)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3 4)");
+
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(*env["x"].getInteger(), ==, 4);
+	ASSERT(env["y"].getList().size(), ==, 0);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional x &rest y)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3 4 5 6 7)");
+
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(*env["x"].getInteger(), ==, 4);
+	ASSERT(env["y"].getList().size(), ==, 3);
+	ASSERT(*env["y"].getList()[0].getInteger(), ==, 5);
+	ASSERT(*env["y"].getList()[1].getInteger(), ==, 6);
+	ASSERT(*env["y"].getList()[2].getInteger(), ==, 7);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(&optional x &rest y)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3 4 5 6 7)");
+
+	args.mapArguments(env.local(), input.getList());
+	ASSERT(*env["x"].getInteger(), ==, 1);
+	ASSERT(env["y"].getList().size(), ==, 6);
+	ASSERT(*env["y"].getList()[0].getInteger(), ==, 2);
+	ASSERT(*env["y"].getList()[1].getInteger(), ==, 3);
+	ASSERT(*env["y"].getList()[2].getInteger(), ==, 4);
+	ASSERT(*env["y"].getList()[3].getInteger(), ==, 5);
+	ASSERT(*env["y"].getList()[4].getInteger(), ==, 6);
+	ASSERT(*env["y"].getList()[5].getInteger(), ==, 7);
+
+	//
+	env = Env();
+	native(env);
+	compile("(defun hello (a b c) (+ a 0))", env);
+	ASSERT(*compile("(hello 1 2 3)", env).getInteger(), ==, 1);
+	compile("(defun hello (a b c) (+ b 0))", env);
+	ASSERT(*compile("(hello 1 2 3)", env).getInteger(), ==, 2);
+	compile("(defun hello (a b c) (+ c 0))", env);
+	ASSERT(*compile("(hello 1 2 3)", env).getInteger(), ==, 3);
+	compile("(defun hello (a b c) (+ a b c))", env);
+	ASSERT(*compile("(hello 1 2 3)", env).getInteger(), ==, 6);
+	compile("(defun hello (a b c &optional x) (if x (+ a b c) (+ a b)))", env);
+	ASSERT(*compile("(hello 1 2 3)", env).getInteger(), ==, 3);
+	ASSERT(*compile("(hello 1 2 3 t)", env).getInteger(), ==, 6);
+	compile("(defun hello (a &optional b &rest c) (list a b c))", env);
+	ASSERT(compile("(hello 1 2 3 4 5)", env).getList().size(), ==, 3);
+}
+
 static void test_logic() {
 	Env env;
 	native(env);
@@ -151,9 +258,26 @@ static void test_algorithm() {
 		   ==, 4);
 }
 
+static void test_file() {
+	Env env;
+	native(env);
+
+	compile("(system \"rm hello.txt\")", env);
+	ASSERT(compile("(open \"hello.txt\")", env).nil(), ==, true);
+	ASSERT(!compile("(open \"hello.txt\" :if-does-not-exist :create)", env).nil(), ==, true);
+	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
+				   "(write-line \"hello world\" out) (close out))", env).nil(), ==, true);
+	ASSERT(compile("(let ((in (open \"hello.txt\"))) (read-line in))", env).toString(), ==, "hello world");
+	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
+				   "(write-string \"hello world\" out) (close out))", env).nil(), ==, true);
+	ASSERT(compile("(let ((ret \"\") (in (open \"hello.txt\"))) "
+				   "(setq ret (read-line in)) (close in) ret)", env).toString(), ==, "hello world");
+}
+
 int main(int argc, char *args[]) {
 
 	try {
+		test_func();
 		test_type();
 		test_scope();
 		test_logic();
@@ -164,6 +288,7 @@ int main(int argc, char *args[]) {
 		test_list();
 		test_arithmetic();
 		test_algorithm();
+		test_file();
 	} catch (const char * e) {
 		cout << e << endl;
 		exit(1);

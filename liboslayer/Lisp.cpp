@@ -32,6 +32,117 @@ namespace LISP {
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 
+	void testArgumentCount(vector<Var> & args, size_t expect) {
+		if (args.size() < expect) {
+			throw "Wrong argument count";
+		}
+	}
+
+	static Var nil() {
+		return Var("nil");
+	}
+
+	/**
+	 *
+	 */
+	
+	Arguments::Arguments() {}
+	Arguments::Arguments(vector<Var> & proto) : proto(proto) {}
+	Arguments::~Arguments() {}
+
+	size_t Arguments::countPartArguments(vector<Var> & arr, size_t start) {
+		size_t cnt = start;
+		for (; cnt < arr.size(); cnt++) {
+			if (Text::startsWith(arr[cnt].getSymbol(), "&")) {
+				break;
+			}
+		}
+		return cnt;
+	}
+	void Arguments::mapArguments(map<string, Var> & scope, vector<Var> & args) {
+
+		size_t ec = countPartArguments(proto, 0);
+		testArgumentCount(args, ec);
+
+		size_t ai = 0;
+		size_t i = 0;
+		for (; i < ec; i++, ai++) {
+			scope[proto[i].getSymbol()] = args[ai];
+		}
+
+		if (i >= proto.size()) {
+			return;
+		}
+
+		if (proto[i].getSymbol() == "&optional") {
+			size_t offset = mapOptionals(scope, proto, ++i, args, ai);
+			i += offset;
+			ai += offset;
+		}
+
+		if (i >= proto.size()) {
+			return;
+		}
+
+		if (proto[i].getSymbol() == "&rest") {
+			if (i + 1 >= proto.size()) {
+				throw "Wrong function declaration";
+			}
+			scope[proto[i + 1].getSymbol()] = extractRest(args, ai);
+		}
+
+		keywords = extractKeywords(args);
+	}
+	size_t Arguments::mapOptionals(map<string, Var> & scope, vector<Var> & proto, size_t pstart, vector<Var> & args, size_t astart) {
+		size_t i = pstart;
+		size_t j = astart;
+		for (; i < proto.size(); i++, j++) {
+
+			if (proto[i].isSymbol() && Text::startsWith(proto[i].getSymbol(), "&")) {
+				break;
+			}
+
+			string sym;
+				
+			if (proto[i].isSymbol()) {
+				sym = proto[i].getSymbol();
+				scope[sym] = nil();
+			} else if (proto[i].isList()) {
+				testArgumentCount(proto[i].getList(), 2);
+				sym = proto[i].getList()[0].getSymbol();
+				scope[sym] = proto[i].getList()[1];
+			}
+
+			if (j < args.size()) {
+				scope[sym] = args[j];
+			}
+		}
+		return i - pstart;
+	}
+	vector<Var> Arguments::extractRest(vector<Var> & args, size_t start) {
+		vector<Var> rest;
+		for (size_t i = start; i < args.size(); i++) {
+			rest.push_back(args[i]);
+		}
+		return rest;
+	}
+	map<string, Var> Arguments::extractKeywords(vector<Var> & args) {
+		map<string, Var> keywords;
+		for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
+			if (iter->isSymbol() && Text::startsWith(iter->getSymbol(), ":")) {
+				string name = iter->getSymbol();
+				Var val;
+				if (iter + 1 != args.end()) {
+					iter++;
+					val = *iter;
+				}
+				keywords[name] = val;
+			}
+		}
+		return keywords;
+	}
+
+
 	class Options {
 	private:
 		map<string, Var> options;
@@ -61,10 +172,6 @@ namespace LISP {
 			return options[name];
 		}
 	};
-
-	static Var nil() {
-		return Var("nil");
-	}
 
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
@@ -273,8 +380,7 @@ namespace LISP {
 		} else if (!var.isList()) {
 			return var;
 		} else if (var.getList().empty()) {
-			Var nil;
-			return nil;
+			return nil();
 		} else {
 			vector<Var> & lv = var.getList();
 			string symbol = lv[0].getSymbol();
@@ -418,14 +524,11 @@ namespace LISP {
 		}
 
 		Env e(&env);
-		vector<Var> params = getParams().getList();
-		vector<Var>::iterator iparams = params.begin();
-		vector<Var>::iterator iargs = args.begin();
-		for (; iparams != params.end() && iargs != args.end(); iparams++, iargs++) {
-			e.local()[iparams->getSymbol()] = eval(*iargs, env);
-		}
-		Var var = getBody();
-		return eval(var, e);
+		vector<Var> proto = getParams().getList();
+		Arguments binder(proto);
+		binder.mapArguments(e.local(), args);
+		Var body = getBody();
+		return eval(body, e);
 	}
 
 	void native(Env & env) {

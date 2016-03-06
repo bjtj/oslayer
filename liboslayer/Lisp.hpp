@@ -158,7 +158,9 @@ namespace LISP {
 			testFd();
 			char buffer[1024] = {0,};
 			if (fgets(buffer, sizeof(buffer), _fd)) {
-				buffer[strlen(buffer) - 1] = '\0';
+				if (buffer[strlen(buffer) - 1] == '\n') {
+					buffer[strlen(buffer) - 1] = '\0';
+				}
 			}
 			return std::string(buffer);
 		}
@@ -297,7 +299,7 @@ namespace LISP {
 		}
 		void checkTypeThrow(int t) const {
 			if (type != t) {
-				throw "type not match (type: " + getTypeString() +
+				throw toString() + " / type not match (type: " + getTypeString() +
 					", but required: " + getTypeString(t) + ")";
 			}
 		}
@@ -434,11 +436,15 @@ namespace LISP {
 		}
 	};
 
+	/**
+	 * @brief env
+	 */
 	class Env {
 	private:
 		Env * parent;
 		bool _quit;
 		std::map<std::string, Var> _vars;
+		
 	public:
 		Env() : parent(NULL), _quit(false) {}
 		Env(Env * parent) : parent(parent), _quit(false) {}
@@ -448,6 +454,12 @@ namespace LISP {
 				return (*parent)[name];
 			}
 			return _vars[name];
+		}
+		std::map<std::string, Var> & root() {
+			if (parent) {
+				return parent->local();
+			}
+			return _vars;
 		}
 		std::map<std::string, Var> & local() {
 			return _vars;
@@ -468,6 +480,9 @@ namespace LISP {
 		}
 	};
 
+	/**
+	 * @brief BufferedCommandReader
+	 */
 	class BufferedCommandReader {
 	private:
 		std::vector<std::string> commands;
@@ -483,6 +498,25 @@ namespace LISP {
 		size_t size();
 		std::vector<std::string> & getCommands();
 		std::string & operator[] (size_t idx);
+	};
+
+	/**
+	 * @brief Arguments
+	 */
+	class Arguments {
+	private:
+		std::vector<Var> proto;
+		std::map<std::string, Var> keywords;
+	public:
+		Arguments();
+		Arguments(std::vector<Var> & proto);
+		virtual ~Arguments();
+
+		size_t countPartArguments(std::vector<Var> & arr, size_t start);
+		void mapArguments(std::map<std::string, Var> & scope, std::vector<Var> & args);
+		size_t mapOptionals(std::map<std::string, Var> & scope, std::vector<Var> & proto, size_t pstart, std::vector<Var> & args, size_t astart);
+		std::vector<Var> extractRest(std::vector<Var> & args, size_t start);
+		std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
 	};
 
 	extern Var pathname(Var path);
