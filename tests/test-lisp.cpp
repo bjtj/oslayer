@@ -292,6 +292,49 @@ static void test_algorithm() {
 		   ==, 3);
 	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[2].getInteger(),
 		   ==, 4);
+	ASSERT(compile("(sort (list 1 2 3 4) (lambda (a b) (> a b)))", env).getList().size(), ==, 4);
+
+	string lst = "1 2 3 4";
+	string cmp = "(lambda (a b) (> a b))";
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[0].getInteger(),
+		   ==, 1);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[1].getInteger(),
+		   ==, 2);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[2].getInteger(),
+		   ==, 3);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[3].getInteger(),
+		   ==, 4);
+
+	lst = "4 3 2 1";
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[0].getInteger(),
+		   ==, 1);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[1].getInteger(),
+		   ==, 2);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[2].getInteger(),
+		   ==, 3);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[3].getInteger(),
+		   ==, 4);
+
+	lst = "2 4 1 3";
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[0].getInteger(),
+		   ==, 1);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[1].getInteger(),
+		   ==, 2);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[2].getInteger(),
+		   ==, 3);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[3].getInteger(),
+		   ==, 4);
+
+	lst = "2 4 1 3";
+	cmp = "(lambda (a b) (< a b))";
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[0].getInteger(),
+		   ==, 4);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[1].getInteger(),
+		   ==, 3);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[2].getInteger(),
+		   ==, 2);
+	ASSERT(*compile("(sort (list " + lst + ") " + cmp + ")", env).getList()[3].getInteger(),
+		   ==, 1);
 }
 
 static void test_file() {

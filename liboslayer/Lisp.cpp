@@ -604,6 +604,27 @@ namespace LISP {
 				
 				return ret;
 			});
+
+		DECL_NATIVE("sort", Sort, {
+				vector<Var> lst = eval(args[0], env).getList();
+				Var func = eval(args[1], env);
+
+				if (lst.size() <= 1) {
+					return lst;
+				}
+
+				for (size_t loop = 0; loop < lst.size() - 1; loop++) {
+					for (size_t i = 0; i < lst.size() - 1; i++) {
+						vector<Var> fargs;
+						fargs.push_back(lst[i]);
+						fargs.push_back(lst[i + 1]);
+						if (!func.proc("#sort", fargs, env).nil()) {
+							std::iter_swap(lst.begin() + i, lst.begin() + (i + 1));
+						}
+					}
+				}
+				return lst;
+			});
 	}
 
 	void builtin_list(Env & env) {
