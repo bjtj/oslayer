@@ -16,6 +16,52 @@ static Var compile(const string & cmd, Env & env) {
 	return eval(var, env);
 }
 
+static void test_var() {
+	Var var1(1);
+	Var var2(2);
+	Var ref(&var1);
+	ASSERT(var1.getType(), ==, Var::INTEGER);
+	ASSERT(var2.getType(), ==, Var::INTEGER);
+	ASSERT(ref.getType(), ==, Var::REF);
+	ASSERT(*ref.getRef()->getInteger(), ==, 1);
+	ref = var2;
+	ASSERT(ref.getType(), ==, Var::REF);
+	ASSERT(*ref.getRef()->getInteger(), ==, 2);
+	ASSERT(*var1.getInteger(), ==, 2);
+	ASSERT(*var2.getInteger(), ==, 2);
+	Var c;
+	c = ref;
+	ASSERT(c.getType(), ==, Var::INTEGER);
+	ASSERT(*c.getInteger(), ==, 2);
+	ref = Var(3);
+	ASSERT(ref.getType(), ==, Var::REF);
+	ASSERT(*ref.getRef()->getInteger(), ==, 3);
+	ASSERT(*c.getInteger(), ==, 2);
+	vector<Var> lst;
+	lst.push_back(Var(10));
+	lst.push_back(Var(11));
+	lst.push_back(Var(12));
+	vector<Var*> reflst;
+	reflst.push_back(&lst[1]);
+	reflst.push_back(&lst[2]);
+
+	Var rlv(reflst);
+	ASSERT(rlv.getType(), ==, Var::REF_LIST);
+
+	ref = rlv;
+	ASSERT(ref.getType(), ==, Var::REF);
+	ASSERT(ref.getRef()->getType(), ==, Var::LIST);
+
+	Var lv;
+	lv = ref;
+	ASSERT(lv.getType(), ==, Var::LIST);
+	ASSERT(*lv.getList()[0].getInteger(), ==, 11);
+	ASSERT(*lv.getList()[1].getInteger(), ==, 12);
+}
+
+static void test_setf() {
+}
+
 static void test_func() {
 
 	Env env;
@@ -376,13 +422,15 @@ static void test_load() {
 	compile("(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *b* \" out) (write-line \"1)\" out) (close out))", env);
 	compile("(load \"code.lsp\")", env);
 	ASSERT(*compile("*b*", env).getInteger(), ==, 1);
-
-	
 }
 
 int main(int argc, char *args[]) {
 
 	try {
+		cout << "test_var()" << endl;
+		test_var();
+		cout << "test_setf()" << endl;
+		test_setf();
 		cout << "test_func()" << endl;
 		test_func();
 		cout << "test_type()" << endl;
