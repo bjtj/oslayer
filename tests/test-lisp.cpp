@@ -5,15 +5,30 @@ using namespace std;
 using namespace LISP;
 
 #define ASSERT(A,CMP,B)													\
-	cout << #A << endl;													\
+	cout << #A << "(" << #CMP << " " << B << ")";			\
 	if (!(A CMP B)) {													\
-		cerr << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
+		cout << " - FAIL" << endl;										\
+		cerr << " <!> " << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
 		exit(1);														\
+	} else {															\
+		cout << " - PASS" << endl;										\
 	}
 
-static Var compile(const string & cmd, Env & env) {
-	Var var = parse(cmd);
-	return eval(var, env);
+static Var parseAndEval(const string & cmd, Env & env) {
+	Var tokens = parse(cmd);
+	return eval(tokens, env);
+}
+
+static void test_call_stack() {
+	Env env;
+	native(env);
+
+	parseAndEval("(setq *var* 2)", env);
+	ASSERT(env.stack().size(), ==, 2);
+	ASSERT(*env.pop().getInteger(), ==, 2);
+
+	ASSERT(compile("(setf (car (list 1 2 3)) 7)", env).getType(), ==, Var::INTEGER);
+	ASSERT(*compile("(setf (car (list 1 2 3)) 7)", env).getInteger(), ==, 7);
 }
 
 static void test_var() {
@@ -41,12 +56,13 @@ static void test_var() {
 	lst.push_back(Var(10));
 	lst.push_back(Var(11));
 	lst.push_back(Var(12));
-	vector<Var*> reflst;
-	reflst.push_back(&lst[1]);
-	reflst.push_back(&lst[2]);
+	
+	vector<Var> reflst;
+	reflst.push_back(Var(&lst[1]));
+	reflst.push_back(Var(&lst[2]));
 
 	Var rlv(reflst);
-	ASSERT(rlv.getType(), ==, Var::REF_LIST);
+	ASSERT(rlv.getType(), ==, Var::LIST);
 
 	ref = rlv;
 	ASSERT(ref.getType(), ==, Var::REF);
@@ -60,6 +76,18 @@ static void test_var() {
 }
 
 static void test_setf() {
+	Env env;
+	native(env);
+
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList().size(), ==, 2);
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getType(),
+		   ==, Var::INTEGER);
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getType(),
+		   ==, Var::INTEGER);
+	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getInteger(),
+		   ==, 4);
+	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getInteger(),
+		   ==, 5);
 }
 
 static void test_func() {
@@ -306,7 +334,7 @@ static void test_list() {
 	compile("(setq *lst* (list 1 2 3))", env);
 	ASSERT(*compile("(car *lst*)", env).getInteger(), ==, 1);
 	ASSERT(*compile("(car (list 1 2 3))", env).getInteger(), ==, 1);
-	ASSERT(compile("(cdr (list 1 2 3))", env).getList().size(), ==, 2);
+	ASSERT((*compile("(cdr (list 1 2 3))", env)).getList().size(), ==, 2);
 	ASSERT(*compile("(cdr (list 1 2 3))", env).getList()[0].getInteger(), ==, 2);
 	ASSERT(*compile("(cdr (list 1 2 3))", env).getList()[1].getInteger(), ==, 3);
 	ASSERT(*compile("(nth 0 (list 1 2 3))", env).getInteger(), ==, 1);
@@ -325,8 +353,11 @@ static void test_list() {
 	ASSERT(compile("(nthcdr 10 (list 1 2 3))", env).nil(), ==, true);
 
 	compile("(setq *lst* (list (list \"name\" \"steve\") (list \"age\" \"23\")))", env);
-	ASSERT(compile("(car *lst*)", env).getList().size(), ==, 2);
-	ASSERT(compile("(car (car *lst*))", env).toString(), ==, "name");
+	ASSERT((*compile("(car *lst*)", env)).getList().size(), ==, 2);
+	ASSERT((*compile("(car (car *lst*))", env)).toString(), ==, "name");
+	ASSERT((*compile("(car (cdr (car *lst*)))", env)).toString(), ==, "steve");
+
+	ASSERT(compile("(cons 1 2)", env).getCons().getType(), ==, Var::INTEGER);
 }
 
 static void test_algorithm() {
@@ -427,6 +458,8 @@ static void test_load() {
 int main(int argc, char *args[]) {
 
 	try {
+		cout << "test_call_stack()" << endl;
+		test_call_stack();
 		cout << "test_var()" << endl;
 		test_var();
 		cout << "test_setf()" << endl;

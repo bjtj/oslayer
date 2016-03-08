@@ -14,6 +14,8 @@
 	};															\
 	env[NAME] = Var(UTIL::AutoRef<Procedure>(new CLS(NAME)));
 
+#define PUSH_AND_RETURN(ENV,VAR) ENV.push(VAR); return VAR;
+
 namespace LISP {
 
 	using namespace std;
@@ -357,59 +359,38 @@ namespace LISP {
 		return read_from_tokens(iter, end);
 	}
 
-	Var & refeval(Var & var, Env & env) {
-		if (var.isSymbol()) {
-			return env[var.getSymbol()];
-		} else if (!var.isList()) {
-			throw "no reference";
-		} else if (var.getList().empty()) {
-			throw "cannot operate - no reference or value";
-		} else {
-			vector<Var> & lv = var.getList();
-			string symbol = lv[0].getSymbol();
-			if (symbol == "aref") {
-				vector<Var> & lst = refeval(lv[1], env).getList();
-				Integer idx = eval(lv[2], env).getInteger();
-				return lst[(size_t)idx.getInteger()];
-			}
-		}
-		throw "unknown error - reference operation failed";
-	}
-
 	Var eval(Var & var, Env & env) {
 	
 		if (var.isSymbol()) {
-			return env[var.getSymbol()];
+			PUSH_AND_RETURN(env, env[var.getSymbol()]);
 		} else if (!var.isList()) {
-			return var;
+			PUSH_AND_RETURN(env, var);
 		} else if (var.getList().empty()) {
-			return nil();
+			PUSH_AND_RETURN(env, nil());
 		} else {
 			vector<Var> & lv = var.getList();
 			string symbol = lv[0].getSymbol();
 			if (symbol == "quit") {
 				env.quit(true);
 			} else if (symbol == "symbol") {
-				return lv[1].getSymbol();
+				PUSH_AND_RETURN(env, lv[1].getSymbol());
 			} else if (symbol == "lambda") {
 				Var func(lv[1].getList(), lv[2].getList());
-				return func;
+				PUSH_AND_RETURN(env, func);
 			} else if (symbol == "defun") {
 				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
-				return lv[1].getSymbol();
+				PUSH_AND_RETURN(env, lv[1].getSymbol());
 			} else if (symbol == "setf") {
-				Var val = eval(lv[2], env);
-				if (lv[1].isList() && lv[1].getList().size() > 0 &&
-					lv[1].getList()[0].isSymbol() && lv[1].getList()[0].getSymbol() == "subseq") {
-					eval(lv[1], env) = val;
-				} else {
-					refeval(lv[1], env) = val;
-				}
-				return val;
+				eval(lv[1], env);
+				Var var = env.last();
+				eval(lv[2], env);
+				Var other = env.last();
+				var = other;
+				PUSH_AND_RETURN(env, var);
 			} else if (symbol == "setq") {
 				Var val = eval(lv[2], env);
 				env[lv[1].getSymbol()] = val;
-				return val;
+				PUSH_AND_RETURN(env, val);
 			} else if (symbol == "let") {
 				Var ret;
 				vector<Var> & lets = lv[1].getList();
@@ -422,45 +403,51 @@ namespace LISP {
 				for (vector<Var>::iterator iter = lv.begin() + 2; iter != lv.end(); iter++) {
 					ret = eval(*iter, e);
 				}
-				return ret;
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "if") {
 				Var val = eval(lv[1], env);
+				Var ret;
 				if (!val.nil()) {
-					return eval(lv[2], env);
+					ret = eval(lv[2], env);
 				} else if (lv.size() > 3) {
-					return eval(lv[3], env);
+					ret = eval(lv[3], env);
 				}
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "when") {
 				Var test = eval(lv[1], env);
 				if (!test.nil()) {
-					return eval(lv[2], env);
+					Var ret = eval(lv[2], env);
+					PUSH_AND_RETURN(env, ret);
 				}
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "unless") {
 				Var test = eval(lv[1], env);
 				if (test.nil()) {
-					return eval(lv[2], env);
+					Var ret = eval(lv[2], env);
+					PUSH_AND_RETURN(env, ret);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "cond") {
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					vector<Var> lst = iter->getList();
 					if (!eval(lst[0], env).nil()) {
-						return eval(lst[1], env);
+						Var ret = eval(lst[1], env);
+						PUSH_AND_RETURN(env, ret);
 					}
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "progn") {
 				Var ret;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					ret = eval(*iter, env);
 				}
-				return ret;
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "while") {
 				Var pre_test = lv[1];
 				while (!eval(pre_test, env).nil()) {
 					eval(lv[2], env);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "dolist") {
 				Env e(&env);
 				vector<Var> decl = lv[1].getList();
@@ -470,7 +457,7 @@ namespace LISP {
 					e.local()[param] = *iter;
 					eval(lv[2], e);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "dotimes") {
 				Env e(&env);
 				vector<Var> steps = lv[1].getList();
@@ -480,68 +467,87 @@ namespace LISP {
 				for (; e[sym].getInteger() < limit; e[sym] = e[sym].getInteger() + 1) {
 					eval(lv[2], e);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "list") {
 				vector<Var> elts;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					Var elt = eval(*iter, env);
 					elts.push_back(elt);
 				}
-				return Var(elts);
+				Var ret(elts);
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "cons") {
 				Var cons = eval(lv[1], env);
 				Var cell = eval(lv[2], env);
 				Var var(cons, cell);
-				return var;
+				PUSH_AND_RETURN(env, var);
 			} else if (symbol == "car") {
-				vector<Var> lst = eval(lv[1], env).getList();
+				eval(lv[1], env);
+				vector<Var> & lst = (*env.last()).getList();
 				if (lst.size() > 0) {
-					return lst[0];
+					Var ret(&lst[0]);
+					PUSH_AND_RETURN(env, ret);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "cdr") {
-				vector<Var> lst = eval(lv[1], env).getList();
+				eval(lv[1], env);
+				vector<Var> & lst = (*env.last()).getList();
 				if (lst.size() > 1) {
-					vector<Var> rest = vector<Var>(lst.begin() + 1, lst.end());
-					return Var(rest);
+					vector<Var> rest;
+					for (vector<Var>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
+						rest.push_back(Var(&(*iter)));
+					}
+					Var ret(rest);
+					PUSH_AND_RETURN(env, ret);
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "nth") {
 				int idx = (int)(*(eval(lv[1], env).getInteger()));
-				vector<Var> lst = eval(lv[2], env).getList();
+				eval(lv[2], env);
+				vector<Var> & lst = env.last().getList();
 				if (idx < lst.size()) {
-					return lst[idx];
+					PUSH_AND_RETURN(env, Var(&lst[idx]));
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "nthcdr") {
 				int idx = (int)(*eval(lv[1], env).getInteger());
-				vector<Var> lst = eval(lv[2], env).getList();
+				eval(lv[2], env);
+				vector<Var> & lst = env.last().getList();
 				if (idx < lst.size()) {
-					vector<Var> rest(lst.begin() + idx, lst.end());
-					return Var(rest);
+					vector<Var> rest;
+					for (vector<Var>::iterator iter = lst.begin() + idx; iter != lst.end(); iter++) {
+						rest.push_back(&(*iter));
+					}
+					PUSH_AND_RETURN(env, Var(rest));
 				}
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "subseq") {
-				// TODO: fix (subseq (list 1 2 3) 0 1) <-- not working
-				vector<Var> & lst = refeval(lv[1], env).getList();
+				eval(lv[1], env);
+				vector<Var> & lst = env.last().getList();
 				Integer start = eval(lv[2], env).getInteger();
 				Integer end = eval(lv[3], env).getInteger();
-				vector<Var*> ret;
-				vector<Var>::iterator iter = lst.begin() + start.getInteger();
-				for (long long i = start.getInteger(); i < end.getInteger() && iter != lst.end(); i++, iter++) {
-					ret.push_back(&(*iter));
+				vector<Var> ret;
+				for (long long i = *start; i < *end && i < lst.size(); i++) {
+					ret.push_back(&lst[i]);
 				}
-				return ret;
-			} else if (symbol == "aref") { // bypass to refeval
-				return refeval(var, env);
+				PUSH_AND_RETURN(env, ret);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
 				return eval(lv[0], env).proc(lv[0], args, env);
 			}
 		}
-	
-		Var nil;
-		return nil;
+
+		PUSH_AND_RETURN(env, nil());
+	}
+
+	Var compile(const std::string & cmd, Env & env) {
+		env.stack().clear();
+		Var tokens = parse(cmd);
+		eval(tokens, env);
+		Var ret;
+		ret = env.last();
+		env.stack().clear();
+		return ret;
 	}
 
 	Var Var::proc(Var name, vector<Var> & args, Env & env) {
@@ -601,8 +607,8 @@ namespace LISP {
 					}
 					ret.push_back(func.proc(fargs, env));
 				}
-				
-				return ret;
+
+				PUSH_AND_RETURN(env, ret);
 			});
 
 		DECL_NATIVE("sort", Sort, {
@@ -610,7 +616,7 @@ namespace LISP {
 				Var func = eval(args[1], env);
 
 				if (lst.size() <= 1) {
-					return lst;
+					PUSH_AND_RETURN(env, lst);
 				}
 
 				for (size_t loop = 0; loop < lst.size() - 1; loop++) {
@@ -623,7 +629,7 @@ namespace LISP {
 						}
 					}
 				}
-				return lst;
+				PUSH_AND_RETURN(env, lst);
 			});
 	}
 
@@ -634,7 +640,7 @@ namespace LISP {
 					vector<Var> lst = eval(*iter, env).getList();
 					ret.insert(ret.end(), lst.begin(), lst.end());
 				}
-				return ret;
+				PUSH_AND_RETURN(env, ret);
 			});
 		
 		DECL_NATIVE("remove", Remove, {
@@ -647,7 +653,7 @@ namespace LISP {
 						iter++;
 					}
 				}
-				return lst;
+				PUSH_AND_RETURN(env, lst);
 			});
 
 		DECL_NATIVE("remove-if", RemoveIf, {
@@ -662,14 +668,14 @@ namespace LISP {
 						iter++;
 					}
 				}
-				return lst;
+				PUSH_AND_RETURN(env, lst);
 			});
 	}
 
 	void builtin_logic(Env & env) {
 		DECL_NATIVE("not", Not, {
 				Var var = eval(args[0], env);
-				return var.nil();
+				PUSH_AND_RETURN(env, var.nil());
 			});
 
 		DECL_NATIVE("or", Or, {
@@ -680,7 +686,7 @@ namespace LISP {
 						break;
 					}
 				}
-				return var;
+				PUSH_AND_RETURN(env, var);
 			});
 
 		DECL_NATIVE("and", And, {
@@ -691,7 +697,7 @@ namespace LISP {
 						break;
 					}
 				}
-				return var;
+				PUSH_AND_RETURN(env, var);
 			});
 	}
 
@@ -701,26 +707,27 @@ namespace LISP {
 				string val = eval(args[0], env).toString();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).toString()) {
-						return nil();
+						PUSH_AND_RETURN(env, nil());
 					}
 				}
-				return true;
+				PUSH_AND_RETURN(env, true);
 			});
 
 		DECL_NATIVE("string-prefix-p", StringPrefixP, {
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				return Text::startsWith(str, dst);
+				PUSH_AND_RETURN(env, Text::startsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-suffix-p", StringSuffixP, {
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				return Text::endsWith(str, dst);
+				PUSH_AND_RETURN(env, Text::endsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-length", StringLength, {
-				return Integer((long long)eval(args[0], env).toString().length());
+				Integer len((long long)eval(args[0], env).toString().length());
+				PUSH_AND_RETURN(env, len);
 			});
 
 		DECL_NATIVE("string-append", StringAppend, {
@@ -728,7 +735,7 @@ namespace LISP {
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					ret.append(eval(*iter, env).toString());
 				}
-				return text(ret);
+				PUSH_AND_RETURN(env, text(ret));
 			});
 
 		DECL_NATIVE("format", Format, {
@@ -737,10 +744,9 @@ namespace LISP {
 				if (!test.nil()) {
 					fputs(str.c_str(), stdout);
 					fputs("\n", stdout);
-					Var nil;
-					return nil;
+					PUSH_AND_RETURN(env, nil());
 				} else {
-					return text(str);
+					PUSH_AND_RETURN(env, text(str));
 				}
 			});
 		
@@ -748,9 +754,9 @@ namespace LISP {
 				string org = eval(args[0], env).toString();
 				string prefix = eval(args[1], env).toString();
 				if (Text::startsWith(org, prefix)) {
-					return text(org.substr(prefix.length()));
+					PUSH_AND_RETURN(env, text(org.substr(prefix.length())));
 				}
-				return text(org);
+				PUSH_AND_RETURN(env, text(org));
 			});
 	}
 	void builtin_artithmetic(Env & env) {
@@ -758,69 +764,69 @@ namespace LISP {
 				Integer val = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).getInteger()) {
-						return nil();
+						PUSH_AND_RETURN(env, nil());
 					}
 				}
-				return true;
+				PUSH_AND_RETURN(env, true);
 			});
 		DECL_NATIVE("+", Plus, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum += eval(*iter, env).getInteger();
 				}
-				return sum;
+				PUSH_AND_RETURN(env, sum);
 			});
 		DECL_NATIVE("-", Minus, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum -= eval(*iter, env).getInteger();
 				}
-				return sum;
+				PUSH_AND_RETURN(env, sum);
 			});
 		DECL_NATIVE("*", Multitude, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum *= eval(*iter, env).getInteger();
 				}
-				return sum;
+				PUSH_AND_RETURN(env, sum);
 			});
 		DECL_NATIVE("/", Divide, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum /= eval(*iter, env).getInteger();
 				}
-				return sum;
+				PUSH_AND_RETURN(env, sum);
 			});
 		DECL_NATIVE("%", Rest, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum %= eval(*iter, env).getInteger();
 				}
-				return sum;
+				PUSH_AND_RETURN(env, sum);
 			});
 
 		DECL_NATIVE(">", Greater, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				return a > b;
+				PUSH_AND_RETURN(env, a > b);
 			});
 
 		DECL_NATIVE("<", Less, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				return a < b;
+				PUSH_AND_RETURN(env, a < b);
 			});
 
 		DECL_NATIVE(">=", GreaterEq, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				return a >= b;
+				PUSH_AND_RETURN(env, a >= b);
 			});
 
 		DECL_NATIVE("<=", LessEq, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				return a <= b;
+				PUSH_AND_RETURN(env, a <= b);
 			});
 	}
 	void builtin_io(Env & env) {
@@ -833,25 +839,24 @@ namespace LISP {
 				Var ret;
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
-					return true;
+					PUSH_AND_RETURN(env, true);
 				}
 				BufferedCommandReader reader;
 				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
 
 				vector<string> commands = reader.getCommands();
 				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-					Var tokens = parse(*iter);
-					ret = eval(tokens, env);
+					ret = compile(*iter, env);
 				}
-				return ret;
+				PUSH_AND_RETURN(env, ret);
 			});
 		DECL_NATIVE("read-line", ReadLine, {
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
-					return true;
+					PUSH_AND_RETURN(env, true);
 				}
 				string line = fd.readline();
-				return text(line);
+				PUSH_AND_RETURN(env, text(line));
 			});
 		DECL_NATIVE("print", Print, {
 				FileDescriptor fd = env["*standard-output*"].getFileDescriptor();
@@ -861,7 +866,7 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				return text(msg);
+				PUSH_AND_RETURN(env, text(msg));
 			});
 
 		DECL_NATIVE("write-string", WriteString, {
@@ -871,7 +876,7 @@ namespace LISP {
 				}
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
-				return text(msg);
+				PUSH_AND_RETURN(env, text(msg));
 			});
 
 		DECL_NATIVE("write-line", WriteLine, {
@@ -882,12 +887,13 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				return text(msg);
+				PUSH_AND_RETURN(env, text(msg));
 			});
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE("pathname", Pathname, {
-				return pathname(eval(args[0], env));
+				Var path = pathname(eval(args[0], env));
+				PUSH_AND_RETURN(env, path);
 			});
 		DECL_NATIVE("dir", Dir, {
 				Var path = args.size() > 0 ? pathname(eval(args[0], env)) : "#p\".\"";
@@ -896,35 +902,35 @@ namespace LISP {
 				for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
 					lst.push_back(*iter);
 				}
-				return lst;
+				PUSH_AND_RETURN(env, lst);
 			});
 		DECL_NATIVE("probe-file", ProbeFile, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.exists();
+				PUSH_AND_RETURN(env, file.exists());
 			});
 		DECL_NATIVE("dirp", Dirp, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.isDirectory();
+				PUSH_AND_RETURN(env, file.isDirectory());
 			});
 		DECL_NATIVE("filep", Filep, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.isFile();
+				PUSH_AND_RETURN(env, file.isFile());
 			});
 		DECL_NATIVE("pathname-name", PathnameName, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getName());
+				PUSH_AND_RETURN(env, text(file.getName()));
 			});
 		DECL_NATIVE("pathname-type", PathnameType, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getExtension());
+				PUSH_AND_RETURN(env, text(file.getExtension()));
 			});
 		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getPathPart());
+				PUSH_AND_RETURN(env, text(file.getPathPart()));
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return Integer(file.getSize());
+				PUSH_AND_RETURN(env, Integer(file.getSize()));
 			});
 		DECL_NATIVE("open", Open, {
 				File file = pathname(eval(args[0], env)).getFile();
@@ -937,18 +943,19 @@ namespace LISP {
 				if (!fp) {
 					throw "Cannot open file";
 				}
-				return FileDescriptor(fp);
+				PUSH_AND_RETURN(env, FileDescriptor(fp));
 			});
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
-				return nil();
+				PUSH_AND_RETURN(env, nil());
 			});
 	}
 	void builtin_socket(Env & env) {
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE("system", System, {
-				return Integer(system(eval(args[0], env).toString().c_str()));
+				Integer ret(system(eval(args[0], env).toString().c_str()));
+				PUSH_AND_RETURN(env, ret);
 			});
 		DECL_NATIVE("load", Load, {
 				File file = pathname(eval(args[0], env)).getFile();
@@ -960,12 +967,11 @@ namespace LISP {
 					if (reader.read(*iter + "\n") > 0) {
 						vector<string> commands = reader.getCommands();
 						for (vector<string>::iterator cmd = commands.begin(); !env.quit() && cmd != commands.end(); cmd++) {
-							Var tokens = parse(*cmd);
-							eval(tokens, env);
+							compile(*cmd, env);
 						}
 					}
 				}
-				return true;
+				PUSH_AND_RETURN(env, true);
 			});
 	}
 	void builtin_date(Env & env) {
@@ -977,7 +983,7 @@ namespace LISP {
 						 date.getYear(), date.getMonth(), date.getDay(),
 						 date.getHour(), date.getMinute(), date.getSecond(),
 						 date.getMillisecond());
-				return string(buffer);
+				PUSH_AND_RETURN(env, string(buffer));
 			});
 	}
 
@@ -1073,8 +1079,7 @@ namespace LISP {
 			if (reader.read(line) > 0) {
 				vector<string> & commands = reader.getCommands();
 				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-					Var var = parse(*iter);
-					cout << printVar(eval(var, env)) << endl;
+					cout << printVar(compile(*iter, env)) << endl;
 				}
 				reader.clearCommands();
 				return;

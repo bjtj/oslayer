@@ -11,6 +11,7 @@
 
 #include "os.hpp"
 #include "AutoRef.hpp"
+#include "Text.hpp"
 
 namespace LISP {
 
@@ -193,15 +194,13 @@ namespace LISP {
 		const static int FILE = 8;
 		const static int PAIR = 9;
 		const static int REF = 10;
-		const static int REF_LIST = 11;
-		const static int FILE_DESCRIPTOR = 12;
+		const static int FILE_DESCRIPTOR = 11;
 		
 	private:
 		int type;
 		std::string symbol;
 		std::string str;
 		std::vector<Var> lst;
-		std::vector<Var*> rlst;
 		bool bval;
         Integer inum;
 		Float fnum;
@@ -241,7 +240,6 @@ namespace LISP {
 			conscell.push_back(cons);
 			conscell.push_back(cell);
 		}
-		Var(std::vector<Var*> rlst) : type(REF_LIST), bval(false), rlst(rlst), refvar(NULL) {}
 		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd), refvar(NULL) {}
 		Var(Var * refvar) : type(REF), bval(false), refvar(refvar) {
 			if (refvar == NULL) {
@@ -301,14 +299,12 @@ namespace LISP {
 				return "PAIR";
 			case REF:
 				return "REFERENCE";
-			case REF_LIST:
-				return "REFERENCE LIST";
 			case FILE_DESCRIPTOR:
 				return "FILE DESCRIPTOR";
 			default:
 				break;
 			}
-			throw "unknown variable type";
+			throw "unknown variable type / " + UTIL::Text::toString(type);
 		}
 		void checkTypeThrow(int t) const {
 			if (type != t) {
@@ -327,7 +323,6 @@ namespace LISP {
 		bool isFile() const {return type == FILE;}
 		bool isPair() const {return type == PAIR;}
 		bool isRef() const {return type == REF;}
-		bool isRefList() const {return type == REF_LIST;}
 		bool isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
 		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
 		std::string getString() const {checkTypeThrow(STRING); return str;}
@@ -341,8 +336,7 @@ namespace LISP {
 		Var & getCons() {checkTypeThrow(PAIR); return conscell[0];}
 		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
 		UTIL::AutoRef<Procedure> getProcedure() {checkTypeThrow(FUNC); return procedure;}
-		Var * getRef() {checkTypeThrow(REF); return refvar;}
-		std::vector<Var*> & getRefList() {checkTypeThrow(REF_LIST); return rlst;}
+		Var * getRef() const {checkTypeThrow(REF); return refvar;}
 		FileDescriptor & getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
 		virtual Var proc(std::vector<Var> & args, Env & env) {
 			if (!procedure.nil()) {
@@ -400,32 +394,26 @@ namespace LISP {
 			case PAIR:
 				return "(" + conscell[0].toString() + " . " + conscell[1].toString() + ")";
 			case REF:
-				return "#REFERENCE";
-			case REF_LIST:
-				{
-					std::string ret = "(";
-					for (std::vector<Var*>::const_iterator iter = rlst.begin(); iter != rlst.end(); iter++) {
-						if (iter != rlst.begin()) {
-							ret += " ";
-						}
-						ret += (*iter)->toString();
-					}
-					ret += ")";
-					return ret;
-				}
+				return "#REFERENCE/" + refvar->toString();
 			case FILE_DESCRIPTOR:
 				return "#<FD>";
 			default:
 				break;
 			}
-			throw "unknown variable type";
+			throw "unknown variable type / " + UTIL::Text::toString(type);
+		}
+
+		Var & operator* () {
+			if (type == REF) {
+				return *refvar;
+			}
+			return *this;
 		}
 
 		Var & operator= (const Var & other) {
 			
 			this->symbol = other.symbol;
 			this->str = other.str;
-			this->lst = other.lst;
 			this->bval = other.bval;
 			this->inum = other.inum;
 			this->fnum = other.fnum;
@@ -433,8 +421,22 @@ namespace LISP {
 			this->body = other.body;
 			this->procedure = other.procedure;
 			this->file = other.file;
-			this->conscell = other.conscell;
 			this->fd = other.fd;
+
+			this->conscell = other.conscell;
+
+			this->conscell.clear();
+			if (other.type == PAIR) {
+				this->conscell.push_back((other.conscell[0].isRef() ? *other.conscell[0].getRef() : other.conscell[0]));
+				this->conscell.push_back((other.conscell[1].isRef() ? *other.conscell[1].getRef() : other.conscell[1]));
+			}
+			
+			this->lst.clear();
+			if (other.type == LIST) {
+				for (std::vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {
+					this->lst.push_back(iter->isRef() ? *(iter->getRef()) : *iter);
+				}
+			}
 
 			if (this->type == REF) {
 				if (other.type == REF) {
@@ -444,16 +446,6 @@ namespace LISP {
 				}
 			} else if (other.type == REF) {
 				(*this) = *(other.refvar);
-			} else if (this->type == REF_LIST && other.type == LIST) {
-				std::vector<Var>::const_iterator oi = other.lst.begin();
-				for (std::vector<Var*>::iterator iter = rlst.begin(); iter != rlst.end() && oi != other.lst.end(); iter++, oi++) {
-					*(*iter) = *oi;
-				}
-			} else if (other.type == REF_LIST) {
-				for (std::vector<Var*>::const_iterator iter = other.rlst.begin(); iter != other.rlst.end(); iter++) {
-					lst.push_back(*(*iter));
-				}
-				this->type = LIST;
 			} else {
 				this->type = other.type;
 			}
@@ -469,7 +461,7 @@ namespace LISP {
 		Env * parent;
 		bool _quit;
 		std::map<std::string, Var> _vars;
-		
+		std::vector<Var> _stack;
 	public:
 		Env() : parent(NULL), _quit(false) {}
 		Env(Env * parent) : parent(parent), _quit(false) {}
@@ -498,13 +490,35 @@ namespace LISP {
 		std::map<std::string, Var> & local() {
 			return _vars;
 		}
+		std::vector<Var> & stack() {
+			if (parent) {
+				return parent->stack();
+			}
+			return _stack;
+		}
+		void push(Var var) {
+			stack().push_back(var);
+		}
+		Var pop() {
+			Var ret = *(stack().rbegin());
+			stack().erase(stack().begin() + stack().size() - 1);
+			return ret;
+		}
+		Var & last() {
+			if (stack().size() == 0) {
+				throw "empty stack";
+			}
+			return *(stack().rbegin());
+		}
 		void quit(bool q) {
 			_quit = q;
 			if (parent) {
 				parent->quit(q);
 			}
 		}
-		bool quit() {return _quit;}
+		bool quit() {
+			return _quit;
+		}
 		std::string toString() {
 			std::string ret;
 			for (std::map<std::string, Var>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
@@ -558,6 +572,7 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern Var parse(const std::string & cmd);
 	extern Var eval(Var & var, Env & env);
+	extern Var compile(const std::string & cmd, Env & env);
 }
 
 #endif
