@@ -32,6 +32,9 @@ namespace UTIL {
 		virtual size_t read(char * buffer, size_t len) {
 			return fread(buffer, 1, len, fd);
 		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
+		}
 		virtual void close() {
 			if (fd) {
 				fclose(fd);
@@ -60,6 +63,9 @@ namespace UTIL {
 		virtual size_t read(char * buffer, size_t len) {
 			size_t ret = fread(buffer, 1, len, fd);
 			return ret;
+		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
 		}
 		virtual void close() {
 			if (fd) {
@@ -96,6 +102,11 @@ namespace UTIL {
 	size_t FileReader::read(char * buffer, size_t len) {
 		CHECK_NOT_IMPL_THROW(impl);
 		return impl->read(buffer, len);
+	}
+
+	void FileReader::seek(size_t pos) {
+		CHECK_NOT_IMPL_THROW(impl);
+		impl->seek(pos);
 	}
 
 	void FileReader::close() {
@@ -160,6 +171,9 @@ namespace UTIL {
 		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
 		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
+		}
 		virtual void close() {
 			if (fd) {
 				fclose(fd);
@@ -187,6 +201,9 @@ namespace UTIL {
 		}
 		virtual size_t write(const char * data, size_t len) {
 			return fwrite(data, 1, len, fd);
+		}
+		virtual void seek(size_t pos) {
+			fseek(fd, pos, SEEK_SET);
 		}
 		virtual void close() {
 			if (fd) {
@@ -223,6 +240,11 @@ namespace UTIL {
 	size_t FileWriter::write(const char * data, size_t len) {
 		CHECK_NOT_IMPL_THROW(impl);
 		return impl->write(data, len);
+	}
+
+	void FileWriter::seek(size_t pos) {
+		CHECK_NOT_IMPL_THROW(impl);
+		impl->seek(pos);
 	}
 
 	void FileWriter::close() {

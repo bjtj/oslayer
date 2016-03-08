@@ -23,6 +23,7 @@ namespace UTIL {
 
 		virtual void open(OS::File & file);
 		virtual size_t read(char * buffer, size_t len);
+		virtual void seek(size_t pos);
 		virtual void close();
 
 		std::string dumpAsString();
@@ -48,6 +49,7 @@ namespace UTIL {
 
 		virtual void open(OS::File & file);
 		virtual size_t write(const char * data, size_t len);
+		virtual void seek(size_t pos);
 		virtual void close();
 
 		OS::File & getFile();
