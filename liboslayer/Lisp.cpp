@@ -533,7 +533,9 @@ namespace LISP {
 				PUSH_AND_RETURN(env, ret);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
-				return eval(lv[0], env).proc(lv[0], args, env);
+				Var func = eval(lv[0], env);
+				Var ret = func.proc(lv[0], args, env);
+				PUSH_AND_RETURN(env, ret);
 			}
 		}
 
@@ -608,7 +610,7 @@ namespace LISP {
 					ret.push_back(func.proc(fargs, env));
 				}
 
-				PUSH_AND_RETURN(env, ret);
+				return ret;
 			});
 
 		DECL_NATIVE("sort", Sort, {
@@ -616,7 +618,7 @@ namespace LISP {
 				Var func = eval(args[1], env);
 
 				if (lst.size() <= 1) {
-					PUSH_AND_RETURN(env, lst);
+					return lst;
 				}
 
 				for (size_t loop = 0; loop < lst.size() - 1; loop++) {
@@ -629,7 +631,7 @@ namespace LISP {
 						}
 					}
 				}
-				PUSH_AND_RETURN(env, lst);
+				return lst;
 			});
 	}
 
@@ -640,7 +642,7 @@ namespace LISP {
 					vector<Var> lst = eval(*iter, env).getList();
 					ret.insert(ret.end(), lst.begin(), lst.end());
 				}
-				PUSH_AND_RETURN(env, ret);
+				return ret;
 			});
 		
 		DECL_NATIVE("remove", Remove, {
@@ -653,7 +655,7 @@ namespace LISP {
 						iter++;
 					}
 				}
-				PUSH_AND_RETURN(env, lst);
+				return lst;
 			});
 
 		DECL_NATIVE("remove-if", RemoveIf, {
@@ -668,14 +670,14 @@ namespace LISP {
 						iter++;
 					}
 				}
-				PUSH_AND_RETURN(env, lst);
+				return lst;
 			});
 	}
 
 	void builtin_logic(Env & env) {
 		DECL_NATIVE("not", Not, {
 				Var var = eval(args[0], env);
-				PUSH_AND_RETURN(env, var.nil());
+				return var.nil();
 			});
 
 		DECL_NATIVE("or", Or, {
@@ -686,7 +688,7 @@ namespace LISP {
 						break;
 					}
 				}
-				PUSH_AND_RETURN(env, var);
+				return var;
 			});
 
 		DECL_NATIVE("and", And, {
@@ -697,7 +699,7 @@ namespace LISP {
 						break;
 					}
 				}
-				PUSH_AND_RETURN(env, var);
+				return var;
 			});
 	}
 
@@ -707,27 +709,27 @@ namespace LISP {
 				string val = eval(args[0], env).toString();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).toString()) {
-						PUSH_AND_RETURN(env, nil());
+						return nil();
 					}
 				}
-				PUSH_AND_RETURN(env, true);
+				return true;
 			});
 
 		DECL_NATIVE("string-prefix-p", StringPrefixP, {
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				PUSH_AND_RETURN(env, Text::startsWith(str, dst));
+				return Text::startsWith(str, dst);
 			});
 
 		DECL_NATIVE("string-suffix-p", StringSuffixP, {
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				PUSH_AND_RETURN(env, Text::endsWith(str, dst));
+				return Text::endsWith(str, dst);
 			});
 
 		DECL_NATIVE("string-length", StringLength, {
 				Integer len((long long)eval(args[0], env).toString().length());
-				PUSH_AND_RETURN(env, len);
+				return len;
 			});
 
 		DECL_NATIVE("string-append", StringAppend, {
@@ -735,7 +737,7 @@ namespace LISP {
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					ret.append(eval(*iter, env).toString());
 				}
-				PUSH_AND_RETURN(env, text(ret));
+				return text(ret);
 			});
 
 		DECL_NATIVE("format", Format, {
@@ -744,9 +746,9 @@ namespace LISP {
 				if (!test.nil()) {
 					fputs(str.c_str(), stdout);
 					fputs("\n", stdout);
-					PUSH_AND_RETURN(env, nil());
+					return nil();
 				} else {
-					PUSH_AND_RETURN(env, text(str));
+					return text(str);
 				}
 			});
 		
@@ -754,9 +756,9 @@ namespace LISP {
 				string org = eval(args[0], env).toString();
 				string prefix = eval(args[1], env).toString();
 				if (Text::startsWith(org, prefix)) {
-					PUSH_AND_RETURN(env, text(org.substr(prefix.length())));
+					return text(org.substr(prefix.length()));
 				}
-				PUSH_AND_RETURN(env, text(org));
+				return text(org);
 			});
 	}
 	void builtin_artithmetic(Env & env) {
@@ -764,69 +766,69 @@ namespace LISP {
 				Integer val = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env).getInteger()) {
-						PUSH_AND_RETURN(env, nil());
+						return nil();
 					}
 				}
-				PUSH_AND_RETURN(env, true);
+				return true;
 			});
 		DECL_NATIVE("+", Plus, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum += eval(*iter, env).getInteger();
 				}
-				PUSH_AND_RETURN(env, sum);
+				return sum;
 			});
 		DECL_NATIVE("-", Minus, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum -= eval(*iter, env).getInteger();
 				}
-				PUSH_AND_RETURN(env, sum);
+				return sum;
 			});
 		DECL_NATIVE("*", Multitude, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum *= eval(*iter, env).getInteger();
 				}
-				PUSH_AND_RETURN(env, sum);
+				return sum;
 			});
 		DECL_NATIVE("/", Divide, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum /= eval(*iter, env).getInteger();
 				}
-				PUSH_AND_RETURN(env, sum);
+				return sum;
 			});
 		DECL_NATIVE("%", Rest, {
 				Integer sum = eval(args[0], env).getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum %= eval(*iter, env).getInteger();
 				}
-				PUSH_AND_RETURN(env, sum);
+				return sum;
 			});
 
 		DECL_NATIVE(">", Greater, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				PUSH_AND_RETURN(env, a > b);
+				return a > b;
 			});
 
 		DECL_NATIVE("<", Less, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				PUSH_AND_RETURN(env, a < b);
+				return a < b;
 			});
 
 		DECL_NATIVE(">=", GreaterEq, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				PUSH_AND_RETURN(env, a >= b);
+				return a >= b;
 			});
 
 		DECL_NATIVE("<=", LessEq, {
 				Integer a = eval(args[0], env).getInteger();
 				Integer b = eval(args[1], env).getInteger();
-				PUSH_AND_RETURN(env, a <= b);
+				return a <= b;
 			});
 	}
 	void builtin_io(Env & env) {
@@ -839,7 +841,7 @@ namespace LISP {
 				Var ret;
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
-					PUSH_AND_RETURN(env, true);
+					return true;
 				}
 				BufferedCommandReader reader;
 				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
@@ -848,15 +850,15 @@ namespace LISP {
 				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
 					ret = compile(*iter, env);
 				}
-				PUSH_AND_RETURN(env, ret);
+				return ret;
 			});
 		DECL_NATIVE("read-line", ReadLine, {
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
-					PUSH_AND_RETURN(env, true);
+					return true;
 				}
 				string line = fd.readline();
-				PUSH_AND_RETURN(env, text(line));
+				return text(line);
 			});
 		DECL_NATIVE("print", Print, {
 				FileDescriptor fd = env["*standard-output*"].getFileDescriptor();
@@ -866,7 +868,7 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				PUSH_AND_RETURN(env, text(msg));
+				return text(msg);
 			});
 
 		DECL_NATIVE("write-string", WriteString, {
@@ -876,7 +878,7 @@ namespace LISP {
 				}
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
-				PUSH_AND_RETURN(env, text(msg));
+				return text(msg);
 			});
 
 		DECL_NATIVE("write-line", WriteLine, {
@@ -887,13 +889,13 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				PUSH_AND_RETURN(env, text(msg));
+				return text(msg);
 			});
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE("pathname", Pathname, {
 				Var path = pathname(eval(args[0], env));
-				PUSH_AND_RETURN(env, path);
+				return path;
 			});
 		DECL_NATIVE("dir", Dir, {
 				Var path = args.size() > 0 ? pathname(eval(args[0], env)) : "#p\".\"";
@@ -902,35 +904,35 @@ namespace LISP {
 				for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
 					lst.push_back(*iter);
 				}
-				PUSH_AND_RETURN(env, lst);
+				return lst;
 			});
 		DECL_NATIVE("probe-file", ProbeFile, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, file.exists());
+				return file.exists();
 			});
 		DECL_NATIVE("dirp", Dirp, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, file.isDirectory());
+				return file.isDirectory();
 			});
 		DECL_NATIVE("filep", Filep, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, file.isFile());
+				return file.isFile();
 			});
 		DECL_NATIVE("pathname-name", PathnameName, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, text(file.getName()));
+				return text(file.getName());
 			});
 		DECL_NATIVE("pathname-type", PathnameType, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, text(file.getExtension()));
+				return text(file.getExtension());
 			});
 		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, text(file.getPathPart()));
+				return text(file.getPathPart());
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
-				PUSH_AND_RETURN(env, Integer(file.getSize()));
+				return Integer(file.getSize());
 			});
 		DECL_NATIVE("open", Open, {
 				File file = pathname(eval(args[0], env)).getFile();
@@ -943,11 +945,11 @@ namespace LISP {
 				if (!fp) {
 					throw "Cannot open file";
 				}
-				PUSH_AND_RETURN(env, FileDescriptor(fp));
+				return FileDescriptor(fp);
 			});
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
-				PUSH_AND_RETURN(env, nil());
+				return nil();
 			});
 	}
 	void builtin_socket(Env & env) {
@@ -955,7 +957,7 @@ namespace LISP {
 	void builtin_system(Env & env) {
 		DECL_NATIVE("system", System, {
 				Integer ret(system(eval(args[0], env).toString().c_str()));
-				PUSH_AND_RETURN(env, ret);
+				return ret;
 			});
 		DECL_NATIVE("load", Load, {
 				File file = pathname(eval(args[0], env)).getFile();
@@ -971,7 +973,7 @@ namespace LISP {
 						}
 					}
 				}
-				PUSH_AND_RETURN(env, true);
+				return true;
 			});
 	}
 	void builtin_date(Env & env) {
@@ -983,7 +985,7 @@ namespace LISP {
 						 date.getYear(), date.getMonth(), date.getDay(),
 						 date.getHour(), date.getMinute(), date.getSecond(),
 						 date.getMillisecond());
-				PUSH_AND_RETURN(env, string(buffer));
+				return text(buffer);
 			});
 	}
 
