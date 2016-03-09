@@ -75,6 +75,16 @@ static void test_var() {
 	ASSERT(*lv.getList()[1].getInteger(), ==, 12);
 }
 
+static void test_ref() {
+	Env env;
+	native(env);
+
+	ASSERT(*compile("(setq a (car (list 1 2 3)))", env).getInteger(), ==, 1);
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*compile("(setq b (cdr (list 1 2 3)))", env).getList()[0].getInteger(), ==, 2);
+	ASSERT(*env["b"].getList()[1].getInteger(), ==, 3);
+}
+
 static void test_setf() {
 	Env env;
 	native(env);
@@ -122,6 +132,32 @@ static void test_func() {
 	env = Env();
 	native(env);
 	proto = parse("(a b c &optional x)");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3 4)");
+
+	args.mapArguments(env, env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(*env["x"].getInteger(), ==, 4);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional (x 1))");
+	args = Arguments(proto.getList());
+	input = parse("(1 2 3)");
+
+	args.mapArguments(env, env.local(), input.getList());
+	ASSERT(*env["a"].getInteger(), ==, 1);
+	ASSERT(*env["b"].getInteger(), ==, 2);
+	ASSERT(*env["c"].getInteger(), ==, 3);
+	ASSERT(*env["x"].getInteger(), ==, 1);
+
+	//
+	env = Env();
+	native(env);
+	proto = parse("(a b c &optional (x 1))");
 	args = Arguments(proto.getList());
 	input = parse("(1 2 3 4)");
 
@@ -462,6 +498,8 @@ int main(int argc, char *args[]) {
 		test_call_stack();
 		cout << "test_var()" << endl;
 		test_var();
+		cout << "test_ref()" << endl;
+		test_ref();
 		cout << "test_setf()" << endl;
 		test_setf();
 		cout << "test_func()" << endl;
