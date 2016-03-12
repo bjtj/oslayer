@@ -3,18 +3,19 @@
 #include "Text.hpp"
 #include "FileReaderWriter.hpp"
 
-#define DECL_NATIVE(NAME,CLS,CODE)								\
-	class CLS : public Procedure {								\
-	private:													\
-	public:														\
-	CLS(const string & name) : Procedure(name) {}				\
-	virtual ~CLS() {}											\
-	virtual Var proc(Var name, vector<Var> & args, Env & env)	\
-		CODE;													\
-	};															\
+#define DECL_NATIVE(NAME,CLS,CODE)										\
+	class CLS : public Procedure {										\
+	private:															\
+	public:																\
+	CLS(const string & name) : Procedure(name) {}						\
+	virtual ~CLS() {}													\
+	virtual Var proc(Var name, vector<Var> & args, Env & env) {CODE}	\
+	};																	\
 	env[NAME] = Var(UTIL::AutoRef<Procedure>(new CLS(NAME)));
 
 #define PUSH_AND_RETURN(ENV,VAR) ENV.push(VAR); return VAR;
+
+#define HAS(M,E) (M.find(E) != M.end())
 
 namespace LISP {
 
@@ -96,7 +97,7 @@ namespace LISP {
 			scope[proto[i + 1].getSymbol()] = val;
 		}
 
-		keywords = extractKeywords(args);
+		_keywords = extractKeywords(args);
 	}
 	size_t Arguments::mapOptionals(Env & env, map<string, Var> & scope, vector<Var> & proto, size_t pstart, vector<Var> & args, size_t astart) {
 		size_t i = pstart;
@@ -148,36 +149,9 @@ namespace LISP {
 		return keywords;
 	}
 
-
-	class Options {
-	private:
-		map<string, Var> options;
-	public:
-		Options(vector<Var> & args) {
-			for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
-				if (testVarSymbolStartsWith(*iter, ":")) {
-					string name = iter->getSymbol();
-					Var val;
-					if (iter + 1 != args.end()) {
-						iter++;
-						val = *iter;
-					}
-					options[name] = val;
-				}
-			}
-		}
-		virtual ~Options() {}
-		
-		bool testVarSymbolStartsWith(Var & var, const std::string & start) {
-			return (var.isSymbol() && Text::startsWith(var.getSymbol(), start));
-		}
-		bool has(const string & name) {
-			return options.find(name) != options.end();
-		}
-		Var & operator[] (const string & name) {
-			return options[name];
-		}
-	};
+	map<string, Var> & Arguments::keywords() {
+		return _keywords;
+	}
 
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
@@ -1072,19 +1046,42 @@ namespace LISP {
 				File file = pathname(eval(args[0], env)).getFile();
 				return Integer(file.getSize());
 			});
-		DECL_NATIVE("open", Open, {
+
+
+		class Open : public Procedure {
+		public:
+			Open(const string & name) : Procedure(name) {}
+			virtual ~Open() {}
+			virtual Var proc(Var name, vector<Var> & args, Env & env) {
+				map<string, Var> keywords = Arguments::extractKeywords(args);
 				File file = pathname(eval(args[0], env)).getFile();
-				Options opts(args);
-				const char * opt = "rb+";
-				if (opts[":if-does-not-exist"].isSymbol() && opts[":if-does-not-exist"].getSymbol() == ":create") {
-					opt = "wb+";
+				const char * flags = "rb+";
+				if (!file.exists()) {
+					// does not exists
+					if (HAS(keywords, ":if-does-not-exist")) {
+						if (keywords[":if-does-not-exist"].nil()) {
+							return nil();
+						} else if (keywords[":if-does-not-exist"].getSymbol() == ":create") {
+							flags = "wb+";
+						}
+					}
+				} else {
+					// exists
+					if (HAS(keywords, ":if-exist")) {
+						if (keywords[":if-exist"].nil()) {
+							return nil();
+						}
+					}
 				}
-				FILE * fp = fopen(file.getPath().c_str(), opt);
+				FILE * fp = fopen(file.getPath().c_str(), flags);
 				if (!fp) {
 					throw "Cannot open file";
 				}
 				return FileDescriptor(fp);
-			});
+			}
+		};
+		env["open"] = Var(UTIL::AutoRef<Procedure>(new Open("open")));
+		
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
 				return nil();

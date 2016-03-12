@@ -533,7 +533,7 @@ namespace LISP {
 	class Arguments {
 	private:
 		std::vector<Var> proto;
-		std::map<std::string, Var> keywords;
+		std::map<std::string, Var> _keywords;
 	public:
 		Arguments();
 		Arguments(std::vector<Var> & proto);
@@ -542,8 +542,9 @@ namespace LISP {
 		size_t countPartArguments(std::vector<Var> & arr, size_t start);
 		void mapArguments(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & args);
 		size_t mapOptionals(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & proto, size_t pstart, std::vector<Var> & args, size_t astart);
-		std::vector<Var> extractRest(Env & env, std::vector<Var> & args, size_t start);
-		std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
+		static std::vector<Var> extractRest(Env & env, std::vector<Var> & args, size_t start);
+		static std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
+		std::map<std::string, Var> & keywords();
 	};
 
 	extern Var pathname(Var path);

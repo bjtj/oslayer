@@ -498,6 +498,7 @@ static void test_file() {
 
 	compile("(system \"rm hello.txt\")", env);
 	//ASSERT(compile("(open \"hello.txt\")", env).nil(), ==, true);
+	ASSERT(compile("(open \"hello.txt\" :if-does-not-exist nil)", env).nil(), ==, true);
 	ASSERT(!compile("(open \"hello.txt\" :if-does-not-exist :create)", env).nil(), ==, true);
 	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
 				   "(write-line \"hello world\" out) (close out))", env).nil(), ==, true);
