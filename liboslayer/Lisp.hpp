@@ -192,9 +192,8 @@ namespace LISP {
 		const static int STRING = 6;
 		const static int FUNC = 7;
 		const static int FILE = 8;
-		const static int PAIR = 9;
-		const static int REF = 10;
-		const static int FILE_DESCRIPTOR = 11;
+		const static int REF = 9;
+		const static int FILE_DESCRIPTOR = 10;
 		
 	private:
 		int type;
@@ -208,7 +207,6 @@ namespace LISP {
 		std::vector<Var> body;
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
-		std::vector<Var> conscell;
 		FileDescriptor fd;
 		Var * refvar;
 		
@@ -231,15 +229,11 @@ namespace LISP {
 		Var(long inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
 		Var(long long inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
 		Var(Integer inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
+		Var(float fnum) : type(FLOAT), bval(false), fnum(fnum), refvar(NULL) {}
 		Var(Float fnum) : type(FLOAT), bval(false), fnum(fnum), refvar(NULL) {}
 		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), params(params), body(body), refvar(NULL) {}
 		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), procedure(procedure), refvar(NULL) {}
 		Var(OS::File & file) : type(FILE), bval(false), file(file), refvar(NULL) {}
-		Var(Var cons, Var cell) : type(PAIR), bval(false), refvar(NULL) {
-			conscell.clear();
-			conscell.push_back(cons);
-			conscell.push_back(cell);
-		}
 		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd), refvar(NULL) {}
 		Var(Var * refvar) : type(REF), bval(false), refvar(refvar) {
 			if (refvar == NULL) {
@@ -295,8 +289,6 @@ namespace LISP {
 				return "FUNCTION";
 			case FILE:
 				return "FILE";
-			case PAIR:
-				return "PAIR";
 			case REF:
 				return "REFERENCE";
 			case FILE_DESCRIPTOR:
@@ -321,7 +313,6 @@ namespace LISP {
 		bool isString() const {return type == STRING;}
 		bool isFunction() const {return type == FUNC;}
 		bool isFile() const {return type == FILE;}
-		bool isPair() const {return type == PAIR;}
 		bool isRef() const {return type == REF;}
 		bool isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
 		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
@@ -333,8 +324,6 @@ namespace LISP {
 		OS::File & getFile() {checkTypeThrow(FILE); return file;}
 		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
 		Var getBody() {checkTypeThrow(FUNC); return Var(body);}
-		Var & getCons() {checkTypeThrow(PAIR); return conscell[0];}
-		Var & getCell() {checkTypeThrow(PAIR); return conscell[1];}
 		UTIL::AutoRef<Procedure> getProcedure() {checkTypeThrow(FUNC); return procedure;}
 		Var * getRef() const {checkTypeThrow(REF); return refvar;}
 		FileDescriptor & getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
@@ -391,8 +380,6 @@ namespace LISP {
 				}
 			case FILE:
 				return "#p\"" + file.getPath() + "\"";
-			case PAIR:
-				return "(" + conscell[0].toString() + " . " + conscell[1].toString() + ")";
 			case REF:
 				return "#REFERENCE/" + refvar->toString();
 			case FILE_DESCRIPTOR:
@@ -423,14 +410,6 @@ namespace LISP {
 			this->file = other.file;
 			this->fd = other.fd;
 
-			this->conscell = other.conscell;
-
-			this->conscell.clear();
-			if (other.type == PAIR) {
-				this->conscell.push_back((other.conscell[0].isRef() ? *other.conscell[0].getRef() : other.conscell[0]));
-				this->conscell.push_back((other.conscell[1].isRef() ? *other.conscell[1].getRef() : other.conscell[1]));
-			}
-			
 			this->lst.clear();
 			if (other.type == LIST) {
 				for (std::vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {

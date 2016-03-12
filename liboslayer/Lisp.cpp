@@ -23,6 +23,7 @@ namespace LISP {
 	using namespace UTIL;
 
 	// builtin
+	static void builtin_type(Env & env);
 	static void builtin_algorithm(Env & env);
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
@@ -220,6 +221,10 @@ namespace LISP {
 		return ret;
 	}
 
+	bool isNumber(Var var) {
+		return var.isInteger() || var.isFloat();
+	}
+
 	Var pathname(Var path) {
 		if (path.isFile()) {
 			return path;
@@ -243,6 +248,94 @@ namespace LISP {
 		vector<Var> ret;
 		ret.push_back(var);
 		return ret;
+	}
+
+	Var toFloat(Var v) {
+		if (v.isInteger()) {
+			return Var((float)(*v.getInteger()));
+		}
+		return v;
+	}
+
+	bool eq(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return v1.getFloat() == v2.getFloat();
+		}
+		return v1.getInteger() == v2.getInteger();
+	}
+
+	bool gt(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return v1.getFloat() > v2.getFloat();
+		}
+		return v1.getInteger() > v2.getInteger();
+	}
+
+	bool lt(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return v1.getFloat() < v2.getFloat();
+		}
+		return v1.getInteger() < v2.getInteger();
+	}
+
+	bool gteq(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return v1.getFloat() >= v2.getFloat();
+		}
+		return v1.getInteger() >= v2.getInteger();
+	}
+
+	bool lteq(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return v1.getFloat() <= v2.getFloat();
+		}
+		return v1.getInteger() <= v2.getInteger();
+	}
+
+	Var plus(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return Var(v1.getFloat() + v2.getFloat());
+		}
+		return Var(v1.getInteger() + v2.getInteger());
+	}
+
+	Var minus(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return Var(v1.getFloat() - v2.getFloat());
+		}
+		return Var(v1.getInteger() - v2.getInteger());
+	}
+
+	Var multiply(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return Var(v1.getFloat() * v2.getFloat());
+		}
+		return Var(v1.getInteger() * v2.getInteger());
+	}
+
+	Var divide(Var v1, Var v2) {
+		if (v1.isFloat() || v2.isFloat()) {
+			v1 = toFloat(v1);
+			v2 = toFloat(v2);
+			return Var(v1.getFloat() / v2.getFloat());
+		}
+		return Var(v1.getInteger() / v2.getInteger());
 	}
 
 	string replaceAll(string src, string match, string rep) {
@@ -477,10 +570,17 @@ namespace LISP {
 				Var ret(elts);
 				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "cons") {
+				vector<Var> ret;
 				Var cons = eval(lv[1], env);
 				Var cell = eval(lv[2], env);
-				Var var(cons, cell);
-				PUSH_AND_RETURN(env, var);
+				ret.push_back(cons);
+				if (cell.isList()) {
+					vector<Var> lst = cell.getList();
+					ret.insert(ret.end(), lst.begin(), lst.end());
+				} else {
+					ret.push_back(cell);
+				}
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "car") {
 				eval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
@@ -571,6 +671,7 @@ namespace LISP {
 	}
 
 	void native(Env & env) {
+		builtin_type(env);
 		builtin_algorithm(env);
 		builtin_list(env);
 		builtin_logic(env);
@@ -581,6 +682,45 @@ namespace LISP {
 		builtin_socket(env);
 		builtin_system(env);
 		builtin_date(env);
+	}
+
+	void builtin_type(Env & env) {
+		DECL_NATIVE("symbolp", Symbolp, {
+				Var var = eval(args[0], env);
+				return var.isSymbol();
+			});
+		DECL_NATIVE("listp", Listp, {
+				Var var = eval(args[0], env);
+				return var.isList();
+			});
+		DECL_NATIVE("booleanp", Booleanp, {
+				Var var = eval(args[0], env);
+				return var.isBoolean();
+			});
+		DECL_NATIVE("integerp", Integerp, {
+				Var var = eval(args[0], env);
+				return var.isInteger();
+			});
+		DECL_NATIVE("floatp", Floatp, {
+				Var var = eval(args[0], env);
+				return var.isFloat();
+			});
+		DECL_NATIVE("stringp", Stringp, {
+				Var var = eval(args[0], env);
+				return var.isString();
+			});
+		DECL_NATIVE("funcp", Funcp, {
+				Var var = eval(args[0], env);
+				return var.isFunction();
+			});
+		DECL_NATIVE("pathnamep", Pathnamep, {
+				Var var = eval(args[0], env);
+				return var.isFile();
+			});
+		DECL_NATIVE("streamp", Streamp, {
+				Var var = eval(args[0], env);
+				return var.isFileDescriptor();
+			});
 	}
 
 	void builtin_algorithm(Env & env) {
@@ -636,6 +776,11 @@ namespace LISP {
 	}
 
 	void builtin_list(Env & env) {
+		DECL_NATIVE("length", Length, {
+				vector<Var> lst = eval(args[0], env).getList();
+				return Integer((long long)lst.size());
+			});
+		
 		DECL_NATIVE("append", Append, {
 				vector<Var> ret;
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
@@ -763,41 +908,42 @@ namespace LISP {
 	}
 	void builtin_artithmetic(Env & env) {
 		DECL_NATIVE("=", ArithmeticEqual, {
-				Integer val = eval(args[0], env).getInteger();
+				Var v = eval(args[0], env);
+				Integer val = v.getInteger();
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					if (val != eval(*iter, env).getInteger()) {
+					if (!eq(v, eval(*iter, env))) {
 						return nil();
 					}
 				}
 				return true;
 			});
 		DECL_NATIVE("+", Plus, {
-				Integer sum = eval(args[0], env).getInteger();
+				Var v = eval(args[0], env);
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					sum += eval(*iter, env).getInteger();
+					v = plus(v, eval(*iter, env));
 				}
-				return sum;
+				return v;
 			});
 		DECL_NATIVE("-", Minus, {
-				Integer sum = eval(args[0], env).getInteger();
+				Var v = eval(args[0], env);
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					sum -= eval(*iter, env).getInteger();
+					v = minus(v, eval(*iter, env));
 				}
-				return sum;
+				return v;
 			});
 		DECL_NATIVE("*", Multitude, {
-				Integer sum = eval(args[0], env).getInteger();
+				Var v = eval(args[0], env);
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					sum *= eval(*iter, env).getInteger();
+					v = multiply(v, eval(*iter, env));
 				}
-				return sum;
+				return v;
 			});
 		DECL_NATIVE("/", Divide, {
-				Integer sum = eval(args[0], env).getInteger();
+				Var v = eval(args[0], env);
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					sum /= eval(*iter, env).getInteger();
+					v = divide(v, eval(*iter, env));
 				}
-				return sum;
+				return v;
 			});
 		DECL_NATIVE("%", Rest, {
 				Integer sum = eval(args[0], env).getInteger();
@@ -808,27 +954,19 @@ namespace LISP {
 			});
 
 		DECL_NATIVE(">", Greater, {
-				Integer a = eval(args[0], env).getInteger();
-				Integer b = eval(args[1], env).getInteger();
-				return a > b;
+				return gt(eval(args[0], env), eval(args[1], env));
 			});
 
 		DECL_NATIVE("<", Less, {
-				Integer a = eval(args[0], env).getInteger();
-				Integer b = eval(args[1], env).getInteger();
-				return a < b;
+				return lt(eval(args[0], env), eval(args[1], env));
 			});
 
 		DECL_NATIVE(">=", GreaterEq, {
-				Integer a = eval(args[0], env).getInteger();
-				Integer b = eval(args[1], env).getInteger();
-				return a >= b;
+				return gteq(eval(args[0], env), eval(args[1], env));
 			});
 
 		DECL_NATIVE("<=", LessEq, {
-				Integer a = eval(args[0], env).getInteger();
-				Integer b = eval(args[1], env).getInteger();
-				return a <= b;
+				return lteq(eval(args[0], env), eval(args[1], env));
 			});
 	}
 	void builtin_io(Env & env) {

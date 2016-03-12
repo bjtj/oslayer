@@ -5,7 +5,7 @@ using namespace std;
 using namespace LISP;
 
 #define ASSERT(A,CMP,B)													\
-	cout << #A << "(" << #CMP << " " << B << ")";			\
+	cout << #A << " (" << #CMP << " " << B << ") :: ";					\
 	if (!(A CMP B)) {													\
 		cout << " - FAIL" << endl;										\
 		cerr << " <!> " << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
@@ -253,8 +253,23 @@ static void test_logic() {
 }
 
 static void test_type() {
+
+	Env env;
+	native(env);
+	
 	Var var(false);
 	ASSERT(var.nil(), ==, true);
+
+	ASSERT(compile("(symbolp (symbol x))", env).nil(), ==, false);
+	ASSERT(compile("(listp (list 1 2 3))", env).nil(), ==, false);
+	ASSERT(compile("(booleanp t)", env).nil(), ==, false);
+	ASSERT(compile("(integerp 1)", env).nil(), ==, false);
+	ASSERT(compile("(floatp 1.0)", env).nil(), ==, false);
+	ASSERT(compile("(stringp \"hello\")", env).nil(), ==, false);
+	compile("(system \"touch xxx\")", env);
+	compile("(setq *f* (open \"xxx\"))", env);
+	ASSERT(compile("(streamp *f*)", env).nil(), ==, false);
+	// ASSERT(compile("(pathnamep (car (dir \".\")))", env).nil(), ==, false);
 }
 
 static void test_scope() {
@@ -360,6 +375,20 @@ static void test_arithmetic() {
 	ASSERT(!compile("(>= 1 1)", env).nil(), ==, true);
 	ASSERT(!compile("(>= 1 4)", env).nil(), ==, false);
 	ASSERT(!compile("(>= 4 1)", env).nil(), ==, true);
+
+	ASSERT(!compile("(= 1 1.0)", env).nil(), ==, true);
+	ASSERT(!compile("(= 2 1.0)", env).nil(), ==, false);
+	ASSERT(!compile("(= 1 2.0)", env).nil(), ==, false);
+	ASSERT(!compile("(< 1 4.0)", env).nil(), ==, true);
+	ASSERT(!compile("(> 1 4.0)", env).nil(), ==, false);
+	ASSERT(!compile("(<= 1 1.0)", env).nil(), ==, true);
+	ASSERT(!compile("(<= 1 4.0)", env).nil(), ==, true);
+	ASSERT(!compile("(<= 4 1.0)", env).nil(), ==, false);
+	ASSERT(!compile("(>= 1 1.0)", env).nil(), ==, true);
+	ASSERT(!compile("(>= 1 4.0)", env).nil(), ==, false);
+	ASSERT(!compile("(>= 4 1.0)", env).nil(), ==, true);
+
+	ASSERT(*compile("(* 4 1.2)", env).getFloat(), ==, 4.8f);
 }
 
 static void test_list() {
@@ -392,8 +421,21 @@ static void test_list() {
 	ASSERT((*compile("(car *lst*)", env)).getList().size(), ==, 2);
 	ASSERT((*compile("(car (car *lst*))", env)).toString(), ==, "name");
 	ASSERT((*compile("(car (cdr (car *lst*)))", env)).toString(), ==, "steve");
+}
 
-	ASSERT(compile("(cons 1 2)", env).getCons().getType(), ==, Var::INTEGER);
+static void test_cons() {
+	Env env;
+	native(env);
+
+	compile("(cons 1 2)", env);
+	ASSERT(compile("(cons 1 2)", env).toString(), ==, "(1 2)");
+	ASSERT(compile("(cons 1 (cons 2 3)))", env).toString(), ==, "(1 2 3)");
+	ASSERT(compile("(cons 1 (cons 2 (cons 3 4))))", env).toString(), ==, "(1 2 3 4)");
+
+	ASSERT(compile("(car (cons 1 2))", env).getType(), ==, Var::INTEGER);
+	ASSERT(*compile("(car (cons 1 2))", env).getInteger(), ==, 1);
+	ASSERT(compile("(cdr (cons 1 2))", env).getType(), ==, Var::LIST);
+	ASSERT(*compile("(cdr (cons 1 2))", env).getList()[0].getInteger(), ==, 2);
 }
 
 static void test_algorithm() {
@@ -520,6 +562,8 @@ int main(int argc, char *args[]) {
 		test_string();
 		cout << "test_list()" << endl;
 		test_list();
+		cout << "test_cons()" << endl;
+		test_cons();
 		cout << "test_arithmetic()" << endl;
 		test_arithmetic();
 		cout << "test_algorithm()" << endl;
