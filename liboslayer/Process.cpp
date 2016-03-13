@@ -13,7 +13,6 @@ namespace OS {
 	}
 	void Process::start() {
 		pid_t pid = 0;
-		char buf[1024] = {0,};
 
 		if (pipe(pipe_in) != 0 || pipe(pipe_out) != 0 || pipe(pipe_err) != 0) {
 			throw IOException("pipe() error", -1, 0);
