@@ -25,14 +25,14 @@ namespace UTIL {
 		64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 
 	};
 
-	static int s_decode_len(const char * encoded) {
+	static size_t s_decode_len(const char * encoded) {
 		const char * p = encoded;
 		int len = 0;
 		while (s_decode_table[*p++] < 64) {len++;}
 		return (len % 4 == 0) ? (len / 4 * 3) : ((len / 4 * 3) + (len % 4 - 1));
 	}
 
-	static int s_decode(char * out, const char * encoded) {
+	static size_t s_decode(char * out, const char * encoded) {
 		char * o = out;
 		const char * p = encoded;
 		int len = 0;
@@ -62,11 +62,11 @@ namespace UTIL {
 	static const char s_basis64[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	static int s_encode_len(int len) {
+	static size_t s_encode_len(size_t len) {
 		return ((len + 2) / 3 * 4);
 	}
 
-	static int s_encode(char * out, const char * data, int len) {
+	static size_t s_encode(char * out, const char * data, size_t len) {
 
 		int i;
 		char * p = out;
@@ -99,7 +99,7 @@ namespace UTIL {
 	}
 
 	string Base64::encode(const string & plain) {
-		int len = s_encode_len(plain.length());
+		size_t len = s_encode_len(plain.length());
 		char * buffer = (char*)malloc(len + 1);
 		memset(buffer, 0, len + 1);
 		s_encode(buffer, plain.c_str(), plain.length());
@@ -109,7 +109,7 @@ namespace UTIL {
 	}
 	
 	string Base64::decode(const string & encoded) {
-		int len = s_decode_len(encoded.c_str());
+		size_t len = s_decode_len(encoded.c_str());
 		char * buffer = (char*)malloc(len + 1);
 		memset(buffer, 0, len + 1);
 		s_decode(buffer, encoded.c_str());
