@@ -29,8 +29,10 @@
 		E895013D1C1101C1009434B1 /* Properties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E895012F1C109924009434B1 /* Properties.cpp */; };
 		E89501421C146379009434B1 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501401C146379009434B1 /* Socket.cpp */; };
 		E895014C1C146400009434B1 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501401C146379009434B1 /* Socket.cpp */; };
-		E8B161401BFDF8DA002D68C7 /* Iteration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8B1613C1BFDF8DA002D68C7 /* Iteration.cpp */; };
-		E8B161411BFDF8DA002D68C7 /* Iteration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8B1613C1BFDF8DA002D68C7 /* Iteration.cpp */; };
+		E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8AC4F5F1C89C0B600504E50 /* Base64.cpp */; };
+		E8AC4F641C89C0B600504E50 /* Base64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8AC4F5F1C89C0B600504E50 /* Base64.cpp */; };
+		E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8AC4F7E1C9569CE00504E50 /* Process.cpp */; };
+		E8AC4F811C9569CE00504E50 /* Process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8AC4F7E1C9569CE00504E50 /* Process.cpp */; };
 		E8B161421BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8B1613E1BFDF8DA002D68C7 /* ThreadPool.cpp */; };
 		E8B161431BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8B1613E1BFDF8DA002D68C7 /* ThreadPool.cpp */; };
 		E8B161601C0054D4002D68C7 /* AutoRef.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8B1615E1C0054D4002D68C7 /* AutoRef.cpp */; };
@@ -99,8 +101,12 @@
 		E89501301C109924009434B1 /* Properties.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Properties.hpp; path = ../../liboslayer/Properties.hpp; sourceTree = "<group>"; };
 		E89501401C146379009434B1 /* Socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Socket.cpp; path = ../../liboslayer/Socket.cpp; sourceTree = "<group>"; };
 		E89501411C146379009434B1 /* Socket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Socket.hpp; path = ../../liboslayer/Socket.hpp; sourceTree = "<group>"; };
-		E8B1613C1BFDF8DA002D68C7 /* Iteration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Iteration.cpp; path = ../../liboslayer/Iteration.cpp; sourceTree = "<group>"; };
-		E8B1613D1BFDF8DA002D68C7 /* Iteration.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Iteration.hpp; path = ../../liboslayer/Iteration.hpp; sourceTree = "<group>"; };
+		E8AC4F5F1C89C0B600504E50 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = ../../liboslayer/Base64.cpp; sourceTree = "<group>"; };
+		E8AC4F601C89C0B600504E50 /* Base64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Base64.hpp; path = ../../liboslayer/Base64.hpp; sourceTree = "<group>"; };
+		E8AC4F611C89C0B600504E50 /* Hash.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Hash.hpp; path = ../../liboslayer/Hash.hpp; sourceTree = "<group>"; };
+		E8AC4F621C89C0B600504E50 /* XmlEncoderDecoder.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlEncoderDecoder.hpp; path = ../../liboslayer/XmlEncoderDecoder.hpp; sourceTree = "<group>"; };
+		E8AC4F7E1C9569CE00504E50 /* Process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Process.cpp; path = ../../liboslayer/Process.cpp; sourceTree = "<group>"; };
+		E8AC4F7F1C9569CE00504E50 /* Process.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Process.hpp; path = ../../liboslayer/Process.hpp; sourceTree = "<group>"; };
 		E8B1613E1BFDF8DA002D68C7 /* ThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ThreadPool.cpp; path = ../../liboslayer/ThreadPool.cpp; sourceTree = "<group>"; };
 		E8B1613F1BFDF8DA002D68C7 /* ThreadPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadPool.hpp; path = ../../liboslayer/ThreadPool.hpp; sourceTree = "<group>"; };
 		E8B1615E1C0054D4002D68C7 /* AutoRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoRef.cpp; path = ../../liboslayer/AutoRef.cpp; sourceTree = "<group>"; };
@@ -160,6 +166,12 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E8AC4F7E1C9569CE00504E50 /* Process.cpp */,
+				E8AC4F7F1C9569CE00504E50 /* Process.hpp */,
+				E8AC4F5F1C89C0B600504E50 /* Base64.cpp */,
+				E8AC4F601C89C0B600504E50 /* Base64.hpp */,
+				E8AC4F611C89C0B600504E50 /* Hash.hpp */,
+				E8AC4F621C89C0B600504E50 /* XmlEncoderDecoder.hpp */,
 				6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */,
 				E895012E1C109924009434B1 /* AutoRelease.hpp */,
 				E895012F1C109924009434B1 /* Properties.cpp */,
@@ -170,8 +182,6 @@
 				6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */,
 				E8447C921BF4AC11000E2903 /* FileReaderWriter.cpp */,
 				E8447C931BF4AC11000E2903 /* FileReaderWriter.hpp */,
-				E8B1613C1BFDF8DA002D68C7 /* Iteration.cpp */,
-				E8B1613D1BFDF8DA002D68C7 /* Iteration.hpp */,
 				E8E048FA1C6381B500144731 /* Lisp.cpp */,
 				E8E048FB1C6381B500144731 /* Lisp.hpp */,
 				E857BB691BECD09800D2022F /* Logger.cpp */,
@@ -272,9 +282,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */,
-				E8B161401BFDF8DA002D68C7 /* Iteration.cpp in Sources */,
 				E8075A101C03634D00EBE4B8 /* Measurement.cpp in Sources */,
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
+				E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */,
 				E89501421C146379009434B1 /* Socket.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
@@ -284,6 +294,7 @@
 				E8B161601C0054D4002D68C7 /* AutoRef.cpp in Sources */,
 				E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
+				E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */,
 				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
 				E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */,
 				E8B161421BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */,
@@ -298,16 +309,17 @@
 				E8E049011C6381E600144731 /* Lisp.cpp in Sources */,
 				E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */,
 				E895014C1C146400009434B1 /* Socket.cpp in Sources */,
+				E8AC4F641C89C0B600504E50 /* Base64.cpp in Sources */,
 				6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */,
 				E895013D1C1101C1009434B1 /* Properties.cpp in Sources */,
 				E8075A141C03640F00EBE4B8 /* Measurement.cpp in Sources */,
 				E8447C981BF4AC26000E2903 /* FileReaderWriter.cpp in Sources */,
-				E8B161411BFDF8DA002D68C7 /* Iteration.cpp in Sources */,
 				E8447C991BF4AC26000E2903 /* RandomPortBinders.cpp in Sources */,
 				E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */,
 				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
 				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,
 				E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */,
+				E8AC4F811C9569CE00504E50 /* Process.cpp in Sources */,
 				E8B161611C0054D4002D68C7 /* AutoRef.cpp in Sources */,
 				E8FAB2161BD7C36200E89DC5 /* os.cpp in Sources */,
 				E8FAB2171BD7C36200E89DC5 /* OSThread.mm in Sources */,
@@ -400,7 +412,7 @@
 		E882FE881BD5312600E1C8C7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-ObjC";
@@ -412,7 +424,7 @@
 		E882FE891BD5312600E1C8C7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_PREPROCESSOR_DEFINITIONS = "HAVE_OPENSSL=1";
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = "-ObjC";
@@ -425,7 +437,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -447,7 +459,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = "";
+				GCC_PREPROCESSOR_DEFINITIONS = "HAVE_OPENSSL=1";
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
