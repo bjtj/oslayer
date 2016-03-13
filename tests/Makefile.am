@@ -1,6 +1,6 @@
 TESTS=$(check_PROGRAMS)
 
-check_PROGRAMS = test-hello test-lisp test-properties test-os
+check_PROGRAMS = test-hello test-lisp test-properties test-os test-process
 
 test_hello_SOURCES=test-hello.cpp
 test_hello_CPPFLAGS=-I$(top_srcdir)
@@ -25,3 +25,9 @@ test_os_CPPFLAGS=-I$(top_srcdir)
 test_os_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 test_os_LDFLAGS=$(PTHREAD_CFLAGS)
 test_os_LDADD=../liboslayer/liboslayer.la
+
+test_process_SOURCES=test-process.cpp
+test_process_CPPFLAGS=-I$(top_srcdir)
+test_process_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+test_process_LDFLAGS=$(PTHREAD_CFLAGS)
+test_process_LDADD=../liboslayer/liboslayer.la

@@ -10,6 +10,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Logger.hpp \
 	Lisp.hpp \
 	Measurement.hpp \
+	Process.hpp \
 	Properties.hpp \
 	RandomPortBinders.hpp \
 	SecureSocket.hpp \
@@ -39,6 +40,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Logger.hpp \
 	Measurement.cpp \
 	Measurement.hpp \
+	Process.cpp \
+	Process.hpp \
 	Properties.cpp \
 	Properties.hpp \
 	RandomPortBinders.cpp \
