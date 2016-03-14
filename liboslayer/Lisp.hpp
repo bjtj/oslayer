@@ -169,6 +169,16 @@ namespace LISP {
 			testFd();
 			fputs(data.c_str(), _fd);
 		}
+		size_t position() {
+			long pos = ftell(_fd);
+			if (pos < 0) {
+				throw "ftell() error";
+			}
+			return (size_t)pos;
+		}
+		void position(size_t seek) {
+			fseek(_fd, seek, SEEK_SET);
+		}
 		void close() {
 			if (_fd) {
 				fclose(_fd);

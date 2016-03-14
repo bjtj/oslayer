@@ -507,6 +507,28 @@ static void test_file() {
 				   "(write-string \"hello world\" out) (close out))", env).nil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (in (open \"hello.txt\"))) "
 				   "(setq ret (read-line in)) (close in) ret)", env).toString(), ==, "hello world");
+
+	// append test
+	compile("(system \"rm -rf message.txt\")", env);
+	ASSERT(compile("(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
+				   "(write-string \"hello \" f) (close f))", env).nil(), ==, true);
+	ASSERT(compile("(let ((f (open \"message.txt\" :if-exist :append))) "
+				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
+	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
+				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "hello world");
+
+	// overwrite test
+	ASSERT(compile("(let ((f (open \"message.txt\" :if-exist :overwrite))) "
+				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
+	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
+				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "world");
+
+	// file-position
+	compile("(setq *f* (open \"message.txt\"))", env);
+	ASSERT(*compile("(file-position *f*)", env).getInteger(), ==, 0);
+	ASSERT(*compile("(file-position *f* 2)", env).getInteger(), ==, 2);
+	ASSERT(compile("(read-line *f*)", env).toString(), ==, "rld");
+	compile("(close *f*)", env);
 }
 
 static void test_load() {

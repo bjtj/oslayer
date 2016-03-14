@@ -1070,6 +1070,10 @@ namespace LISP {
 					if (HAS(keywords, ":if-exist")) {
 						if (keywords[":if-exist"].nil()) {
 							return nil();
+						} else if (keywords[":if-exist"].getSymbol() == ":append") {
+							flags = "ab+";
+						} else if (keywords[":if-exist"].getSymbol() == ":overwrite") {
+							flags = "wb+";
 						}
 					}
 				}
@@ -1081,6 +1085,15 @@ namespace LISP {
 			}
 		};
 		env["open"] = Var(UTIL::AutoRef<Procedure>(new Open("open")));
+
+		DECL_NATIVE("file-position", FilePosition, {
+				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
+				if (args.size() > 1) {
+					fd.position((size_t)*eval(args[1], env).getInteger());
+				}
+				return Integer((long long)fd.position());
+				
+			});
 		
 		DECL_NATIVE("close", Close, {
 				eval(args[0], env).getFileDescriptor().close();
