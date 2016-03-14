@@ -1067,12 +1067,12 @@ namespace LISP {
 					}
 				} else {
 					// exists
-					if (HAS(keywords, ":if-exist")) {
-						if (keywords[":if-exist"].nil()) {
+					if (HAS(keywords, ":if-exists")) {
+						if (keywords[":if-exists"].nil()) {
 							return nil();
-						} else if (keywords[":if-exist"].getSymbol() == ":append") {
+						} else if (keywords[":if-exists"].getSymbol() == ":append") {
 							flags = "ab+";
-						} else if (keywords[":if-exist"].getSymbol() == ":overwrite") {
+						} else if (keywords[":if-exists"].getSymbol() == ":overwrite") {
 							flags = "wb+";
 						}
 					}

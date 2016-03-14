@@ -512,13 +512,13 @@ static void test_file() {
 	compile("(system \"rm -rf message.txt\")", env);
 	ASSERT(compile("(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
 				   "(write-string \"hello \" f) (close f))", env).nil(), ==, true);
-	ASSERT(compile("(let ((f (open \"message.txt\" :if-exist :append))) "
+	ASSERT(compile("(let ((f (open \"message.txt\" :if-exists :append))) "
 				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
 				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "hello world");
 
 	// overwrite test
-	ASSERT(compile("(let ((f (open \"message.txt\" :if-exist :overwrite))) "
+	ASSERT(compile("(let ((f (open \"message.txt\" :if-exists :overwrite))) "
 				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
 				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "world");
