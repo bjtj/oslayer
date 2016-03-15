@@ -116,7 +116,7 @@ namespace LISP {
 		}
 
 		static float toFloat(const std::string & istr) {
-			return atof(istr.c_str());
+			return (float)atof(istr.c_str());
 		}
 
 		float & operator* () {return num;}

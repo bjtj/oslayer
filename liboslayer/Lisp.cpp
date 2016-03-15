@@ -576,7 +576,7 @@ namespace LISP {
 				}
 				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "nth") {
-				int idx = (int)(*(eval(lv[1], env).getInteger()));
+				size_t idx = (size_t)(*(eval(lv[1], env).getInteger()));
 				eval(lv[2], env);
 				vector<Var> & lst = env.last().getList();
 				if (idx < lst.size()) {
@@ -584,7 +584,7 @@ namespace LISP {
 				}
 				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "nthcdr") {
-				int idx = (int)(*eval(lv[1], env).getInteger());
+				size_t idx = (size_t)(*eval(lv[1], env).getInteger());
 				eval(lv[2], env);
 				vector<Var> & lst = env.last().getList();
 				if (idx < lst.size()) {
@@ -601,7 +601,7 @@ namespace LISP {
 				Integer start = eval(lv[2], env).getInteger();
 				Integer end = eval(lv[3], env).getInteger();
 				vector<Var> ret;
-				for (long long i = *start; i < *end && i < lst.size(); i++) {
+				for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
 					ret.push_back(&lst[i]);
 				}
 				PUSH_AND_RETURN(env, ret);
@@ -1044,7 +1044,7 @@ namespace LISP {
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				File file = pathname(eval(args[0], env)).getFile();
-				return Integer(file.getSize());
+				return Integer((long long)file.getSize());
 			});
 
 
@@ -1077,11 +1077,19 @@ namespace LISP {
 						}
 					}
 				}
+#if defined(USE_UNIX_STD)
 				FILE * fp = fopen(file.getPath().c_str(), flags);
 				if (!fp) {
 					throw "Cannot open file";
 				}
 				return FileDescriptor(fp);
+#elif defined(USE_MS_WIN)
+				FILE * fp = NULL;
+				if (fopen_s(&fp, file.getPath().c_str(), flags) != 0) {
+					throw "Cannot open file";
+				}
+				return FileDescriptor(fp);
+#endif		
 			}
 		};
 		env["open"] = Var(UTIL::AutoRef<Procedure>(new Open("open")));

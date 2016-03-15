@@ -22,21 +22,6 @@
 #include "platform.hpp"
 
 /*
- * Library
- */
-#if defined(USE_UNIX_STD)
-
-typedef void * LIB_HANDLE;
-typedef void * SYM_HANDLE;
-
-#elif defined(USE_MS_WIN)
-
-typedef HMODULE LIB_HANDLE;
-typedef FARPROC SYM_HANDLE;
-
-#endif
-
-/*
  * Semaphore
  */
 
@@ -116,6 +101,22 @@ typedef int SOCK_HANDLE;
 #	define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 typedef SOCKET SOCK_HANDLE;
+
+#endif
+
+
+/*
+ * Library
+ */
+#if defined(USE_UNIX_STD)
+
+typedef void * LIB_HANDLE;
+typedef void * SYM_HANDLE;
+
+#elif defined(USE_MS_WIN)
+
+typedef HMODULE LIB_HANDLE;
+typedef FARPROC SYM_HANDLE;
 
 #endif
 

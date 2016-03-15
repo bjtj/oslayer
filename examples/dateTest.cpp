@@ -8,6 +8,5 @@ int main(int argc, char * args[]) {
 		Date date = Date::now();
 		printf("%04d-%02d-%02d %02d:%02d:%02d.%d", date.getYear(), date.getMonth(), date.getDay(), date.getHour(), date.getMinute(), date.getSecond(), date.getMillisecond());
 		getchar();
-	}
-	
+	}	
 }

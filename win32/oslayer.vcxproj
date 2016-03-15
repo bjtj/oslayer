@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -18,12 +18,10 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -72,14 +70,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\liboslayer\AutoRef.cpp" />
+    <ClCompile Include="..\liboslayer\Base64.cpp" />
     <ClCompile Include="..\liboslayer\FileReaderWriter.cpp" />
-    <ClCompile Include="..\liboslayer\Iteration.cpp" />
+    <ClCompile Include="..\liboslayer\FileStream.cpp" />
+    <ClCompile Include="..\liboslayer\Lisp.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
     <ClCompile Include="..\liboslayer\Measurement.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
-    <ClCompile Include="..\liboslayer\PollablePool.cpp" />
+    <ClCompile Include="..\liboslayer\Process.cpp" />
     <ClCompile Include="..\liboslayer\Properties.cpp" />
     <ClCompile Include="..\liboslayer\DatagramSocket.cpp" />
+    <ClCompile Include="..\liboslayer\SecureSocket.cpp" />
     <ClCompile Include="..\liboslayer\Socket.cpp" />
     <ClCompile Include="..\liboslayer\ThreadPool.cpp" />
     <ClCompile Include="..\liboslayer\RandomPortBinders.cpp" />
@@ -88,21 +89,27 @@
   <ItemGroup>
     <ClInclude Include="..\liboslayer\AutoRef.hpp" />
     <ClInclude Include="..\liboslayer\AutoRelease.hpp" />
+    <ClInclude Include="..\liboslayer\Base64.hpp" />
     <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
-    <ClInclude Include="..\liboslayer\Iteration.hpp" />
+    <ClInclude Include="..\liboslayer\FileStream.hpp" />
+    <ClInclude Include="..\liboslayer\Hash.hpp" />
+    <ClInclude Include="..\liboslayer\Lisp.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\Measurement.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\platform.hpp" />
-    <ClInclude Include="..\liboslayer\PollablePool.hpp" />
+    <ClInclude Include="..\liboslayer\Process.hpp" />
     <ClInclude Include="..\liboslayer\Properties.hpp" />
     <ClInclude Include="..\liboslayer\DatagramSocket.hpp" />
+    <ClInclude Include="..\liboslayer\SecureSocket.hpp" />
     <ClInclude Include="..\liboslayer\Socket.hpp" />
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
     <ClInclude Include="..\liboslayer\StringElement.hpp" />
     <ClInclude Include="..\liboslayer\Text.hpp" />
     <ClInclude Include="..\liboslayer\Utils.hpp" />
+    <ClInclude Include="..\liboslayer\XmlEncoderDecoder.hpp" />
+    <ClInclude Include="..\liboslayer\XmlParser.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -5,6 +5,8 @@ namespace OS {
 
 	using namespace std;
 
+#if defined(USE_UNIX_STD)
+
 	Process::Process(const std::string & cmd) : pid(0), cmd(cmd), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)  {
 	}
 	Process::Process(const std::string & cmd, const std::vector<std::string> & env) : pid(0), cmd(cmd), env(env), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)  {
@@ -135,4 +137,7 @@ namespace OS {
 	int Process::exitCode() {
 		return _exitCode;
 	}
+
+#endif // #if defined(USE_UNIX_STD)
+
 }

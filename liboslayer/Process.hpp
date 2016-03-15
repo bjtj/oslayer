@@ -7,6 +7,8 @@
 #include <vector>
 
 namespace OS {
+
+#if defined(USE_UNIX_STD)
 	
 	class Process {
 	private:
@@ -38,6 +40,9 @@ namespace OS {
 		void close();
 		int exitCode();
 	};
+
+#endif // USE_UNIX_STD
+
 }
 
 #endif
