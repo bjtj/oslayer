@@ -116,6 +116,14 @@ namespace XML {
 		XmlNode * getFirstChild() {
 			return *_children.begin();
 		}
+		XmlNode * getFirstChildElement() {
+			for (std::vector<XmlNode*>::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+				if ((*iter)->isElement()) {
+					return *iter;
+				}
+			}
+			return NULL;
+		}
 		XmlNode * getLastChild() {
 			return *_children.rbegin();
 		}
