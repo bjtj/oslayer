@@ -6,6 +6,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Base64.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
+	FileStream.hpp \
 	Hash.hpp \
 	Logger.hpp \
 	Lisp.hpp \
@@ -33,6 +34,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.cpp \
 	FileReaderWriter.hpp \
+	FileStream.cpp \
+	FileStream.hpp \
 	Hash.hpp \
 	Lisp.cpp \
 	Lisp.hpp \
