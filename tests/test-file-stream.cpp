@@ -49,6 +49,22 @@ static void test_filestream() {
 	ch = fs.read();
 	ASSERT(ch, ==, -1);
 	fs.close();
+
+	{
+		FILE * fp = fopen("test-fs.txt", "rb");
+		FileStream fs(fp);
+		line = fs.readline();
+		ASSERT(line, ==, "hello world");
+		fs.close();
+	}
+
+	{
+		FileStream fs(fopen("test-fs.txt", "rb"));
+		line = fs.readline();
+		ASSERT(line, ==, "hello world");
+		fs.close();
+	}
+
 }
 
 int main(int argc, char *args[]) {

@@ -15,6 +15,9 @@ namespace UTIL {
 	FileStream::FileStream() : fp(NULL) {
 	}
 	FileStream::FileStream(FILE * fp) : fp(fp) {
+		if (!fp) {
+			throw IOException("invalid file poitner", -1, 0);
+		}
 	}
 	FileStream::FileStream(File file, const string & flags) {
 		open(file.getPath(), flags);
