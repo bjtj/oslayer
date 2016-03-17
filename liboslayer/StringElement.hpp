@@ -40,10 +40,12 @@ namespace UTIL {
     class NameValueList : public std::vector<NameValue> {
     private:
     public:
-        NameValueList() {
-        }
-        virtual ~NameValueList() {
-        }
+        NameValueList() {}
+		NameValueList(const std::vector<NameValue> & lst) {
+			this->clear();
+			this->insert(this->end(), lst.begin(), lst.end());
+		}
+        virtual ~NameValueList() {}
     };
 
 	/**
@@ -75,7 +77,7 @@ namespace UTIL {
 	class LinkedStringMap {
 
 	private:
-		std::vector<NameValue> elements;
+		std::vector<NameValue> _elements;
 
 	public:
 		LinkedStringMap() {
@@ -84,27 +86,35 @@ namespace UTIL {
 		virtual ~LinkedStringMap() {
 		}
 
+		std::vector<NameValue> elements() {
+			return _elements;
+		}
+
+		std::vector<NameValue> toNameValueList() const {
+			return NameValueList(_elements);
+		}
+
 		size_t size() const {
-			return elements.size();
+			return _elements.size();
 		}
         
         void clear() {
-            elements.clear();
+            _elements.clear();
         }
 
 		NameValue & get(const std::string & name) {
-			for (size_t i = 0; i < elements.size(); i++) {
-				NameValue & nv = elements[i];
+			for (size_t i = 0; i < _elements.size(); i++) {
+				NameValue & nv = _elements[i];
 				if (nv == name) {
 					return nv;
 				}
 			}
-			elements.push_back(NameValue(name));
+			_elements.push_back(NameValue(name));
 			return get(name);
 		}
 		NameValue const_get(const std::string & name) const {
-			for (size_t i = 0; i < elements.size(); i++) {
-				const NameValue & nv = elements[i];
+			for (size_t i = 0; i < _elements.size(); i++) {
+				const NameValue & nv = _elements[i];
 				if (nv == name) {
 					return nv;
 				}
@@ -112,17 +122,17 @@ namespace UTIL {
 			return NameValue();
 		}
 		NameValue & getByIndex(size_t index) {
-			return elements[index];
+			return _elements[index];
 		}
 		const NameValue & const_getByIndex(size_t index) const {
-			return elements[index];
+			return _elements[index];
 		}
 
 		std::string & operator[] (const std::string & name) {
 			return get(name).getValue();
 		}
 		NameValue & operator[] (size_t index) {
-			return elements[index];
+			return _elements[index];
 		}
 	};
 
