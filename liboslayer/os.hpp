@@ -126,6 +126,12 @@ namespace OS {
 public: \
     explicit NAME() { \
     } \
+	explicit NAME(const std::string & message) \
+    : OS::Exception(message) { \
+    } \
+	explicit NAME(const char * message) \
+    : OS::Exception(message) { \
+    } \
     explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
     : OS::Exception(message, errorCode, subErrorCode) { \
     } \
@@ -146,6 +152,12 @@ public: \
 		int subErrorCode;
 	public:
 		explicit Exception() : errorCode(-1), subErrorCode(-1) {
+		}
+		explicit Exception(const std::string & message) :
+			message(message), errorCode(-1), subErrorCode(-1) {
+		}
+		explicit Exception(const char * message) :
+			message(message), errorCode(-1), subErrorCode(-1) {
 		}
 		explicit Exception(const std::string & message, int errorCode, int subErrorCode) :
 			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {

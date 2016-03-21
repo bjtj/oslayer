@@ -8,7 +8,7 @@ using namespace LISP;
 	cout << #A << " (" << #CMP << " " << B << ") :: ";					\
 	if (!(A CMP B)) {													\
 		cout << " - FAIL" << endl;										\
-		cerr << " <!> " << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
+		cerr << " <!> " << #A <<  " should be " << #CMP << " [" <<  B << "] but [" << A << "]" << endl; \
 		exit(1);														\
 	} else {															\
 		cout << " - PASS" << endl;										\
@@ -556,45 +556,62 @@ static void test_load() {
 	ASSERT(*compile("*b*", env).getInteger(), ==, 1);
 }
 
+static void test_error_handling() {
+	Env env;
+	native(env);
+
+	ASSERT(compile("(symbol abc)", env).getSymbol(), ==, "abc");
+
+	try {
+		compile("(symbol)", env);
+	} catch (const char * e) {
+		ASSERT(string(e), ==, "Wrong argument count");
+	} catch (const string & e) {
+		ASSERT(e, ==, "Wrong argument count");
+	}
+}
+
 int main(int argc, char *args[]) {
 
 	try {
-		cout << "test_call_stack()" << endl;
+		cout << " *** test_call_stack()" << endl;
 		test_call_stack();
-		cout << "test_var()" << endl;
+		cout << " *** test_var()" << endl;
 		test_var();
-		cout << "test_ref()" << endl;
+		cout << " *** test_ref()" << endl;
 		test_ref();
-		cout << "test_setf()" << endl;
+		cout << " *** test_setf()" << endl;
 		test_setf();
-		cout << "test_func()" << endl;
+		cout << " *** test_func()" << endl;
 		test_func();
-		cout << "test_type()" << endl;
+		cout << " *** test_type()" << endl;
 		test_type();
-		cout << "test_scope()" << endl;
+		cout << " *** test_scope()" << endl;
 		test_scope();
-		cout << "test_logic()" << endl;
+		cout << " *** test_logic()" << endl;
 		test_logic();
-		cout << "test_cond()" << endl;
+		cout << " *** test_cond()" << endl;
 		test_cond();
-		cout << "test_loop()" << endl;
+		cout << " *** test_loop()" << endl;
 		test_loop();
-		cout << "test_read()" << endl;
+		cout << " *** test_read()" << endl;
 		test_read();
-		cout << "test_string()" << endl;
+		cout << " *** test_string()" << endl;
 		test_string();
-		cout << "test_list()" << endl;
+		cout << " *** test_list()" << endl;
 		test_list();
-		cout << "test_cons()" << endl;
+		cout << " *** test_cons()" << endl;
 		test_cons();
-		cout << "test_arithmetic()" << endl;
+		cout << " *** test_arithmetic()" << endl;
 		test_arithmetic();
-		cout << "test_algorithm()" << endl;
+		cout << " *** test_algorithm()" << endl;
 		test_algorithm();
-		cout << "test_file()" << endl;
+		cout << " *** test_file()" << endl;
 		test_file();
-		cout << "test_load()" << endl;
+		cout << " *** test_load()" << endl;
 		test_load();
+		cout << " *** test_error_handling()" << endl;
+		test_error_handling();
 	} catch (const char * e) {
 		cout << e << endl;
 		exit(1);
