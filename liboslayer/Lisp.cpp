@@ -38,7 +38,7 @@ namespace LISP {
 
 	void testArgumentCount(vector<Var> & args, size_t expect) {
 		if (args.size() < expect) {
-			throw "Wrong argument count";
+			throw LispException("Wrong argument count");
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace LISP {
 
 		if (proto[i].getSymbol() == "&rest") {
 			if (i + 1 >= proto.size()) {
-				throw "Wrong function declaration";
+				throw LispException("Wrong function declaration");
 			}
 			Var val = extractRest(env, args, ai);
 			scope[proto[i + 1].getSymbol()] = val;
@@ -358,12 +358,12 @@ namespace LISP {
 				string str;
 				iter++;
 				if (iter == s.end()) {
-					throw "unexpected end of string";
+					throw LispException("unexpected end of string");
 				}
 				for (; *iter != '\"'; iter++) {
 					char ch = *iter;
 					if (iter == s.end()) {
-						throw "unexpected end of string";
+						throw LispException("unexpected end of string");
 					}
 					if (ch == '\\') {
 						iter++;
@@ -402,7 +402,7 @@ namespace LISP {
 	Var read_from_tokens(vector<string>::iterator & iter, vector<string>::iterator & end) {
 
 		if (iter == end) {
-			throw "syntax error - unexpected EOF";
+			throw LispException("syntax error - unexpected EOF");
 		}
 		if (*iter == "(") {
 			vector<Var> lst;
@@ -413,7 +413,7 @@ namespace LISP {
 			}
 			return Var(lst);
 		} else if (*iter == ")") {
-			throw "syntax error - unexpected )";
+			throw LispException("syntax error - unexpected )");
 		} else {
 			return Var(*iter);
 		}
@@ -650,7 +650,7 @@ namespace LISP {
 	Var Var::proc(Var name, vector<Var> & args, Env & env) {
 
 		if (!isFunction()) {
-			throw "not function / " + name.toString();
+			throw LispException("not function / " + name.toString());
 		}
 
 		if (!procedure.nil()) {
@@ -1152,13 +1152,13 @@ namespace LISP {
 #if defined(USE_UNIX_STD)
 				FILE * fp = fopen(file.getPath().c_str(), flags);
 				if (!fp) {
-					throw "Cannot open file";
+					throw LispException("Cannot open file");
 				}
 				return FileDescriptor(fp);
 #elif defined(USE_MS_WIN)
 				FILE * fp = NULL;
 				if (fopen_s(&fp, file.getPath().c_str(), flags) != 0) {
-					throw "Cannot open file";
+					throw LispException("Cannot open file");
 				}
 				return FileDescriptor(fp);
 #endif		
@@ -1258,7 +1258,7 @@ namespace LISP {
 				break;
 			case ')':
 				if (brace_count == 0) {
-					throw "unexpected end of command";
+					throw LispException("unexpected end of command");
 				}
 				if (brace_count > 0) {
 					brace_count--;

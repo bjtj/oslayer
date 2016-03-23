@@ -18,6 +18,18 @@ namespace LISP {
 	class Env;
 	class Var;
 
+	class LispException : public OS::Exception{
+	private:
+	public:
+		explicit LispException() {}
+		explicit LispException(const std::string & message) : OS::Exception(message) {}
+		explicit LispException(const char * message) : OS::Exception(message) {}
+		explicit LispException(const std::string & message, int errorCode, int subErrorCode) : OS::Exception(message, errorCode, subErrorCode) {}
+		explicit LispException(const char * message, int errorCode, int subErrorCode) : OS::Exception(message, errorCode, subErrorCode) {}
+		virtual ~LispException() throw() {}
+	};
+
+
 	typedef Var (*fn_proc)(Var name, std::vector<Var> & args, Env & env);
 	
 	extern std::string text(const std::string & txt);
@@ -148,7 +160,7 @@ namespace LISP {
 		FILE * fd() {return _fd;}
 		void testFd() {
 			if (!_fd) {
-				throw "nil file descriptor";
+				LispException("nil file descriptor");
 			}
 		}
 		bool eof() {
@@ -172,7 +184,7 @@ namespace LISP {
 		size_t position() {
 			long pos = ftell(_fd);
 			if (pos < 0) {
-				throw "ftell() error";
+				LispException("ftell() error");
 			}
 			return (size_t)pos;
 		}
@@ -306,12 +318,12 @@ namespace LISP {
 			default:
 				break;
 			}
-			throw "unknown variable type / " + UTIL::Text::toString(type);
+			LispException("unknown variable type / " + UTIL::Text::toString(type));
 		}
 		void checkTypeThrow(int t) const {
 			if (type != t) {
-				throw toString() + " / type not match (type: " + getTypeString() +
-					", but required: " + getTypeString(t) + ")";
+				LispException(toString() + " / type not match (type: " + getTypeString() +
+							  ", but required: " + getTypeString(t) + ")");
 			}
 		}
 		bool nil() const {return type == NIL;}
@@ -397,7 +409,7 @@ namespace LISP {
 			default:
 				break;
 			}
-			throw "unknown variable type / " + UTIL::Text::toString(type);
+			LispException("unknown variable type / " + UTIL::Text::toString(type));
 		}
 
 		Var & operator* () {
@@ -495,7 +507,7 @@ namespace LISP {
 		}
 		Var & last() {
 			if (stack().size() == 0) {
-				throw "empty stack";
+				LispException("empty stack");
 			}
 			return *(stack().rbegin());
 		}

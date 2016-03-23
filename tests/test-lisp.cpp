@@ -564,10 +564,8 @@ static void test_error_handling() {
 
 	try {
 		compile("(symbol)", env);
-	} catch (const char * e) {
-		ASSERT(string(e), ==, "Wrong argument count");
-	} catch (const string & e) {
-		ASSERT(e, ==, "Wrong argument count");
+	} catch (LispException e) {
+		ASSERT(e.getMessage(), ==, "Wrong argument count");
 	}
 }
 
