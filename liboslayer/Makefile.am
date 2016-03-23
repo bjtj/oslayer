@@ -19,6 +19,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	StringElement.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
+	Timer.hpp \
 	Utils.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
@@ -58,6 +59,8 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Text.hpp \
 	ThreadPool.cpp \
 	ThreadPool.hpp \
+	Timer.cpp \
+	Timer.hpp \
 	Utils.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
