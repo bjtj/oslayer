@@ -28,23 +28,9 @@ static void test_file_io() {
 	rf.close();
 }
 
-DECL_NAMED_ONLY_EXCEPTION(MyException);
-
-static void test_exception() {
-	Exception ex("construct test");
-	MyException mex("my exception contruct test");
-
-	ASSERT(ex.getMessage(), ==, "construct test");
-	ASSERT(mex.getMessage(), ==, "my exception contruct test");
-
-	ASSERT(ex.getErrorCode(), ==, -1);
-	ASSERT(mex.getErrorCode(), ==, -1);
-}
-
 int main(int argc, char *args[]) {
 
 	test_file_io();
-	test_exception();
     
     return 0;
 }

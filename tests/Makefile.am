@@ -1,6 +1,6 @@
 TESTS=$(check_PROGRAMS)
 
-check_PROGRAMS = test-hello test-lisp test-properties test-os test-process test-file-stream test-timer
+check_PROGRAMS = test-hello test-lisp test-properties test-os test-process test-file-stream test-timer test-exception
 
 test_hello_SOURCES=test-hello.cpp
 test_hello_CPPFLAGS=-I$(top_srcdir)
@@ -43,3 +43,10 @@ test_timer_CPPFLAGS=-I$(top_srcdir)
 test_timer_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 test_timer_LDFLAGS=$(PTHREAD_CFLAGS)
 test_timer_LDADD=../liboslayer/liboslayer.la
+
+test_exception_SOURCES=test-exception.cpp
+test_exception_CPPFLAGS=-I$(top_srcdir)
+test_exception_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+test_exception_LDFLAGS=$(PTHREAD_CFLAGS)
+test_exception_LDADD=../liboslayer/liboslayer.la
+
