@@ -91,6 +91,12 @@ namespace UTIL {
 	string Properties::getProperty(const string & name) {
 		return properties.get(name).getValue();
 	}
+	string Properties::getProperty(const string & name, const string & def) {
+		if (!properties.has(name)) {
+			return def;
+		}
+		return properties.get(name).getValue();
+	}
 
 	int Properties::getIntegerProperty(const std::string & name, int def) {
 		if (getProperty(name).empty()) {

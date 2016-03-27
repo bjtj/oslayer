@@ -12,6 +12,7 @@ namespace UTIL {
 	class Properties {
 	private:
 		LinkedStringProperties properties;
+		
 	public:
 		Properties();
 		virtual ~Properties();
@@ -32,6 +33,7 @@ namespace UTIL {
 
 		void clear();
 		std::string getProperty(const std::string & name);
+		std::string getProperty(const std::string & name, const std::string & def);
 		int getIntegerProperty(const std::string & name, int def = 0);
 		void setProperty(const std::string & name, const std::string & value);
 		void setProperty(const std::string & name, int value);
