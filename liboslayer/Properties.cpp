@@ -45,7 +45,7 @@ namespace UTIL {
 
 			if (isMeaningfulLine(line)) {
 				NameValue nv = parseLine(line);
-				setProperty(nv.getName(), nv.getValue());
+				setProperty(nv.name(), nv.value());
 			}
 		}
 	}
@@ -54,10 +54,10 @@ namespace UTIL {
 		NameValue nv;
 		size_t sep = line.find(":");
 		if (sep == string::npos) {
-			nv.setName(Text::trim(line));
+			nv.name() = Text::trim(line);
 		} else {
-			nv.setName(Text::trim(line.substr(0, sep)));
-			nv.setValue(Text::trim(line.substr(sep + 1)));
+			nv.name() = Text::trim(line.substr(0, sep));
+			nv.value() = Text::trim(line.substr(sep + 1));
 		}
 		return nv;
 	}

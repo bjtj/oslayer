@@ -21,14 +21,10 @@ namespace UTIL {
 		NameValue(const std::string & name) : _name(name) {}
 		NameValue(const std::string & name, const std::string & value) : _name(name), _value(value) {}
 		virtual ~NameValue() {}
-		void setName(const std::string & name) {this->_name = name;}
-		void setValue(const std::string & value) {this->_value = value;}
-		std::string & getName() {return _name;}
-		std::string & getValue() {return _value;}
-		const std::string & getName() const {return _name;}
-		const std::string & getValue() const {return _value;}
-		std::string & name() { return _name; }
-		std::string & value() { return _value; }
+		std::string & name() {return _name;}
+		std::string & value() {return _value;}
+		std::string name_const() const {return _name;}
+		std::string value_const() const {return _value;}
 		bool operator==(const std::string & name) const {
 			return (!this->_name.compare(name) ? true : false);
 		}
@@ -129,7 +125,7 @@ namespace UTIL {
 		}
 
 		std::string & operator[] (const std::string & name) {
-			return get(name).getValue();
+			return get(name).value();
 		}
 		NameValue & operator[] (size_t index) {
 			return _elements[index];
@@ -162,7 +158,7 @@ namespace UTIL {
 		LinkedStringMap & getProperties() {return properties;}
 		const LinkedStringMap & getProperties() const {return properties;}
 		std::string & getProperty(const std::string & name) {return properties[name];}
-		std::string getProperty(const std::string & name) const {return properties.const_get(name).getValue();}
+		std::string getProperty(const std::string & name) const {return properties.const_get(name).value();}
 		void setProperty(const std::string & name, const std::string & value) {properties[name] = value;}
 		std::string & operator[] (const std::string & name) {return properties[name];}
 		bool operator==(const std::string & name) const {

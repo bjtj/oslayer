@@ -415,9 +415,9 @@ namespace UTIL {
             }
             
             const NameValue & nv = *iter;
-            ret.append(nv.getName());
+            ret.append(nv.name_const());
             ret.append(item_sep);
-            ret.append(nv.getValue());
+            ret.append(nv.value_const());
         }
         return ret;
     }
