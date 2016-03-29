@@ -11,6 +11,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Logger.hpp \
 	Lisp.hpp \
 	Measurement.hpp \
+	MessageQueue.hpp \
 	Object.hpp \
 	Process.hpp \
 	Properties.hpp \
@@ -45,6 +46,7 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Logger.hpp \
 	Measurement.cpp \
 	Measurement.hpp \
+	MessageQueue.hpp \
 	Object.hpp \
 	Process.cpp \
 	Process.hpp \
