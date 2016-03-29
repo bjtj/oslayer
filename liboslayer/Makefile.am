@@ -11,6 +11,7 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	Logger.hpp \
 	Lisp.hpp \
 	Measurement.hpp \
+	Object.hpp \
 	Process.hpp \
 	Properties.hpp \
 	RandomPortBinders.hpp \
@@ -44,6 +45,7 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Logger.hpp \
 	Measurement.cpp \
 	Measurement.hpp \
+	Object.hpp \
 	Process.cpp \
 	Process.hpp \
 	Properties.cpp \
