@@ -85,6 +85,21 @@ namespace UTIL {
 	/**
 	 * @brief
 	 */
+	class TimerLooperThread : public OS::Thread {
+	private:
+		TimerLooper _looper;
+	public:
+		TimerLooperThread();
+		virtual ~TimerLooperThread();
+		virtual void run();
+		TimerLooper & looper();
+		void stop();
+	};
+
+
+	/**
+	 * @brief
+	 */
 	class TimePin {
 	private:
 		unsigned long startTick;

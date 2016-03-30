@@ -130,6 +130,22 @@ namespace UTIL {
 
 	//
 
+	TimerLooperThread::TimerLooperThread() {
+	}
+	TimerLooperThread::~TimerLooperThread() {
+	}
+	void TimerLooperThread::run() {
+		_looper.loop();
+	}
+	TimerLooper & TimerLooperThread::looper() {
+		return _looper;
+	}
+	void TimerLooperThread::stop() {
+		_looper.stop();
+	}
+
+	//
+
 	TimePin::TimePin() : startTick(tick_milli()) {}
 	TimePin::~TimePin() {}
 
