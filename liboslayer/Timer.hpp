@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "AutoRef.hpp"
+#include "os.hpp"
 
 namespace UTIL {
 
@@ -66,11 +67,17 @@ namespace UTIL {
 	private:
 		std::vector<TimerSession> sessions;
 		bool done;
+		OS::Semaphore sem;
 	
 	public:
 		TimerLooper();
 		virtual ~TimerLooper();
 		void addSession(TimerSession & session);
+		void delay(unsigned long delay, UTIL::AutoRef<TimerTask> task);
+		void interval(unsigned long interval, UTIL::AutoRef<TimerTask> task);
+		void intervalWithCount(unsigned long interval, int count, UTIL::AutoRef<TimerTask> task);
+		void delayAndInterval(unsigned long delay, unsigned long interval, UTIL::AutoRef<TimerTask> task);
+		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, UTIL::AutoRef<TimerTask> task);
 		void loop();
 		void stop();
 	};

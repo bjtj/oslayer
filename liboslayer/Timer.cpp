@@ -9,8 +9,7 @@ namespace UTIL {
 	//
 	
 	TimerSchedule::TimerSchedule() : delay(0), interval(0), repeatCount(0) {}
-	TimerSchedule::TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount) : delay(0), interval(0), repeatCount(0) {
-		schedule(delay, interval, repeatCount);
+	TimerSchedule::TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount) : delay(delay), interval(interval), repeatCount(repeatCount) {
 	}
 	TimerSchedule::~TimerSchedule() {}
 	string & TimerSchedule::nickname() {
@@ -59,7 +58,10 @@ namespace UTIL {
 			return;
 		}
 
-		if (startTick == lastLapseTick && schedule.testDelay(startTick, tick_milli())) {
+		if (startTick == lastLapseTick) {
+			if (!schedule.testDelay(startTick, tick_milli())) {
+				return;
+			}
 			lastLapseTick = schedule.fixedLapseTick(startTick, 0);
 		}
 		
@@ -75,20 +77,50 @@ namespace UTIL {
 
 	//
 
-	TimerLooper::TimerLooper() : done(false) {}
+	TimerLooper::TimerLooper() : done(false), sem(1) {}
 	TimerLooper::~TimerLooper() {}
 
 	void TimerLooper::addSession(TimerSession & session) {
+		sem.wait();
 		sessions.push_back(session);
+		sem.post();
+	}
+
+	void TimerLooper::delay(unsigned long delay, AutoRef<TimerTask> task) {
+		TimerSchedule schedule(delay, 0, 0);
+		TimerSession session(schedule, task);
+		addSession(session);
+	}
+	void TimerLooper::interval(unsigned long interval, AutoRef<TimerTask> task) {
+		TimerSchedule schedule(0, interval, -1);
+		TimerSession session(schedule, task);
+		addSession(session);
+	}
+	void TimerLooper::intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task) {
+		TimerSchedule schedule(0, interval, count);
+		TimerSession session(schedule, task);
+		addSession(session);
+	}
+	void TimerLooper::delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task) {
+		TimerSchedule schedule(delay, interval, -1);
+		TimerSession session(schedule, task);
+		addSession(session);
+	}
+	void TimerLooper::delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task) {
+		TimerSchedule schedule(delay, interval, count);
+		TimerSession session(schedule, task);
+		addSession(session);
 	}
 
 	void TimerLooper::loop() {
 		done = false;
 		while (!done) {
+			sem.wait();
 			for (vector<TimerSession>::iterator iter = sessions.begin(); iter != sessions.end(); iter++) {
 				iter->process();
-				idle(10);
 			}
+			sem.post();
+			idle(10);
 		}
 	}
 

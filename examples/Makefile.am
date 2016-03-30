@@ -1,4 +1,4 @@
-noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest randomAcessFileTest hashTest base64Test
+noinst_PROGRAMS=main udpclient ThreadPoolTest networkInfo datagramSocketTest socketTest multicastTest secureSocketTest repl libTest xmlParserTest xmlEncodeDecodeTest randomAcessFileTest hashTest base64Test timer
 
 main_SOURCES=main.cpp
 main_CPPFLAGS=-I$(top_srcdir)
@@ -89,3 +89,9 @@ base64Test_CPPFLAGS=-I$(top_srcdir)
 base64Test_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 base64Test_LDFLAGS=$(PTHREAD_CFLAGS)
 base64Test_LDADD=../liboslayer/liboslayer.la
+
+timer_SOURCES=Timer.cpp
+timer_CPPFLAGS=-I$(top_srcdir)
+timer_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+timer_LDFLAGS=$(PTHREAD_CFLAGS)
+timer_LDADD=../liboslayer/liboslayer.la
