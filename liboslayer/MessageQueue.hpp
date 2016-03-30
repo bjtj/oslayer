@@ -44,6 +44,9 @@ namespace UTIL {
 			messages.pop_front();
 			return msg;
 		}
+		Message front() {
+			return messages.front();
+		}
 		size_t size() {
 			return messages.size();
 		}
