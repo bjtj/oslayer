@@ -106,7 +106,7 @@ namespace OS {
 		virtual int send(const char * data, size_t size) {
 			int ret = (int)::send(sock, data, size, 0);
 			if (ret <= 0) {
-				SocketUtil::throwSocketException("recv() error");
+				SocketUtil::throwSocketException("send() error");
 			}
 			return ret;
 		}
@@ -123,6 +123,12 @@ namespace OS {
 			}
 			struct addrinfo * info = getAddrInfo();
 			return InetAddress(info->ai_addr);
+		}
+		virtual void setRecvTimeout(unsigned long timeout) {
+			struct timeval tv;
+			tv.tv_sec = timeout / 1000;
+			tv.tv_usec = (timeout % 1000) * 1000;
+			setOption(SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
 		}
 		void getOption(int level, int optname, char * optval, socklen_t * optlen) {
 			if (getsockopt(sock, level, optname, optval, optlen) != 0) {
@@ -190,6 +196,9 @@ namespace OS {
 	}
 	InetAddress Socket::getRemoteInetAddress() {
 		return getImpl().getRemoteInetAddress();
+	}
+	void Socket::setRecvTimeout(unsigned long timeout) {
+		return getImpl().setRecvTimeout(timeout);
 	}
 	void Socket::createImpl() {
 		socketImpl = new SocketImpl;

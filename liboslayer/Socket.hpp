@@ -19,19 +19,17 @@ namespace OS {
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
-
 		virtual void setRemoteAddress(const OS::InetAddress & remoteAddr);
 		virtual void connect();
 		virtual void connect(unsigned long timeout);
 		virtual void disconnect();
 		virtual void close();
 		virtual bool isClosed();
-
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
-
 		virtual InetAddress getLocalInetAddress();
 		virtual InetAddress getRemoteInetAddress();
+		virtual void setRecvTimeout(unsigned long timeout);
 
 	protected:
 		virtual void createImpl();
@@ -54,14 +52,12 @@ namespace OS {
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
-
 		virtual void bind();
 		virtual void listen(int queueLimit);
 		virtual Socket * accept();
 		virtual SOCK_HANDLE accept(OS::SocketAddress & addr);
 		virtual void close();
 		virtual bool isClosed();
-
 		virtual InetAddress getLocalInetAddress();
 
 	protected:
