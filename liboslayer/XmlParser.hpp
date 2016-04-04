@@ -434,8 +434,6 @@ namespace XML {
 			XmlDocument doc;
 			XmlNodeCursor cursor(NULL);
 
-//			bool first = true;
-
 			size_t s = text.find("<");
 			size_t l = 0;
 
@@ -448,6 +446,11 @@ namespace XML {
 		
 			while (s != std::string::npos) {
 				size_t e = text.find(">", s);
+
+				if (e == std::string::npos) {
+					throw OS::Exception("Wrong xml format");
+				}
+				
 				if (text[e - 1] == '/') {
 					// atom
 					XmlNode * node = new XmlNode;
