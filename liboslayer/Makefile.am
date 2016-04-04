@@ -1,15 +1,16 @@
 lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
-liboslayerinc_HEADERS=AutoRef.hpp \
+liboslayerinc_HEADERS= \
+	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	FileStream.hpp \
 	Hash.hpp \
-	Logger.hpp \
 	Lisp.hpp \
+	Logger.hpp \
 	Measurement.hpp \
 	MessageQueue.hpp \
 	Object.hpp \
@@ -19,6 +20,8 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	SecureSocket.hpp \
 	Socket.hpp \
 	StringElement.hpp \
+	Task.hpp \
+	TaskThreadPool.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
 	Timer.hpp \
@@ -28,7 +31,9 @@ liboslayerinc_HEADERS=AutoRef.hpp \
 	os.hpp \
 	platform.hpp
 
-liboslayer_la_SOURCES=AutoRef.cpp \
+
+liboslayer_la_SOURCES= \
+	AutoRef.cpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.cpp \
@@ -59,6 +64,9 @@ liboslayer_la_SOURCES=AutoRef.cpp \
 	Socket.cpp \
 	Socket.hpp \
 	StringElement.hpp \
+	Task.hpp \
+	TaskThreadPool.cpp \
+	TaskThreadPool.hpp \
 	Text.cpp \
 	Text.hpp \
 	ThreadPool.cpp \
