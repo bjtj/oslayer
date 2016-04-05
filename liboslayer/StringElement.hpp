@@ -76,28 +76,36 @@ namespace UTIL {
 		std::vector<NameValue> _elements;
 
 	public:
-		LinkedStringMap() {
-		}
-
-		virtual ~LinkedStringMap() {
-		}
-
+		LinkedStringMap() {}
+		virtual ~LinkedStringMap() {}
 		std::vector<NameValue> elements() {
 			return _elements;
 		}
-
 		std::vector<NameValue> toNameValueList() const {
 			return NameValueList(_elements);
 		}
-
 		size_t size() const {
 			return _elements.size();
 		}
-        
         void clear() {
             _elements.clear();
         }
-
+		void erase(const std::string & name) {
+			for (std::vector<NameValue>::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->name() == name) {
+					_elements.erase(iter);
+					return;
+				}
+			}
+		}
+		bool has(const std::string & name) const {
+			for (std::vector<NameValue>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->name_const() == name) {
+					return true;
+				}
+			}
+			return false;
+		}
 		NameValue & get(const std::string & name) {
 			for (size_t i = 0; i < _elements.size(); i++) {
 				NameValue & nv = _elements[i];
@@ -117,18 +125,38 @@ namespace UTIL {
 			}
 			return NameValue();
 		}
-		NameValue & getByIndex(size_t index) {
-			return _elements[index];
+		void set(const NameValue & nv) {
+			get(nv.name_const()).value() = nv.value_const();
 		}
-		const NameValue & const_getByIndex(size_t index) const {
-			return _elements[index];
+		void append(const LinkedStringMap & m) {
+			for (size_t i = 0; i < m.size(); i++) {		
+				set(m[i]);
+			}
 		}
-
-		std::string & operator[] (const std::string & name) {
-			return get(name).value();
+		void append(const std::map<std::string, std::string> & m) {
+			for (std::map<std::string, std::string>::const_iterator iter = m.begin(); iter != m.end(); iter++) {
+				get(iter->first).value() = iter->second;
+			}
+		}
+		std::map<std::string, std::string> toStdMap() {
+			std::map<std::string, std::string> ret;
+			for (size_t i = 0; i < _elements.size(); i++) {
+				ret[_elements[i].name()] = _elements[i].value();
+			}
+			return ret;
 		}
 		NameValue & operator[] (size_t index) {
 			return _elements[index];
+		}
+		NameValue operator[] (size_t index) const {
+			return _elements[index];
+		}
+		std::string & operator[] (const std::string & name) {
+			return get(name).value();
+		}
+		void operator= (const std::map<std::string, std::string> & m) {
+			clear();
+			append(m);
 		}
 	};
 
