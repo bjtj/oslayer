@@ -160,7 +160,7 @@ namespace LISP {
 		FILE * fd() {return _fd;}
 		void testFd() {
 			if (!_fd) {
-				LispException("nil file descriptor");
+				throw LispException("nil file descriptor");
 			}
 		}
 		bool eof() {
@@ -184,7 +184,7 @@ namespace LISP {
 		size_t position() {
 			long pos = ftell(_fd);
 			if (pos < 0) {
-				LispException("ftell() error");
+				throw LispException("ftell() error");
 			}
 			return (size_t)pos;
 		}
@@ -318,12 +318,12 @@ namespace LISP {
 			default:
 				break;
 			}
-			LispException("unknown variable type / " + UTIL::Text::toString(type));
+			throw LispException("unknown variable type / " + UTIL::Text::toString(type));
 		}
 		void checkTypeThrow(int t) const {
 			if (type != t) {
-				LispException(toString() + " / type not match (type: " + getTypeString() +
-							  ", but required: " + getTypeString(t) + ")");
+				throw LispException(toString() + " / type not match (type: " + getTypeString() +
+									", but required: " + getTypeString(t) + ")");
 			}
 		}
 		bool nil() const {return type == NIL;}
@@ -409,7 +409,7 @@ namespace LISP {
 			default:
 				break;
 			}
-			LispException("unknown variable type / " + UTIL::Text::toString(type));
+			throw LispException("unknown variable type / " + UTIL::Text::toString(type));
 		}
 
 		Var & operator* () {
@@ -507,7 +507,7 @@ namespace LISP {
 		}
 		Var & last() {
 			if (stack().size() == 0) {
-				LispException("empty stack");
+				throw LispException("empty stack");
 			}
 			return *(stack().rbegin());
 		}
