@@ -454,6 +454,7 @@
 				E8AC4F9E1C956CE000504E50 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E8FAB1EF1BD7C2C200E89DC5 /* Build configuration list for PBXProject "oslayer-console" */ = {
 			isa = XCConfigurationList;

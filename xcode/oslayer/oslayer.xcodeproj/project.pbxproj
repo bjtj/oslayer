@@ -25,6 +25,12 @@
 		E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E882FE8C1BD5315300E1C8C7 /* Text.cpp */; };
 		E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA71BD687E100E1C8C7 /* OSThread.mm */; };
 		E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA91BD692C700E1C8C7 /* OSSocket.mm */; };
+		E88A80021CB4453F00241D44 /* FileStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FF91CB4453F00241D44 /* FileStream.cpp */; };
+		E88A80031CB4453F00241D44 /* FileStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FF91CB4453F00241D44 /* FileStream.cpp */; };
+		E88A80041CB4453F00241D44 /* TaskThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FFE1CB4453F00241D44 /* TaskThreadPool.cpp */; };
+		E88A80051CB4453F00241D44 /* TaskThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FFE1CB4453F00241D44 /* TaskThreadPool.cpp */; };
+		E88A80061CB4453F00241D44 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A80001CB4453F00241D44 /* Timer.cpp */; };
+		E88A80071CB4453F00241D44 /* Timer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A80001CB4453F00241D44 /* Timer.cpp */; };
 		E89501331C109924009434B1 /* Properties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E895012F1C109924009434B1 /* Properties.cpp */; };
 		E895013D1C1101C1009434B1 /* Properties.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E895012F1C109924009434B1 /* Properties.cpp */; };
 		E89501421C146379009434B1 /* Socket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E89501401C146379009434B1 /* Socket.cpp */; };
@@ -96,6 +102,15 @@
 		E882FE8D1BD5315300E1C8C7 /* Text.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Text.hpp; path = ../../liboslayer/Text.hpp; sourceTree = "<group>"; };
 		E882FEA71BD687E100E1C8C7 /* OSThread.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSThread.mm; sourceTree = "<group>"; };
 		E882FEA91BD692C700E1C8C7 /* OSSocket.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSSocket.mm; sourceTree = "<group>"; };
+		E88A7FF91CB4453F00241D44 /* FileStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileStream.cpp; path = ../../liboslayer/FileStream.cpp; sourceTree = "<group>"; };
+		E88A7FFA1CB4453F00241D44 /* FileStream.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FileStream.hpp; path = ../../liboslayer/FileStream.hpp; sourceTree = "<group>"; };
+		E88A7FFB1CB4453F00241D44 /* MessageQueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = MessageQueue.hpp; path = ../../liboslayer/MessageQueue.hpp; sourceTree = "<group>"; };
+		E88A7FFC1CB4453F00241D44 /* Object.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Object.hpp; path = ../../liboslayer/Object.hpp; sourceTree = "<group>"; };
+		E88A7FFD1CB4453F00241D44 /* Task.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Task.hpp; path = ../../liboslayer/Task.hpp; sourceTree = "<group>"; };
+		E88A7FFE1CB4453F00241D44 /* TaskThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TaskThreadPool.cpp; path = ../../liboslayer/TaskThreadPool.cpp; sourceTree = "<group>"; };
+		E88A7FFF1CB4453F00241D44 /* TaskThreadPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TaskThreadPool.hpp; path = ../../liboslayer/TaskThreadPool.hpp; sourceTree = "<group>"; };
+		E88A80001CB4453F00241D44 /* Timer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Timer.cpp; path = ../../liboslayer/Timer.cpp; sourceTree = "<group>"; };
+		E88A80011CB4453F00241D44 /* Timer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Timer.hpp; path = ../../liboslayer/Timer.hpp; sourceTree = "<group>"; };
 		E895012E1C109924009434B1 /* AutoRelease.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AutoRelease.hpp; path = ../../liboslayer/AutoRelease.hpp; sourceTree = "<group>"; };
 		E895012F1C109924009434B1 /* Properties.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Properties.cpp; path = ../../liboslayer/Properties.cpp; sourceTree = "<group>"; };
 		E89501301C109924009434B1 /* Properties.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Properties.hpp; path = ../../liboslayer/Properties.hpp; sourceTree = "<group>"; };
@@ -166,6 +181,15 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E88A7FF91CB4453F00241D44 /* FileStream.cpp */,
+				E88A7FFA1CB4453F00241D44 /* FileStream.hpp */,
+				E88A7FFB1CB4453F00241D44 /* MessageQueue.hpp */,
+				E88A7FFC1CB4453F00241D44 /* Object.hpp */,
+				E88A7FFD1CB4453F00241D44 /* Task.hpp */,
+				E88A7FFE1CB4453F00241D44 /* TaskThreadPool.cpp */,
+				E88A7FFF1CB4453F00241D44 /* TaskThreadPool.hpp */,
+				E88A80001CB4453F00241D44 /* Timer.cpp */,
+				E88A80011CB4453F00241D44 /* Timer.hpp */,
 				E8AC4F7E1C9569CE00504E50 /* Process.cpp */,
 				E8AC4F7F1C9569CE00504E50 /* Process.hpp */,
 				E8AC4F5F1C89C0B600504E50 /* Base64.cpp */,
@@ -281,8 +305,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E88A80041CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
 				E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */,
 				E8075A101C03634D00EBE4B8 /* Measurement.cpp in Sources */,
+				E88A80021CB4453F00241D44 /* FileStream.cpp in Sources */,
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */,
 				E89501421C146379009434B1 /* Socket.cpp in Sources */,
@@ -291,6 +317,7 @@
 				E8447C971BF4AC11000E2903 /* RandomPortBinders.cpp in Sources */,
 				E8E048FC1C6381B500144731 /* Lisp.cpp in Sources */,
 				E89501331C109924009434B1 /* Properties.cpp in Sources */,
+				E88A80061CB4453F00241D44 /* Timer.cpp in Sources */,
 				E8B161601C0054D4002D68C7 /* AutoRef.cpp in Sources */,
 				E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
@@ -306,8 +333,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E88A80051CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
 				E8E049011C6381E600144731 /* Lisp.cpp in Sources */,
 				E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */,
+				E88A80031CB4453F00241D44 /* FileStream.cpp in Sources */,
 				E895014C1C146400009434B1 /* Socket.cpp in Sources */,
 				E8AC4F641C89C0B600504E50 /* Base64.cpp in Sources */,
 				6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */,
@@ -316,6 +345,7 @@
 				E8447C981BF4AC26000E2903 /* FileReaderWriter.cpp in Sources */,
 				E8447C991BF4AC26000E2903 /* RandomPortBinders.cpp in Sources */,
 				E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */,
+				E88A80071CB4453F00241D44 /* Timer.cpp in Sources */,
 				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
 				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,
 				E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */,
