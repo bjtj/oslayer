@@ -51,7 +51,7 @@ namespace XML {
 						std::string enc;
 						for (; *iter != ';'; iter++) {
 							if (iter == text.end()) {
-								throw "unexpected end of string";
+								throw OS::Exception("unexpected end of string");
 							}
 							enc.append(1, *iter);
 						}

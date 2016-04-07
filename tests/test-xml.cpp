@@ -14,10 +14,16 @@ static void test_xml_parse() {
 		err = e.getMessage();
 	}
 	ASSERT(err, ==, "Wrong xml format");
-	
+}
+
+static void test_xml_decode() {
+	string xml = "<text>a&amp;b</text>";
+	XmlDocument doc = DomParser::parse(xml);
+	ASSERT(doc.getRootNode()->getFirstChild()->text(), ==, "a&b");
 }
 
 int main(int argc, char *args[]) {
     test_xml_parse();
+	test_xml_decode();
     return 0;
 }

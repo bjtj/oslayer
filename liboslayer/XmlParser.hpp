@@ -37,7 +37,7 @@ namespace XML {
 		}
 		void testType(int type) {
 			if (this->type != type) {
-				throw "type not matched / exptected: " + getTypeString(type) + ", but: " + getTypeString(this->type);
+				throw OS::Exception("type not matched / exptected: " + getTypeString(type) + ", but: " + getTypeString(this->type));
 			}
 		}
 		bool nil() {
@@ -349,12 +349,12 @@ namespace XML {
 					std::string token;
 					iter++;
 					if (iter == str.end()) {
-						throw "unexpected end of string";
+						throw OS::Exception("unexpected end of string");
 					}
 					for(; *iter != '\"'; iter++) {
 						char ch = *iter;
 						if (iter == str.end()) {
-							throw "unexpected end of string";
+							throw OS::Exception("unexpected end of string");
 						}
 						if (*iter == '\\') {
 							ch = *(++iter);
@@ -461,7 +461,7 @@ namespace XML {
 					{
 						XmlNode * node = new XmlNode;
 						node->setType(XmlNode::TEXT);
-						node->text() = text.substr(l, s - l);
+						node->text() = XmlDecoder::decode(text.substr(l, s - l));
 						cursor.append(node);
 					}
 					// end tag
@@ -470,7 +470,7 @@ namespace XML {
 					if (cursor.root()) {
 						XmlNode * node = new XmlNode;
 						node->setType(XmlNode::TEXT);
-						node->text() = text.substr(l, s - l);
+						node->text() = XmlDecoder::decode(text.substr(l, s - l));
 						cursor.append(node);
 					}
 					// start tag
