@@ -16,6 +16,7 @@ liboslayerinc_HEADERS= \
 	Object.hpp \
 	Process.hpp \
 	Properties.hpp \
+	PropertyMap.hpp \
 	RandomPortBinders.hpp \
 	SecureSocket.hpp \
 	Socket.hpp \
@@ -57,6 +58,7 @@ liboslayer_la_SOURCES= \
 	Process.hpp \
 	Properties.cpp \
 	Properties.hpp \
+	PropertyMap.hpp \
 	RandomPortBinders.cpp \
 	RandomPortBinders.hpp \
 	SecureSocket.cpp \
