@@ -30,6 +30,7 @@ namespace OS {
 		virtual InetAddress getLocalInetAddress();
 		virtual InetAddress getRemoteInetAddress();
 		virtual void setRecvTimeout(unsigned long timeout);
+		virtual unsigned long getRecvTimeout();
 
 	protected:
 		virtual void createImpl();

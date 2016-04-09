@@ -157,5 +157,23 @@ namespace UTIL {
 		return tick_milli() - startTick;
 	}
 
-	
+	//
+
+	TimeoutChecker::TimeoutChecker() : _timeout(0) {
+		_tick = tick_milli();
+	}
+	TimeoutChecker::TimeoutChecker(unsigned long timeout) : _timeout(timeout) {
+		_tick = tick_milli();
+	}
+	TimeoutChecker::~TimeoutChecker() {
+	}
+	unsigned long & TimeoutChecker::timeout() {
+		return _timeout;
+	}
+	void TimeoutChecker::reset() {
+		_tick = tick_milli();
+	}
+	bool TimeoutChecker::trigger() {
+		return (tick_milli() - _tick) >= _timeout;
+	}
 }

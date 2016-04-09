@@ -59,7 +59,7 @@ namespace OS {
 			}
 
 			Selector selector;
-			selector.set(sock);
+			selector.set(sock, Selector::WRITE);
 			if (selector.select(timeout) <= 0) {
 				throw IOException("connection timeout", -1, 0);
 			}
@@ -98,7 +98,8 @@ namespace OS {
 		}
 		virtual int recv(char * buffer, size_t size) {
 			int ret = (int)::recv(sock, buffer, size, 0);
-			if (ret <= 0) {
+			// TODO: consider - 0, throw? or normal close?
+			if (ret < 0) {
 				SocketUtil::throwSocketException("recv() error");
 			}
 			return ret;
@@ -108,6 +109,7 @@ namespace OS {
 			if (ret <= 0) {
 				SocketUtil::throwSocketException("send() error");
 			}
+			// TODO: consider - how about requested size and result written size are different
 			return ret;
 		}
 		InetAddress getLocalInetAddress() {
@@ -129,6 +131,13 @@ namespace OS {
 			tv.tv_sec = timeout / 1000;
 			tv.tv_usec = (timeout % 1000) * 1000;
 			setOption(SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv));
+		}
+		virtual unsigned long getRecvTimeout() {
+			struct timeval tv;
+			memset(&tv, 0, sizeof(tv));
+			socklen_t len = sizeof(tv);
+			getOption(SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, &len);
+			return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 		}
 		void getOption(int level, int optname, char * optval, socklen_t * optlen) {
 			if (getsockopt(sock, level, optname, optval, optlen) != 0) {
@@ -199,6 +208,9 @@ namespace OS {
 	}
 	void Socket::setRecvTimeout(unsigned long timeout) {
 		return getImpl().setRecvTimeout(timeout);
+	}
+	unsigned long Socket::getRecvTimeout() {
+		return getImpl().getRecvTimeout();
 	}
 	void Socket::createImpl() {
 		socketImpl = new SocketImpl;

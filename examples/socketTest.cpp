@@ -18,7 +18,7 @@ public:
 		server.listen(5);
 
 		OS::Selector selector;
-		server.registerSelector(selector);
+		server.registerSelector(selector, OS::Selector::READ);
 
 		OS::InetAddress serverAddr = server.getLocalInetAddress();
 		printf("Listen %s:%d\n", serverAddr.getHost().c_str(), serverAddr.getPort());

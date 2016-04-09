@@ -472,14 +472,16 @@ public: \
         int fd;
         bool readable;
         bool writeable;
+		bool except;
         
     public:
-        Selection(int fd, bool readable, bool writeable);
+        Selection(int fd, bool readable, bool writeable, bool except);
         virtual ~Selection();
         
         int getFd();
         bool isReadable();
         bool isWritable();
+		bool isExcept();
     };
     
     class Selector;
@@ -499,41 +501,51 @@ public: \
         bool isSelectable();
         void setSelectable(bool selectable);
         
-		virtual void registerSelector(Selector & selector);
-		virtual void unregisterSelector(Selector & selector);
+		virtual void registerSelector(Selector & selector, unsigned long flags);
+		virtual void unregisterSelector(Selector & selector, unsigned long flags);
 		virtual bool isSelected(Selector & selector);
-		virtual bool isReadalbeSelected(Selector & selector);
-		virtual bool isWriteableSelected(Selector & selector);
+		virtual bool isReadableSelected(Selector & selector);
+		virtual bool isWritableSelected(Selector & selector);
+		virtual bool isExceptSelected(Selector & selector);
     };
 
 	/**
 	 * @brief selector
 	 */
 	class Selector {
+	public:
+		const static unsigned char READ = 0x01;
+		const static unsigned char WRITE = 0x02;
+		const static unsigned char EXCEPT = 0x04;
+		const static unsigned char FULL = 0x07;
+		
 	private:
 		int maxfds;
         fd_set readfds;
         fd_set writefds;
+		fd_set exceptfds;
 		fd_set curreadfds;
         fd_set curwritefds;
+		fd_set curexceptfds;
 		std::vector<Selection> selections;
         
 	public:
 		Selector();
 		virtual ~Selector();
 
-		virtual void set(int fd);
-		virtual void unset(int fd);
+		virtual void set(int fd, unsigned char flags);
+		virtual void unset(int fd, unsigned char flags);
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<Selection> & getSelections();
 		virtual bool isSelected(int fd);
         virtual bool isSelected(Selectable & selectable);
         virtual bool isReadableSelected(int fd);
         virtual bool isReadableSelected(Selectable & selectable);
-        virtual bool isWriteableSelected(int fd);
-        virtual bool isWriteableSelected(Selectable & selectable);
+        virtual bool isWritableSelected(int fd);
+        virtual bool isWritableSelected(Selectable & selectable);
+		virtual bool isExceptSelected(int fd);
+        virtual bool isExceptSelected(Selectable & selectable);
 	};
-
 	
 
 	/**

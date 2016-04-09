@@ -64,7 +64,7 @@ namespace OS {
         
 #else
         
-		return 0;
+		throw NotImplementedException("not implemented");
         
 #endif	
 	}
@@ -775,8 +775,8 @@ namespace OS {
     
     /* SELECTION */
     
-    Selection::Selection(int fd, bool readable, bool writeable)
-    : fd(fd), readable(readable), writeable(writeable) {
+    Selection::Selection(int fd, bool readable, bool writeable, bool except)
+		: fd(fd), readable(readable), writeable(writeable), except(except) {
         
     }
     Selection::~Selection() {
@@ -795,6 +795,10 @@ namespace OS {
         return writeable;
     }
 
+	bool Selection::isExcept() {
+		return except;
+	}
+
 	/* Selectable */
     
     bool Selectable::isSelectable() {
@@ -803,21 +807,23 @@ namespace OS {
     void Selectable::setSelectable(bool selectable) {
         this->selectable = selectable;
     }
-
-	void Selectable::registerSelector(Selector & selector) {
-		selector.set(getFd());
+	void Selectable::registerSelector(Selector & selector, unsigned long flags) {
+		selector.set(getFd(), flags);
 	}
-	void Selectable::unregisterSelector(Selector & selector) {
-		selector.unset(getFd());
+	void Selectable::unregisterSelector(Selector & selector, unsigned long flags) {
+		selector.unset(getFd(), flags);
 	}
 	bool Selectable::isSelected(Selector & selector) {
 		return selector.isSelected(getFd());
 	}
-	bool Selectable::isReadalbeSelected(Selector & selector) {
+	bool Selectable::isReadableSelected(Selector & selector) {
 		return selector.isReadableSelected(getFd());
 	}
-	bool Selectable::isWriteableSelected(Selector & selector) {
-		return selector.isWriteableSelected(getFd());
+	bool Selectable::isWritableSelected(Selector & selector) {
+		return selector.isWritableSelected(getFd());
+	}
+	bool Selectable::isExceptSelected(Selector & selector) {
+		return selector.isExceptSelected(getFd());
 	}
 
 	/* Selector */
@@ -825,43 +831,61 @@ namespace OS {
 	Selector::Selector() : maxfds(0) {
 		FD_ZERO(&readfds);
         FD_ZERO(&writefds);
+		FD_ZERO(&exceptfds);
 		FD_ZERO(&curreadfds);
         FD_ZERO(&curwritefds);
+		FD_ZERO(&curexceptfds);
 	}
 	
 	Selector::~Selector() {
 	}
-	void Selector::set(int fd) {
+	void Selector::set(int fd, unsigned char flags) {
 
 		if (fd < 0) {
-			throw IOException("Invalid fd", fd, 0);
+			throw IOException("invalid fd", fd, 0);
 		}
 		
 		if (fd > maxfds) {
 			maxfds = fd;
 		}
-		FD_SET(fd, &readfds);
-        FD_SET(fd, &writefds);
+
+		if (flags & Selector::READ) {
+			FD_SET(fd, &readfds);
+		}
+		if (flags & Selector::WRITE) {
+			FD_SET(fd, &writefds);
+		}
+		if (flags & Selector::EXCEPT) {
+			FD_SET(fd, &exceptfds);
+		}
 	}
-	void Selector::unset(int fd) {
+	void Selector::unset(int fd, unsigned char flags) {
 
 		if (fd < 0) {
 			throw IOException("Invalid fd", fd, 0);
 		}
-		
-		FD_CLR(fd, &readfds);
-        FD_CLR(fd, &writefds);
+
+		if (flags & Selector::READ) {
+			FD_CLR(fd, &readfds);
+		}
+		if (flags & Selector::WRITE) {
+			FD_CLR(fd, &writefds);
+		}
+		if (flags & Selector::EXCEPT) {
+			FD_CLR(fd, &exceptfds);
+		}
 	}
 	int Selector::select(unsigned long timeout_milli) {
 
 		struct timeval timeout;
+		timeout.tv_sec = timeout_milli / 1000;
+		timeout.tv_usec = (timeout_milli % 1000) * 1000;
 		
 		curreadfds = readfds;
         curwritefds = writefds;
-        timeout.tv_sec = timeout_milli / 1000;
-		timeout.tv_usec = (timeout_milli % 1000) * 1000;
+		curexceptfds = exceptfds;
 		
-		return ::select(maxfds + 1, &curreadfds, &curwritefds, NULL, &timeout);
+		return ::select(maxfds + 1, &curreadfds, &curwritefds, &curexceptfds, &timeout);
 	}
 	vector<Selection> & Selector::getSelections() {
 		selections.clear();
@@ -869,9 +893,10 @@ namespace OS {
             
             bool readable = FD_ISSET(i, &curreadfds) ? true : false;
             bool writeable = FD_ISSET(i, &curwritefds) ? true : false;
+			bool error = FD_ISSET(i, &curexceptfds) ? true : false;
             
-            if (readable || writeable) {
-                selections.push_back(Selection(i, readable, writeable));
+            if (readable || writeable || error) {
+                selections.push_back(Selection(i, readable, writeable, error));
             }
 		}
 		return selections;
@@ -880,8 +905,9 @@ namespace OS {
 	bool Selector::isSelected(int fd) {
         bool readable = FD_ISSET(fd, &curreadfds) ? true : false;
         bool writeable = FD_ISSET(fd, &curwritefds) ? true : false;
+		bool error = FD_ISSET(fd, &curexceptfds) ? true : false;
         
-        return readable || writeable;
+        return readable || writeable || error;
 	}
     
     bool Selector::isSelected(Selectable & selectable) {
@@ -896,12 +922,20 @@ namespace OS {
         return isReadableSelected(selectable.getFd());
     }
     
-    bool Selector::isWriteableSelected(int fd) {
+    bool Selector::isWritableSelected(int fd) {
         return FD_ISSET(fd, &curwritefds) ? true : false;
     }
     
-    bool Selector::isWriteableSelected(Selectable & selectable) {
-        return isWriteableSelected(selectable.getFd());
+    bool Selector::isWritableSelected(Selectable & selectable) {
+        return isWritableSelected(selectable.getFd());
+    }
+
+	bool Selector::isExceptSelected(int fd) {
+        return FD_ISSET(fd, &curexceptfds) ? true : false;
+    }
+    
+    bool Selector::isExceptSelected(Selectable & selectable) {
+        return isExceptSelected(selectable.getFd());
     }
 
 	/**
@@ -944,7 +978,7 @@ namespace OS {
 						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
 		throw IOException(message + " / " + string(text), err, 0);
 #else
-		throw IOException("getaddrinfo()", -1, 0);
+		throw IOException("unknown socket exception");
 #endif
 	}
 

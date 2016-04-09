@@ -24,7 +24,7 @@ public:
 		server->setReuseAddr(true);
         server->joinGroup(group.c_str());
 
-        server->registerSelector(selector);
+        server->registerSelector(selector, Selector::READ);
 		
 
         while (!interrupted()) {
@@ -70,7 +70,7 @@ public:
         Selector selector;
         server = new DatagramSocket(port);
 
-        server->registerSelector(selector);
+        server->registerSelector(selector, Selector::READ);
 
         while (!interrupted()) {
             if (selector.select(10) > 0) {

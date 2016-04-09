@@ -109,7 +109,23 @@ namespace UTIL {
 		void reset();
 		unsigned long elapsed();
 	};
-	
+
+	/**
+	 * @brief
+	 */
+	class TimeoutChecker {
+	private:
+		unsigned long _timeout;
+		unsigned long _tick;
+	public:
+		TimeoutChecker();
+		TimeoutChecker(unsigned long timeout);
+		virtual ~TimeoutChecker();
+		unsigned long & timeout();
+		void reset();
+		bool trigger();
+	};
+
 }
 
 #endif

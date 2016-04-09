@@ -1,6 +1,6 @@
 TESTS=$(check_PROGRAMS)
 
-check_PROGRAMS = test-hello test-lisp test-properties test-os test-process test-file-stream test-timer test-exception test-message-queue test-thread-pool test-task-thread-pool test-xml test-string-element test-property-map
+check_PROGRAMS = test-hello test-lisp test-properties test-os test-process test-file-stream test-timer test-exception test-message-queue test-thread-pool test-task-thread-pool test-xml test-string-element test-property-map test-socket
 
 test_hello_SOURCES=test-hello.cpp
 test_hello_CPPFLAGS=-I$(top_srcdir)
@@ -85,3 +85,10 @@ test_property_map_CPPFLAGS=-I$(top_srcdir)
 test_property_map_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 test_property_map_LDFLAGS=$(PTHREAD_CFLAGS)
 test_property_map_LDADD=../liboslayer/liboslayer.la
+
+test_socket_SOURCES=test-socket.cpp
+test_socket_CPPFLAGS=-I$(top_srcdir)
+test_socket_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+test_socket_LDFLAGS=$(PTHREAD_CFLAGS)
+test_socket_LDADD=../liboslayer/liboslayer.la
+
