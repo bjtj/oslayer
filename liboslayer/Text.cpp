@@ -255,7 +255,7 @@ namespace UTIL {
 	/**
 	 * @brief quote
 	 */
-	string Text::quote(string str, string q) {
+	string Text::quote(const string & str, const string & q) {
 		return q + str + q;
 	}
 

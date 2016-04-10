@@ -26,7 +26,7 @@ namespace UTIL {
 		static std::string join(const std::vector<std::string> & vec, const std::string & glue);
 		static bool contains(std::vector<std::string> & vec, std::string target);
 		static std::string replaceAll(std::string src, std::string match, std::string rep);
-		static std::string quote(std::string str, std::string q = "'");
+		static std::string quote(const std::string & str, const std::string & q = "'");
 		static std::string toMapString(std::map<std::string, std::string> & m,
 									   std::string item_sep = ": ",
 									   std::string line_sep = ", ");
