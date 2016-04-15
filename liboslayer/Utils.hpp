@@ -5,7 +5,6 @@
 #include "AutoRelease.hpp"
 #include "FileReaderWriter.hpp"
 #include "Logger.hpp"
-#include "Measurement.hpp"
 #include "RandomPortBinders.hpp"
 #include "StringElement.hpp"
 #include "Text.hpp"

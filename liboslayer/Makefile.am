@@ -11,7 +11,6 @@ liboslayerinc_HEADERS= \
 	Hash.hpp \
 	Lisp.hpp \
 	Logger.hpp \
-	Measurement.hpp \
 	MessageQueue.hpp \
 	Object.hpp \
 	Process.hpp \
@@ -50,8 +49,6 @@ liboslayer_la_SOURCES= \
 	Lisp.hpp \
 	Logger.cpp \
 	Logger.hpp \
-	Measurement.cpp \
-	Measurement.hpp \
 	MessageQueue.hpp \
 	Object.hpp \
 	Process.cpp \
