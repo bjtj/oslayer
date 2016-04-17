@@ -17,7 +17,6 @@ public:
 	virtual void doTask() {
 		cout << "[" << pin.elapsed() << "] do it!" << endl;
 		ASSERT(pin.elapsed(), >=, 1000);
-		ASSERT(pin.elapsed(), <=, 1010);
 	}
 };
 

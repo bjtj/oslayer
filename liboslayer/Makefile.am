@@ -22,6 +22,7 @@ liboslayerinc_HEADERS= \
 	StringElement.hpp \
 	Task.hpp \
 	TaskThreadPool.hpp \
+	TestSuite.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
 	Timer.hpp \
@@ -30,7 +31,6 @@ liboslayerinc_HEADERS= \
 	XmlParser.hpp \
 	os.hpp \
 	platform.hpp
-
 
 liboslayer_la_SOURCES= \
 	AutoRef.cpp \
@@ -66,6 +66,8 @@ liboslayer_la_SOURCES= \
 	Task.hpp \
 	TaskThreadPool.cpp \
 	TaskThreadPool.hpp \
+	TestSuite.cpp \
+	TestSuite.hpp \
 	Text.cpp \
 	Text.hpp \
 	ThreadPool.cpp \
@@ -78,7 +80,6 @@ liboslayer_la_SOURCES= \
 	os.cpp \
 	os.hpp \
 	platform.hpp
-
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)
