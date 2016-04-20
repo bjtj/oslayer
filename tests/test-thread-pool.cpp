@@ -55,7 +55,6 @@ public:
 	void setTask(AutoRef<Task> task) {
 		WorkerThread * thread = NULL;
 		while ((thread = (WorkerThread*)acquire()) == NULL) {
-			collectUnflaggedThreads();
 			idle(10);
 		}
 		thread->setTask(task);
@@ -81,9 +80,32 @@ public:
 int WorkerTask::count = 0;
 Semaphore WorkerTask::sem(1);
 
+class WorkerThreadObserver : public Observer {
+private:
+	int count;
+public:
+	WorkerThreadObserver() : count(0) {}
+	virtual ~WorkerThreadObserver() {}
+	virtual void update(Observable * target) {
+		WorkerThread * wt = (WorkerThread*)target;
+		count--;
+	}
+	int getCount() {
+		return count;
+	}
+};
+
+
 static void test_thread_pool() {
+	
 	WorkerThreadPool pool(5);
 	pool.start();
+
+	AutoRef<Observer> observer(new WorkerThreadObserver);
+	pool.addObserver(observer);
+
+	ASSERT(pool.freeCount(), ==, 5);
+	ASSERT(pool.workingCount(), ==, 0);
 
 	for (int i = 0; i < 100; i++) {
 		pool.setTask(AutoRef<Task>(new WorkerTask));
@@ -91,9 +113,16 @@ static void test_thread_pool() {
 
 	idle(100);
 
+	ASSERT(pool.freeCount(), ==, 5);
+	ASSERT(pool.workingCount(), ==, 0);
+
 	pool.stop();
 
 	ASSERT(WorkerTask::count, ==, 100);
+	ASSERT(pool.freeCount(), ==, 0);
+	ASSERT(pool.workingCount(), ==, 0);
+
+	ASSERT(((WorkerThreadObserver*)&observer)->getCount(), ==, -100);
 }
 
 int main(int argc, char *args[]) {

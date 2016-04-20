@@ -5,6 +5,7 @@ liboslayerinc_HEADERS= \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
+	CountDownLatch.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	FileStream.hpp \
@@ -13,6 +14,7 @@ liboslayerinc_HEADERS= \
 	Logger.hpp \
 	MessageQueue.hpp \
 	Object.hpp \
+	Observer.hpp \
 	Process.hpp \
 	Properties.hpp \
 	PropertyMap.hpp \
@@ -38,6 +40,8 @@ liboslayer_la_SOURCES= \
 	AutoRelease.hpp \
 	Base64.cpp \
 	Base64.hpp \
+	CountDownLatch.cpp \
+	CountDownLatch.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.cpp \
@@ -51,6 +55,8 @@ liboslayer_la_SOURCES= \
 	Logger.hpp \
 	MessageQueue.hpp \
 	Object.hpp \
+	Observer.cpp \
+	Observer.hpp \
 	Process.cpp \
 	Process.hpp \
 	Properties.cpp \

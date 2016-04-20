@@ -63,19 +63,9 @@ int main(int argc, char *args[]) {
 	suite.addTestCase(AutoRef<TestCase>(new BuggyCaculatorTest));
 
 	vector<TestResult> results = suite.testAll();
-	size_t total = results.size();
-	size_t passed = 0;
-	size_t failed = 0;
-	for (vector<TestResult>::iterator iter = results.begin(); iter != results.end(); iter++) {
-		if (iter->getResult()) {
-			passed++;
-		} else {
-			failed++;
-		}
-	}
-	cout << "Total: " << total << endl;
-	cout << "Passed: " << passed << endl;
-	cout << "Failed: " << failed << endl;
+
+	TestReporter report(results);
+	cout << report.toString() << endl;
 	
     return 0;
 }

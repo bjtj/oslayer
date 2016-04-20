@@ -98,8 +98,9 @@ namespace OS {
 		}
 		virtual int recv(char * buffer, size_t size) {
 			int ret = (int)::recv(sock, buffer, size, 0);
-			// TODO: consider - 0, throw? or normal close?
-			if (ret < 0) {
+			if (ret == 0) {
+				throw IOException("normal close", ret, 0);
+			} else if (ret < 0) {
 				SocketUtil::throwSocketException("recv() error");
 			}
 			return ret;
@@ -121,7 +122,7 @@ namespace OS {
 		}
 		InetAddress getRemoteInetAddress() {
 			if (!resolved()) {
-				throw IOException("unresolved socket", -1, 0);
+				throw IOException("unresolved socket");
 			}
 			struct addrinfo * info = getAddrInfo();
 			return InetAddress(info->ai_addr);
@@ -300,7 +301,7 @@ namespace OS {
 		}
 		virtual SOCK_HANDLE accept(SocketAddress & addr) {
 			if (!resolved()) {
-				throw IOException("unresolved socket", -1, 0);
+				throw IOException("unresolved socket");
 			}
 
 			addr.select(getAddrInfo()->ai_family);

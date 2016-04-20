@@ -978,7 +978,7 @@ namespace OS {
 						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
 		throw IOException(message + " / " + string(text), err, 0);
 #else
-		throw IOException("unknown socket exception");
+		throw IOException("unknown socket exception", -1, 0);
 #endif
 	}
 

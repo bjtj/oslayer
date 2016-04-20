@@ -3,6 +3,7 @@
 
 #include "os.hpp"
 #include <deque>
+#include "Observer.hpp"
 
 namespace UTIL {
 
@@ -25,47 +26,43 @@ namespace UTIL {
 	/**
 	 * @brief PoolThread
 	 */
-	class FlaggableThread : public OS::Thread {
+	class FlaggableThread : public OS::Thread, public Observable {
 	private:
 		bool flag;
 	public:
-		FlaggableThread(bool initialFlag) : flag(initialFlag) {}
-		virtual ~FlaggableThread() {}
-
-		bool flagged() {return flag;}
-		void setFlag(bool flag) {this->flag = flag;}
+		FlaggableThread(bool initialFlag);
+		virtual ~FlaggableThread();
+		bool flagged();
+		void setFlag(bool flag);
 	};
 
 	/**
 	 *
 	 */
-	class ThreadPool {
+	class ThreadPool : public Observer, public Observable {
 	private:
-
 		OS::Semaphore freeQueueLock;
 		std::deque<FlaggableThread*> freeQueue;
-
 		OS::Semaphore workingQueueLock;
 		std::deque<FlaggableThread*> workingQueue;
-
 		size_t poolSize;
 		InstanceCreator<FlaggableThread*> & creator;
-
 		bool running;
 
 	public:
 		ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator);
 		virtual ~ThreadPool();
-
         void init();
 		void start();
 		void stop();
 		void collectUnflaggedThreads();
-
 		FlaggableThread * acquire();
 		void release(FlaggableThread * thread);
 		void enqueue(FlaggableThread * thread);
 		FlaggableThread * dequeue();
+		size_t freeCount();
+		size_t workingCount();
+		virtual void update(Observable * target);
 	};
 
 }

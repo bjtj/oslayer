@@ -145,10 +145,16 @@ static string readonly(InetAddress remoteAddr, unsigned long connectionTimeout, 
 
 	char buffer[1024] = {0,};
 	size_t len = 0;
-	while ((len = sock.recv(buffer, sizeof(buffer))) > 0) {
-		LOG << " ** receive" << endl;
-		ret.append(buffer, len);
-		LOG << " ** receive - done" << endl;
+	try {
+		while ((len = sock.recv(buffer, sizeof(buffer))) > 0) {
+			LOG << " ** receive" << endl;
+			ret.append(buffer, len);
+			LOG << " ** receive - done" << endl;
+		}
+	} catch (IOException e) {
+		if (e.getErrorCode() != 0) {
+			throw e;
+		}
 	}
 	
 	sock.close();
@@ -223,8 +229,10 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 			if (r) {
 				readTimeoutChecker.reset();
 				char buffer[1024] = {0,};
-				if (sock.recv(buffer, sizeof(buffer)) == 0) {
-					LOG << " ** normal close" << endl;
+				try {
+					sock.recv(buffer, sizeof(buffer));
+				} catch (IOException e) {
+					ASSERT(e.getErrorCode(), ==, 0);
 					break;
 				}
 				LOG << " >> " << buffer << endl;

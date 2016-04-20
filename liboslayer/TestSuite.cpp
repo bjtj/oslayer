@@ -1,4 +1,5 @@
 #include "TestSuite.hpp"
+#include <sstream>
 
 namespace UTIL {
 
@@ -98,5 +99,37 @@ namespace UTIL {
 		}
 		testCase->tearDown();
 		return result;
+	}
+
+	
+	TestReporter::TestReporter(vector<TestResult> results) : results(results) {
+		_total = results.size();
+		_passed = 0;
+		_failed = 0;
+		for (vector<TestResult>::iterator iter = results.begin(); iter != results.end(); iter++) {
+			if (iter->getResult()) {
+				_passed++;
+			} else {
+				_failed++;
+			}
+		}
+	}
+	TestReporter::~TestReporter() {
+	}
+	size_t TestReporter::total() {
+		return _total;
+	}
+	size_t TestReporter::passed() {
+		return _passed;
+	}
+	size_t TestReporter::failed() {
+		return _failed;
+	}
+	string TestReporter::toString() {
+		stringstream ss;
+		ss << "Total: " << _total << endl;
+		ss << "Passed: " << _passed << endl;
+		ss << "Failed: " << _failed << endl;
+		return ss.str();
 	}
 }

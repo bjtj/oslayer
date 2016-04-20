@@ -52,7 +52,7 @@ namespace OS {
 				printf("write??\n");
 				break;
 			default:
-				ERR_print_errors_fp(stderr);
+				// ERR_print_errors_fp(stderr);
                 throw IOException("SSL_read() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}

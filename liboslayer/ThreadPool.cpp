@@ -5,10 +5,29 @@ namespace UTIL {
 	using namespace std;
 	using namespace OS;
 
-	
-	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
+	/**
+	 *
+	 */
 
-        init();
+	FlaggableThread::FlaggableThread(bool initialFlag) : flag(initialFlag) {
+	}
+	FlaggableThread::~FlaggableThread() {
+	}
+	bool FlaggableThread::flagged() {
+		return flag;
+	}
+	void FlaggableThread::setFlag(bool flag) {
+		if (this->flag != flag) {
+			this->flag = flag;
+			notifyObservers();
+		}
+	}
+
+
+	/**
+	 *
+	 */
+	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
 	}
 
 	
@@ -17,9 +36,14 @@ namespace UTIL {
 	}
     
     void ThreadPool::init() {
-        stop();
+		
+		workingQueue.clear();
+		freeQueue.clear();
+		
         for (size_t i = 0; i < poolSize; i++) {
-            freeQueue.push_back(creator.createInstance());
+			FlaggableThread * t = creator.createInstance();
+			t->addObserver(AutoRef<Observer>(new ObserverWrapper(this)));
+			freeQueue.push_back(t);
         }
     }
 
@@ -29,7 +53,7 @@ namespace UTIL {
             
             init();
 
-			for (deque<FlaggableThread*>::const_iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
+			for (deque<FlaggableThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
 				FlaggableThread * thread = *iter;
 				thread->start();
 			}
@@ -42,16 +66,12 @@ namespace UTIL {
 
 		if (running) {
 
-			workingQueueLock.wait();
-			for (deque<FlaggableThread*>::const_iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
+			for (deque<FlaggableThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
 				FlaggableThread * thread = *iter;
 				thread->setFlag(false);
 			}
-			workingQueueLock.post();
             
-            collectUnflaggedThreads();
-            
-            for (deque<FlaggableThread*>::const_iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
+            for (deque<FlaggableThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
                 FlaggableThread * thread = *iter;
                 
                 thread->interrupt();
@@ -69,11 +89,11 @@ namespace UTIL {
 	}
 
 	void ThreadPool::collectUnflaggedThreads() {
-
 		workingQueueLock.wait();
 		for (deque<FlaggableThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end();) {
 			FlaggableThread * thread = *iter;
 			if (!thread->flagged()) {
+				notifyObservers(thread);
 				release(thread);
 				iter = workingQueue.erase(iter);
 			} else {
@@ -81,11 +101,9 @@ namespace UTIL {
 			}
 		}
 		workingQueueLock.post();
-
 	}
 
 	FlaggableThread * ThreadPool::acquire() {
-
 		freeQueueLock.wait();
 		FlaggableThread * thread = freeQueue.size() > 0 ? freeQueue.front() : NULL;
 		if (thread) {
@@ -120,4 +138,17 @@ namespace UTIL {
 		return thread;
 	}
 
+	size_t ThreadPool::freeCount() {
+		return freeQueue.size();
+	}
+	size_t ThreadPool::workingCount() {
+		return workingQueue.size();
+	}
+	
+	void ThreadPool::update(Observable * target) {
+		FlaggableThread * t = (FlaggableThread*)target;
+		if (!t->flagged()) {
+			collectUnflaggedThreads();			
+		}
+	}
 }

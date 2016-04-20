@@ -56,7 +56,6 @@ namespace UTIL {
 	void TaskThreadPool::setTask(AutoRef<Task> task) {
 		TaskThread * thread = NULL;
 		while ((thread = (TaskThread*)acquire()) == NULL) {
-			collectUnflaggedThreads();
 			idle(10);
 		}
 		thread->setTask(task);
