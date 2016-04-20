@@ -9,8 +9,12 @@
 /* Begin PBXBuildFile section */
 		6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
 		6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
-		E8075A101C03634D00EBE4B8 /* Measurement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8075A0E1C03634D00EBE4B8 /* Measurement.cpp */; };
-		E8075A141C03640F00EBE4B8 /* Measurement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8075A0E1C03634D00EBE4B8 /* Measurement.cpp */; };
+		E81FE39E1CC78532003D3F15 /* CountDownLatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */; };
+		E81FE39F1CC78532003D3F15 /* CountDownLatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */; };
+		E81FE3A01CC78532003D3F15 /* Observer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3991CC78532003D3F15 /* Observer.cpp */; };
+		E81FE3A11CC78532003D3F15 /* Observer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3991CC78532003D3F15 /* Observer.cpp */; };
+		E81FE3A21CC78532003D3F15 /* TestSuite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE39C1CC78532003D3F15 /* TestSuite.cpp */; };
+		E81FE3A31CC78532003D3F15 /* TestSuite.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE39C1CC78532003D3F15 /* TestSuite.cpp */; };
 		E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8447C921BF4AC11000E2903 /* FileReaderWriter.cpp */; };
 		E8447C971BF4AC11000E2903 /* RandomPortBinders.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8447C941BF4AC11000E2903 /* RandomPortBinders.cpp */; };
 		E8447C981BF4AC26000E2903 /* FileReaderWriter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8447C921BF4AC11000E2903 /* FileReaderWriter.cpp */; };
@@ -81,8 +85,13 @@
 		6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlParser.hpp; path = ../../liboslayer/XmlParser.hpp; sourceTree = "<group>"; };
 		6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatagramSocket.cpp; path = ../../liboslayer/DatagramSocket.cpp; sourceTree = "<group>"; };
 		6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatagramSocket.hpp; path = ../../liboslayer/DatagramSocket.hpp; sourceTree = "<group>"; };
-		E8075A0E1C03634D00EBE4B8 /* Measurement.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Measurement.cpp; path = ../../liboslayer/Measurement.cpp; sourceTree = "<group>"; };
-		E8075A0F1C03634D00EBE4B8 /* Measurement.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Measurement.hpp; path = ../../liboslayer/Measurement.hpp; sourceTree = "<group>"; };
+		E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CountDownLatch.cpp; path = ../../liboslayer/CountDownLatch.cpp; sourceTree = "<group>"; };
+		E81FE3981CC78532003D3F15 /* CountDownLatch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CountDownLatch.hpp; path = ../../liboslayer/CountDownLatch.hpp; sourceTree = "<group>"; };
+		E81FE3991CC78532003D3F15 /* Observer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Observer.cpp; path = ../../liboslayer/Observer.cpp; sourceTree = "<group>"; };
+		E81FE39A1CC78532003D3F15 /* Observer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Observer.hpp; path = ../../liboslayer/Observer.hpp; sourceTree = "<group>"; };
+		E81FE39B1CC78532003D3F15 /* PropertyMap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = PropertyMap.hpp; path = ../../liboslayer/PropertyMap.hpp; sourceTree = "<group>"; };
+		E81FE39C1CC78532003D3F15 /* TestSuite.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TestSuite.cpp; path = ../../liboslayer/TestSuite.cpp; sourceTree = "<group>"; };
+		E81FE39D1CC78532003D3F15 /* TestSuite.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = TestSuite.hpp; path = ../../liboslayer/TestSuite.hpp; sourceTree = "<group>"; };
 		E8447C921BF4AC11000E2903 /* FileReaderWriter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileReaderWriter.cpp; path = ../../liboslayer/FileReaderWriter.cpp; sourceTree = "<group>"; };
 		E8447C931BF4AC11000E2903 /* FileReaderWriter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FileReaderWriter.hpp; path = ../../liboslayer/FileReaderWriter.hpp; sourceTree = "<group>"; };
 		E8447C941BF4AC11000E2903 /* RandomPortBinders.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = RandomPortBinders.cpp; path = ../../liboslayer/RandomPortBinders.cpp; sourceTree = "<group>"; };
@@ -181,6 +190,13 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */,
+				E81FE3981CC78532003D3F15 /* CountDownLatch.hpp */,
+				E81FE3991CC78532003D3F15 /* Observer.cpp */,
+				E81FE39A1CC78532003D3F15 /* Observer.hpp */,
+				E81FE39B1CC78532003D3F15 /* PropertyMap.hpp */,
+				E81FE39C1CC78532003D3F15 /* TestSuite.cpp */,
+				E81FE39D1CC78532003D3F15 /* TestSuite.hpp */,
 				E88A7FF91CB4453F00241D44 /* FileStream.cpp */,
 				E88A7FFA1CB4453F00241D44 /* FileStream.hpp */,
 				E88A7FFB1CB4453F00241D44 /* MessageQueue.hpp */,
@@ -210,8 +226,6 @@
 				E8E048FB1C6381B500144731 /* Lisp.hpp */,
 				E857BB691BECD09800D2022F /* Logger.cpp */,
 				E857BB6A1BECD09800D2022F /* Logger.hpp */,
-				E8075A0E1C03634D00EBE4B8 /* Measurement.cpp */,
-				E8075A0F1C03634D00EBE4B8 /* Measurement.hpp */,
 				E882FE8A1BD5315300E1C8C7 /* os.cpp */,
 				E882FE8B1BD5315300E1C8C7 /* os.hpp */,
 				E84737DC1C1D387F008350CD /* platform.hpp */,
@@ -306,8 +320,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E88A80041CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
+				E81FE3A01CC78532003D3F15 /* Observer.cpp in Sources */,
 				E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */,
-				E8075A101C03634D00EBE4B8 /* Measurement.cpp in Sources */,
 				E88A80021CB4453F00241D44 /* FileStream.cpp in Sources */,
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */,
@@ -318,6 +332,7 @@
 				E8E048FC1C6381B500144731 /* Lisp.cpp in Sources */,
 				E89501331C109924009434B1 /* Properties.cpp in Sources */,
 				E88A80061CB4453F00241D44 /* Timer.cpp in Sources */,
+				E81FE39E1CC78532003D3F15 /* CountDownLatch.cpp in Sources */,
 				E8B161601C0054D4002D68C7 /* AutoRef.cpp in Sources */,
 				E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
@@ -326,6 +341,7 @@
 				E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */,
 				E8B161421BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */,
 				6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */,
+				E81FE3A21CC78532003D3F15 /* TestSuite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,6 +350,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E88A80051CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
+				E81FE3A11CC78532003D3F15 /* Observer.cpp in Sources */,
 				E8E049011C6381E600144731 /* Lisp.cpp in Sources */,
 				E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */,
 				E88A80031CB4453F00241D44 /* FileStream.cpp in Sources */,
@@ -341,11 +358,11 @@
 				E8AC4F641C89C0B600504E50 /* Base64.cpp in Sources */,
 				6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */,
 				E895013D1C1101C1009434B1 /* Properties.cpp in Sources */,
-				E8075A141C03640F00EBE4B8 /* Measurement.cpp in Sources */,
 				E8447C981BF4AC26000E2903 /* FileReaderWriter.cpp in Sources */,
 				E8447C991BF4AC26000E2903 /* RandomPortBinders.cpp in Sources */,
 				E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */,
 				E88A80071CB4453F00241D44 /* Timer.cpp in Sources */,
+				E81FE39F1CC78532003D3F15 /* CountDownLatch.cpp in Sources */,
 				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
 				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,
 				E8FAB2151BD7C36200E89DC5 /* oslayer.mm in Sources */,
@@ -354,6 +371,7 @@
 				E8FAB2161BD7C36200E89DC5 /* os.cpp in Sources */,
 				E8FAB2171BD7C36200E89DC5 /* OSThread.mm in Sources */,
 				E8B161431BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */,
+				E81FE3A31CC78532003D3F15 /* TestSuite.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
