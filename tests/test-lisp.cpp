@@ -126,7 +126,7 @@ static void test_func() {
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*env["b"].getInteger(), ==, 2);
 	ASSERT(*env["c"].getInteger(), ==, 3);
-	ASSERT(env["x"].nil(), ==, true);
+	ASSERT(env["x"].isNil(), ==, true);
 
 	//
 	env = Env();
@@ -243,13 +243,13 @@ static void test_func() {
 static void test_logic() {
 	Env env;
 	native(env);
-	ASSERT(compile("(not t)", env).nil(), ==, true);
-	ASSERT(compile("(not nil)", env).nil(), ==, false);
-	ASSERT(compile("(or 1 1)", env).nil(), ==, false);
-	ASSERT(compile("(and t nil)", env).nil(), ==, true);
-	ASSERT(compile("(or t nil)", env).nil(), ==, false);
-	ASSERT(compile("(or (and t nil) t))", env).nil(), ==, false);
-	ASSERT(compile("(and (or nil t) nil)", env).nil(), ==, true);
+	ASSERT(compile("(not t)", env).isNil(), ==, true);
+	ASSERT(compile("(not nil)", env).isNil(), ==, false);
+	ASSERT(compile("(or 1 1)", env).isNil(), ==, false);
+	ASSERT(compile("(and t nil)", env).isNil(), ==, true);
+	ASSERT(compile("(or t nil)", env).isNil(), ==, false);
+	ASSERT(compile("(or (and t nil) t))", env).isNil(), ==, false);
+	ASSERT(compile("(and (or nil t) nil)", env).isNil(), ==, true);
 }
 
 static void test_type() {
@@ -258,18 +258,18 @@ static void test_type() {
 	native(env);
 	
 	Var var(false);
-	ASSERT(var.nil(), ==, true);
+	ASSERT(var.isNil(), ==, true);
 
-	ASSERT(compile("(symbolp (symbol x))", env).nil(), ==, false);
-	ASSERT(compile("(listp (list 1 2 3))", env).nil(), ==, false);
-	ASSERT(compile("(booleanp t)", env).nil(), ==, false);
-	ASSERT(compile("(integerp 1)", env).nil(), ==, false);
-	ASSERT(compile("(floatp 1.0)", env).nil(), ==, false);
-	ASSERT(compile("(stringp \"hello\")", env).nil(), ==, false);
+	ASSERT(compile("(symbolp (symbol x))", env).isNil(), ==, false);
+	ASSERT(compile("(listp (list 1 2 3))", env).isNil(), ==, false);
+	ASSERT(compile("(booleanp t)", env).isNil(), ==, false);
+	ASSERT(compile("(integerp 1)", env).isNil(), ==, false);
+	ASSERT(compile("(floatp 1.0)", env).isNil(), ==, false);
+	ASSERT(compile("(stringp \"hello\")", env).isNil(), ==, false);
 	compile("(system \"touch xxx\")", env);
 	compile("(setq *f* (open \"xxx\"))", env);
-	ASSERT(compile("(streamp *f*)", env).nil(), ==, false);
-	// ASSERT(compile("(pathnamep (car (dir \".\")))", env).nil(), ==, false);
+	ASSERT(compile("(streamp *f*)", env).isNil(), ==, false);
+	// ASSERT(compile("(pathnamep (car (dir \".\")))", env).isNil(), ==, false);
 }
 
 static void test_scope() {
@@ -287,8 +287,8 @@ static void test_cond() {
 	ASSERT(*compile("(if nil 1 0)", env).getInteger(), ==, 0);
 	ASSERT(*compile("(if t 1 0)", env).getInteger(), ==, 1);
 	ASSERT(*compile("(when t 1)", env).getInteger(), ==, 1);
-	ASSERT(compile("(when nil 1)", env).nil(), ==, true);
-	ASSERT(compile("(unless t 1)", env).nil(), ==, true);
+	ASSERT(compile("(when nil 1)", env).isNil(), ==, true);
+	ASSERT(compile("(unless t 1)", env).isNil(), ==, true);
 	ASSERT(*compile("(unless nil 1)", env).getInteger(), ==, 1);
 	compile("(setq a 5)", env);
 	ASSERT(*compile("(cond ((= a 5) 1) (t \"default\"))", env).getInteger(), ==, 1);
@@ -300,9 +300,9 @@ static void test_loop() {
 	native(env);
 
 	compile("(setq num 0)", env);
-	ASSERT(compile("(while (< num 4) (progn (print num) (setq num (+ num 1)))))", env).nil(), ==, true);
-	ASSERT(compile("(dolist (x (list 1 2 3)) (print x))", env).nil(), ==, true);
-	ASSERT(compile("(dotimes (i 10) (print i))", env).nil(), ==, true);
+	ASSERT(compile("(while (< num 4) (progn (print num) (setq num (+ num 1)))))", env).isNil(), ==, true);
+	ASSERT(compile("(dolist (x (list 1 2 3)) (print x))", env).isNil(), ==, true);
+	ASSERT(compile("(dotimes (i 10) (print i))", env).isNil(), ==, true);
 
 	compile("(setq *lst* (list (list 1 2) (list 3 4)))", env);
 	compile("(dolist (x *lst*) (print x))", env);
@@ -353,8 +353,8 @@ static void test_string() {
 
 	ASSERT(*compile("1", env).getInteger(), ==, 1);
 
-	ASSERT(compile("(string-prefix-p \".bashrc\" \".\")", env).nil(), ==, false);
-	ASSERT(compile("(string-prefix-p \"bashrc\" \".\")", env).nil(), ==, true);
+	ASSERT(compile("(string-prefix-p \".bashrc\" \".\")", env).isNil(), ==, false);
+	ASSERT(compile("(string-prefix-p \"bashrc\" \".\")", env).isNil(), ==, true);
 
 	ASSERT(compile("(string-append \"hello\" \" world\")", env).toString(), ==, "hello world");
 
@@ -364,29 +364,29 @@ static void test_string() {
 static void test_arithmetic() {
 	Env env;
 	native(env);
-	ASSERT(!compile("(= 1 1)", env).nil(), ==, true);
-	ASSERT(!compile("(= 2 1)", env).nil(), ==, false);
-	ASSERT(!compile("(= 1 2)", env).nil(), ==, false);
-	ASSERT(!compile("(< 1 4)", env).nil(), ==, true);
-	ASSERT(!compile("(> 1 4)", env).nil(), ==, false);
-	ASSERT(!compile("(<= 1 1)", env).nil(), ==, true);
-	ASSERT(!compile("(<= 1 4)", env).nil(), ==, true);
-	ASSERT(!compile("(<= 4 1)", env).nil(), ==, false);
-	ASSERT(!compile("(>= 1 1)", env).nil(), ==, true);
-	ASSERT(!compile("(>= 1 4)", env).nil(), ==, false);
-	ASSERT(!compile("(>= 4 1)", env).nil(), ==, true);
+	ASSERT(!compile("(= 1 1)", env).isNil(), ==, true);
+	ASSERT(!compile("(= 2 1)", env).isNil(), ==, false);
+	ASSERT(!compile("(= 1 2)", env).isNil(), ==, false);
+	ASSERT(!compile("(< 1 4)", env).isNil(), ==, true);
+	ASSERT(!compile("(> 1 4)", env).isNil(), ==, false);
+	ASSERT(!compile("(<= 1 1)", env).isNil(), ==, true);
+	ASSERT(!compile("(<= 1 4)", env).isNil(), ==, true);
+	ASSERT(!compile("(<= 4 1)", env).isNil(), ==, false);
+	ASSERT(!compile("(>= 1 1)", env).isNil(), ==, true);
+	ASSERT(!compile("(>= 1 4)", env).isNil(), ==, false);
+	ASSERT(!compile("(>= 4 1)", env).isNil(), ==, true);
 
-	ASSERT(!compile("(= 1 1.0)", env).nil(), ==, true);
-	ASSERT(!compile("(= 2 1.0)", env).nil(), ==, false);
-	ASSERT(!compile("(= 1 2.0)", env).nil(), ==, false);
-	ASSERT(!compile("(< 1 4.0)", env).nil(), ==, true);
-	ASSERT(!compile("(> 1 4.0)", env).nil(), ==, false);
-	ASSERT(!compile("(<= 1 1.0)", env).nil(), ==, true);
-	ASSERT(!compile("(<= 1 4.0)", env).nil(), ==, true);
-	ASSERT(!compile("(<= 4 1.0)", env).nil(), ==, false);
-	ASSERT(!compile("(>= 1 1.0)", env).nil(), ==, true);
-	ASSERT(!compile("(>= 1 4.0)", env).nil(), ==, false);
-	ASSERT(!compile("(>= 4 1.0)", env).nil(), ==, true);
+	ASSERT(!compile("(= 1 1.0)", env).isNil(), ==, true);
+	ASSERT(!compile("(= 2 1.0)", env).isNil(), ==, false);
+	ASSERT(!compile("(= 1 2.0)", env).isNil(), ==, false);
+	ASSERT(!compile("(< 1 4.0)", env).isNil(), ==, true);
+	ASSERT(!compile("(> 1 4.0)", env).isNil(), ==, false);
+	ASSERT(!compile("(<= 1 1.0)", env).isNil(), ==, true);
+	ASSERT(!compile("(<= 1 4.0)", env).isNil(), ==, true);
+	ASSERT(!compile("(<= 4 1.0)", env).isNil(), ==, false);
+	ASSERT(!compile("(>= 1 1.0)", env).isNil(), ==, true);
+	ASSERT(!compile("(>= 1 4.0)", env).isNil(), ==, false);
+	ASSERT(!compile("(>= 4 1.0)", env).isNil(), ==, true);
 
 	ASSERT(*compile("(* 4 1.2)", env).getFloat(), ==, 4.8f);
 }
@@ -405,7 +405,7 @@ static void test_list() {
 	ASSERT(*compile("(nth 0 (list 1 2 3))", env).getInteger(), ==, 1);
 	ASSERT(*compile("(nth 1 (list 1 2 3))", env).getInteger(), ==, 2);
 	ASSERT(*compile("(nth 2 (list 1 2 3))", env).getInteger(), ==, 3);
-	ASSERT(compile("(nth 10 (list 1 2 3))", env).nil(), ==, true);
+	ASSERT(compile("(nth 10 (list 1 2 3))", env).isNil(), ==, true);
 	ASSERT(compile("(nthcdr 0 (list 1 2 3))", env).getList().size(), ==, 3);
 	ASSERT(*compile("(nthcdr 0 (list 1 2 3))", env).getList()[0].getInteger(), ==, 1);
 	ASSERT(*compile("(nthcdr 0 (list 1 2 3))", env).getList()[1].getInteger(), ==, 2);
@@ -415,7 +415,7 @@ static void test_list() {
 	ASSERT(*compile("(nthcdr 1 (list 1 2 3))", env).getList()[1].getInteger(), ==, 3);
 	ASSERT(compile("(nthcdr 2 (list 1 2 3))", env).getList().size(), ==, 1);
 	ASSERT(*compile("(nthcdr 2 (list 1 2 3))", env).getList()[0].getInteger(), ==, 3);
-	ASSERT(compile("(nthcdr 10 (list 1 2 3))", env).nil(), ==, true);
+	ASSERT(compile("(nthcdr 10 (list 1 2 3))", env).isNil(), ==, true);
 
 	compile("(setq *lst* (list (list \"name\" \"steve\") (list \"age\" \"23\")))", env);
 	ASSERT((*compile("(car *lst*)", env)).getList().size(), ==, 2);
@@ -497,29 +497,29 @@ static void test_file() {
 	native(env);
 
 	compile("(system \"rm hello.txt\")", env);
-	//ASSERT(compile("(open \"hello.txt\")", env).nil(), ==, true);
-	ASSERT(compile("(open \"hello.txt\" :if-does-not-exist nil)", env).nil(), ==, true);
-	ASSERT(!compile("(open \"hello.txt\" :if-does-not-exist :create)", env).nil(), ==, true);
+	//ASSERT(compile("(open \"hello.txt\")", env).isNil(), ==, true);
+	ASSERT(compile("(open \"hello.txt\" :if-does-not-exist nil)", env).isNil(), ==, true);
+	ASSERT(!compile("(open \"hello.txt\" :if-does-not-exist :create)", env).isNil(), ==, true);
 	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
-				   "(write-line \"hello world\" out) (close out))", env).nil(), ==, true);
+				   "(write-line \"hello world\" out) (close out))", env).isNil(), ==, true);
 	ASSERT(compile("(let ((in (open \"hello.txt\"))) (read-line in))", env).toString(), ==, "hello world");
 	ASSERT(compile("(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
-				   "(write-string \"hello world\" out) (close out))", env).nil(), ==, true);
+				   "(write-string \"hello world\" out) (close out))", env).isNil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (in (open \"hello.txt\"))) "
 				   "(setq ret (read-line in)) (close in) ret)", env).toString(), ==, "hello world");
 
 	// append test
 	compile("(system \"rm -rf message.txt\")", env);
 	ASSERT(compile("(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
-				   "(write-string \"hello \" f) (close f))", env).nil(), ==, true);
+				   "(write-string \"hello \" f) (close f))", env).isNil(), ==, true);
 	ASSERT(compile("(let ((f (open \"message.txt\" :if-exists :append))) "
-				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
+				   "(write-string \"world\" f) (close f))", env).isNil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
 				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "hello world");
 
 	// overwrite test
 	ASSERT(compile("(let ((f (open \"message.txt\" :if-exists :overwrite))) "
-				   "(write-string \"world\" f) (close f))", env).nil(), ==, true);
+				   "(write-string \"world\" f) (close f))", env).isNil(), ==, true);
 	ASSERT(compile("(let ((ret \"\") (f (open \"message.txt\"))) "
 				   "(setq ret (read-line f)) (close f) ret)", env).toString(), ==, "world");
 

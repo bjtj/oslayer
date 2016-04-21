@@ -326,7 +326,7 @@ namespace LISP {
 									", but required: " + getTypeString(t) + ")");
 			}
 		}
-		bool nil() const {return type == NIL;}
+		bool isNil() const {return type == NIL;}
 		bool isList() const {return type == LIST;}
 		bool isSymbol() const {return type == SYMBOL;}
 		bool isBoolean() const {return type == BOOLEAN;}

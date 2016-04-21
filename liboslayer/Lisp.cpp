@@ -481,7 +481,7 @@ namespace LISP {
 				testArgumentCount(lv, 3);
 				Var val = eval(lv[1], env);
 				Var ret;
-				if (!val.nil()) {
+				if (!val.isNil()) {
 					ret = eval(lv[2], env);
 				} else if (lv.size() > 3) {
 					ret = eval(lv[3], env);
@@ -490,7 +490,7 @@ namespace LISP {
 			} else if (symbol == "when") {
 				testArgumentCount(lv, 3);
 				Var test = eval(lv[1], env);
-				if (!test.nil()) {
+				if (!test.isNil()) {
 					Var ret = eval(lv[2], env);
 					PUSH_AND_RETURN(env, ret);
 				}
@@ -498,7 +498,7 @@ namespace LISP {
 			} else if (symbol == "unless") {
 				testArgumentCount(lv, 3);
 				Var test = eval(lv[1], env);
-				if (test.nil()) {
+				if (test.isNil()) {
 					Var ret = eval(lv[2], env);
 					PUSH_AND_RETURN(env, ret);
 				}
@@ -507,7 +507,7 @@ namespace LISP {
 				testArgumentCount(lv, 1);
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					vector<Var> lst = iter->getList();
-					if (!eval(lst[0], env).nil()) {
+					if (!eval(lst[0], env).isNil()) {
 						Var ret = eval(lst[1], env);
 						PUSH_AND_RETURN(env, ret);
 					}
@@ -523,7 +523,7 @@ namespace LISP {
 			} else if (symbol == "while") {
 				testArgumentCount(lv, 3);
 				Var pre_test = lv[1];
-				while (!eval(pre_test, env).nil()) {
+				while (!eval(pre_test, env).isNil()) {
 					eval(lv[2], env);
 				}
 				PUSH_AND_RETURN(env, nil());
@@ -772,7 +772,7 @@ namespace LISP {
 						vector<Var> fargs;
 						fargs.push_back(lst[i]);
 						fargs.push_back(lst[i + 1]);
-						if (!func.proc("#sort", fargs, env).nil()) {
+						if (!func.proc("#sort", fargs, env).isNil()) {
 							std::iter_swap(lst.begin() + i, lst.begin() + (i + 1));
 						}
 					}
@@ -819,7 +819,7 @@ namespace LISP {
 				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
 					vector<Var> fargs;
 					fargs.push_back(*iter);
-					if (!func.proc(fargs, env).nil()) {
+					if (!func.proc(fargs, env).isNil()) {
 						iter = lst.erase(iter);
 					} else {
 						iter++;
@@ -833,7 +833,7 @@ namespace LISP {
 		DECL_NATIVE("not", Not, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.nil();
+				return var.isNil();
 			});
 
 		DECL_NATIVE("or", Or, {
@@ -841,7 +841,7 @@ namespace LISP {
 				Var var;
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
-					if (!var.nil()) {
+					if (!var.isNil()) {
 						break;
 					}
 				}
@@ -853,7 +853,7 @@ namespace LISP {
 				Var var("t");
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
-					if (var.nil()) {
+					if (var.isNil()) {
 						break;
 					}
 				}
@@ -907,7 +907,7 @@ namespace LISP {
 				testArgumentCount(args, 2);
 				Var test = eval(args[0], env);
 				string str = format(env, args[1].toString(), args, 2);
-				if (!test.nil()) {
+				if (!test.isNil()) {
 					fputs(str.c_str(), stdout);
 					fputs("\n", stdout);
 					return nil();
@@ -1129,7 +1129,7 @@ namespace LISP {
 				if (!file.exists()) {
 					// does not exists
 					if (HAS(keywords, ":if-does-not-exist")) {
-						if (keywords[":if-does-not-exist"].nil()) {
+						if (keywords[":if-does-not-exist"].isNil()) {
 							return nil();
 						} else if (keywords[":if-does-not-exist"].getSymbol() == ":create") {
 							flags = "wb+";
@@ -1138,7 +1138,7 @@ namespace LISP {
 				} else {
 					// exists
 					if (HAS(keywords, ":if-exists")) {
-						if (keywords[":if-exists"].nil()) {
+						if (keywords[":if-exists"].isNil()) {
 							return nil();
 						} else if (keywords[":if-exists"].getSymbol() == ":append") {
 							flags = "ab+";

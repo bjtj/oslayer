@@ -80,6 +80,8 @@ namespace OS {
 		return "lib" + name + ".so";
 #elif defined(USE_MS_WIN)
 		return name + ".dll";
+#else
+		throw NotImplementedException("Not implemeneted - convert to native so name");
 #endif
 	}
 
@@ -89,6 +91,8 @@ namespace OS {
 		handle = dlopen(fullpath.c_str(), RTLD_LAZY);
 #elif defined(USE_MS_WIN)
 		handle = LoadLibrary(fullpath.c_str());
+#else
+		throw NotImplementedException("Not implemeneted - load library");
 #endif
 	}
 	Library::~Library() {
@@ -96,6 +100,8 @@ namespace OS {
 		dlclose(handle);
 #elif defined(USE_MS_WIN)
 		FreeLibrary(handle);
+#else
+		throw NotImplementedException("Not implemeneted - free library");
 #endif
 	}
 	string & Library::getPath() {
@@ -112,6 +118,8 @@ namespace OS {
 		return dlsym(handle, sym.c_str());
 #elif defined(USE_MS_WIN)
 		return GetProcAddress(handle, sym.c_str());
+#else
+		throw NotImplementedException("Not implemeneted - get symbol from library");
 #endif
 	}
 
