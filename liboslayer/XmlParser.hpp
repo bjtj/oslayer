@@ -484,7 +484,7 @@ namespace XML {
 				s = text.find("<", e + 1);
 			}
 
-			doc.setRootNode(cursor.root());
+			doc.setRootNode(UTIL::AutoRef<XmlNode>(cursor.root()));
 			return doc;
 		}
 	};

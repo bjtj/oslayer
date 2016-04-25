@@ -81,7 +81,7 @@ namespace UTIL {
 	/**
 	 * @brief match f can contains * for any 1..n, ? for any 1
 	 */
-	bool Text::match(string f, string s) {
+	bool Text::match(const string & f, const string & s) {
 
 		if (f.empty() && !s.empty()) {
 			return false;
@@ -115,8 +115,6 @@ namespace UTIL {
 		// real checking
 
 		while (1) {
-
-			//printf("%c-%c, %c-%c\n", *fs, *fe, *ss, *se);
 
 			if (fs == fe && ss == se) {
 				return true;

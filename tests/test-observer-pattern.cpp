@@ -41,7 +41,8 @@ public:
 
 	virtual void test() {
 		Subject sub;
-		sub.addObserver(AutoRef<Observer>(new ValueMonitor));
+		ValueMonitor vm;
+		sub.addObserver(&vm);
 
 		sub.setValue(0);
 		sub.setValue(1);

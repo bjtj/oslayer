@@ -13,13 +13,13 @@ namespace UTIL {
 	 */
 	class Observable {
 	private:
-		std::vector<AutoRef<Observer> > observers;
+		std::vector<Observer*> observers;
 	public:
 		Observable();
 		virtual ~Observable();
 
-		void addObserver(AutoRef<Observer> observer);
-		void removeObserver(AutoRef<Observer> observer);
+		void addObserver(Observer * observer);
+		void removeObserver(Observer * observer);
 		void notifyObservers();
 		void notifyObservers(Observable * target);
 	};
@@ -31,18 +31,6 @@ namespace UTIL {
 	public:
 		Observer();
 		virtual ~Observer();
-		virtual void update(Observable * target);
-	};
-
-	/**
-	 *
-	 */
-	class ObserverWrapper : public Observer {
-	private:
-		Observer * observer;
-	public:
-		ObserverWrapper(Observer * observer);
-		virtual ~ObserverWrapper();
 		virtual void update(Observable * target);
 	};
 }

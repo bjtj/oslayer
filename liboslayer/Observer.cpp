@@ -11,11 +11,11 @@ namespace UTIL {
 	Observable::~Observable() {
 	}
 
-	void Observable::addObserver(AutoRef<Observer> observer) {
+	void Observable::addObserver(Observer * observer) {
 		observers.push_back(observer);
 	}
-	void Observable::removeObserver(AutoRef<Observer> observer) {
-		for (vector<AutoRef<Observer> >::iterator iter = observers.begin(); iter != observers.end();) {
+	void Observable::removeObserver(Observer * observer) {
+		for (vector<Observer*>::iterator iter = observers.begin(); iter != observers.end();) {
 			if ((*iter) == observer) {
 				iter = observers.erase(iter);
 			} else {
@@ -27,7 +27,7 @@ namespace UTIL {
 		notifyObservers(this);
 	}
 	void Observable::notifyObservers(Observable * target) {
-		for (vector<AutoRef<Observer> >::iterator iter = observers.begin(); iter != observers.end(); iter++) {
+		for (vector<Observer*>::iterator iter = observers.begin(); iter != observers.end(); iter++) {
 			(*iter)->update(target);
 		}
 	}
@@ -41,16 +41,4 @@ namespace UTIL {
 	void Observer::update(Observable * target) {
 	}
 
-
-	ObserverWrapper::ObserverWrapper(Observer * observer) : observer(observer) {
-		if (!observer) {
-			throw Exception("null observer instance");
-		}
-	}
-	ObserverWrapper::~ObserverWrapper() {
-	}
-	
-	void ObserverWrapper::update(Observable * target) {
-		observer->update(target);
-	}
 }

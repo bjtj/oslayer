@@ -21,7 +21,7 @@ namespace UTIL {
 		static std::string trim(const std::string & str);
 		static std::string ltrim(const std::string & str);
 		static std::string rtrim(const std::string & str);
-		static bool match(std::string f, std::string s);
+		static bool match(const std::string & f, const std::string & s);
 		static std::vector<std::string> split(std::string target, std::string sep);
 		static std::string join(const std::vector<std::string> & vec, const std::string & glue);
 		static bool contains(std::vector<std::string> & vec, std::string target);

@@ -1,148 +1,142 @@
 #ifndef __LOGGER_HPP__
 #define __LOGGER_HPP__
 
-#include <vector>
 #include <string>
+#include <map>
+#include <vector>
+#include "AutoRef.hpp"
+#include "Observer.hpp"
 
 namespace UTIL {
 
-	/**
-	 * @brief LogLevel
-	 */
+	class LoggerFactory;
+	class LogSession;
+
 	class LogLevel {
 	public:
-		static const int ERROR_LEVEL = 0;
-		static const int WARN_LEVEL = 1;
-		static const int INFO_LEVEL = 2;
-		static const int DEBUG_LEVEL = 3;
-		static const int VERBOSE_LEVEL = 4;
-
+		static const int FATAL;
+		static const int ERROR;
+		static const int WARN;
+		static const int INFO;
+		static const int DEBUG;
+		static const int TRACE;
+		static const int VERBOSE;
 	private:
 		int level;
-
 	public:
-		LogLevel();
 		LogLevel(int level);
 		virtual ~LogLevel();
-
-		std::string toString() const;
-		std::string toMinialString() const;
+		int getLevel() const;
+		void setLevel(int level);
+		std::string getShortName();
+		std::string getName();
+		static std::string getShortName(int level);
+		static std::string getName(int level);
+		static void testLevel(int level);
+		static std::vector<int> getLevels();
 	};
 
-	/**
-	 * @brief LogMessage
-	 */
-	class LogMessage {
+	class LogFormatter {
+	public:
+		LogFormatter();
+		virtual ~LogFormatter();
+		virtual std::string format(const LogSession & session, const std::string & msg);
+	};
+
+	class LogPrinter {
+	public:
+		LogPrinter();
+		virtual ~LogPrinter();
+		virtual void print(const LogSession & session, const std::string & msg);
+	};
+
+
+	class LogSession {
 	private:
+		bool enabled;
 		LogLevel level;
-		std::string message;
+		AutoRef<LogFormatter> formatter;
+		AutoRef<LogPrinter> printer;
 	public:
-		LogMessage();
-		LogMessage(int level, const std::string & message);
-		virtual ~LogMessage();
-
-		void setLogLevel(const LogLevel & level);
-		void setMessage(const std::string & message);
-
-		std::string toString() const;
+		LogSession(const LogLevel & level);
+		LogSession(int level);
+		virtual ~LogSession();
+		void log(const std::string & msg) const;
+		void setEnable(bool enable);
+		bool isEnable();
+		AutoRef<LogFormatter> getFormatter();
+		AutoRef<LogPrinter> getPrinter();
+		void setFormatter(AutoRef<LogFormatter> formatter);
+		void setPrinter(AutoRef<LogPrinter> printer);
+		LogLevel getLevel() const;
 	};
 
 
-	/**
-	 * @brief LogMessagePrinter
-	 */
-	class LogMessagePrinter {
+
+	class Logger : public Observer {
 	private:
+		LoggerFactory * factory;
+		std::string name;
+		AutoRef<LogSession> _fatal;
+		AutoRef<LogSession> _error;
+		AutoRef<LogSession> _warn;
+		AutoRef<LogSession> _info;
+		AutoRef<LogSession> _debug;
+		AutoRef<LogSession> _trace;
+		AutoRef<LogSession> _verbose;
 	public:
-		LogMessagePrinter();
-		virtual ~LogMessagePrinter();
-
-		virtual std::string print(const LogMessage & message);
-	};
-
-	/**
-	 * @brief LogMessagePrinter Decorator
-	 */
-	class LogMessagePrinterDecorator : public LogMessagePrinter {
-	private:
-		LogMessagePrinter & printer;
-	public:
-		LogMessagePrinterDecorator(LogMessagePrinter & printer);
-		virtual ~LogMessagePrinterDecorator();
-	};
-
-
-	/**
-	 * @brief LogMessageWriter
-	 */
-	class LogMessageWriter {
-	private:
-	public:
-		LogMessageWriter();
-		virtual ~LogMessageWriter();
-
-		virtual void write(const std::string & message) = 0;
-	};
-
-	/**
-	 * @brief LogMessageWriter Decorator
-	 */
-	class LogMessageWriterDecorator : public LogMessageWriter {
-	private:
-		LogMessageWriter & writer;
-	public:
-		LogMessageWriterDecorator(LogMessageWriter & writer);
-		virtual ~LogMessageWriterDecorator();
-	};
-
-	/**
-	 * @brief Standard IO Log Message Writer (cout)
-	 */
-	class StandardIOLogMessageWriter : public LogMessageWriter {
-	public:
-		StandardIOLogMessageWriter();
-		virtual ~StandardIOLogMessageWriter();
-		virtual void write(const std::string & message);
-	};
-
-	/**
-	 * @brief Logger
-	 */
-	class Logger {
-	private:
-		LogMessagePrinter * printer;
-		std::vector<LogMessageWriter *> writers;
-	public:
-		Logger();
+		Logger(LoggerFactory * factory, const std::string & name);
+		Logger(const std::string & name);
 		virtual ~Logger();
-
-		virtual void log(const LogMessage & msg) const;
-		void log(int level, const std::string & msg) const;
-		void loge(const std::string & msg) const;
-		void logw(const std::string & msg) const;
-		void logi(const std::string & msg) const;
-		void logd(const std::string & msg) const;
-		void logv(const std::string & msg) const;
-
-		void writeMessage(const std::string & msg) const;
-
-		void setPrinter(LogMessagePrinter * printer);
-
-		void addWriter(LogMessageWriter * writer);
-		void removeWriter(LogMessageWriter * writer);
+		virtual void logf(const std::string & msg) const;
+		virtual void loge(const std::string & msg) const;
+		virtual void logw(const std::string & msg) const;
+		virtual void logi(const std::string & msg) const;
+		virtual void logd(const std::string & msg) const;
+		virtual void logt(const std::string & msg) const;
+		virtual void logv(const std::string & msg) const;
+		AutoRef<LogSession> & session(int level);
+		void observe(LoggerFactory * factory);
+		virtual void update(Observable * target);
 	};
 
-	/**
-	 * @brief Logger Factory
-	 */
-	class LoggerFactory {
+	class LoggerDescriptor {
 	private:
+		std::string pattern;
+		std::map<int, std::string> formatters;
+		std::map<int, std::string> printers;
+	public:
+		LoggerDescriptor();
+		LoggerDescriptor(const std::string & pattern);
+		virtual ~LoggerDescriptor();
+		bool match(const std::string & keyword) const;
+		AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
+		AutoRef<LogSession> makeSession(LoggerFactory & factory, int level);
+		void setFormatter(int level, const std::string & name);
+		void setPrinter(int level, const std::string & name);
+		void setAllFormatter(const std::string & name);
+		void setAllPrinter(const std::string & name);
+	};
+
+
+	class LoggerFactory : public Observable {
+	private:
+		std::map<std::string, AutoRef<LogFormatter> > formatters;
+		std::map<std::string, AutoRef<LogPrinter> > printers;
+		std::vector<LoggerDescriptor> descriptors;
 	private:
 		LoggerFactory();
 	public:
 		virtual ~LoggerFactory();
-
-		static const Logger & getDefaultLogger();
+		static LoggerFactory & getInstance();
+		AutoRef<Logger> getLogger(const std::string & name);
+		AutoRef<Logger> getLoggerWithoutObserve(const std::string & name);
+		void setLoggerDescriptorSimple(const std::string & pattern, const std::string & formatterName, const std::string & printerName);
+		void setLoggerDescriptor(const LoggerDescriptor & descriptor);
+		void setFormatter(const std::string & name, AutoRef<LogFormatter> formatter);
+		void setPrinter(const std::string & name, AutoRef<LogPrinter> writer);
+		AutoRef<LogFormatter> getFormatter(const std::string & name);
+		AutoRef<LogPrinter> getPrinter(const std::string & name);
 	};
 }
 

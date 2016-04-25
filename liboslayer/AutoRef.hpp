@@ -29,7 +29,7 @@ namespace UTIL {
     public:
         
         AutoRef();
-		AutoRef(T * _t);
+		explicit AutoRef(T * _t);
         AutoRef(const AutoRef & other);
         virtual ~AutoRef();        
         AutoRef<T> & operator= (T * _t);        

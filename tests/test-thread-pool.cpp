@@ -101,8 +101,8 @@ static void test_thread_pool() {
 	WorkerThreadPool pool(5);
 	pool.start();
 
-	AutoRef<Observer> observer(new WorkerThreadObserver);
-	pool.addObserver(observer);
+	WorkerThreadObserver observer;
+	pool.addObserver(&observer);
 
 	ASSERT(pool.freeCount(), ==, 5);
 	ASSERT(pool.workingCount(), ==, 0);
@@ -122,7 +122,7 @@ static void test_thread_pool() {
 	ASSERT(pool.freeCount(), ==, 0);
 	ASSERT(pool.workingCount(), ==, 0);
 
-	ASSERT(((WorkerThreadObserver*)&observer)->getCount(), ==, -100);
+	ASSERT(observer.getCount(), ==, -100);
 }
 
 int main(int argc, char *args[]) {

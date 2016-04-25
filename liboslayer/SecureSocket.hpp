@@ -12,11 +12,11 @@ namespace OS {
 
 	class SecureContext {
 	private:
-		static SecureContext * instance;
 		SecureContext();
+		SecureContext(const SecureContext & other);
 		virtual ~SecureContext();
 	public:
-		static SecureContext * getInstance();
+		static SecureContext & getInstance();
 	};
 
 	class SecureSocket : public Socket {

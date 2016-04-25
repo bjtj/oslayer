@@ -4,17 +4,32 @@
 
 namespace OS {
 
-	SecureContext * SecureContext::instance = NULL;
-	
+	/**
+	 * References
+	 * ==========
+ 	 * https://wiki.openssl.org/index.php/Library_Initialization
+	 *  - initialization
+	 *  - cleanup
+	 *  !) CRYPTO_cleanup_all_ex_data and ERR_remove_state should be called on each thread,
+	 *  !) and not just the main thread
+	 * https://www.openssl.org/docs/manmaster/crypto/OpenSSL_add_all_algorithms.html
+	 *  - OpenSSL_add_all_algorithms()
+	 *  - EVP_cleanup()
+	 * https://www.openssl.org/docs/manmaster/crypto/ERR_remove_state.html
+	 *  - ERR_remove_thread_state()
+	 */
+
 	SecureContext::SecureContext() {
 		SSL_library_init();
+		SSL_load_error_strings();
+		OpenSSL_add_all_algorithms();
 	}
 	SecureContext::~SecureContext() {
+		EVP_cleanup();
+		ERR_free_strings();
 	}
-	SecureContext * SecureContext::getInstance() {
-		if (!instance) {
-			instance = new SecureContext;
-		}
+	SecureContext & SecureContext::getInstance() {
+		static SecureContext instance;
 		return instance;
 	}
 
@@ -27,9 +42,9 @@ namespace OS {
         setSelectable(false);
 
 		ssl = SSL_new(ctx);
-		SSL_set_fd(ssl, sock);
+		SSL_set_fd(ssl, sock); // TODO: READ THIS -> https://www.openssl.org/docs/manmaster/ssl/SSL_set_fd.html
 
-		SSL_accept(ssl);
+		SSL_accept(ssl); // TODO: READ THIS -> https://www.openssl.org/docs/manmaster/ssl/SSL_accept.html
 	}
 	SecureSocket::~SecureSocket() {
 	}
@@ -39,6 +54,7 @@ namespace OS {
 		while (!done) {
 			len = SSL_read(ssl, buffer, (int)size);
 			int ssl_err = SSL_get_error(ssl, len);
+			ERR_clear_error();
 			switch (ssl_err) {
 			case SSL_ERROR_NONE:
 				return len;
@@ -52,7 +68,6 @@ namespace OS {
 				printf("write??\n");
 				break;
 			default:
-				// ERR_print_errors_fp(stderr);
                 throw IOException("SSL_read() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
@@ -64,6 +79,7 @@ namespace OS {
 		while (!done) {
 			len = SSL_write(ssl, data, (int)size);
 			int ssl_err = SSL_get_error(ssl, len);
+			ERR_clear_error();
 			switch (ssl_err) {
 			case SSL_ERROR_NONE:
 				return len;
@@ -74,14 +90,15 @@ namespace OS {
 				printf("write again...\n");
 				break;
 			default:
-                ERR_print_errors_fp(stderr);
-                    throw IOException("SSL_write() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
+				throw IOException("SSL_write() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
 		return len;
 	}
 	void SecureSocket::close() {
 		if (ssl) {
+			ERR_remove_thread_state(NULL);
+			CRYPTO_cleanup_all_ex_data();
 			SSL_free(ssl);
 			ssl = NULL;
 		}
@@ -108,8 +125,6 @@ namespace OS {
         
         setSelectable(false);
 		
-		OpenSSL_add_all_algorithms();
-		SSL_load_error_strings();
 		method = TLSv1_server_method();
 		ctx = SSL_CTX_new(method);
 		if (ctx == NULL) {
@@ -120,15 +135,15 @@ namespace OS {
 	void SecureServerSocket::loadCert(const std::string & certPath, const std::string & keyPath) {
 		if (SSL_CTX_use_certificate_file(ctx, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
 			ERR_print_errors_fp(stderr);
-			throw IOException("SSL_CTX_use_certificate_file() failed", -1, 0);
+			throw IOException("SSL_CTX_use_certificate_file() failed");
 		}
 		if (SSL_CTX_use_PrivateKey_file(ctx, keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
 			ERR_print_errors_fp(stderr);
-			throw IOException("SSL_CTX_use_PrivateKey_file() failed", -1, 0);
+			throw IOException("SSL_CTX_use_PrivateKey_file() failed");
 		}
 		if (!SSL_CTX_check_private_key(ctx)) {
 			fprintf(stderr, "Private key does not match the public certificate\n");
-			throw IOException("SSL_CTX_check_private_key() failed", -1, 0);
+			throw IOException("SSL_CTX_check_private_key() failed");
 		}
 	}
 	Socket * SecureServerSocket::accept() {
@@ -137,8 +152,11 @@ namespace OS {
 		return new SecureSocket(ctx, client, sa.getAddr(), *sa.getAddrLen());
 	}
 	void SecureServerSocket::close() {
-		ServerSocket::close();
+		ERR_remove_thread_state(NULL); // https://github.com/warmcat/libwebsockets/issues/186
+									   // Replacement of ERR_remove_state()
+		CRYPTO_cleanup_all_ex_data();
 		SSL_CTX_free(ctx);
+		ServerSocket::close();
 	}
 }
 

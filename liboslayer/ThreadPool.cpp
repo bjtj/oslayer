@@ -42,7 +42,7 @@ namespace UTIL {
 		
         for (size_t i = 0; i < poolSize; i++) {
 			FlaggableThread * t = creator.createInstance();
-			t->addObserver(AutoRef<Observer>(new ObserverWrapper(this)));
+			t->addObserver(this);
 			freeQueue.push_back(t);
         }
     }
