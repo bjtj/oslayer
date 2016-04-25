@@ -97,7 +97,8 @@ namespace OS {
 	}
 	void SecureSocket::close() {
 		if (ssl) {
-			ERR_remove_thread_state(NULL);
+            ERR_remove_state(0);
+			//ERR_remove_thread_state(NULL);
 			CRYPTO_cleanup_all_ex_data();
 			SSL_free(ssl);
 			ssl = NULL;
@@ -152,7 +153,8 @@ namespace OS {
 		return new SecureSocket(ctx, client, sa.getAddr(), *sa.getAddrLen());
 	}
 	void SecureServerSocket::close() {
-		ERR_remove_thread_state(NULL); // https://github.com/warmcat/libwebsockets/issues/186
+        ERR_remove_state(0);
+		//ERR_remove_thread_state(NULL); // https://github.com/warmcat/libwebsockets/issues/186
 									   // Replacement of ERR_remove_state()
 		CRYPTO_cleanup_all_ex_data();
 		SSL_CTX_free(ctx);

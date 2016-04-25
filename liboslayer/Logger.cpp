@@ -1,19 +1,19 @@
 #include <iostream>
 #include "Logger.hpp"
-#include <liboslayer/Text.hpp>
+#include "Text.hpp"
 
 namespace UTIL {
 
 	using namespace std;
 	using namespace OS;
 
-	const int LogLevel::FATAL = 0;
-	const int LogLevel::ERROR = 1;
-	const int LogLevel::WARN = 2;
-	const int LogLevel::INFO = 3;
-	const int LogLevel::DEBUG = 4;
-	const int LogLevel::TRACE = 5;
-	const int LogLevel::VERBOSE = 6;
+	const int LogLevel::FATAL_LEVEL = 0;
+	const int LogLevel::ERROR_LEVEL = 1;
+	const int LogLevel::WARN_LEVEL = 2;
+	const int LogLevel::INFO_LEVEL = 3;
+	const int LogLevel::DEBUG_LEVEL = 4;
+	const int LogLevel::TRACE_LEVEL = 5;
+	const int LogLevel::VERBOSE_LEVEL = 6;
 
 	LogLevel::LogLevel(int level) : level(level) {
 	}
@@ -32,19 +32,19 @@ namespace UTIL {
 	}
 	string LogLevel::getShortName(int level) {
 		switch (level) {
-		case FATAL:
+		case FATAL_LEVEL:
 			return "F";
-		case ERROR:
+		case ERROR_LEVEL:
 			return "E";
-		case WARN:
+		case WARN_LEVEL:
 			return "W";
-		case INFO:
+		case INFO_LEVEL:
 			return "I";
-		case DEBUG:
+		case DEBUG_LEVEL:
 			return "D";
-		case TRACE:
+		case TRACE_LEVEL:
 			return "T";
-		case VERBOSE:
+		case VERBOSE_LEVEL:
 			return "V";
 		default:
 			break;
@@ -53,19 +53,19 @@ namespace UTIL {
 	}
 	string LogLevel::getName(int level) {
 		switch (level) {
-		case FATAL:
+		case FATAL_LEVEL:
 			return "FATAL";
-		case ERROR:
+		case ERROR_LEVEL:
 			return "ERROR";
-		case WARN:
+		case WARN_LEVEL:
 			return "WARN";
-		case INFO:
+		case INFO_LEVEL:
 			return "INFO";
-		case DEBUG:
+		case DEBUG_LEVEL:
 			return "DEBUG";
-		case TRACE:
+		case TRACE_LEVEL:
 			return "TRACE";
-		case VERBOSE:
+		case VERBOSE_LEVEL:
 			return "VERBOSE";
 		default:
 			break;
@@ -74,13 +74,13 @@ namespace UTIL {
 	}
 	void LogLevel::testLevel(int level) {
 		switch (level) {
-		case FATAL:
-		case ERROR:
-		case WARN:
-		case INFO:
-		case DEBUG:
-		case TRACE:
-		case VERBOSE:
+		case FATAL_LEVEL:
+		case ERROR_LEVEL:
+		case WARN_LEVEL:
+		case INFO_LEVEL:
+		case DEBUG_LEVEL:
+		case TRACE_LEVEL:
+		case VERBOSE_LEVEL:
 			break;
 		default:
 			throw Exception("unknown level");
@@ -88,13 +88,13 @@ namespace UTIL {
 	}
 	vector<int> LogLevel::getLevels() {
 		vector<int> levels;
-		levels.push_back(FATAL);
-		levels.push_back(ERROR);
-		levels.push_back(WARN);
-		levels.push_back(INFO);
-		levels.push_back(DEBUG);
-		levels.push_back(TRACE);
-		levels.push_back(VERBOSE);
+		levels.push_back(FATAL_LEVEL);
+		levels.push_back(ERROR_LEVEL);
+		levels.push_back(WARN_LEVEL);
+		levels.push_back(INFO_LEVEL);
+		levels.push_back(DEBUG_LEVEL);
+		levels.push_back(TRACE_LEVEL);
+		levels.push_back(VERBOSE_LEVEL);
 		return levels;
 	}
 	
@@ -185,19 +185,19 @@ namespace UTIL {
 	}
 	AutoRef<LogSession> & Logger::session(int level) {
 		switch (level) {
-		case LogLevel::FATAL:
+		case LogLevel::FATAL_LEVEL:
 			return _fatal;
-		case LogLevel::ERROR:
+		case LogLevel::ERROR_LEVEL:
 			return _error;
-		case LogLevel::WARN:
+		case LogLevel::WARN_LEVEL:
 			return _warn;
-		case LogLevel::INFO:
+		case LogLevel::INFO_LEVEL:
 			return _info;
-		case LogLevel::DEBUG:
+		case LogLevel::DEBUG_LEVEL:
 			return _debug;
-		case LogLevel::TRACE:
+		case LogLevel::TRACE_LEVEL:
 			return _trace;
-		case LogLevel::VERBOSE:
+		case LogLevel::VERBOSE_LEVEL:
 			return _verbose;
 		default:
 			break;
@@ -217,13 +217,13 @@ namespace UTIL {
 		
 		LoggerFactory * f = (LoggerFactory*)target;
 		AutoRef<Logger> logger = f->getLoggerWithoutObserve(name);
-		_fatal = logger->session(LogLevel::FATAL);
-		_error = logger->session(LogLevel::ERROR);
-		_warn = logger->session(LogLevel::WARN);
-		_info = logger->session(LogLevel::INFO);
-		_debug = logger->session(LogLevel::DEBUG);
-		_trace = logger->session(LogLevel::TRACE);
-		_verbose = logger->session(LogLevel::VERBOSE);
+		_fatal = logger->session(LogLevel::FATAL_LEVEL);
+		_error = logger->session(LogLevel::ERROR_LEVEL);
+		_warn = logger->session(LogLevel::WARN_LEVEL);
+		_info = logger->session(LogLevel::INFO_LEVEL);
+		_debug = logger->session(LogLevel::DEBUG_LEVEL);
+		_trace = logger->session(LogLevel::TRACE_LEVEL);
+		_verbose = logger->session(LogLevel::VERBOSE_LEVEL);
 	}
 	
 
