@@ -1,18 +1,9 @@
 #include <iostream>
 #include <liboslayer/Lisp.hpp>
+#include "utils.hpp"
 
 using namespace std;
 using namespace LISP;
-
-#define ASSERT(A,CMP,B)													\
-	cout << #A << " (" << #CMP << " " << B << ") :: ";					\
-	if (!(A CMP B)) {													\
-		cout << " - FAIL" << endl;										\
-		cerr << " <!> " << #A <<  " should be " << #CMP << " [" <<  B << "] but [" << A << "]" << endl; \
-		exit(1);														\
-	} else {															\
-		cout << " - PASS" << endl;										\
-	}
 
 static Var parseAndEval(const string & cmd, Env & env) {
 	Var tokens = parse(cmd);
@@ -98,6 +89,25 @@ static void test_setf() {
 		   ==, 4);
 	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getInteger(),
 		   ==, 5);
+
+	compile("(setq n 2)", env);
+	ASSERT(*env["n"].getInteger(), ==, 2);
+	compile("(setf n 7)", env);
+	ASSERT(*env["n"].getInteger(), ==, 7);
+
+	compile("(setq lst (list 1 2 3))", env);
+	compile("(setf (car lst) 7)", env);
+	
+	ASSERT(env["lst"].getList().size(), ==, 3);
+	ASSERT(*env["lst"].getList()[0].getInteger(), ==, 7);
+	ASSERT(*env["lst"].getList()[1].getInteger(), ==, 2);
+	ASSERT(*env["lst"].getList()[2].getInteger(), ==, 3);
+
+	compile("(setf (subseq lst 0 1) (list 9))", env);
+	ASSERT(*env["lst"].getList()[0].getInteger(), ==, 9);
+	ASSERT(*env["lst"].getList()[1].getInteger(), ==, 2);
+	ASSERT(*env["lst"].getList()[2].getInteger(), ==, 3);
+	
 }
 
 static void test_func() {

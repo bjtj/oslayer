@@ -426,6 +426,13 @@ namespace LISP {
 		return read_from_tokens(iter, end);
 	}
 
+	Var refeval(Var & var, Env & env) {
+		if (var.isSymbol()) {
+			PUSH_AND_RETURN(env, Var(&env[var.getSymbol()]));
+		}
+		return eval(var, env);
+	}
+
 	Var eval(Var & var, Env & env) {
 	
 		if (var.isSymbol()) {
@@ -452,7 +459,7 @@ namespace LISP {
 				PUSH_AND_RETURN(env, lv[1].getSymbol());
 			} else if (symbol == "setf") {
 				testArgumentCount(lv, 3);
-				eval(lv[1], env);
+				refeval(lv[1], env);
 				Var var = env.last();
 				eval(lv[2], env);
 				Var other = env.last();
@@ -573,7 +580,7 @@ namespace LISP {
 				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "car") {
 				testArgumentCount(lv, 2);
-				eval(lv[1], env);
+				refeval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
 				if (lst.size() > 0) {
 					Var ret(&lst[0]);
@@ -582,7 +589,7 @@ namespace LISP {
 				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "cdr") {
 				testArgumentCount(lv, 2);
-				eval(lv[1], env);
+				refeval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
 				if (lst.size() > 1) {
 					vector<Var> rest;
@@ -596,8 +603,8 @@ namespace LISP {
 			} else if (symbol == "nth") {
 				testArgumentCount(lv, 3);
 				size_t idx = (size_t)(*(eval(lv[1], env).getInteger()));
-				eval(lv[2], env);
-				vector<Var> & lst = env.last().getList();
+				refeval(lv[2], env);
+				vector<Var> & lst = (*env.last()).getList();
 				if (idx < lst.size()) {
 					PUSH_AND_RETURN(env, Var(&lst[idx]));
 				}
@@ -605,25 +612,25 @@ namespace LISP {
 			} else if (symbol == "nthcdr") {
 				testArgumentCount(lv, 3);
 				size_t idx = (size_t)(*eval(lv[1], env).getInteger());
-				eval(lv[2], env);
-				vector<Var> & lst = env.last().getList();
+				refeval(lv[2], env);
+				vector<Var> & lst = (*env.last()).getList();
 				if (idx < lst.size()) {
 					vector<Var> rest;
 					for (vector<Var>::iterator iter = lst.begin() + idx; iter != lst.end(); iter++) {
-						rest.push_back(&(*iter));
+						rest.push_back(Var(&(*iter)));
 					}
 					PUSH_AND_RETURN(env, Var(rest));
 				}
 				PUSH_AND_RETURN(env, nil());
 			} else if (symbol == "subseq") {
 				testArgumentCount(lv, 4);
-				eval(lv[1], env);
-				vector<Var> & lst = env.last().getList();
+				refeval(lv[1], env);
+				vector<Var> & lst = (*env.last()).getList();
 				Integer start = eval(lv[2], env).getInteger();
 				Integer end = eval(lv[3], env).getInteger();
 				vector<Var> ret;
 				for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
-					ret.push_back(&lst[i]);
+					ret.push_back(Var(&lst[i]));
 				}
 				PUSH_AND_RETURN(env, ret);
 			} else {

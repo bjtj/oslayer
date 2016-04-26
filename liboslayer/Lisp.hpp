@@ -432,10 +432,17 @@ namespace LISP {
 			this->file = other.file;
 			this->fd = other.fd;
 
-			this->lst.clear();
-			if (other.type == LIST) {
-				for (std::vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {
-					this->lst.push_back(iter->isRef() ? *(iter->getRef()) : *iter);
+			if (this->type == LIST && this->lst.size() > 0 && this->lst[0].isRef() && other.type == LIST) {
+				std::vector<Var>::const_iterator o = other.lst.begin();
+				for (std::vector<Var>::iterator i = this->lst.begin(); i != this->lst.end() && o != other.lst.end(); i++, o++) {
+					*i = *o;
+				}
+			} else {
+				this->lst.clear();
+				if (other.type == LIST) {
+					for (std::vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {
+						this->lst.push_back(iter->isRef() ? *(iter->getRef()) : *iter);
+					}
 				}
 			}
 
@@ -573,6 +580,7 @@ namespace LISP {
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern Var parse(const std::string & cmd);
+	extern Var refeval(Var & var, Env & env);
 	extern Var eval(Var & var, Env & env);
 	extern Var compile(const std::string & cmd, Env & env);
 }
