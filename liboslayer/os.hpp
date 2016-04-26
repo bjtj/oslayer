@@ -329,7 +329,7 @@ public: \
             static const int INET4 = 1;
             static const int INET6 = 2;
         private:
-            unsigned long version;
+            int version;
         public:
             InetVersion() : version(UNKNOWN) {}
             InetVersion(int version) : version(version) {}
@@ -635,8 +635,8 @@ public: \
 	class DatagramPacket {
 	private:
 		char * data;
-		size_t length;
 		size_t size;
+		size_t length;
 
 		InetAddress remoteAddr;
         

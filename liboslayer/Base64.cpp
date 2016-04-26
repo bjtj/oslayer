@@ -28,7 +28,7 @@ namespace UTIL {
 	static size_t s_decode_len(const char * encoded) {
 		const char * p = encoded;
 		int len = 0;
-		while (s_decode_table[*p++] < 64) {len++;}
+		while (s_decode_table[(unsigned)*p++] < 64) {len++;}
 		return (len % 4 == 0) ? (len / 4 * 3) : ((len / 4 * 3) + (len % 4 - 1));
 	}
 
@@ -37,22 +37,22 @@ namespace UTIL {
 		const char * p = encoded;
 		int len = 0;
 		int i = 0;
-		while (s_decode_table[*p++] < 64) {len++;}
+		while (s_decode_table[(unsigned)*p++] < 64) {len++;}
 		p = encoded;
 		for (i = 0; i < len - 3; i += 4, p += 4) {
-			*o++ = (s_decode_table[*(p+0)] << 2) | (s_decode_table[*(p+1)] >> 4);
-			*o++ = (s_decode_table[*(p+1)] << 4) | (s_decode_table[*(p+2)] >> 2);
-			*o++ = (s_decode_table[*(p+2)] << 6) | (s_decode_table[*(p+3)]);
+			*o++ = (s_decode_table[(unsigned)*(p+0)] << 2) | (s_decode_table[(unsigned)*(p+1)] >> 4);
+			*o++ = (s_decode_table[(unsigned)*(p+1)] << 4) | (s_decode_table[(unsigned)*(p+2)] >> 2);
+			*o++ = (s_decode_table[(unsigned)*(p+2)] << 6) | (s_decode_table[(unsigned)*(p+3)]);
 		}
 	
 		if (len - i > 1) {
-			*o++ = (s_decode_table[*(p+0)] << 2) | (s_decode_table[*(p+1)] >> 4);
+			*o++ = (s_decode_table[(unsigned)*(p+0)] << 2) | (s_decode_table[(unsigned)*(p+1)] >> 4);
 		}
 		if (len - i > 2) {
-			*o++ = (s_decode_table[*(p+1)] << 4) | (s_decode_table[*(p+2)] >> 2);
+			*o++ = (s_decode_table[(unsigned)*(p+1)] << 4) | (s_decode_table[(unsigned)*(p+2)] >> 2);
 		}
 		if (len - i > 3) {
-			*o++ = (s_decode_table[*(p+2)] << 6) | (s_decode_table[*(p+3)]);
+			*o++ = (s_decode_table[(unsigned)*(p+2)] << 6) | (s_decode_table[(unsigned)*(p+3)]);
 		}
 
 		*o++ = '\0';
@@ -68,7 +68,7 @@ namespace UTIL {
 
 	static size_t s_encode(char * out, const char * data, size_t len) {
 
-		int i;
+		size_t i;
 		char * p = out;
 		for (i = 0; i < len - 2; i += 3) {
 			*p++ = s_basis64[(data[i] >> 2) & 0x3f];

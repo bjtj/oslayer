@@ -4,6 +4,8 @@
 
 namespace OS {
 
+	using namespace std;
+
 	/**
 	 * References
 	 * ==========
@@ -68,7 +70,7 @@ namespace OS {
 				printf("write??\n");
 				break;
 			default:
-                throw IOException("SSL_read() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
+                throw IOException("SSL_read() error - " + string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
 		return len;
@@ -90,7 +92,7 @@ namespace OS {
 				printf("write again...\n");
 				break;
 			default:
-				throw IOException("SSL_write() error - " + std::string(ERR_error_string(ssl_err, NULL)), -1, 0);
+				throw IOException("SSL_write() error - " + string(ERR_error_string(ssl_err, NULL)), -1, 0);
 			}
 		}
 		return len;
@@ -133,7 +135,7 @@ namespace OS {
 			throw IOException("SSL_CTX_new() failed", -1, 0);
 		}
 	}
-	void SecureServerSocket::loadCert(const std::string & certPath, const std::string & keyPath) {
+	void SecureServerSocket::loadCert(const string & certPath, const string & keyPath) {
 		if (SSL_CTX_use_certificate_file(ctx, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
 			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_use_certificate_file() failed");

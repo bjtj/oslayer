@@ -38,8 +38,8 @@ namespace OS {
 		SecureServerSocket();
 		SecureServerSocket(int port);
 		SecureServerSocket(const InetAddress & bindAddr);
-		void initOpenSSL();
 		virtual ~SecureServerSocket();
+		void initOpenSSL();
 		void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual Socket * accept();
 		virtual void close();
