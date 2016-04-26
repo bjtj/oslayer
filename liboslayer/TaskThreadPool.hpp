@@ -30,6 +30,8 @@ namespace UTIL {
 		TaskThreadPool(size_t count);
 		virtual ~TaskThreadPool();
 		void setTask(AutoRef<Task> task);
+		void setTaskWaitIfFull(AutoRef<Task> task);
+		void setTaskWaitIfFullWithTimeout(AutoRef<Task> task, unsigned long timeout);
 	};
 	
 }

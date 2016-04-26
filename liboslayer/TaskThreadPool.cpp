@@ -54,6 +54,14 @@ namespace UTIL {
 	TaskThreadPool::~TaskThreadPool() {
 	}
 	void TaskThreadPool::setTask(AutoRef<Task> task) {
+		TaskThread * thread = (TaskThread*)acquire();
+		if (!thread) {
+			throw Exception("no available thread");
+		}
+		thread->setTask(task);
+		enqueue(thread);
+	}
+	void TaskThreadPool::setTaskWaitIfFull(AutoRef<Task> task) {
 		TaskThread * thread = NULL;
 		while ((thread = (TaskThread*)acquire()) == NULL) {
 			idle(10);
@@ -61,5 +69,16 @@ namespace UTIL {
 		thread->setTask(task);
 		enqueue(thread);
 	}
-	
+	void TaskThreadPool::setTaskWaitIfFullWithTimeout(AutoRef<Task> task, unsigned long timeout) {
+		TaskThread * thread = NULL;
+		unsigned long tick = tick_milli();
+		while ((thread = (TaskThread*)acquire()) == NULL) {
+			if (tick_milli() - tick >= timeout) {
+				throw Exception("timeout occurred");
+			}
+			idle(10);
+		}
+		thread->setTask(task);
+		enqueue(thread);
+	}
 }

@@ -4,7 +4,7 @@
 #include <iostream>
 
 #define ASSERT(A,CMP,B)													\
-	std::cout << #A << "(" << #CMP << " " << B << ")";					\
+	std::cout << #A << " (" << #CMP << " " << B << ")";					\
 	if (!(A CMP B)) {													\
 		std::cout << " - FAIL" << std::endl;							\
 		cerr << " <!> " << #A <<  " should be [" << #CMP << " " <<  B << "] but [" << A << "]" << std::endl; \
