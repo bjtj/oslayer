@@ -99,9 +99,13 @@ namespace OS {
 	}
 	void SecureSocket::close() {
 		if (ssl) {
+			
+#if OPENSSL_API_COMPAT < 0x10000000L
             ERR_remove_state(0);
-			//ERR_remove_thread_state(NULL);
-			CRYPTO_cleanup_all_ex_data();
+#else
+			ERR_remove_thread_state(NULL);
+#endif
+			// CRYPTO_cleanup_all_ex_data(); // TODO: thread-unsafe? - http://stackoverflow.com/a/21533000
 			SSL_free(ssl);
 			ssl = NULL;
 		}
@@ -155,10 +159,14 @@ namespace OS {
 		return new SecureSocket(ctx, client, sa.getAddr(), *sa.getAddrLen());
 	}
 	void SecureServerSocket::close() {
+		
+#if OPENSSL_API_COMPAT < 0x10000000L
         ERR_remove_state(0);
-		//ERR_remove_thread_state(NULL); // https://github.com/warmcat/libwebsockets/issues/186
+#else
+		ERR_remove_thread_state(NULL); // https://github.com/warmcat/libwebsockets/issues/186
 									   // Replacement of ERR_remove_state()
-		CRYPTO_cleanup_all_ex_data();
+#endif
+		CRYPTO_cleanup_all_ex_data(); // TODO: enough?
 		SSL_CTX_free(ctx);
 		ServerSocket::close();
 	}
