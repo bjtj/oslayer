@@ -86,7 +86,7 @@ namespace OS {
 
 	class VerifyError {
 	private:
-		int code;
+		long code;
 	public:
 		VerifyError(long code);
 		virtual ~VerifyError();
