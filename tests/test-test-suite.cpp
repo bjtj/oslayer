@@ -64,7 +64,7 @@ int main(int argc, char *args[]) {
 
 	vector<TestResult> results = suite.testAll();
 
-	TestReporter report(results);
+	TestReport report(results);
 	cout << report.toString() << endl;
 	
     return 0;

@@ -58,7 +58,7 @@ int main(int argc, char *args[]) {
 
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new ObserverTestCase));
-	TestReporter report(ts.testAll());
+	TestReport report(ts.testAll());
 	cout << report.toString() << endl;
 	ASSERT(report.failed(), ==, 0);
     

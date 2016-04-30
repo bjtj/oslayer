@@ -48,7 +48,7 @@ int main(int argc, char *args[]) {
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new LoggerTestCase));
 
-	TestReporter report(ts.testAll());
+	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);
     
     return 0;

@@ -20,6 +20,7 @@ check_PROGRAMS = \
 	test-string-element \
 	test-property-map \
 	test-socket \
+	test-secure-socket \
 	test-observer-pattern
 
 test_os_SOURCES=test-os.cpp
@@ -41,10 +42,12 @@ test_xml_SOURCES=test-xml.cpp
 test_string_element_SOURCES=test-string-element.cpp
 test_property_map_SOURCES=test-property-map.cpp
 test_socket_SOURCES=test-socket.cpp
+test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
 
-
 AM_CPPFLAGS=-I$(top_srcdir)
-AM_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\""
 AM_LDFLAGS=$(PTHREAD_CFLAGS)
 LDADD=../liboslayer/liboslayer.la
+
+EXTRA_DIST=data/cert.pem data/key.pem

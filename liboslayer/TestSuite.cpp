@@ -102,7 +102,7 @@ namespace UTIL {
 	}
 
 	
-	TestReporter::TestReporter(vector<TestResult> results) : results(results) {
+	TestReport::TestReport(vector<TestResult> results) : results(results) {
 		_total = results.size();
 		_passed = 0;
 		_failed = 0;
@@ -114,18 +114,18 @@ namespace UTIL {
 			}
 		}
 	}
-	TestReporter::~TestReporter() {
+	TestReport::~TestReport() {
 	}
-	size_t TestReporter::total() {
+	size_t TestReport::total() {
 		return _total;
 	}
-	size_t TestReporter::passed() {
+	size_t TestReport::passed() {
 		return _passed;
 	}
-	size_t TestReporter::failed() {
+	size_t TestReport::failed() {
 		return _failed;
 	}
-	string TestReporter::toString() {
+	string TestReport::toString() {
 		stringstream ss;
 		ss << "Total: " << _total << endl;
 		ss << "Passed: " << _passed << endl;

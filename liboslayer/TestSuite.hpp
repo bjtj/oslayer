@@ -88,15 +88,15 @@ namespace UTIL {
 		TestResult test(AutoRef<TestCase> testCase);
 	};
 
-	class TestReporter {
+	class TestReport {
 	private:
 		std::vector<TestResult> results;
 		size_t _total;
 		size_t _passed;
 		size_t _failed;
 	public:
-		TestReporter(std::vector<TestResult> results);
-		virtual ~TestReporter();
+		TestReport(std::vector<TestResult> results);
+		virtual ~TestReport();
 		size_t total();
 		size_t passed();
 		size_t failed();
