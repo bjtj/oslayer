@@ -75,7 +75,6 @@ namespace UTIL {
                 FlaggableThread * thread = *iter;
                 
                 thread->interrupt();
-                thread->setFlag(false);
                 thread->join();
                 
                 creator.releaseInstance(thread);

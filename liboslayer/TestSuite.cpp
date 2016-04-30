@@ -93,7 +93,7 @@ namespace UTIL {
 		try {
 			testCase->test();
 			result.setResult(true);
-		} catch (AssertException e) {
+		} catch (AssertException & e) {
 			result.setResult(false);
 			result.setMessage(e.getMessage());
 		}

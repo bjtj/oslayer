@@ -72,7 +72,7 @@ public:
 		unsigned long tick = tick_milli();
 		try {
 			signal.await(1000);
-		} catch (Exception e) {
+		} catch (Exception & e) {
 			cout << e.getMessage() << endl;
 			err = e.getMessage();
 		}
