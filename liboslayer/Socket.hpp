@@ -20,6 +20,7 @@ namespace OS {
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
 		virtual void setRemoteAddress(const OS::InetAddress & remoteAddr);
+		virtual void negotiate();
 		virtual void connect();
 		virtual void connect(unsigned long timeout);
 		virtual void disconnect();

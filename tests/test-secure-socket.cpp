@@ -52,6 +52,7 @@ public:
 				AutoRef<Socket> client(server.accept());
 				if (!client.nil()) {
 					cout << "connected" << endl;
+					client->negotiate();
 					client->send("hello", 5);
 					client->close();
 				}

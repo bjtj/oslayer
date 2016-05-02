@@ -44,16 +44,41 @@ namespace OS {
 	}
 
 	/* created by server accept */
-	SecureSocket::SecureSocket(SSL * ssl, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(ssl), peerCert(NULL), verifier(NULL) {
-		
+	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
+		SecureContext::getInstance();
         setSelectable(false);
+		ctx = SSL_CTX_new(TLSv1_server_method());
+		if (!ctx) {
+			ERR_print_errors_fp(stderr);
+			throw IOException("SSL_CTX_new() failed");
+		}
+		ssl = SSL_new(ctx);
+		if (!ssl) {
+			throw IOException("SSL_new() failed");
+		}
+		if (SSL_set_fd(ssl, sock) != 1) {
+			throw IOException("SSL_set_fd() failed");
+		}
+	}
+
+	SecureSocket::SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
+        setSelectable(false);
+		if (!ctx) {
+			throw IOException("SSL_CTX is null");
+		}
+		ssl = SSL_new(ctx);
+		if (!ssl) {
+			throw IOException("SSL_new() failed");
+		}
+		if (SSL_set_fd(ssl, sock) != 1) {
+			throw IOException("SSL_set_fd() failed");
+		}
 	}
 
 	/* created to connect (client mode) */
-	SecureSocket::SecureSocket(const InetAddress & remoteAddr) : Socket(remoteAddr), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL) {
-
+	SecureSocket::SecureSocket(const InetAddress & remoteAddr) : Socket(remoteAddr), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(true), needHandshake(false)
+ {
 		SecureContext::getInstance();
-
 		ctx = SSL_CTX_new(SSLv23_client_method());
 		if (!ctx) {
 			throw IOException("SSL_CTX_new() failed");
@@ -63,29 +88,58 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
+		SSL_set_fd(ssl, getSocket());
 	}
 	
 	SecureSocket::~SecureSocket() {
 	}
 
-	void SecureSocket::connect() {
-		Socket::connect();
-		handshake();
+	void SecureSocket::loadCert(const string & certPath, const string & keyPath) {
+		if (SSL_use_certificate_file(ssl, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+			throw IOException("SSL_use_certificate_file() failed");
+		}
+		if (SSL_use_PrivateKey_file(ssl, keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
+			throw IOException("SSL_use_PrivateKey_file() failed");
+		}
+		if (!SSL_check_private_key(ssl)) {
+			throw IOException("SSL_check_private_key() failed");
+		}
 	}
 
-	void SecureSocket::handshake() {
-		SSL_set_fd(ssl, getSocket());
-		
+	void SecureSocket::negotiate() {
+		if (needHandshake) {
+			needHandshake = false;
+			handshake();
+		}
+	}
+
+	void SecureSocket::connect() {
+		Socket::connect();
 		if (SSL_connect(ssl) != 1) {
 			throw IOException("SSL_connect() error");
 		}
+		verify();
+	}
 
-		if ((peerCert = SSL_get_peer_certificate(ssl)) == NULL) {
-			throw IOException("No peer certificate - remote server must have a certificate");
+	void SecureSocket::handshake() {
+		int ret = SSL_accept(ssl);
+		if (ret == 0) {
+			throw IOException("handshake succeeded but shutdown");
+		} else if (ret < 0) {
+			throw IOException("handshake failed");
 		}
-		
-		// https://www.openssl.org/docs/manmaster/ssl/SSL_get_verify_result.html
-		// https://www.openssl.org/docs/manmaster/apps/verify.html
+		verify();
+	}
+
+	void SecureSocket::verify() {
+		if ((peerCert = SSL_get_peer_certificate(ssl)) == NULL) {
+			if (peerCertRequired) {
+				throw IOException("No peer certificate - remote server must have a certificate");
+			} else {
+				return;
+			}
+		}
 		long err = SSL_get_verify_result(ssl);
 		if (verifier) {
 			if (verifier->onVerify(VerifyError(err), X509Certificate(peerCert)) == false) {
@@ -151,11 +205,6 @@ namespace OS {
 		}
 		
 		if (ssl) {
-#if OPENSSL_API_COMPAT < 0x10000000L
-            ERR_remove_state(0);
-#else
-			ERR_remove_thread_state(NULL);
-#endif
 			SSL_free(ssl);
 			ssl = NULL;
 		}
@@ -163,12 +212,22 @@ namespace OS {
 		if (ctx) {
 			SSL_CTX_free(ctx);
 			ctx = NULL;
+
+#if OPENSSL_API_COMPAT < 0x10000000L
+            ERR_remove_state(0);
+#else
+			ERR_remove_thread_state(NULL);
+#endif
 		}
 		Socket::close();
 	}
 
 	void SecureSocket::setVerifier(CertificateVerifier * verifier) {
 		this->verifier = verifier;
+	}
+
+	void SecureSocket::setPeertCertRequired(bool required) {
+		this->peerCertRequired = required;
 	}
 
 	
@@ -187,11 +246,8 @@ namespace OS {
 	SecureServerSocket::~SecureServerSocket() {
 	}
 	void SecureServerSocket::initOpenSSL() {
-
 		SecureContext::getInstance();
-        
         setSelectable(false);
-
 		ctx = SSL_CTX_new(TLSv1_server_method());
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
@@ -200,82 +256,30 @@ namespace OS {
 	}
 	void SecureServerSocket::loadCert(const string & certPath, const string & keyPath) {
 		if (SSL_CTX_use_certificate_file(ctx, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
-			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_use_certificate_file() failed");
 		}
 		if (SSL_CTX_use_PrivateKey_file(ctx, keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
-			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_use_PrivateKey_file() failed");
 		}
 		if (!SSL_CTX_check_private_key(ctx)) {
-			fprintf(stderr, "Private key does not match the public certificate\n");
 			throw IOException("SSL_CTX_check_private_key() failed");
 		}
 	}
+	
 	Socket * SecureServerSocket::accept() {
 		SocketAddress sa;
 		SOCK_HANDLE client = ServerSocket::accept(sa);
-		return new SecureSocket(handshake(client), client, sa.getAddr(), *sa.getAddrLen());
+		return new SecureSocket(ctx, client, sa.getAddr(), *sa.getAddrLen());
 	}
-	SSL * SecureServerSocket::handshake(SOCK_HANDLE sock) {
-		SSL * ssl = SSL_new(ctx);
-		if (!ssl) {
-			throw IOException("SSL_new() failed");
-		}
-
-		try {
-			// https://www.openssl.org/docs/manmaster/ssl/SSL_set_fd.html
-			if (SSL_set_fd(ssl, sock) != 1) {
-				throw IOException("SSL_set_fd() failed");
-			}
-
-			// https://www.openssl.org/docs/manmaster/ssl/SSL_accept.html
-			//  0 handshake done but shutdown controlled
-			//  1 successfully established
-			// <0 handshake failed
-			int ret = SSL_accept(ssl);
-			if (ret == 0) {
-				throw IOException("handshake succeeded but shutdown");
-			} else if (ret < 0) {
-				throw IOException("handshake failed");
-			}
-
-			X509 * peerCert = SSL_get_peer_certificate(ssl);
-			if (peerCert) {
-				try {
-					
-					VerifyError err(SSL_get_verify_result(ssl));
-					if (verifier) {
-						if (verifier->onVerify(err, X509Certificate(peerCert)) == false) {
-							throw IOException("Peer certificate verification failed (by custom verifier)");
-						}
-					} else if (err.failed()) {
-						throw IOException("Peer certificate verification failed"); 
-					}
-					
-					X509_free(peerCert);
-				} catch (IOException & e) {
-					X509_free(peerCert);
-					throw e;
-				}
-			} else {
-				// TODO: client has no certificate
-			}
-		} catch (IOException & e) {
-			SSL_free(ssl);
-			throw e;
-		}
-		return ssl;
-	}
+	
 	void SecureServerSocket::close() {
-		
+		SSL_CTX_free(ctx);
+		ServerSocket::close();
 #if OPENSSL_API_COMPAT < 0x10000000L
         ERR_remove_state(0);
 #else
 		ERR_remove_thread_state(NULL);
-#endif		
-		SSL_CTX_free(ctx);
-		ServerSocket::close();
+#endif
 	}
 
 	void SecureServerSocket::setVerifier(CertificateVerifier * verifier) {
