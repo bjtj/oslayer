@@ -1,4 +1,5 @@
 #include "ThreadPool.hpp"
+#include <algorithm>
 
 namespace UTIL {
 
@@ -9,25 +10,57 @@ namespace UTIL {
 	 *
 	 */
 
-	FlaggableThread::FlaggableThread(bool initialFlag) : flag(initialFlag) {
+	StatefulThread::StatefulThread() : triggered(false), busy(false) {
 	}
-	FlaggableThread::~FlaggableThread() {
+	StatefulThread::~StatefulThread() {
 	}
-	bool FlaggableThread::flagged() {
-		return flag;
+	void StatefulThread::setBegin() {
+		busy = true;
 	}
-	void FlaggableThread::setFlag(bool flag) {
-		if (this->flag != flag) {
-			this->flag = flag;
+	void StatefulThread::setEnd() {
+		busy = false;
+	}
+
+	bool StatefulThread::inBusy() {
+		return busy;
+	}
+	
+	void StatefulThread::waitTillEnd() {
+		while (busy) {
+			idle(10);
+		}
+	}
+	void StatefulThread::loop() {
+		while (!interrupted()) {
+			if (!triggered) {
+				idle(10);
+				continue;
+			}
+			triggered = false;
+			
+			setBegin();
+			onTask();
+			setEnd();
+			
 			notifyObservers();
 		}
 	}
-
+	void StatefulThread::onTask() {
+	}
+	void StatefulThread::run() {
+		loop();
+	}
+	void StatefulThread::setTrigger(bool trigger) {
+		this->triggered = trigger;
+	}
+	bool StatefulThread::isTriggered() {
+		return triggered;
+	}
 
 	/**
 	 *
 	 */
-	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
+	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
 	}
 
 	
@@ -41,7 +74,7 @@ namespace UTIL {
 		freeQueue.clear();
 		
         for (size_t i = 0; i < poolSize; i++) {
-			FlaggableThread * t = creator.createInstance();
+			StatefulThread * t = creator.createInstance();
 			t->addObserver(this);
 			freeQueue.push_back(t);
         }
@@ -53,8 +86,8 @@ namespace UTIL {
             
             init();
 
-			for (deque<FlaggableThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
-				FlaggableThread * thread = *iter;
+			for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
+				StatefulThread * thread = *iter;
 				thread->start();
 			}
 
@@ -66,13 +99,21 @@ namespace UTIL {
 
 		if (running) {
 
-			for (deque<FlaggableThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
-				FlaggableThread * thread = *iter;
-				thread->setFlag(false);
+			vector<StatefulThread*> lst;
+			workingQueueLock.wait();
+			for (deque<StatefulThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
+				StatefulThread * thread = *iter;
+				thread->interrupt();
+				lst.push_back(thread);
+			}
+			workingQueueLock.post();
+			
+			for (size_t i = 0; i < lst.size(); i++) {
+				lst[i]->waitTillEnd();
 			}
             
-            for (deque<FlaggableThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
-                FlaggableThread * thread = *iter;
+            for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
+                StatefulThread * thread = *iter;
                 
                 thread->interrupt();
                 thread->join();
@@ -87,14 +128,14 @@ namespace UTIL {
 		}
 	}
 
-	void ThreadPool::collectUnflaggedThreads() {
+	void ThreadPool::collectIdleThreads() {
 		workingQueueLock.wait();
-		for (deque<FlaggableThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end();) {
-			FlaggableThread * thread = *iter;
-			if (!thread->flagged()) {
+		for (deque<StatefulThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end();) {
+			StatefulThread * thread = *iter;
+			if (!thread->inBusy()) {
+				iter = workingQueue.erase(iter);
 				notifyObservers(thread);
 				release(thread);
-				iter = workingQueue.erase(iter);
 			} else {
 				iter++;
 			}
@@ -102,11 +143,20 @@ namespace UTIL {
 		workingQueueLock.post();
 	}
 
-	FlaggableThread * ThreadPool::acquire() {
+	void ThreadPool::collectThread(StatefulThread * thread) {
+		workingQueueLock.wait();
+		if (find(workingQueue.begin(), workingQueue.end(), thread) != workingQueue.end()) {
+			workingQueue.erase(find(workingQueue.begin(), workingQueue.end(), thread));
+		}
+		notifyObservers(thread);
+		release(thread);
+		workingQueueLock.post();
+	}
+
+	StatefulThread * ThreadPool::acquire() {
 		freeQueueLock.wait();
-		FlaggableThread * thread = freeQueue.size() > 0 ? freeQueue.front() : NULL;
+		StatefulThread * thread = freeQueue.size() > 0 ? freeQueue.front() : NULL;
 		if (thread) {
-			thread->setFlag(false);
 			freeQueue.pop_front();
 		}
 		freeQueueLock.post();
@@ -114,22 +164,26 @@ namespace UTIL {
 		return thread;
 	}
     
-	void ThreadPool::release(FlaggableThread * thread) {
+	void ThreadPool::release(StatefulThread * thread) {
 		freeQueueLock.wait();
-		freeQueue.push_back(thread);
+		if (std::find(freeQueue.begin(), freeQueue.end(), thread) == freeQueue.end()) {
+			freeQueue.push_back(thread);
+		}
 		freeQueueLock.post();
 	}
     
-	void ThreadPool::enqueue(FlaggableThread * thread) {
+	void ThreadPool::enqueue(StatefulThread * thread) {
 		workingQueueLock.wait();
-		workingQueue.push_back(thread);
-		thread->setFlag(true);
+		if (find(workingQueue.begin(), workingQueue.end(), thread) == workingQueue.end()) {
+			workingQueue.push_back(thread);
+		}
+		thread->setTrigger(true);
 		workingQueueLock.post();
 	}
     
-	FlaggableThread * ThreadPool::dequeue() {
+	StatefulThread * ThreadPool::dequeue() {
 		workingQueueLock.wait();
-		FlaggableThread * thread = workingQueue.size() > 0 ? workingQueue.front() : NULL;
+		StatefulThread * thread = workingQueue.size() > 0 ? workingQueue.front() : NULL;
 		if (thread) {
 			workingQueue.pop_front();
 		}
@@ -145,9 +199,7 @@ namespace UTIL {
 	}
 	
 	void ThreadPool::update(Observable * target) {
-		FlaggableThread * t = (FlaggableThread*)target;
-		if (!t->flagged()) {
-			collectUnflaggedThreads();			
-		}
+		StatefulThread * t = (StatefulThread*)target;
+		collectThread(t);
 	}
 }

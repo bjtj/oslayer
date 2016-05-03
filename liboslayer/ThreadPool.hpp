@@ -26,14 +26,22 @@ namespace UTIL {
 	/**
 	 * @brief PoolThread
 	 */
-	class FlaggableThread : public OS::Thread, public Observable {
+	class StatefulThread : public OS::Thread, public Observable {
 	private:
-		bool flag;
+		bool triggered;
+		bool busy;
 	public:
-		FlaggableThread(bool initialFlag);
-		virtual ~FlaggableThread();
-		bool flagged();
-		void setFlag(bool flag);
+		StatefulThread();
+		virtual ~StatefulThread();
+		void setBegin();
+		void setEnd();
+		bool inBusy();
+		void waitTillEnd();
+		void loop();
+		virtual void onTask();
+		virtual void run();
+		void setTrigger(bool trigger);
+		bool isTriggered();
 	};
 
 	/**
@@ -42,24 +50,25 @@ namespace UTIL {
 	class ThreadPool : public Observer, public Observable {
 	private:
 		OS::Semaphore freeQueueLock;
-		std::deque<FlaggableThread*> freeQueue;
+		std::deque<StatefulThread*> freeQueue;
 		OS::Semaphore workingQueueLock;
-		std::deque<FlaggableThread*> workingQueue;
+		std::deque<StatefulThread*> workingQueue;
 		size_t poolSize;
-		InstanceCreator<FlaggableThread*> & creator;
+		InstanceCreator<StatefulThread*> & creator;
 		bool running;
 
 	public:
-		ThreadPool(size_t poolSize, InstanceCreator<FlaggableThread*> & creator);
+		ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator);
 		virtual ~ThreadPool();
         void init();
 		void start();
 		void stop();
-		void collectUnflaggedThreads();
-		FlaggableThread * acquire();
-		void release(FlaggableThread * thread);
-		void enqueue(FlaggableThread * thread);
-		FlaggableThread * dequeue();
+		void collectIdleThreads();
+		void collectThread(StatefulThread * thread);
+		StatefulThread * acquire();
+		void release(StatefulThread * thread);
+		void enqueue(StatefulThread * thread);
+		StatefulThread * dequeue();
 		size_t freeCount();
 		size_t workingCount();
 		virtual void update(Observable * target);

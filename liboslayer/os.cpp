@@ -1311,7 +1311,7 @@ namespace OS {
     
     static bool s_is_separator(char c, const string & separators);
 
-    static string s_get_separators() {
+    static const string s_get_separators() {
         return "/";
     }
     static bool s_is_separator(char c) {
@@ -1369,6 +1369,7 @@ namespace OS {
 		
 		// http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
 		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
 		return (stat(path.c_str(), &st) == 0);
 	}
 	static bool s_is_file(const string & path) {
@@ -1379,6 +1380,7 @@ namespace OS {
 		
 		// http://stackoverflow.com/questions/3536781/accessing-directories-in-c/3536853#3536853
 		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
 		lstat(path.c_str(), &st);
 		return (S_ISDIR(st.st_mode) ? false : true);
 	}
@@ -1389,6 +1391,7 @@ namespace OS {
 		}
 		
 		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
 		lstat(path.c_str(), &st);
 		return (S_ISDIR(st.st_mode) ? true : false);
 	}
@@ -1491,6 +1494,7 @@ namespace OS {
 
 	static TIME s_get_creation_date(const string & path) {
 		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
 		if (stat(path.c_str(), &st) != 0) {
 			return 0;
 		}
@@ -1500,6 +1504,7 @@ namespace OS {
 
 	static TIME s_get_modified_date(const string & path) {
 		struct stat st;
+		memset(&st, 0, sizeof(struct stat));
 		if (stat(path.c_str(), &st) != 0) {
 			return 0;
 		}
@@ -1510,6 +1515,7 @@ namespace OS {
     static filesize_t s_get_file_size(const string & path) {
         
         struct stat st;
+		memset(&st, 0, sizeof(struct stat));
         lstat(path.c_str(), &st);
         
         return st.st_size;
@@ -1538,7 +1544,7 @@ namespace OS {
 #define STAT_STRUCT struct _stat64
 #define STAT_FUNC __stat64
 
-	static string s_get_separators();
+	static const string s_get_separators();
 	static bool s_is_separator(char c);
 	static bool s_is_separator(char c, const string & separators);
 	static string s_remove_if_last(const string & path, char m);
@@ -1556,7 +1562,7 @@ namespace OS {
 	static TIME s_get_creation_date(const string & path);
 	static TIME s_get_modified_date(const string & path);
 
-	static string s_get_separators() {
+	static const string s_get_separators() {
 		return "\\/";
 	}
 	static bool s_is_separator(char c) {
@@ -1639,6 +1645,7 @@ namespace OS {
 		}
 
 		STAT_STRUCT s;
+		memset(&s, 0, sizeof(STAT_STRUCT));
 		if (STAT_FUNC(path.c_str(), &s) != 0) {
 			// error
 			return false;
@@ -1653,6 +1660,7 @@ namespace OS {
 		}
 		
 		STAT_STRUCT s;
+		memset(&s, 0, sizeof(STAT_STRUCT));
 		if (STAT_FUNC(path.c_str(), &s) != 0) {
 			// error
 			return false;
@@ -1814,6 +1822,7 @@ namespace OS {
 	static filesize_t s_get_file_size(const string & path) {
 
 		STAT_STRUCT st;
+		memset(&st, 0, sizeof(STAT_STRUCT));
 		int ret = STAT_FUNC(path.c_str(), &st);
 		if (ret != 0) {
 			// error

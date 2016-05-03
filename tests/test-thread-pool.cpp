@@ -8,39 +8,30 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
-class WorkerThread : public FlaggableThread {
+class WorkerThread : public StatefulThread {
 private:
 	AutoRef<Task> task;
 public:
-    WorkerThread() : FlaggableThread(false) {}
+    WorkerThread() {}
 	virtual ~WorkerThread() {}
 	void setTask(AutoRef<Task> task) {
 		this->task = task;
 	}
-	virtual void run() {
-		while (!interrupted()) {
-			if (!flagged()) {
-				idle(10);
-				continue;
-			}
-
-			task->doTask();
-
-			setFlag(false);
-		}
+	virtual void onTask() {
+		task->doTask();
 	}
 };
 
 
-class WorkerInstanceCreator : public InstanceCreator<FlaggableThread*> {
+class WorkerInstanceCreator : public InstanceCreator<StatefulThread*> {
 private:
 public:
     WorkerInstanceCreator() {}
     virtual ~WorkerInstanceCreator() {}
-	virtual FlaggableThread * createInstance() {
+	virtual StatefulThread * createInstance() {
 		return new WorkerThread;
 	}
-	virtual void releaseInstance(FlaggableThread * instance) {
+	virtual void releaseInstance(StatefulThread * instance) {
 		delete instance;
 	}
 };

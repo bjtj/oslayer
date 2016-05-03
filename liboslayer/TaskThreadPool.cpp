@@ -9,36 +9,29 @@ namespace UTIL {
 	 * @brief
 	 */
 	
-	TaskThread::TaskThread() : FlaggableThread(false) {
+	TaskThread::TaskThread() {
 	}
 	TaskThread::~TaskThread() {
 	}
 	void TaskThread::setTask(AutoRef<Task> task) {
 		this->task = task;
 	}
-	void TaskThread::run() {
-		while (!interrupted()) {
-			if (!flagged()) {
-				idle(10);
-				continue;
-			}
-			task->doTask();
-			setFlag(false);
-		}
+	void TaskThread::onTask() {
+		task->doTask();
 	}
 
 	/**
 	 * @brief
 	 */
-	class TaskThreadCreator : public InstanceCreator<FlaggableThread*> {
+	class TaskThreadCreator : public InstanceCreator<StatefulThread*> {
 	private:
 	public:
 		TaskThreadCreator() {}
 		virtual ~TaskThreadCreator() {}
-		virtual FlaggableThread * createInstance() {
+		virtual StatefulThread * createInstance() {
 			return new TaskThread;
 		}
-		virtual void releaseInstance(FlaggableThread * instance) {
+		virtual void releaseInstance(StatefulThread * instance) {
 			delete instance;
 		}
 	};

@@ -10,14 +10,14 @@ namespace UTIL {
 	/**
 	 * @brief task thread
 	 */
-	class TaskThread : public FlaggableThread {
+	class TaskThread : public StatefulThread {
 	private:
 		AutoRef<Task> task;
 	public:
 		TaskThread();
 		virtual ~TaskThread();
 		void setTask(AutoRef<Task> task);
-		virtual void run();
+		virtual void onTask();
 	};
 
 
