@@ -162,6 +162,11 @@ namespace OS {
 			len = SSL_read(ssl, buffer, (int)size);
 			int ssl_err = SSL_get_error(ssl, len);
 			ERR_clear_error();
+
+			if (len == 0) {
+				throw IOException("SecureSocket - normal close", len, 0);
+			}
+			
 			switch (ssl_err) {
 			case SSL_ERROR_NONE:
 				return len;
@@ -169,10 +174,9 @@ namespace OS {
 				done = true;
 				break;
 			case SSL_ERROR_WANT_READ:
-				printf("read again...\n");
 				break;
 			case SSL_ERROR_WANT_WRITE:
-				printf("write??\n");
+				throw IOException("SecureSocket - wrong receive state");
 				break;
 			default:
                 throw IOException("SSL_read() error - '" + getErrorString(ssl_err) + "'");
@@ -191,10 +195,9 @@ namespace OS {
 			case SSL_ERROR_NONE:
 				return len;
 			case SSL_ERROR_WANT_READ:
-				printf("read??...\n");
+				throw IOException("SecureSocket - wrong write state");
 				break;
 			case SSL_ERROR_WANT_WRITE:
-				printf("write again...\n");
 				break;
 			default:
 				throw IOException("SSL_write() error - '" + getErrorString(ssl_err) + "'");
