@@ -13,9 +13,8 @@ public:
 	virtual void tearDown() {
 	}
 	virtual void test() {
-		// load library - assess
-		// retreive the symbols - asesses
-		// close library - assess
+		Library lib(DATA_PATH, "hello");
+		((void (*)(void))lib.getSymbol("hello"))();
 	}
 };
 

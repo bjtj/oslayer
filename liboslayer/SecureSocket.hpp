@@ -40,7 +40,6 @@ namespace OS {
 		bool peerCertRequired;
 		bool needHandshake;
 	public:
-
 		SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(const OS::InetAddress & remoteAddr);
@@ -55,6 +54,7 @@ namespace OS {
 		virtual void close();
 		void setVerifier(CertificateVerifier * verifier);
 		void setPeertCertRequired(bool required);
+		std::string getErrorString(unsigned long err);
 	};
 
 	/**

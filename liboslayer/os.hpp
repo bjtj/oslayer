@@ -17,7 +17,7 @@
  * @brief common feature
  * unused : http://stackoverflow.com/questions/3599160/unused-parameter-warnings-in-c-code
  */
-#define SUPPRESS_WARNING(x) (void)(x)
+#define SUPPRESS_UNUSED(x) (void)(x)
 
 #include "platform.hpp"
 
@@ -216,7 +216,6 @@ public: \
 	 * @brief get tick count
 	 */
 	unsigned long tick_milli();
-	
 
 	/**
 	 * @brief library
@@ -227,14 +226,15 @@ public: \
 		std::string path;
 		std::string name;
 	public:
-		Library(const std::string & path, const std::string name);
+		Library(const std::string & name);
+		Library(const std::string & path, const std::string & name);
 		virtual ~Library();
+		void load(const std::string & path, const std::string & name);
 		std::string & getPath();
 		std::string & getName();
 		LIB_HANDLE getHandle();
 		SYM_HANDLE getSymbol(const std::string & sym);
 	};
-
     
     /**
      * @brief system wide operation

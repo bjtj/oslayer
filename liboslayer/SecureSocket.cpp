@@ -116,18 +116,23 @@ namespace OS {
 
 	void SecureSocket::connect() {
 		Socket::connect();
-		if (SSL_connect(ssl) != 1) {
-			throw IOException("SSL_connect() error");
+		int ret = SSL_connect(ssl);
+		int ssl_err = SSL_get_error(ssl, ret);
+		ERR_clear_error();
+		if (ret != 1) {
+			throw IOException("SSL_connect() error - '" + getErrorString(ssl_err) + "'");
 		}
 		verify();
 	}
 
 	void SecureSocket::handshake() {
 		int ret = SSL_accept(ssl);
+		int ssl_err = SSL_get_error(ssl, ret);
+		ERR_clear_error();
 		if (ret == 0) {
 			throw IOException("handshake succeeded but shutdown");
 		} else if (ret < 0) {
-			throw IOException("handshake failed");
+			throw IOException("handshake failed - '" + getErrorString(ssl_err) + "'");
 		}
 		verify();
 	}
@@ -170,7 +175,7 @@ namespace OS {
 				printf("write??\n");
 				break;
 			default:
-                throw IOException("SSL_read() error - " + string(ERR_error_string(ssl_err, NULL)), -1, 0);
+                throw IOException("SSL_read() error - '" + getErrorString(ssl_err) + "'");
 			}
 		}
 		return len;
@@ -192,7 +197,7 @@ namespace OS {
 				printf("write again...\n");
 				break;
 			default:
-				throw IOException("SSL_write() error - " + string(ERR_error_string(ssl_err, NULL)), -1, 0);
+				throw IOException("SSL_write() error - '" + getErrorString(ssl_err) + "'");
 			}
 		}
 		return len;
@@ -228,6 +233,11 @@ namespace OS {
 
 	void SecureSocket::setPeertCertRequired(bool required) {
 		this->peerCertRequired = required;
+	}
+	string SecureSocket::getErrorString(unsigned long err) {
+		char buffer[256] = {0,};
+		ERR_error_string_n(err, buffer, sizeof(buffer));
+		return string(buffer);
 	}
 
 	

@@ -85,15 +85,11 @@ namespace OS {
 #endif
 	}
 
-	Library::Library(const string & path, const string name) : path(path), name(name) {
-		string fullpath = File::mergePaths(path, s_to_lib_name(name));
-#if defined(USE_UNIX_STD)
-		handle = dlopen(fullpath.c_str(), RTLD_LAZY);
-#elif defined(USE_MS_WIN)
-		handle = LoadLibrary(fullpath.c_str());
-#else
-		throw NotImplementedException("Not implemeneted - load library");
-#endif
+	Library::Library(const string & name) : path("./"), name(name) {
+		load(path, name);
+	}
+	Library::Library(const string & path, const string & name) : path(path), name(name) {
+		load(path, name);
 	}
 	Library::~Library() {
 #if defined(USE_UNIX_STD)
@@ -102,6 +98,20 @@ namespace OS {
 		FreeLibrary(handle);
 #else
 		throw NotImplementedException("Not implemeneted - free library");
+#endif
+	}
+	void Library::load(const string & path, const string & name) {
+		string fullpath = File::mergePaths(path, s_to_lib_name(name));
+#if defined(USE_UNIX_STD)
+		handle = dlopen(fullpath.c_str(), RTLD_LAZY);
+		if (!handle) {
+			throw Exception("dlopen() failed");
+		}
+		dlerror();
+#elif defined(USE_MS_WIN)
+		handle = LoadLibrary(fullpath.c_str());
+#else
+		throw NotImplementedException("Not implemeneted - load library");
 #endif
 	}
 	string & Library::getPath() {
@@ -115,7 +125,11 @@ namespace OS {
 	}
 	SYM_HANDLE Library::getSymbol(const std::string & sym) {
 #if defined(USE_UNIX_STD)
-		return dlsym(handle, sym.c_str());
+		SYM_HANDLE ret = dlsym(handle, sym.c_str());
+		if (!ret) {
+			throw Exception("dlsym() failed");
+		}
+		return ret;
 #elif defined(USE_MS_WIN)
 		return GetProcAddress(handle, sym.c_str());
 #else
@@ -204,8 +218,7 @@ namespace OS {
 	}
 
 	static void s_sem_destroy(SEM_HANDLE * handle) {
-		SUPPRESS_WARNING(handle);
-		// ???
+		SUPPRESS_UNUSED(handle);
 	}
 
 #elif defined(USE_POSIX_SEMAPHORE)
