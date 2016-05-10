@@ -60,6 +60,9 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
+		
+		SSL_set_accept_state(ssl);
+		
 		if (SSL_set_fd(ssl, sock) != 1) {
 			throw IOException("SSL_set_fd() failed");
 		}
@@ -74,6 +77,9 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
+		
+		SSL_set_accept_state(ssl);
+		
 		if (SSL_set_fd(ssl, sock) != 1) {
 			throw IOException("SSL_set_fd() failed");
 		}
@@ -92,7 +98,12 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
-		SSL_set_fd(ssl, getSocket());
+		
+		SSL_set_connect_state(ssl);
+
+		if (SSL_set_fd(ssl, getSocket()) != 1) {
+			throw IOException("SSL_set_fd() failed");
+		}
 	}
 	
 	SecureSocket::~SecureSocket() {
@@ -160,53 +171,35 @@ namespace OS {
 	}
 	
 	int SecureSocket::recv(char * buffer, size_t size) {
-		bool done = false;
-		int len = 0;
-		while (!done) {
-			len = SSL_read(ssl, buffer, (int)size);
-			int ssl_err = SSL_get_error(ssl, len);
-			ERR_clear_error();
-
-			if (len == 0) {
-				throw IOException("SecureSocket - normal close", len, 0);
+		
+		int len = SSL_read(ssl, buffer, (int)size);
+		if (len <= 0) {
+			if (SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN) {
+				SSL_shutdown(ssl);
+			} else {
+				SSL_clear(ssl);
 			}
+		}
 			
-			switch (ssl_err) {
-			case SSL_ERROR_NONE:
-				return len;
-			case SSL_ERROR_ZERO_RETURN:
-				done = true;
-				break;
-			case SSL_ERROR_WANT_READ:
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				throw IOException("SecureSocket - wrong receive state");
-				break;
-			default:
-                throw IOException("SSL_read() error - '" + getErrorString(ssl_err) + "'");
-			}
+		if (len == 0) {
+			throw IOException("SecureSocket::recv() - normal close", len, 0);
+		} else if (len < 0) {
+			throw IOException("SecureSocket::recv() - something wrong", len, 0);
 		}
 		return len;
 	}
 	int SecureSocket::send(const char * data, size_t size) {
-		bool done = false;
-		int len = 0;
-		while (!done) {
-			len = SSL_write(ssl, data, (int)size);
-			int ssl_err = SSL_get_error(ssl, len);
-			ERR_clear_error();
-			switch (ssl_err) {
-			case SSL_ERROR_NONE:
-				return len;
-			case SSL_ERROR_WANT_READ:
-				throw IOException("SecureSocket - wrong write state");
-				break;
-			case SSL_ERROR_WANT_WRITE:
-				break;
-			default:
-				throw IOException("SSL_write() error - '" + getErrorString(ssl_err) + "'");
-			}
+		
+		int len = SSL_write(ssl, data, (int)size);
+
+		if (len == 0) {
+			SSL_shutdown(ssl);
+			throw IOException("SecureSocket::send() - maybe internal close", len, 0);
+		} else if (len < 0) {
+			SSL_clear(ssl);
+			throw IOException("SecureSocket::send() - something wrong", len, 0);
 		}
+		
 		return len;
 	}
 	void SecureSocket::close() {
@@ -224,14 +217,14 @@ namespace OS {
 		if (ctx) {
 			SSL_CTX_free(ctx);
 			ctx = NULL;
-
-#if OPENSSL_API_COMPAT < 0x10000000L
-            ERR_remove_state(0);
-#else
-			ERR_remove_thread_state(NULL);
-#endif
 		}
 		Socket::close();
+
+#if OPENSSL_API_COMPAT < 0x10000000L
+		ERR_remove_state(0);
+#else
+		ERR_remove_thread_state(NULL);
+#endif
 	}
 
 	void SecureSocket::setVerifier(CertificateVerifier * verifier) {
