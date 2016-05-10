@@ -26,6 +26,7 @@ namespace OS {
 		virtual ~SecureContext();
 	public:
 		static SecureContext & getInstance();
+		static std::string getOpenSSLVersion();
 	};
 
 	/**

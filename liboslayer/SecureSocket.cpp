@@ -43,6 +43,10 @@ namespace OS {
 		return instance;
 	}
 
+	string SecureContext::getOpenSSLVersion() {
+		return string(OPENSSL_VERSION_TEXT);
+	}
+
 	/* created by server accept */
 	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
 		SecureContext::getInstance();

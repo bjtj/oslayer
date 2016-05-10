@@ -140,6 +140,8 @@ int main(int argc, char *args[]) {
 	string certPath = DATA_PATH"/cert.pem";
 	string keyPath = DATA_PATH"/key.pem";
 
+	cout << "OpenSSL Ver. " << SecureContext::getOpenSSLVersion() << endl;
+
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new SecureSocketConnectionTestCase(port, certPath, keyPath)));
 	ts.addTestCase(AutoRef<TestCase>(new SecureSocketVerifiationTestCase(port, certPath, keyPath)));
