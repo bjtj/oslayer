@@ -220,11 +220,11 @@ namespace OS {
 		}
 		Socket::close();
 
-#if OPENSSL_API_COMPAT < 0x10000000L
-		ERR_remove_state(0);
-#else
-		ERR_remove_thread_state(NULL);
-#endif
+//#if OPENSSL_API_COMPAT < 0x10000000L
+//		ERR_remove_state(0);
+//#else
+//		ERR_remove_thread_state(NULL);
+//#endif
 	}
 
 	void SecureSocket::setVerifier(CertificateVerifier * verifier) {
@@ -285,11 +285,11 @@ namespace OS {
 	void SecureServerSocket::close() {
 		SSL_CTX_free(ctx);
 		ServerSocket::close();
-#if OPENSSL_API_COMPAT < 0x10000000L
-        ERR_remove_state(0);
-#else
-		ERR_remove_thread_state(NULL);
-#endif
+//#if OPENSSL_API_COMPAT < 0x10000000L
+//        ERR_remove_state(0);
+//#else
+//		ERR_remove_thread_state(NULL);
+//#endif
 	}
 
 	void SecureServerSocket::setVerifier(CertificateVerifier * verifier) {
