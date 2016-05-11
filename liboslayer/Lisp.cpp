@@ -818,22 +818,30 @@ namespace LISP {
 				}
 				return lst;
 			});
-
-		DECL_NATIVE("remove-if", RemoveIf, {
-				testArgumentCount(args, 2);
-				Var func = eval(args[0], env);
-				vector<Var> lst = eval(args[1], env).getList();
-				for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
-					vector<Var> fargs;
-					fargs.push_back(*iter);
-					if (!func.proc(fargs, env).isNil()) {
-						iter = lst.erase(iter);
-					} else {
-						iter++;
-					}
-				}
-				return lst;
-			});
+        
+        class RemoveIf : public Procedure {
+        private:
+        public:
+            RemoveIf(const string & name) : Procedure(name) {}
+            virtual ~RemoveIf() {}
+            virtual Var proc(Var name, vector<Var> & args, Env & env) {
+                testArgumentCount(args, 2);
+                Var func = eval(args[0], env);
+                vector<Var> lst = eval(args[1], env).getList();
+                for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
+                    vector<Var> fargs;
+                    fargs.push_back(*iter);
+                    if (!func.proc(fargs, env).isNil()) {
+                        iter = lst.erase(iter);
+                    } else {
+                        iter++;
+                    }
+                }
+                return lst;
+            }
+        };
+        env["remove-if"] = Var(UTIL::AutoRef<Procedure>(new RemoveIf("remove-if")));
+        
 	}
 
 	void builtin_logic(Env & env) {

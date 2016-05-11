@@ -356,7 +356,7 @@ namespace LISP {
 			if (!procedure.nil()) {
 				return proc(procedure->getName(), args, env);
 			} else {
-				return proc("", args, env);
+				return proc(Var("nil"), args, env);
 			}
 		}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
