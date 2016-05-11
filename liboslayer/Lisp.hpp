@@ -265,6 +265,9 @@ namespace LISP {
 		virtual ~Var() {}
 
 		void init(const std::string & token) {
+			if (token.empty()) {
+				throw LispException("empty token");
+			}
 			if (token == "nil") {
 				type = NIL;
 			} else if (token == "t") {
