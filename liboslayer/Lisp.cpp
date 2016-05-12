@@ -356,17 +356,21 @@ namespace LISP {
 		for (string::iterator iter = s.begin(); iter != s.end(); iter++) {
 			if (*iter == '\"') {
 				string str;
-				iter++;
-				if (iter == s.end()) {
+				if (++iter == s.end()) {
 					throw LispException("unexpected end of string");
 				}
-				for (; *iter != '\"'; iter++) {
-					char ch = *iter;
+				for (;;iter++) {
 					if (iter == s.end()) {
 						throw LispException("unexpected end of string");
 					}
+					char ch = *iter;
+					if (ch == '\"') {
+						break;
+					}
 					if (ch == '\\') {
-						iter++;
+						if (++iter == s.end()) {
+							throw LispException("unexpected end of string");
+						}
 						ch = *iter;
 						switch (ch) {
 						case 't':
