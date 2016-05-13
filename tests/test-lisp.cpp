@@ -620,14 +620,8 @@ int main(int argc, char *args[]) {
 		test_load();
 		cout << " *** test_error_handling()" << endl;
 		test_error_handling();
-	} catch (const char * e) {
-		cout << e << endl;
-		exit(1);
-	} catch (const string & e) {
-		cout << e << endl;
-		exit(1);
-	} catch (...) {
-		cout << "error..." << endl;
+	} catch (LispException & e) {
+		cout << e.getMessage() << endl;
 		exit(1);
 	}
 	

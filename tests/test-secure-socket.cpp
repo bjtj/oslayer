@@ -88,8 +88,7 @@ public:
 		char buffer[1024] = {0,};
 
 		SecureSocket client(InetAddress("localhost", port));
-		KindVerifier verifier;
-		client.setVerifier(&verifier);
+		client.setVerifier(AutoRef<CertificateVerifier>(new KindVerifier));
 		client.connect();
 		client.recv(buffer, sizeof(buffer));
 		ASSERT(string(buffer), ==, "hello");
@@ -116,8 +115,7 @@ public:
 		string err;
 		char buffer[1024] = {0,};
 		SecureSocket client(InetAddress("localhost", getPort()));
-		TransparentVerifier verifier;
-		client.setVerifier(&verifier);
+		client.setVerifier(AutoRef<CertificateVerifier>(new TransparentVerifier));
 		try {
 			client.connect();
 			client.recv(buffer, sizeof(buffer));

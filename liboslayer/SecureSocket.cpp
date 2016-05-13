@@ -5,7 +5,8 @@
 namespace OS {
 
 	using namespace std;
-
+	using namespace UTIL;
+	
 	/**
 	 * References
 	 * ==========
@@ -86,9 +87,11 @@ namespace OS {
 	}
 
 	/* created to connect (client mode) */
-	SecureSocket::SecureSocket(const InetAddress & remoteAddr) : Socket(remoteAddr), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(true), needHandshake(false)
- {
+	SecureSocket::SecureSocket(const InetAddress & remoteAddr) : Socket(remoteAddr), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(true), needHandshake(false) {
+
+		setSelectable(false);
 		SecureContext::getInstance();
+		
 		ctx = SSL_CTX_new(SSLv23_client_method());
 		if (!ctx) {
 			throw IOException("SSL_CTX_new() failed");
@@ -129,6 +132,17 @@ namespace OS {
 		}
 	}
 
+	void SecureSocket::connect(unsigned long timeout) {
+		Socket::connect(timeout);
+		int ret = SSL_connect(ssl);
+		int ssl_err = SSL_get_error(ssl, ret);
+		ERR_clear_error();
+		if (ret != 1) {
+			throw IOException("SSL_connect() error - '" + getErrorString(ssl_err) + "'");
+		}
+		verify();
+	}
+
 	void SecureSocket::connect() {
 		Socket::connect();
 		int ret = SSL_connect(ssl);
@@ -161,7 +175,7 @@ namespace OS {
 			}
 		}
 		long err = SSL_get_verify_result(ssl);
-		if (verifier) {
+		if (!verifier.nil()) {
 			if (verifier->onVerify(VerifyError(err), X509Certificate(peerCert)) == false) {
 				throw IOException("Peer certificate verification failed (by custom verifier)");
 			}
@@ -227,7 +241,7 @@ namespace OS {
 //#endif
 	}
 
-	void SecureSocket::setVerifier(CertificateVerifier * verifier) {
+	void SecureSocket::setVerifier(AutoRef<CertificateVerifier> verifier) {
 		this->verifier = verifier;
 	}
 
@@ -292,7 +306,7 @@ namespace OS {
 //#endif
 	}
 
-	void SecureServerSocket::setVerifier(CertificateVerifier * verifier) {
+	void SecureServerSocket::setVerifier(AutoRef<CertificateVerifier> verifier) {
 		this->verifier = verifier;
 	}
 	

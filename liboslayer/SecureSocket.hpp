@@ -2,6 +2,7 @@
 #define __SECURE_SOCKET_HPP__
 
 #include "Socket.hpp"
+#include "AutoRef.hpp"
 
 #if defined(USE_OPENSSL)
 
@@ -37,7 +38,7 @@ namespace OS {
 		SSL_CTX * ctx;
 		SSL * ssl;
 		X509 * peerCert;
-		CertificateVerifier * verifier;
+		UTIL::AutoRef<CertificateVerifier> verifier;
 		bool peerCertRequired;
 		bool needHandshake;
 	public:
@@ -47,13 +48,14 @@ namespace OS {
 		virtual ~SecureSocket();
 		virtual void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual void negotiate();
+		virtual void connect(unsigned long timeout);
 		virtual void connect();
 		void handshake();
 		void verify();
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
 		virtual void close();
-		void setVerifier(CertificateVerifier * verifier);
+		void setVerifier(UTIL::AutoRef<CertificateVerifier> verifier);
 		void setPeertCertRequired(bool required);
 		std::string getErrorString(unsigned long err);
 	};
@@ -64,7 +66,7 @@ namespace OS {
 	class SecureServerSocket : public ServerSocket {
 	private:
 		SSL_CTX * ctx;
-		CertificateVerifier * verifier;
+		UTIL::AutoRef<CertificateVerifier> verifier;
 	public:
 		SecureServerSocket();
 		SecureServerSocket(int port);
@@ -74,7 +76,7 @@ namespace OS {
 		void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual Socket * accept();
 		virtual void close();
-		void setVerifier(CertificateVerifier * verifier);
+		void setVerifier(UTIL::AutoRef<CertificateVerifier> verifier);
 	};
 
 
