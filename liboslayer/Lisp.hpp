@@ -261,6 +261,10 @@ namespace LISP {
 			if (refvar == NULL) {
 				type = NIL;
 			}
+
+			if (refvar->isRef()) {
+				this->refvar = refvar->refvar;
+			}
 		}
 		virtual ~Var() {}
 

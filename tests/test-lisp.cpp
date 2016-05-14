@@ -74,6 +74,17 @@ static void test_ref() {
 	ASSERT(*env["a"].getInteger(), ==, 1);
 	ASSERT(*compile("(setq b (cdr (list 1 2 3)))", env).getList()[0].getInteger(), ==, 2);
 	ASSERT(*env["b"].getList()[1].getInteger(), ==, 3);
+
+	compile("(setq lst (list (list 1 2) (list 3 4)))", env);
+	ASSERT(*compile("(car (car lst))", env).getInteger(), ==, 1);
+	ASSERT(*compile("(car (cdr (car lst)))", env).getInteger(), ==, 2);
+
+	ASSERT(compile("(car (cdr lst))", env).getList().size(), ==, 2);
+	ASSERT(*compile("(car (cdr lst))", env).getList()[0].getInteger(), ==, 3);
+	ASSERT(*compile("(car (cdr lst))", env).getList()[1].getInteger(), ==, 4);
+	
+	ASSERT(*compile("(car (car (cdr lst)))", env).getInteger(), ==, 3);
+	ASSERT(*compile("(car (cdr (car (cdr lst))))", env).getInteger(), ==, 4);
 }
 
 static void test_setf() {
