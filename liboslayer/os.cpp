@@ -1437,10 +1437,10 @@ namespace OS {
 
 		size_t f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
-			return path;
+			return "";
 		}
 
-		return path.substr(0, f);
+		return path.substr(0, f + 1);
 	}
 	static string s_get_filename_part(const string & path) {
 
@@ -1713,10 +1713,10 @@ namespace OS {
 
 		int f = path.find_last_of(s_get_separators());
 		if (f == string::npos) {
-			return path;
+			return "";
 		}
 
-		return path.substr(0, f);
+		return path.substr(0, f + 1);
 	}
 	static string s_get_filename_part(const string & path) {
 

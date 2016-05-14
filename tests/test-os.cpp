@@ -28,9 +28,20 @@ static void test_file_io() {
 	rf.close();
 }
 
+static void test_path() {
+	ASSERT(File::getPathPart("file.mp4"), ==, "");
+	ASSERT(File::getPathPart("/path/to/file.mp4"), ==, "/path/to/");
+	ASSERT(File::getPathPart("/file.mp4"), ==, "/");
+	ASSERT(File::mergePaths("/", "file.mp4"), ==, "/file.mp4");
+	ASSERT(File::mergePaths("./", "file.mp4"), ==, "./file.mp4");
+	ASSERT(File::mergePaths(".", "file.mp4"), ==, "./file.mp4");
+	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
+}
+
 int main(int argc, char *args[]) {
 
 	test_file_io();
+	test_path();
     
     return 0;
 }
