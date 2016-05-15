@@ -430,6 +430,7 @@ namespace OS {
 	
 	void Thread::interrupt() {
 		signal_interrupt = true;
+		onInterrupt();
 	}
 
 	bool Thread::interrupted() {
@@ -442,8 +443,11 @@ namespace OS {
 		return running;
 	}
 
+	void Thread::onInterrupt() {
+	}
+
 	void Thread::join() {
-		while (running) { /* take time : 10ms */ idle(10); }
+		while (running) { idle(10); }
 	}
     
     

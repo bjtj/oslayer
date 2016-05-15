@@ -309,6 +309,8 @@ public: \
 		bool interrupted();
 		bool isRunning();
 
+		virtual void onInterrupt();
+
 		void join();
 
 		virtual void run() = 0;
