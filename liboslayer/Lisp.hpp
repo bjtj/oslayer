@@ -1,7 +1,6 @@
 #ifndef __LISP_HPP__
 #define __LISP_HPP__
 
-#include <iostream>
 #include <string>
 #include <map>
 #include <vector>

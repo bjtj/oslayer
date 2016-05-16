@@ -1020,7 +1020,6 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		// TODO: need file descriptor type
 		env["*standard-output*"] = FileDescriptor(stdout);
 		env["*standard-input*"] = FileDescriptor(stdin);
 		
@@ -1329,12 +1328,13 @@ namespace LISP {
 	void repl(Env & env) {
 		BufferedCommandReader reader;
 		char line[1024] = {0,};
-		cout << "> ";
+		fputs("> ", stdout);
 		while (fgets(line, sizeof(line), stdin)) {
 			if (reader.read(line) > 0) {
 				vector<string> & commands = reader.getCommands();
 				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-					cout << printVar(compile(*iter, env)) << endl;
+					fputs(printVar(compile(*iter, env)).c_str(), stdout);
+					fputs("\n", stdout);
 				}
 				reader.clearCommands();
 				return;
