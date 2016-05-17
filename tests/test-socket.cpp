@@ -272,10 +272,10 @@ int main(int argc, char *args[]) {
 	ServerThread st(9999, AutoRef<ClientHandler>(new SimpleHandler));
 	st.start();
 
-	ServerThread st2(9998, AutoRef<ClientHandler>(new TimeoutHandler(3000)));
+	ServerThread st2(9998, AutoRef<ClientHandler>(new TimeoutHandler(2000)));
 	st2.start();
 
-	ServerThread st3(9997, AutoRef<ClientHandler>(new SlowHandler(3000)));
+	ServerThread st3(9997, AutoRef<ClientHandler>(new SlowHandler(2000)));
 	st3.start();
 
 	idle(100);

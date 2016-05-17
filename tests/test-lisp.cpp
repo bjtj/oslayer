@@ -261,6 +261,28 @@ static void test_func() {
 	compile("(dolist (x (list 1 2 3)) (wr x))", env);
 }
 
+static void test_func_more() {
+	Env env;
+	native(env);
+
+	compile("(defun hello () (print \"hello\"))", env);
+
+	// string err;
+	// try {
+	// 	compile("(funcall hello)", env);
+	// } catch (LispException & e) {
+	// 	err = e.getMessage();
+	// }
+	// ASSERT(err.empty(), ==, false);
+	// ASSERT(compile("(funcall (quote hello))", env).toString(), ==, "hello");
+	// ASSERT(compile("(funcall (function hello))", env).toString(), ==, "hello");
+	
+	// compile("(defun adder (x) (function (lambda (y) (+ x y))))", env);
+	// compile("(setq add3 (adder 3))", env);
+	// ASSERT(*compile("(funcall add3 5)", env).getInteger(), == 8);
+	
+}
+
 static void test_logic() {
 	Env env;
 	native(env);
@@ -281,7 +303,7 @@ static void test_type() {
 	Var var(false);
 	ASSERT(var.isNil(), ==, true);
 
-	ASSERT(compile("(symbolp (symbol x))", env).isNil(), ==, false);
+	ASSERT(compile("(symbolp (quote x))", env).isNil(), ==, false);
 	ASSERT(compile("(listp (list 1 2 3))", env).isNil(), ==, false);
 	ASSERT(compile("(booleanp t)", env).isNil(), ==, false);
 	ASSERT(compile("(integerp 1)", env).isNil(), ==, false);
@@ -581,10 +603,10 @@ static void test_error_handling() {
 	Env env;
 	native(env);
 
-	ASSERT(compile("(symbol abc)", env).getSymbol(), ==, "abc");
+	ASSERT(compile("(quote abc)", env).getSymbol(), ==, "abc");
 
 	try {
-		compile("(symbol)", env);
+		compile("(quote)", env);
 	} catch (LispException e) {
 		ASSERT(e.getMessage(), ==, "Wrong argument count");
 	}
@@ -603,6 +625,8 @@ int main(int argc, char *args[]) {
 		test_setf();
 		cout << " *** test_func()" << endl;
 		test_func();
+		cout << " *** test_func_more()" << endl;
+		test_func_more();
 		cout << " *** test_type()" << endl;
 		test_type();
 		cout << " *** test_scope()" << endl;

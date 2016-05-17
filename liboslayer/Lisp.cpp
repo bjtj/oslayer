@@ -450,9 +450,6 @@ namespace LISP {
 			string symbol = lv[0].getSymbol();
 			if (symbol == "quit") {
 				env.quit(true);
-			} else if (symbol == "symbol") {
-				testArgumentCount(lv, 2);
-				PUSH_AND_RETURN(env, lv[1].getSymbol());
 			} else if (symbol == "lambda") {
 				testArgumentCount(lv, 3);
 				Var func(lv[1].getList(), lv[2].getList());
@@ -474,6 +471,9 @@ namespace LISP {
 				Var val = eval(lv[2], env);
 				env[lv[1].getSymbol()] = val;
 				PUSH_AND_RETURN(env, val);
+			} else if (symbol == "quote") {
+				testArgumentCount(lv, 2);
+				PUSH_AND_RETURN(env, lv[1]);
 			} else if (symbol == "let") {
 				testArgumentCount(lv, 2);
 				Var ret;
@@ -661,7 +661,7 @@ namespace LISP {
 	Var Var::proc(Var name, vector<Var> & args, Env & env) {
 
 		if (!isFunction()) {
-			throw LispException("not function / " + name.toString());
+			throw LispException("not function / name: '" + name.toString() + "' / type : '" + getTypeString() + "'");
 		}
 
 		if (!procedure.nil()) {

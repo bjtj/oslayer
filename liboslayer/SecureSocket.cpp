@@ -28,13 +28,49 @@ namespace OS {
 	 * http://fm4dd.com/openssl/sslconnect.htm
 	 *  - ssl client
 	 */
+
+
+	static vector<AutoRef<Semaphore> > locks;
+
+	static unsigned long thread_id() {
+#if defined(USE_PTHREAD)
+		return (unsigned long)pthread_self();
+#endif
+	}
+
+	static void locking_callback(int mode, int type, const char * file, int line) {
+		if (mode & CRYPTO_LOCK) {
+			locks[type]->wait();
+		} else {
+			locks[type]->post();
+		}
+	}
+
+	static void setup_thread_support() {
+		for (int i = 0; i < CRYPTO_num_locks(); i++) {
+			locks.push_back(AutoRef<Semaphore>(new Semaphore(1)));
+		}
+
+#if defined(USE_PTHREAD)
+		CRYPTO_set_id_callback(thread_id);
+#endif
+		CRYPTO_set_locking_callback(&locking_callback);
+	}
+
+	static void clear_thread_support() {
+	}
 	
 	SecureContext::SecureContext() {
 		SSL_library_init();
 		SSL_load_error_strings();
 		OpenSSL_add_all_algorithms();
+
+		setup_thread_support();
 	}
 	SecureContext::~SecureContext() {
+
+		clear_thread_support();
+		
 		CRYPTO_cleanup_all_ex_data();
 		EVP_cleanup();
 		ERR_free_strings();
@@ -47,7 +83,7 @@ namespace OS {
 	string SecureContext::getOpenSSLVersion() {
 		return string(OPENSSL_VERSION_TEXT);
 	}
-
+	
 	/* created by server accept */
 	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
 		SecureContext::getInstance();

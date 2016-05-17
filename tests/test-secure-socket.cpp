@@ -48,7 +48,7 @@ public:
 
 		while (!interrupted()) {
 
-			if (selector.select(100)) {
+			if (selector.select(100) > 0) {
 				AutoRef<Socket> client(server.accept());
 				if (!client.nil()) {
 					cout << "connected" << endl;
