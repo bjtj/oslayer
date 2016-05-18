@@ -312,6 +312,19 @@ namespace LISP {
 		return Var(v1.getInteger() / v2.getInteger());
 	}
 
+	Var function(Var & var, Env & env) {
+		if (var.isFunction()) {
+			return var;
+		}
+		if (var.isSymbol()) {
+			if (!env[var.getSymbol()].isFunction()) {
+				throw LispException("invalid function - '" + var.getSymbol() + "'");
+			}
+			return env[var.getSymbol()];
+		}
+		throw LispException("invalid function - '" + var.toString() + "'");
+	}
+
 	string replaceAll(string src, string match, string rep) {
 		string ret = src;
 		size_t f = 0;
@@ -432,6 +445,9 @@ namespace LISP {
 
 	Var refeval(Var & var, Env & env) {
 		if (var.isSymbol()) {
+			if (env[var.getSymbol()].isNil() || env[var.getSymbol()].isFunction()) {
+				throw LispException("unbound variable - '" + var.getSymbol() + "'");
+			}
 			PUSH_AND_RETURN(env, Var(&env[var.getSymbol()]));
 		}
 		return eval(var, env);
@@ -440,6 +456,9 @@ namespace LISP {
 	Var eval(Var & var, Env & env) {
 	
 		if (var.isSymbol()) {
+			if (!env.find(var.getSymbol()) || env[var.getSymbol()].isFunction()) {
+				throw LispException("unbound variable - '" + var.getSymbol() + "'");
+			}
 			PUSH_AND_RETURN(env, env[var.getSymbol()]);
 		} else if (!var.isList()) {
 			PUSH_AND_RETURN(env, var);
@@ -474,6 +493,17 @@ namespace LISP {
 			} else if (symbol == "quote") {
 				testArgumentCount(lv, 2);
 				PUSH_AND_RETURN(env, lv[1]);
+			} else if (symbol == "function") {
+				testArgumentCount(lv, 2);
+				Var func = function(lv[1], env);
+				PUSH_AND_RETURN(env, func);
+			} else if (symbol == "funcall") {
+				testArgumentCount(lv, 2);
+				Var funcsym = eval(lv[1], env);
+				Var func = function(funcsym, env);
+				vector<Var> args(lv.begin() + 2, lv.end());
+				Var ret = func.proc(args, env);
+				PUSH_AND_RETURN(env, ret);
 			} else if (symbol == "let") {
 				testArgumentCount(lv, 2);
 				Var ret;
@@ -639,7 +669,7 @@ namespace LISP {
 				PUSH_AND_RETURN(env, ret);
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
-				Var func = eval(lv[0], env);
+				Var func = function(lv[0], env);
 				Var ret = func.proc(lv[0], args, env);
 				PUSH_AND_RETURN(env, ret);
 			}
@@ -743,6 +773,7 @@ namespace LISP {
 				testArgumentCount(args, 3);
 				Var sym = eval(args[0], env);
 				Var func = eval(args[1], env);
+				func = function(func, env);
 				Var seq = eval(args[2], env);
 
 				vector<Var> ret;
@@ -773,6 +804,7 @@ namespace LISP {
 				testArgumentCount(args, 2);
 				vector<Var> lst = eval(args[0], env).getList();
 				Var func = eval(args[1], env);
+				func = function(func, env);
 
 				if (lst.size() <= 1) {
 					return lst;
@@ -831,6 +863,7 @@ namespace LISP {
             virtual Var proc(Var name, vector<Var> & args, Env & env) {
                 testArgumentCount(args, 2);
                 Var func = eval(args[0], env);
+				func = function(func, env);
                 vector<Var> lst = eval(args[1], env).getList();
                 for (vector<Var>::iterator iter = lst.begin(); iter != lst.end();) {
                     vector<Var> fargs;

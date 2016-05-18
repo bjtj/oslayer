@@ -267,19 +267,19 @@ static void test_func_more() {
 
 	compile("(defun hello () (print \"hello\"))", env);
 
-	// string err;
-	// try {
-	// 	compile("(funcall hello)", env);
-	// } catch (LispException & e) {
-	// 	err = e.getMessage();
-	// }
-	// ASSERT(err.empty(), ==, false);
-	// ASSERT(compile("(funcall (quote hello))", env).toString(), ==, "hello");
-	// ASSERT(compile("(funcall (function hello))", env).toString(), ==, "hello");
+	string err;
+	try {
+		compile("(funcall hello)", env);
+	} catch (LispException & e) {
+		err = e.getMessage();
+	}
+	ASSERT(err.empty(), ==, false);
+	ASSERT(compile("(funcall (quote hello))", env).toString(), ==, "hello");
+	ASSERT(compile("(funcall (function hello))", env).toString(), ==, "hello");
 	
 	// compile("(defun adder (x) (function (lambda (y) (+ x y))))", env);
 	// compile("(setq add3 (adder 3))", env);
-	// ASSERT(*compile("(funcall add3 5)", env).getInteger(), == 8);
+	// ASSERT(*compile("(funcall add3 5)", env).getInteger(), ==, 8);
 	
 }
 
@@ -484,11 +484,11 @@ static void test_cons() {
 static void test_algorithm() {
 	Env env;
 	native(env);
-	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[0].getInteger(),
+	ASSERT(*compile("(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[0].getInteger(),
 		   ==, 2);
-	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[1].getInteger(),
+	ASSERT(*compile("(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[1].getInteger(),
 		   ==, 3);
-	ASSERT(*compile("(map 'list (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[2].getInteger(),
+	ASSERT(*compile("(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))", env).getList()[2].getInteger(),
 		   ==, 4);
 	ASSERT(compile("(sort (list 1 2 3 4) (lambda (a b) (> a b)))", env).getList().size(), ==, 4);
 
