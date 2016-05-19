@@ -364,9 +364,9 @@ namespace LISP {
 		return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r';
 	}
 
-	vector<string> tokenize(string s) {
+	vector<string> tokenize(const string & s) {
 		vector<string> tokens;
-		for (string::iterator iter = s.begin(); iter != s.end(); iter++) {
+		for (string::const_iterator iter = s.begin(); iter != s.end(); iter++) {
 			if (*iter == '\"') {
 				string str;
 				if (++iter == s.end()) {

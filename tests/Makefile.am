@@ -2,6 +2,7 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-text \
 	test-logger \
 	test-library \
 	test-count-down-latch \
@@ -24,6 +25,7 @@ check_PROGRAMS = \
 	test-observer-pattern
 
 test_os_SOURCES=test-os.cpp
+test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
 test_library_SOURCES=test-library.cpp
 test_count_down_latch_SOURCES=test-count-down-latch.cpp

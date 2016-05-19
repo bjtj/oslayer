@@ -585,6 +585,7 @@ namespace LISP {
 	extern Var pathname(Var path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
+	extern std::vector<std::string> tokenize(const std::string & s);
 	extern Var parse(const std::string & cmd);
 	extern Var refeval(Var & var, Env & env);
 	extern Var eval(Var & var, Env & env);

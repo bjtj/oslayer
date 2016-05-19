@@ -35,6 +35,7 @@ namespace UTIL {
 									   std::string line_sep = ", ");
 		static int toInt(const std::string & str, int radix = 10);
 		static long toLong(const std::string & str, int radix = 10);
+		static float toFloat(const std::string & str);
         static std::string toString(short i);
         static std::string toString(int i);
         static std::string toString(long i);

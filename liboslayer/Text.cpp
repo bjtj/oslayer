@@ -310,6 +310,10 @@ namespace UTIL {
 		return (long)strtol(str.c_str(), NULL, radix);
 	}
 
+	float Text::toFloat(const string & str) {
+		return atof(str.c_str());
+	}
+
 	/**
 	 * @brief to string
 	 */
