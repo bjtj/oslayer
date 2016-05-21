@@ -322,6 +322,10 @@ namespace LISP {
 			}
 			return env[var.getSymbol()];
 		}
+		Var func = eval(var, env);
+		if (func.isFunction()) {
+			return func;
+		}
 		throw LispException("invalid function - '" + var.toString() + "'");
 	}
 
@@ -443,6 +447,13 @@ namespace LISP {
 		return read_from_tokens(iter, end);
 	}
 
+	bool silentsymboleq(Var & var, const string & sym) {
+		if (var.isSymbol()) {
+			return var.getSymbol() == sym;
+		}
+		return false;
+	}
+
 	Var refeval(Var & var, Env & env) {
 		if (var.isSymbol()) {
 			if (env[var.getSymbol()].isNil() || env[var.getSymbol()].isFunction()) {
@@ -466,18 +477,17 @@ namespace LISP {
 			PUSH_AND_RETURN(env, nil());
 		} else {
 			vector<Var> & lv = var.getList();
-			string symbol = lv[0].getSymbol();
-			if (symbol == "quit") {
+			if (silentsymboleq(lv[0], "quit")) {
 				env.quit(true);
-			} else if (symbol == "lambda") {
+			} else if (silentsymboleq(lv[0], "lambda")) {
 				testArgumentCount(lv, 3);
 				Var func(lv[1].getList(), lv[2].getList());
 				PUSH_AND_RETURN(env, func);
-			} else if (symbol == "defun") {
+			} else if (silentsymboleq(lv[0], "defun")) {
 				testArgumentCount(lv, 4);
 				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
 				PUSH_AND_RETURN(env, lv[1].getSymbol());
-			} else if (symbol == "setf") {
+			} else if (silentsymboleq(lv[0], "setf")) {
 				testArgumentCount(lv, 3);
 				refeval(lv[1], env);
 				Var var = env.last();
@@ -485,40 +495,40 @@ namespace LISP {
 				Var other = env.last();
 				var = other;
 				PUSH_AND_RETURN(env, var);
-			} else if (symbol == "setq") {
+			} else if (silentsymboleq(lv[0], "setq")) {
 				testArgumentCount(lv, 3);
 				Var val = eval(lv[2], env);
 				env[lv[1].getSymbol()] = val;
 				PUSH_AND_RETURN(env, val);
-			} else if (symbol == "quote") {
+			} else if (silentsymboleq(lv[0], "quote")) {
 				testArgumentCount(lv, 2);
 				PUSH_AND_RETURN(env, lv[1]);
-			} else if (symbol == "function") {
+			} else if (silentsymboleq(lv[0], "function")) {
 				testArgumentCount(lv, 2);
 				Var func = function(lv[1], env);
 				PUSH_AND_RETURN(env, func);
-			} else if (symbol == "funcall") {
+			} else if (silentsymboleq(lv[0], "funcall")) {
 				testArgumentCount(lv, 2);
 				Var funcsym = eval(lv[1], env);
 				Var func = function(funcsym, env);
 				vector<Var> args(lv.begin() + 2, lv.end());
 				Var ret = func.proc(args, env);
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "let") {
+			} else if (silentsymboleq(lv[0], "let")) {
 				testArgumentCount(lv, 2);
 				Var ret;
 				vector<Var> & lets = lv[1].getList();
 				Env e(&env);
 				for (vector<Var>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
 					vector<Var> decl = (*iter).getList();
-					string symbol = decl[0].getSymbol();
-					e.local()[symbol] = eval(decl[1], env);
+					string sym = decl[0].getSymbol();
+					e.local()[sym] = eval(decl[1], env);
 				}
 				for (vector<Var>::iterator iter = lv.begin() + 2; iter != lv.end(); iter++) {
 					ret = eval(*iter, e);
 				}
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "if") {
+			} else if (silentsymboleq(lv[0], "if")) {
 				testArgumentCount(lv, 3);
 				Var val = eval(lv[1], env);
 				Var ret;
@@ -528,7 +538,7 @@ namespace LISP {
 					ret = eval(lv[3], env);
 				}
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "when") {
+			} else if (silentsymboleq(lv[0], "when")) {
 				testArgumentCount(lv, 3);
 				Var test = eval(lv[1], env);
 				if (!test.isNil()) {
@@ -536,7 +546,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, ret);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "unless") {
+			} else if (silentsymboleq(lv[0], "unless")) {
 				testArgumentCount(lv, 3);
 				Var test = eval(lv[1], env);
 				if (test.isNil()) {
@@ -544,7 +554,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, ret);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "cond") {
+			} else if (silentsymboleq(lv[0], "cond")) {
 				testArgumentCount(lv, 1);
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					vector<Var> lst = iter->getList();
@@ -554,21 +564,21 @@ namespace LISP {
 					}
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "progn") {
+			} else if (silentsymboleq(lv[0], "progn")) {
 				testArgumentCount(lv, 1);
 				Var ret;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					ret = eval(*iter, env);
 				}
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "while") {
+			} else if (silentsymboleq(lv[0], "while")) {
 				testArgumentCount(lv, 3);
 				Var pre_test = lv[1];
 				while (!eval(pre_test, env).isNil()) {
 					eval(lv[2], env);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "dolist") {
+			} else if (silentsymboleq(lv[0], "dolist")) {
 				testArgumentCount(lv, 3);
 				Env e(&env);
 				vector<Var> decl = lv[1].getList();
@@ -579,7 +589,7 @@ namespace LISP {
 					eval(lv[2], e);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "dotimes") {
+			} else if (silentsymboleq(lv[0], "dotimes")) {
 				testArgumentCount(lv, 3);
 				Env e(&env);
 				vector<Var> steps = lv[1].getList();
@@ -590,7 +600,7 @@ namespace LISP {
 					eval(lv[2], e);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "list") {
+			} else if (silentsymboleq(lv[0], "list")) {
 				testArgumentCount(lv, 1);
 				vector<Var> elts;
 				for (vector<Var>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
@@ -599,7 +609,7 @@ namespace LISP {
 				}
 				Var ret(elts);
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "cons") {
+			} else if (silentsymboleq(lv[0], "cons")) {
 				testArgumentCount(lv, 3);
 				vector<Var> ret;
 				Var cons = eval(lv[1], env);
@@ -612,7 +622,7 @@ namespace LISP {
 					ret.push_back(cell);
 				}
 				PUSH_AND_RETURN(env, ret);
-			} else if (symbol == "car") {
+			} else if (silentsymboleq(lv[0], "car")) {
 				testArgumentCount(lv, 2);
 				refeval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
@@ -621,7 +631,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, ret);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "cdr") {
+			} else if (silentsymboleq(lv[0], "cdr")) {
 				testArgumentCount(lv, 2);
 				refeval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
@@ -634,7 +644,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, ret);
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "nth") {
+			} else if (silentsymboleq(lv[0], "nth")) {
 				testArgumentCount(lv, 3);
 				size_t idx = (size_t)(*(eval(lv[1], env).getInteger()));
 				refeval(lv[2], env);
@@ -643,7 +653,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, Var(&lst[idx]));
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "nthcdr") {
+			} else if (silentsymboleq(lv[0], "nthcdr")) {
 				testArgumentCount(lv, 3);
 				size_t idx = (size_t)(*eval(lv[1], env).getInteger());
 				refeval(lv[2], env);
@@ -656,7 +666,7 @@ namespace LISP {
 					PUSH_AND_RETURN(env, Var(rest));
 				}
 				PUSH_AND_RETURN(env, nil());
-			} else if (symbol == "subseq") {
+			} else if (silentsymboleq(lv[0], "subseq")) {
 				testArgumentCount(lv, 4);
 				refeval(lv[1], env);
 				vector<Var> & lst = (*env.last()).getList();
@@ -667,6 +677,8 @@ namespace LISP {
 					ret.push_back(Var(&lst[i]));
 				}
 				PUSH_AND_RETURN(env, ret);
+			} else if (silentsymboleq(lv[0], "defmacro")) {
+			} else if (silentsymboleq(lv[0], "expansion")) {
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
 				Var func = function(lv[0], env);

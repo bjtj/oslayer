@@ -24,6 +24,7 @@ namespace UTIL {
 		std::string readline();
 		void write(int ch);
 		size_t write(const char * buffer, size_t len);
+		void write(const std::string & data);
 		void writeline(const std::string & line);
 		void rewind();
 		void seek(size_t pos);

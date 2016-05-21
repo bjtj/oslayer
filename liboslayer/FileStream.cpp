@@ -81,7 +81,10 @@ namespace UTIL {
 		testFileOpen(fp);
 		return fwrite(buffer, 1, len, fp);
 	}
-	void FileStream::writeline(const std::string & line) {
+	void FileStream::write(const string & data) {
+		write(data.c_str(), data.size());
+	}
+	void FileStream::writeline(const string & line) {
 		testFileOpen(fp);
 		string nlstr = line + "\n";
 		write(nlstr.c_str(), nlstr.length());

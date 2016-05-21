@@ -404,7 +404,7 @@ namespace LISP {
 					}
 					Var p(params);
 					Var b(body);
-					return "#(PARAMS:" + p.toString() + ", BODY:" + b.toString() + ")";
+					return "#<FUNCTION (PARAMS:" + p.toString() + ", BODY:" + b.toString() + ")>";
 				}
 			case FILE:
 				return "#p\"" + file.getPath() + "\"";
