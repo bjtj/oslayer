@@ -2,6 +2,7 @@ lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS= \
+	ArgumentParser.hpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
@@ -35,6 +36,8 @@ liboslayerinc_HEADERS= \
 	platform.hpp
 
 liboslayer_la_SOURCES= \
+	ArgumentParser.cpp \
+	ArgumentParser.hpp \
 	AutoRef.cpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \

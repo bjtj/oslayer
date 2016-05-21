@@ -403,7 +403,11 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llX", i);
         return string(num);
     }
-
+	string Text::toString(float f) {
+		char num[512] = {0,};
+		snprintf(num, sizeof(num), "%f", f);
+		return string(num);
+	}
     
     string Text::toString(const NameValueList & lst, const string & item_sep, const string & line_sep) {
         string ret;

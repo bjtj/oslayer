@@ -2,6 +2,7 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-argument-parser \
 	test-text \
 	test-logger \
 	test-library \
@@ -25,6 +26,7 @@ check_PROGRAMS = \
 	test-observer-pattern
 
 test_os_SOURCES=test-os.cpp
+test_argument_parser_SOURCES=test-argument-parser.cpp
 test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
 test_library_SOURCES=test-library.cpp

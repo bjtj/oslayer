@@ -60,6 +60,8 @@ namespace UTIL {
         static std::string toUpperHexString(unsigned int i);
         static std::string toUpperHexString(unsigned long i);
         static std::string toUpperHexString(unsigned long long i);
+
+		static std::string toString(float f);
         
         static std::string toString(const NameValueList & lst, const std::string & item_sep = ": ", const std::string & line_sep = ", ");
         

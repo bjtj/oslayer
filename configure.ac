@@ -42,7 +42,6 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_ERROR_AT_LINE
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([clock_gettime memset mkdir select socket SSL_library_init dlopen])
 
 if test $ac_cv_func_clock_gettime = no; then
