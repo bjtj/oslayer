@@ -22,6 +22,28 @@ static void test_call_stack() {
 	ASSERT(*compile("(setf (car (list 1 2 3)) 7)", env).getInteger(), ==, 7);
 }
 
+static void test_comment() {
+	string text = "hello ; comment";
+	ASSERT(BufferedCommandReader::trimComment(text), ==, "hello ");
+	text = "(defun hello () ;sample hello program\n"
+		"(print \"hello world\")) ; print greeting";
+	ASSERT(BufferedCommandReader::trimComment(text), ==, "(defun hello () \n"
+		   "(print \"hello world\")) ");
+	text = "\" ; \"";
+	ASSERT(BufferedCommandReader::trimComment(text), ==, "\" ; \"");
+
+	Env env;
+	native(env);
+	ASSERT(compile("(format nil \"hello\") ; comment", env).toString(), ==, "hello");
+	ASSERT(BufferedCommandReader::trimComment("(format nil ;comment\n"
+											  "\"hello\")"), ==, "(format nil \n"
+		   "\"hello\")");
+	ASSERT(compile("(format nil\n"
+				   "\"hello\")", env).toString(), ==, "hello");
+	ASSERT(compile("(format nil ; comment \n"
+				   "\"hello\")", env).toString(), ==, "hello");
+}
+
 static void test_var() {
 	Var var1(1);
 	Var var2(2);
@@ -404,6 +426,23 @@ static void test_string() {
 	ASSERT(*compile("(string-length \"hello world\")", env).getInteger(), ==, strlen("hello world"));
 }
 
+static void test_format() {
+	Env env;
+	native(env);
+
+	ASSERT(compile("(format nil \"hello world\")", env).toString(), ==, "hello world");
+
+	ASSERT(compile("(format nil \"hello, ~a?\" \"friend\")", env).toString(), ==, "hello, friend?");
+
+	string err;
+	try {
+		compile("(format nil \"hello ~a\")", env);
+	} catch (LispException & e) {
+		err = e.getMessage();
+	}
+	ASSERT(err, ==, "out of bound");
+}
+
 static void test_arithmetic() {
 	Env env;
 	native(env);
@@ -617,6 +656,8 @@ int main(int argc, char *args[]) {
 	try {
 		cout << " *** test_call_stack()" << endl;
 		test_call_stack();
+		cout << " *** test_comment()" << endl;
+		test_comment();
 		cout << " *** test_var()" << endl;
 		test_var();
 		cout << " *** test_ref()" << endl;
@@ -641,6 +682,8 @@ int main(int argc, char *args[]) {
 		test_read();
 		cout << " *** test_string()" << endl;
 		test_string();
+		cout << " *** test_format()" << endl;
+		test_format();
 		cout << " *** test_list()" << endl;
 		test_list();
 		cout << " *** test_cons()" << endl;

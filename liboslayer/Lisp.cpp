@@ -153,28 +153,54 @@ namespace LISP {
 		return _keywords;
 	}
 
+	class Iterator {
+	private:
+		vector<Var> & lst;
+		vector<Var>::iterator iter;
+	public:
+		Iterator(vector<Var> & lst) : lst(lst) {
+			iter = lst.begin();
+		}
+		virtual ~Iterator() {}
+
+		void offset(size_t o) {
+			iter += o;
+		}
+
+		bool hasNext() {
+			return (iter != lst.end());
+		}
+		Var & next() {
+			if (!hasNext()) {
+				throw LispException("out of bound");
+			}
+			return *(iter++);
+		}
+	};
+
+
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
 		size_t f = 0;
 		size_t s = 0;
-		vector<Var>::iterator iter = args.begin() + offset;
+		Iterator iter(args);
+		iter.offset(offset);
 		while ((f = fmt.find("~", f)) != string::npos) {
 			if (f - s > 0) {
 				ret.append(fmt.substr(s, f - s));
 			}
-
 			if (fmt[f + 1] == '%') {
 				ret.append("\n");
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'a') {
-				ret.append(eval(*iter++, env).toString());
+				ret.append(eval(iter.next(), env).toString());
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'd') {
-				string num = eval(*iter++, env).toString();
+				string num = eval(iter.next(), env).toString();
 				ret.append(num);
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == ':' && fmt[f + 2] == 'd') {
-				string num = eval(*iter++, env).toString();
+				string num = eval(iter.next(), env).toString();
 				size_t len = num.length();
 				size_t cnt = (len - 1) / 3;
 				if (cnt > 0) {
@@ -692,7 +718,7 @@ namespace LISP {
 
 	Var compile(const std::string & cmd, Env & env) {
 		env.stack().clear();
-		Var tokens = parse(cmd);
+		Var tokens = parse(BufferedCommandReader::trimComment(cmd));
 		eval(tokens, env);
 		Var ret;
 		ret = env.last();
@@ -1296,9 +1322,56 @@ namespace LISP {
 	void BufferedCommandReader::clearBuffer() {
 		buffer = "";
 	}
+	string BufferedCommandReader::trimComment(const string & text) {
+		string ret;
+		bool in_text = false;
+		bool in_comment = false;
+		bool in_escape = false;
+		for (size_t i = 0; i < text.size(); i++) {
+			
+			if (in_escape) {
+				ret.append(1, text[i]);
+				in_escape = false;
+				continue;
+			}
+
+			if (in_comment) {
+				if (text[i] == '\n') {
+					ret.append(1, text[i]);
+					in_comment = false;
+				}
+				continue;
+			}
+			
+			switch (text[i]) {
+			case '"':
+				in_text = !in_text;
+				break;
+			case '\\':
+				if (in_text) {
+					in_escape = true;
+				}
+				break;
+			case ';':
+				if (!in_text) {
+					in_comment = true;
+				}
+				break;
+			default:
+				break;
+			}
+			
+			if (in_comment) {
+				continue;
+			}
+			
+			ret.append(1, text[i]);
+		}
+		return ret;
+	}
 	size_t BufferedCommandReader::testComplete(const string & text) {
 		size_t brace_count = 0;
-		bool ignore = false;
+		bool in_text = false;
 		size_t i = text.find_first_not_of(" \t\r\n");
 		if (i == string::npos) {	
 			return 0;
@@ -1331,12 +1404,12 @@ namespace LISP {
 				}
 				break;
 			case '\\':
-				if (ignore) {
+				if (in_text) {
 					i++;
 				}
 				break;
 			case '\"':
-				ignore = !ignore;
+				in_text = !in_text;
 				break;
 			default:
 				break;
@@ -1347,6 +1420,7 @@ namespace LISP {
 	size_t BufferedCommandReader::read(const string & text) {
 		size_t c = 0;
 		buffer.append(text);
+		buffer = trimComment(buffer);
 		while ((c = testComplete(buffer)) > 0) {
 			commands.push_back(buffer.substr(0, c));
 			buffer = buffer.substr(c);
