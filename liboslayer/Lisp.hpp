@@ -583,6 +583,34 @@ namespace LISP {
 		std::map<std::string, Var> & keywords();
 	};
 
+	/**
+	 * @brief Iterator
+	 */
+	class Iterator {
+	private:
+		std::vector<Var> & lst;
+		std::vector<Var>::iterator iter;
+	public:
+		Iterator(std::vector<Var> & lst) : lst(lst) {
+			iter = lst.begin();
+		}
+		virtual ~Iterator() {}
+
+		void offset(size_t o) {
+			iter += o;
+		}
+
+		bool hasNext() {
+			return (iter != lst.end());
+		}
+		Var & next() {
+			if (!hasNext()) {
+				throw LispException("out of bound");
+			}
+			return *(iter++);
+		}
+	};
+
 	extern Var pathname(Var path);
 	extern void native(Env & env);
 	extern void repl(Env & env);

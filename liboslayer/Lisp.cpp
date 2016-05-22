@@ -153,32 +153,6 @@ namespace LISP {
 		return _keywords;
 	}
 
-	class Iterator {
-	private:
-		vector<Var> & lst;
-		vector<Var>::iterator iter;
-	public:
-		Iterator(vector<Var> & lst) : lst(lst) {
-			iter = lst.begin();
-		}
-		virtual ~Iterator() {}
-
-		void offset(size_t o) {
-			iter += o;
-		}
-
-		bool hasNext() {
-			return (iter != lst.end());
-		}
-		Var & next() {
-			if (!hasNext()) {
-				throw LispException("out of bound");
-			}
-			return *(iter++);
-		}
-	};
-
-
 	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
 		string ret;
 		size_t f = 0;
