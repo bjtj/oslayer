@@ -583,15 +583,17 @@ namespace LISP {
 		std::map<std::string, Var> & keywords();
 	};
 
+
 	/**
 	 * @brief Iterator
 	 */
+	template <typename T>
 	class Iterator {
 	private:
-		std::vector<Var> & lst;
-		std::vector<Var>::iterator iter;
+		std::vector<T> & lst;
+		typename std::vector<T>::iterator iter;
 	public:
-		Iterator(std::vector<Var> & lst) : lst(lst) {
+		Iterator(std::vector<T> & lst) : lst(lst) {
 			iter = lst.begin();
 		}
 		virtual ~Iterator() {}
@@ -603,7 +605,7 @@ namespace LISP {
 		bool hasNext() {
 			return (iter != lst.end());
 		}
-		Var & next() {
+		T & next() {
 			if (!hasNext()) {
 				throw LispException("out of bound");
 			}

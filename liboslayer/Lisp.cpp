@@ -158,7 +158,7 @@ namespace LISP {
 		string ret;
 		size_t f = 0;
 		size_t s = 0;
-		Iterator iter(args);
+		Iterator<Var> iter(args);
 		iter.offset(offset);
 		while ((f = fmt.find("~", f)) != string::npos) {
 			if (f - s > 0) {

@@ -256,6 +256,28 @@ namespace UTIL {
 	string Text::quote(const string & str, const string & q) {
 		return q + str + q;
 	}
+	
+	vector<string> Text::toVector(const char * first, ...) {
+		vector<string> vec;
+		vec.push_back(first);
+		va_list args;
+        va_start(args, first);
+		for (const char * str = va_arg(args, const char *); str; str = va_arg(args, const char *)) {
+			vec.push_back(str);
+		}
+        va_end(args);
+		return vec;
+	}
+
+	map<string, string> Text::toMap(const vector<string> & vec) {
+		map<string, string> m;
+		for (size_t i = 0; i < vec.size(); i += 2) {
+			string n = vec[i];
+			string v = ((i + 1 < vec.size()) ? vec[i+1] : "");
+			m[n] = v;
+		}
+		return m;
+	}
 
 	/**
 	 * @brief to map string
