@@ -31,6 +31,7 @@ namespace LISP {
 	static void builtin_string(Env & env);
 	static void builtin_artithmetic(Env & env);
 	static void builtin_io(Env & env);
+	static void builtin_pathname(Env & env);
 	static void builtin_file(Env & env);
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
@@ -726,6 +727,7 @@ namespace LISP {
 		builtin_string(env);
 		builtin_artithmetic(env);
 		builtin_io(env);
+		builtin_pathname(env);
 		builtin_file(env);
 		builtin_socket(env);
 		builtin_system(env);
@@ -1128,12 +1130,39 @@ namespace LISP {
 				return text(msg);
 			});
 	}
-	void builtin_file(Env & env) {
+	void builtin_pathname(Env & env) {
 		DECL_NATIVE("pathname", Pathname, {
 				testArgumentCount(args, 1);
 				Var path = pathname(eval(args[0], env));
 				return path;
 			});
+		DECL_NATIVE("pathname-name", PathnameName, {
+				testArgumentCount(args, 1);
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getFileNameWithoutExtension());
+			});
+		DECL_NATIVE("pathname-type", PathnameType, {
+				testArgumentCount(args, 1);
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getExtension());
+			});
+		DECL_NATIVE("namestring", Namestring, {
+				testArgumentCount(args, 1);
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getPath());
+			});
+		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
+				testArgumentCount(args, 1);
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getDirectory());
+			});
+		DECL_NATIVE("file-namestring", FileNamestring, {
+				testArgumentCount(args, 1);
+				File file = pathname(eval(args[0], env)).getFile();
+				return text(file.getFileName());
+			});
+	}
+	void builtin_file(Env & env) {
 		DECL_NATIVE("dir", Dir, {
 				testArgumentCount(args, 0);
 				Var path = args.size() > 0 ? pathname(eval(args[0], env)) : "#p\".\"";
@@ -1158,21 +1187,6 @@ namespace LISP {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
 				return file.isFile();
-			});
-		DECL_NATIVE("pathname-name", PathnameName, {
-				testArgumentCount(args, 1);
-				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getName());
-			});
-		DECL_NATIVE("pathname-type", PathnameType, {
-				testArgumentCount(args, 1);
-				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getExtension());
-			});
-		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
-				testArgumentCount(args, 1);
-				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getPathPart());
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				testArgumentCount(args, 1);

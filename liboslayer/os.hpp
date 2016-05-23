@@ -230,6 +230,7 @@ public: \
 		Library(const std::string & path, const std::string & name);
 		virtual ~Library();
 		void load(const std::string & path, const std::string & name);
+		void close();
 		std::string & getPath();
 		std::string & getName();
 		LIB_HANDLE getHandle();
@@ -735,11 +736,10 @@ public: \
 		static bool isFile(const std::string & path);
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
-		static std::string getParentPath(const std::string & path);
-		static std::string getPathPart(const std::string & path);
-		static std::string getFileNamePart(const std::string & path);
+		static std::string getDirectory(const std::string & path);
+		static std::string getFileName(const std::string & path);
+		static std::string getFileNameWithoutExtension(const std::string & path);
 		static std::string getExtension(const std::string & path);
-		static std::string getEntityNamePart(const std::string & path);
 		static bool compareExtension(const std::string & path, std::string extension);
 		static int mkdir(const std::string & path);
 		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
@@ -747,27 +747,25 @@ public: \
 		static filesize_t getSize(const std::string & path);
 		static std::vector<File> list(const std::string & path);
 
-		std::string getName();
-		virtual std::string toString();
 		std::string getPath() const;
+		bool isRootPath() const;
+		bool isFullpath() const;
+		bool exists() const;
+		bool isFile() const;
+		bool isDirectory() const;
+		bool isWritable() const;
+		std::string getDirectory() const;
+		std::string getFileName() const;
+		std::string getFileNameWithoutExtension() const;
+		std::string getExtension() const;
+		bool compareExtension(std::string extension) const;
+		int mkdir() const;
+		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
+		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
+		filesize_t getSize() const;
+		std::vector<File> list() const;
 
-		bool isRootPath();
-		bool isFullpath();
-		bool exists();
-		bool isFile();
-		bool isDirectory();
-		bool isWritable();
-		std::string getParentPath();
-		std::string getPathPart();
-		std::string getFileNamePart();
-		std::string getExtension();
-		std::string getEntityNamePart();
-		bool compareExtension(std::string extension);
-		int mkdir();
-		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT);
-		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT);
-		filesize_t getSize();
-		std::vector<File> list();
+		virtual std::string toString() const;
 	};
 	
 }

@@ -92,13 +92,7 @@ namespace OS {
 		load(path, name);
 	}
 	Library::~Library() {
-#if defined(USE_UNIX_STD)
-		dlclose(handle);
-#elif defined(USE_MS_WIN)
-		FreeLibrary(handle);
-#else
-		throw NotImplementedException("Not implemeneted - free library");
-#endif
+		close();
 	}
 	void Library::load(const string & path, const string & name) {
 		string fullpath = File::mergePaths(path, s_to_lib_name(name));
@@ -110,8 +104,26 @@ namespace OS {
 		dlerror();
 #elif defined(USE_MS_WIN)
 		handle = LoadLibrary(fullpath.c_str());
+		if (!handle) {
+			throw Exception("LoadLibrary() failed");
+		}
 #else
 		throw NotImplementedException("Not implemeneted - load library");
+#endif
+	}
+	void Library::close() {
+#if defined(USE_UNIX_STD)
+		if (handle) {
+			dlclose(handle);
+			handle = NULL;
+		}
+#elif defined(USE_MS_WIN)
+		if (handle) {
+			FreeLibrary(handle);
+			handle = NULL;
+		}
+#else
+		throw NotImplementedException("Not implemeneted - free library");
 #endif
 	}
 	string & Library::getPath() {
@@ -1415,24 +1427,7 @@ namespace OS {
 	static bool s_is_writable(const string & path) {
 		return (access(path.c_str(), W_OK) == 0);
 	}
-	static string s_get_parent_path(const string & path) {
 
-		if (path.empty()) {
-			return "";
-		}
-
-		if (s_is_root_path(path)) {
-			return "";
-		}
-
-        string p = s_remove_last_separator(path);
-		size_t f = p.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return "";
-		}
-		
-		return p.substr(0, f);
-	}
 	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
@@ -1448,7 +1443,7 @@ namespace OS {
 	}
 	static string s_get_filename_part(const string & path) {
 
-		if (path.empty() || s_is_directory(path)) {
+		if (path.empty()) {
 			return "";
 		}
 		
@@ -1459,24 +1454,8 @@ namespace OS {
 
 		return path.substr(f + 1);
 	}
-	static string s_get_entity_name_part(const string & path) {
-		if (path.empty()) {
-			return "";
-		}
-
-		if (s_is_directory(path)) {
-            string p = s_remove_last_separator(path);
-			size_t f = p.find_last_of(s_get_separators());
-			if (f == string::npos) {
-				return p;
-			}
-			return p.substr(f+1);
-		}
-
-		return s_get_filename_part(path);
-	}
 	static string s_get_ext(const string & path) {
-		string name = s_get_entity_name_part(path);
+		string name = s_get_filename_part(path);
 		size_t f = name.find_last_of(".");
 		if (f == string::npos || f == 0) {
 			return "";
@@ -1570,10 +1549,8 @@ namespace OS {
 	static bool s_exists(const string & path);
 	static bool s_is_file(const string & path);
 	static bool s_is_directory(const string & path);
-	static string s_get_parent_path(const string & path);
 	static string s_get_path_part(const string & path);
 	static string s_get_filename_part(const string & path);
-	static string s_get_entity_name_part(const string & path);
 	static string s_get_ext(const string & path);
 	static int s_mkdir(const char *dir, int mode);
 	static TIME s_get_creation_date(const string & path);
@@ -1691,24 +1668,7 @@ namespace OS {
 		}
 		return (_access(path.c_str(), 2) == 0);
 	}
-	static string s_get_parent_path(const string & path) {
 
-		if (path.empty()) {
-			return "";
-		}
-
-		if (s_is_root_path(path)) {
-			return "";
-		}
-
-		string p = s_remove_last_separator(path);
-		int f = p.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return "";
-		}
-		
-		return p.substr(0, f);
-	}
 	static string s_get_path_part(const string & path) {
 		
 		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
@@ -1724,7 +1684,7 @@ namespace OS {
 	}
 	static string s_get_filename_part(const string & path) {
 
-		if (path.empty() || s_is_directory(path)) {
+		if (path.empty()) {
 			return "";
 		}
 		
@@ -1735,24 +1695,8 @@ namespace OS {
 
 		return path.substr(f + 1);
 	}
-	static string s_get_entity_name_part(const string & path) {
-		if (path.empty()) {
-			return "";
-		}
-
-		if (s_is_directory(path)) {
-			string p = s_remove_last_separator(path);
-			int f = p.find_last_of(s_get_separators());
-			if (f == string::npos) {
-				return p;
-			}
-			return p.substr(f+1);
-		}
-
-		return s_get_filename_part(path);
-	}
 	static string s_get_ext(const string & path) {
-		string name = s_get_entity_name_part(path);
+		string name = s_get_filename_part(path);
 		size_t f = name.find_last_of(".");
 		if (f == string::npos || f == 0) {
 			return "";
@@ -1945,24 +1889,26 @@ namespace OS {
 		return s_is_writable(path);
 	}
 
-	string File::getParentPath(const string & path) {
-		return s_get_parent_path(path);
-	}
-
-	string File::getPathPart(const string & path){
+	string File::getDirectory(const string & path){
 		return s_get_path_part(path);
 	}
 
-	string File::getFileNamePart(const string & path){
+	string File::getFileName(const string & path){
 		return s_get_filename_part(path);
+	}
+
+	string File::getFileNameWithoutExtension(const string & path) {
+		string fn = getFileName(path);
+		size_t dot = fn.find_last_of(".");
+		if (dot != std::string::npos && dot > 0) {
+			return fn.substr(0, dot);
+		}
+
+		return fn;
 	}
 
 	string File::getExtension(const string & path){
 		return s_get_ext(path);
-	}
-
-	string File::getEntityNamePart(const string & path) {
-		return s_get_entity_name_part(path);
 	}
 
 	bool File::compareExtension(const string & path, string extension){
@@ -1995,65 +1941,60 @@ namespace OS {
 	vector<File> File::list(const string & path) {
 		return s_list(path);
 	}
-	string File::getName() {
-		return getEntityNamePart(path);
-	}
-	string File::toString() {
+	string File::getPath() const {
 		return path;
 	}
-	std::string File::getPath() const {
-		return path;
-	}
-	bool File::isRootPath() {
+	bool File::isRootPath() const {
 		return File::isRootPath(path);
 	}
-	bool File::isFullpath() {
+	bool File::isFullpath() const {
 		return File::isFullpath(path);
 	}
-	bool File::exists() {
+	bool File::exists() const {
 		return File::exists(path);
 	}
-	bool File::isFile() {
+	bool File::isFile() const {
 		return File::isFile(path);
 	}
-	bool File::isDirectory() {
+	bool File::isDirectory() const {
 		return File::isDirectory(path);
 	}
-	bool File::isWritable() {
+	bool File::isWritable() const {
 		return File::isWritable(path);
 	}
-	string File::getParentPath() {
-		return File::getParentPath(path);
+	string File::getDirectory() const {
+		return File::getDirectory(path);
 	}
-	string File::getPathPart() {
-		return File::getPathPart(path);
+	string File::getFileName() const {
+		return File::getFileName(path);
 	}
-	string File::getFileNamePart() {
-		return File::getFileNamePart(path);
+	string File::getFileNameWithoutExtension() const {
+		return File::getFileNameWithoutExtension(path);
 	}
-	string File::getExtension() {
+	string File::getExtension() const {
 		return File::getExtension(path);
 	}
-	string File::getEntityNamePart() {
-		return File::getEntityNamePart(path);
-	}
-	bool File::compareExtension(string extension) {
+	bool File::compareExtension(string extension) const {
 		return File::compareExtension(path, extension);
 	}
-	int File::mkdir() {
+	int File::mkdir() const {
 		return File::mkdir(path);
 	}
-	string File::getCreationDate(const string & fmt) {
+	string File::getCreationDate(const string & fmt) const {
 		return File::getCreationDate(path, fmt);
 	}
-	string File::getModifiedDate(const string & fmt) {
+	string File::getModifiedDate(const string & fmt) const {
 		return File::getModifiedDate(path, fmt);
 	}
-	filesize_t File::getSize() {
+	filesize_t File::getSize() const {
 		return File::getSize(path);
 	}
-	vector<File> File::list() {
+	vector<File> File::list() const {
 		return File::list(path);
+	}
+
+	string File::toString() const {
+		return path;
 	}
 	
 } /* OS */
