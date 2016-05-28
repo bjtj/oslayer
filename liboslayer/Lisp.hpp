@@ -17,6 +17,9 @@ namespace LISP {
 	class Env;
 	class Var;
 
+	/**
+	 * @brief lisp exception
+	 */
 	class LispException : public OS::Exception{
 	private:
 	public:
@@ -30,10 +33,12 @@ namespace LISP {
 
 
 	typedef Var (*fn_proc)(Var name, std::vector<Var> & args, Env & env);
-	
 	extern std::string text(const std::string & txt);
 	extern std::string untext(const std::string & txt);
 
+	/**
+	 * @brief procedure (built-in function)
+	 */
 	class Procedure {
 	private:
 		std::string name;
@@ -43,7 +48,10 @@ namespace LISP {
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
 		std::string getName() const {return name;}
 	};
-    
+
+	/**
+	 * @brief lisp integer
+	 */
     class Integer {
     private:
         long long num;
@@ -99,6 +107,9 @@ namespace LISP {
         bool operator!= (const Integer & other) const {return num != other.num;}
     };
 
+	/**
+	 * @brief lisp float
+	 */
 	class Float {
 	private:
 		float num;
@@ -149,6 +160,9 @@ namespace LISP {
         bool operator!= (const Float & other) const {return num != other.num;}
 	};
 
+	/**
+	 * @brief lisp file descriptor
+	 */
 	class FileDescriptor {
 	private:
 		FILE * _fd;
@@ -200,7 +214,7 @@ namespace LISP {
 
 
 	/**
-	 * Var
+	 * @brief Var
 	 */
 	class Var {
 	public:
@@ -612,6 +626,10 @@ namespace LISP {
 			return *(iter++);
 		}
 	};
+
+	/**
+	 * @brief lisp utility
+	 */
 
 	extern Var pathname(Var path);
 	extern void native(Env & env);

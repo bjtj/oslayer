@@ -42,7 +42,7 @@ namespace UTIL {
 	private:
 		std::string programName;
 		std::vector<Variable> vars;
-		std::vector<std::string> texts;
+		std::vector<std::string> _texts;
 	public:
 		ArgumentParser();
 		virtual ~ArgumentParser();
@@ -66,7 +66,7 @@ namespace UTIL {
 		Variable & varWithIndicator(const std::string & indicator);
 		Variable & var(const std::string & name, const std::string & alias, const std::string & shortAlias);
 		Variable & var(const std::string & name);
-		std::vector<std::string> getTexts();
+		std::vector<std::string> texts();
 		std::string text(size_t idx);
 		std::string text(size_t idx, const std::string & def);
 		std::string getProgramName();

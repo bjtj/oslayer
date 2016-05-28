@@ -73,7 +73,7 @@ namespace UTIL {
 	void ArgumentParser::clear() {
 		programName.clear();
 		vars.clear();
-		texts.clear();
+		_texts.clear();
 	}
 	void ArgumentParser::parse(int argc, char * args[]) {
 		vector<string> lst;
@@ -116,7 +116,7 @@ namespace UTIL {
 					var(alias, alias, alias) = value;
 				}
 			} else {
-				texts.push_back(tok);
+				_texts.push_back(tok);
 			}
 		}
 	}
@@ -228,14 +228,14 @@ namespace UTIL {
 		vars.push_back(Variable(name));
 		return *vars.rbegin();
 	}
-	vector<string> ArgumentParser::getTexts() {
-		return texts;
+	vector<string> ArgumentParser::texts() {
+		return _texts;
 	}
 	string ArgumentParser::text(size_t idx) {
-		return texts[idx];
+		return _texts[idx];
 	}
 	string ArgumentParser::text(size_t idx, const string & def) {
-		if (idx >= texts.size()) {
+		if (idx >= _texts.size()) {
 			return def;
 		}
 		return text(idx);

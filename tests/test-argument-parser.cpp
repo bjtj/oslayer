@@ -24,9 +24,9 @@ public:
 			parser.parse(3, args);
 
 			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.getTexts().size(), ==, 2);
-			ASSERT(parser.getTexts()[0], ==, "a");
-			ASSERT(parser.getTexts()[1], ==, "b");
+			ASSERT(parser.texts().size(), ==, 2);
+			ASSERT(parser.texts()[0], ==, "a");
+			ASSERT(parser.texts()[1], ==, "b");
 			
 		}
 
@@ -43,9 +43,9 @@ public:
 			parser.parse(3, args);
 
 			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.getTexts().size(), ==, 2);
-			ASSERT(parser.getTexts()[0], ==, "a");
-			ASSERT(parser.getTexts()[1], ==, "b");
+			ASSERT(parser.texts().size(), ==, 2);
+			ASSERT(parser.texts()[0], ==, "a");
+			ASSERT(parser.texts()[1], ==, "b");
 			ASSERT(parser.var("greeting").value(), ==, "hello");
 		}
 
@@ -64,9 +64,9 @@ public:
 			parser.parse(5, args);
 
 			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.getTexts().size(), ==, 2);
-			ASSERT(parser.getTexts()[0], ==, "a");
-			ASSERT(parser.getTexts()[1], ==, "b");
+			ASSERT(parser.texts().size(), ==, 2);
+			ASSERT(parser.texts()[0], ==, "a");
+			ASSERT(parser.texts()[1], ==, "b");
 			ASSERT(parser.var("greeting").value(), ==, "allo");
 		}
 
@@ -115,9 +115,9 @@ public:
 			parser.parse(11, args);
 
 			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.getTexts().size(), ==, 2);
-			ASSERT(parser.getTexts()[0], ==, "text1");
-			ASSERT(parser.getTexts()[1], ==, "text2");
+			ASSERT(parser.texts().size(), ==, 2);
+			ASSERT(parser.texts()[0], ==, "text1");
+			ASSERT(parser.texts()[1], ==, "text2");
 			ASSERT(parser.varWithShortAlias("v").value(), ==, "yes");
 			ASSERT(parser.varWithAlias("oneline").value(), ==, "yes");
 			ASSERT(parser.varWithAlias("oneline").valueAsBoolean(), ==, true);
