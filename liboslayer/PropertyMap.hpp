@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "StringElement.hpp"
+#include "StringElements.hpp"
 
 namespace UTIL {
 
@@ -50,7 +50,7 @@ namespace UTIL {
 		}
 		bool has(const std::string & name) const {
 			for (std::vector<NameValueAttributes>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->name_const() == name) {
+				if (iter->const_name() == name) {
 					return true;
 				}
 			}
@@ -68,17 +68,17 @@ namespace UTIL {
 		}
 		NameValueAttributes get_const(const std::string & name) const {
 			for (std::vector<NameValueAttributes>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->name_const() == name) {
+				if (iter->const_name() == name) {
 					return *iter;
 				}
 			}
 			throw OS::Exception("no item found");
 		}
 		void set(const NameValue & nv) {
-			get(nv.name_const()).value() = nv.value_const();
+			get(nv.const_name()).value() = nv.const_value();
 		}
 		void set(const NameValueAttributes & nv) {
-			get(nv.name_const()).value() = nv.value_const();
+			get(nv.const_name()).value() = nv.const_value();
 		}
 		void append(const PropertyMap & m) {
 			for (size_t i = 0; i < m.size(); i++) {

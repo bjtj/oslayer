@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cstdarg>
 
 /**
  * @namespace UTIL
@@ -443,9 +444,9 @@ namespace UTIL {
             }
             
             const NameValue & nv = *iter;
-            ret.append(nv.name_const());
+            ret.append(nv.const_name());
             ret.append(item_sep);
-            ret.append(nv.value_const());
+            ret.append(nv.const_value());
         }
         return ret;
     }

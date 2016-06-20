@@ -11,6 +11,7 @@ liboslayerinc_HEADERS= \
 	FileReaderWriter.hpp \
 	FileStream.hpp \
 	Hash.hpp \
+	Iterator.hpp \
 	Lisp.hpp \
 	Logger.hpp \
 	MessageQueue.hpp \
@@ -21,9 +22,10 @@ liboslayerinc_HEADERS= \
 	PropertyMap.hpp \
 	Random.hpp \
 	RandomPortBinders.hpp \
+	Regex.hpp \
 	SecureSocket.hpp \
 	Socket.hpp \
-	StringElement.hpp \
+	StringElements.hpp \
 	Task.hpp \
 	TaskThreadPool.hpp \
 	TestSuite.hpp \
@@ -53,6 +55,7 @@ liboslayer_la_SOURCES= \
 	FileStream.cpp \
 	FileStream.hpp \
 	Hash.hpp \
+	Iterator.hpp \
 	Lisp.cpp \
 	Lisp.hpp \
 	Logger.cpp \
@@ -70,11 +73,14 @@ liboslayer_la_SOURCES= \
 	Random.hpp \
 	RandomPortBinders.cpp \
 	RandomPortBinders.hpp \
+	Regex.cpp \
+	Regex.hpp \
 	SecureSocket.cpp \
 	SecureSocket.hpp \
 	Socket.cpp \
 	Socket.hpp \
-	StringElement.hpp \
+	StringElements.cpp \
+	StringElements.hpp \
 	Task.hpp \
 	TaskThreadPool.cpp \
 	TaskThreadPool.hpp \

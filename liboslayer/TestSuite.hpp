@@ -101,6 +101,7 @@ namespace UTIL {
 		size_t passed();
 		size_t failed();
 		std::string toString();
+		void validate();
 	};
 
 }

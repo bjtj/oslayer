@@ -3,6 +3,9 @@
 
 namespace UTIL {
 
+	/**
+	 * @brief 
+	 */
 	class Hash {
 	private:
 	public:
@@ -11,7 +14,9 @@ namespace UTIL {
 		virtual unsigned long hash(const char * str) {}
 	};
 
-
+	/**
+	 * @brief 
+	 */
 	class SimpleHash : public Hash {
 	private:
 		unsigned long seed;

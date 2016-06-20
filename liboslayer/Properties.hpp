@@ -2,7 +2,7 @@
 #define __PROPERTIES_HPP__
 
 #include "os.hpp"
-#include "StringElement.hpp"
+#include "StringElements.hpp"
 #include "FileReaderWriter.hpp"
 #include <string>
 #include <vector>

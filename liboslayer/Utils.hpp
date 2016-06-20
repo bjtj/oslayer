@@ -6,7 +6,7 @@
 #include "FileReaderWriter.hpp"
 #include "Logger.hpp"
 #include "RandomPortBinders.hpp"
-#include "StringElement.hpp"
+#include "StringElements.hpp"
 #include "Text.hpp"
 #include "ThreadPool.hpp"
 

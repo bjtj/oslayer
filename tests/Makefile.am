@@ -2,7 +2,9 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-base64 \
 	test-random \
+	test-regex \
 	test-argument-parser \
 	test-text \
 	test-logger \
@@ -20,14 +22,16 @@ check_PROGRAMS = \
 	test-thread-pool \
 	test-task-thread-pool \
 	test-xml \
-	test-string-element \
+	test-string-elements \
 	test-property-map \
 	test-socket \
 	test-secure-socket \
 	test-observer-pattern
 
 test_os_SOURCES=test-os.cpp
+test_base64_SOURCES=test-base64.cpp
 test_random_SOURCES=test-random.cpp
+test_regex_SOURCES=test-regex.cpp
 test_argument_parser_SOURCES=test-argument-parser.cpp
 test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
@@ -45,7 +49,7 @@ test_message_queue_SOURCES=test-message-queue.cpp
 test_thread_pool_SOURCES=test-thread-pool.cpp
 test_task_thread_pool_SOURCES=test-task-thread-pool.cpp
 test_xml_SOURCES=test-xml.cpp
-test_string_element_SOURCES=test-string-element.cpp
+test_string_elements_SOURCES=test-string-elements.cpp
 test_property_map_SOURCES=test-property-map.cpp
 test_socket_SOURCES=test-socket.cpp
 test_secure_socket_SOURCES=test-secure-socket.cpp

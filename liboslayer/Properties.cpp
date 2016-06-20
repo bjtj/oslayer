@@ -92,7 +92,7 @@ namespace UTIL {
 		return properties.get(name).getValue();
 	}
 	string Properties::getProperty(const string & name, const string & def) {
-		if (!properties.has(name)) {
+		if (!properties.contains(name)) {
 			return def;
 		}
 		return properties.get(name).getValue();

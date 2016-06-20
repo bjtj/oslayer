@@ -132,4 +132,7 @@ namespace UTIL {
 		ss << "Failed: " << _failed << endl;
 		return ss.str();
 	}
+	void TestReport::validate() {
+		ASSERT(failed(), ==, 0);
+	}
 }
