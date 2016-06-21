@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "StringElements.hpp"
+#include "os.hpp"
 
 namespace UTIL {
 
