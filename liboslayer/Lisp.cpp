@@ -1070,22 +1070,45 @@ namespace LISP {
 		env["*standard-output*"] = FileDescriptor(stdout);
 		env["*standard-input*"] = FileDescriptor(stdin);
 		
-		DECL_NATIVE("read", Read, {
-				testArgumentCount(args, 1);
-				Var ret;
-				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
-				if (fd.eof()) {
-					return true;
-				}
-				BufferedCommandReader reader;
-				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
-
-				vector<string> commands = reader.getCommands();
-				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-					ret = compile(*iter, env);
-				}
-				return ret;
-			});
+        class Read : public Procedure {
+        public:
+            Read(const string & name) : Procedure(name) {}
+            virtual ~Read() {}
+            virtual Var proc(Var name, vector<Var> & args, Env & env) {
+                testArgumentCount(args, 1);
+                Var ret;
+                FileDescriptor fd = eval(args[0], env).getFileDescriptor();
+                if (fd.eof()) {
+                    return true;
+                }
+                BufferedCommandReader reader;
+                while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
+                
+                vector<string> commands = reader.getCommands();
+                for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
+                    ret = compile(*iter, env);
+                }
+                return ret;
+            }
+        };
+        env["read"] = Var(UTIL::AutoRef<Procedure>(new Read("read")));
+        
+//		DECL_NATIVE("read", Read, {
+//				testArgumentCount(args, 1);
+//				Var ret;
+//				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
+//				if (fd.eof()) {
+//					return true;
+//				}
+//				BufferedCommandReader reader;
+//				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
+//
+//				vector<string> commands = reader.getCommands();
+//				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
+//					ret = compile(*iter, env);
+//				}
+//				return ret;
+//			});
 		DECL_NATIVE("read-line", ReadLine, {
 				testArgumentCount(args, 1);
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
