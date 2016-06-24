@@ -5,7 +5,7 @@ using namespace std;
 using namespace UTIL;
 
 #define ASSERT(A,CMP,B) if (!(A CMP B)) {								\
-		cerr << #A <<  " should be " << #CMP << " " <<  B << " but " << A << endl; \
+		cerr << #A <<  " expected " << #CMP << " " <<  B << " but " << A << endl; \
 		exit(1);														\
 	}
 
@@ -23,6 +23,12 @@ static void test_properties() {
 	ASSERT(m["c"], ==, "C");
 	ASSERT(m["d"], ==, "D");
 	ASSERT(m["e"], ==, "E");
+
+	string dump = "# comment\nname1: value1\n\nname2: value2";
+	props.loadFromString(dump);
+
+	ASSERT(props["name1"], ==, "value1");
+	ASSERT(props["name2"], ==, "value2");
 }
 
 int main(int argc, char *args[]) {

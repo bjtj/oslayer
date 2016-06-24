@@ -27,6 +27,10 @@ namespace UTIL {
 		parsePropertiesString(dump);
 	}
 
+	void Properties::loadFromString(const string & text) {
+		parsePropertiesString(text);
+	}
+
 	void Properties::writeToFile(const string & filepath) {
         File file(filepath);
 		writeToFile(file);

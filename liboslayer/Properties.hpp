@@ -19,6 +19,7 @@ namespace UTIL {
 
 		void loadFromFile(const std::string & filepath);
 		void loadFromFile(OS::File & file);
+		void loadFromString(const std::string & text);
 		void writeToFile(const std::string & filepath);
 		void writeToFile(OS::File & file);
 
