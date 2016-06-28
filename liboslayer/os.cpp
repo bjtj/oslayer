@@ -135,7 +135,7 @@ namespace OS {
 	LIB_HANDLE Library::getHandle() {
 		return handle;
 	}
-	SYM_HANDLE Library::getSymbol(const std::string & sym) {
+	SYM_HANDLE Library::getSymbol(const string & sym) {
 #if defined(USE_UNIX_STD)
 		SYM_HANDLE ret = dlsym(handle, sym.c_str());
 		if (!ret) {
@@ -998,7 +998,7 @@ namespace OS {
 		return true;
 	}
 
-	void SocketUtil::throwSocketException(const std::string & message) {
+	void SocketUtil::throwSocketException(const string & message) {
 
 #if defined(USE_BSD_SOCKET)
         
@@ -1149,7 +1149,7 @@ namespace OS {
 		: data(data), size(size), length(0), remoteAddr(remoteAddr) {
 		System::getInstance();
 	}
-	DatagramPacket::DatagramPacket(char * data, size_t size, const std::string & host, int port)
+	DatagramPacket::DatagramPacket(char * data, size_t size, const string & host, int port)
 		: data(data), size(size), length(0), remoteAddr(host, port) {
 		System::getInstance();
 	}
@@ -1183,7 +1183,7 @@ namespace OS {
 		memcpy(this->data, data, size);
 		setLength(size);
 	}
-	void DatagramPacket::write(const std::string & data) {
+	void DatagramPacket::write(const string & data) {
 		write(data.c_str(), data.size());
 	}
 	void DatagramPacket::setLength(size_t length) {
@@ -1198,30 +1198,12 @@ namespace OS {
 	}
 	
 	/* Date */
-	
-#if defined(USE_UNIX_STD)
-	static string s_date_format(const string & fmt, TIME time) {
-		char buffer[1024] = {0,};
-		strftime(buffer, sizeof(buffer), fmt.c_str(), gmtime((time_t *)&time));
 
-		return string(buffer);
-	}
-#elif defined(USE_MS_WIN)
-	static string s_date_format(const string & fmt, TIME time) {
-		char buffer[1024] = {0,};
-		// SYSTEMTIME stUTC;
-		// FileTimeToSystemTime(&time, &stUTC);
-		// snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", stUTC.wYear, stUTC.wMonth, stUTC.wDay, stUTC.wHour, stUTC.wMinute, stUTC.wSecond);
-		snprintf(buffer, sizeof(buffer), "%d-%02d-%02d %02d:%02d:%02d", time.wYear, time.wMonth, time.wDay, time.wHour, time.wMinute, time.wSecond);
-		return string(buffer);
-	}
-#else
-	// sleep
-#endif
+	// http://www.cplusplus.com/reference/ctime/strftime/
 
-	string Date::DEFAULT_FORMAT = "%Y-%m-%d %H:%M:%S";
+	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
 
-	Date::Date() : year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	Date::Date() : gmtoff(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
 	}
 	Date::~Date() {
 	}
@@ -1239,7 +1221,8 @@ namespace OS {
         mach_port_deallocate(mach_task_self(), cclock);
         time_t t = (time_t)mts.tv_sec;
         struct tm info;
-        localtime_r(&t, &info);
+        localtime_r(&t, &info); // localtime
+		// gmtime_r(&t, &info); // gmt
         date.setYear(1900 + info.tm_year);
         date.setMonth(1 + info.tm_mon);
         date.setDay(info.tm_mday);
@@ -1254,9 +1237,10 @@ namespace OS {
         clock_gettime(CLOCK_REALTIME, &spec);
         time_t t = (time_t)spec.tv_sec;
         struct tm info;
-        localtime_r(&t, &info);
+        localtime_r(&t, &info); // localtime
+		// gmtime_r(&t, &info); // gmt
         date.setYear(1900 + info.tm_year);
-        date.setMonth(1 + info.tm_mon);
+        date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
@@ -1266,9 +1250,11 @@ namespace OS {
 #elif defined(USE_MS_WIN)
         
         SYSTEMTIME now;
-        GetLocalTime(&now);
+        GetLocalTime(&now); // localtime
+		// https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms724390(v=vs.85).aspx
+		// GetSystemTime(&now); // utc
 		date.setYear(now.wYear);
-		date.setMonth(now.wMonth);
+		date.setMonth(now.wMonth - 1);
 		date.setDay(now.wDay);
 		date.setHour(now.wHour);
 		date.setMinute(now.wMinute);
@@ -1279,19 +1265,89 @@ namespace OS {
 		return date;
 	}
 
+	static string s_to_string(int i) {
+		char num[512] = {0,};
+        snprintf(num, sizeof(num), "%d", i);
+        return string(num);
+	}
+
+	static string s_to_format_string(const char * fmt, int i) {
+		char num[512] = {0,};
+        snprintf(num, sizeof(num), fmt, i);
+        return string(num);
+	}
+
 	/**
 	 * @brief seconds to string
 	 * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
+	 * @ref http://www.cplusplus.com/reference/ctime/strftime/
 	 */
-	string Date::format(const string & fmt, TIME seconds) {
-		return s_date_format(fmt, seconds);
-	}
-    string Date::format(const std::string & fmt, const Date & date) {
-        // TODO: real formatter
-        char buffer[1024] = {0,};
-        snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d", date.getYear(), date.getMonth(), date.getDay(), date.getHour(), date.getMinute(), date.getSecond());
-        return buffer;
+    string Date::format(const string & fmt, const Date & date) {
+
+		if (fmt.empty()) {
+			return "";
+		}
+
+		string ret;
+		
+		for (size_t i = 0; i < fmt.size(); i++) {
+			char ch = fmt[i];
+			if (ch == '%') {
+				if (i >= fmt.size() - 1) {
+					ret.append(1, '%');
+					break;
+				}
+				i++;
+				switch (fmt[i]) {
+				case 'Y':
+					ret.append(s_to_format_string("%04d", date.getYear()));
+					break;
+				case 'y':
+					ret.append(s_to_format_string("%02d", date.getYear() % 100));
+					break;
+				case 'c':
+					ret.append(s_to_format_string("%02d", date.getMonth() + 1));
+					break;
+				case 'e':
+					ret.append(s_to_string(date.getMonth()));
+					break;
+				case 'd':
+					ret.append(s_to_format_string("%02d", date.getDay()));
+					break;
+				case 'H':
+					ret.append(s_to_format_string("%02d", date.getHour()));
+					break;
+				case 'h':
+					ret.append(s_to_format_string("%02d", date.getHour() % 12));
+					break;
+				case 'i':
+					ret.append(s_to_format_string("%02d", date.getMinute()));
+					break;
+				case 's':
+					ret.append(s_to_format_string("%02d", date.getSecond()));
+					break;
+				case 'f':
+					ret.append(s_to_string(date.getMillisecond()));
+					break;
+				case 'p':
+					ret.append(date.getHour() >= 12 ? "PM" : "AM");
+					break;
+				default:
+					ret.append(1, fmt[i]);
+					break;
+				}
+			} else {
+				ret.append(1, ch);
+			}
+		}
+		return ret;
     }
+	void Date::setGmtOffset(int gmtoff) {
+		this->gmtoff = gmtoff;
+	}
+	void Date::setTimezone(const string & timezone) {
+		this->timezone = timezone;
+	}
 	void Date::setYear(int year) {
 		this->year = year;
 	}
@@ -1312,6 +1368,12 @@ namespace OS {
 	}
 	void Date::setMillisecond(int millisecond) {
 		this->millisecond = millisecond;
+	}
+	int Date::getGmtOffset() const {
+		return gmtoff;
+	}
+	string Date::getTimezone() const {
+		return timezone;
 	}
 	int Date::getYear() const {
 		return year;
@@ -1337,6 +1399,20 @@ namespace OS {
 
 	// file system
 #if defined(USE_UNIX_STD)
+
+	static Date s_time_to_date(time_t t) {
+		Date date;
+        struct tm info;
+        // gmtime_r(&t, &info);
+		localtime_r(&t, &info);
+        date.setYear(1900 + info.tm_year);
+        date.setMonth(info.tm_mon);
+        date.setDay(info.tm_mday);
+        date.setHour(info.tm_hour);
+        date.setMinute(info.tm_min);
+        date.setSecond(info.tm_sec);
+		return date;
+	}
     
     static bool s_is_separator(char c, const string & separators);
 
@@ -1488,24 +1564,23 @@ namespace OS {
 		return mkdir(tmp, mode);
 	}
 
-	static TIME s_get_creation_date(const string & path) {
+	static Date s_get_creation_date(const string & path) {
 		struct stat st;
 		memset(&st, 0, sizeof(struct stat));
 		if (stat(path.c_str(), &st) != 0) {
-			return 0;
+			throw Exception("stat() failed");
 		}
-
-		return st.st_ctime;
+		return s_time_to_date(st.st_ctime);
 	}
 
-	static TIME s_get_modified_date(const string & path) {
+	static Date s_get_modified_date(const string & path) {
 		struct stat st;
 		memset(&st, 0, sizeof(struct stat));
 		if (stat(path.c_str(), &st) != 0) {
-			return 0;
+			throw Exception("stat() failed");
 		}
 
-		return st.st_mtime;
+		return s_time_to_date(st.st_mtime);
 	}
     
     static filesize_t s_get_file_size(const string & path) {
@@ -1517,8 +1592,8 @@ namespace OS {
         return st.st_size;
     }
 
-	static std::vector<File> s_list(const string & path) {
-		std::vector<File> ret;
+	static vector<File> s_list(const string & path) {
+		vector<File> ret;
 		struct dirent * ent = NULL;
 		struct dirent ** list = NULL;
 		int cnt;
@@ -1553,8 +1628,20 @@ namespace OS {
 	static string s_get_filename_part(const string & path);
 	static string s_get_ext(const string & path);
 	static int s_mkdir(const char *dir, int mode);
-	static TIME s_get_creation_date(const string & path);
-	static TIME s_get_modified_date(const string & path);
+	static Date s_get_creation_date(const string & path);
+	static Date s_get_modified_date(const string & path);
+
+	static Date s_systemtime_to_date(SYSTEMTIME t) {
+		Date date;
+		date.setYear(now.wYear);
+		date.setMonth(now.wMonth);
+		date.setDay(now.wDay);
+		date.setHour(now.wHour);
+		date.setMinute(now.wMinute);
+		date.setSecond(now.wSecond);
+		date.setMillisecond(now.wMilliseconds);
+		return date;
+	}
 
 	static const string s_get_separators() {
 		return "\\/";
@@ -1738,8 +1825,7 @@ namespace OS {
 		FileTimeToSystemTime(&ftime, &stime);
 		return stime;
 	}
-	static TIME s_get_creation_date(const string & path) {
-
+	static Date s_get_creation_date(const string & path) {
 		HANDLE hFile;
 		FILETIME ftCreate, ftAccess, ftWrite;
 		long int ret = 0;
@@ -1750,16 +1836,16 @@ namespace OS {
 
 		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 		if (hFile == INVALID_HANDLE_VALUE) {
-			return s_filetime_to_systemtime(ftCreate);
+			throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			return s_filetime_to_systemtime(ftCreate);
+			throw Exception("GetFileTime() failed");
 		}
 
-		return s_filetime_to_systemtime(ftCreate);
+		return s_systemtime_to_date(s_filetime_to_systemtime(ftCreate));
 	}
-	static TIME s_get_modified_date(const string & path) {
+	static Date s_get_modified_date(const string & path) {
 		HANDLE hFile;
 		FILETIME ftCreate, ftAccess, ftWrite;
 		long int ret = 0;
@@ -1770,14 +1856,14 @@ namespace OS {
 
 		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 		if (hFile == INVALID_HANDLE_VALUE) {
-			return s_filetime_to_systemtime(ftWrite);
+			throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			return s_filetime_to_systemtime(ftWrite);
+			throw Exception("GetFileTime() failed");
 		}
 
-		return s_filetime_to_systemtime(ftWrite);
+		return s_systemtime_to_date(s_filetime_to_systemtime(ftWrite));
 	}
 
 	static filesize_t s_get_file_size(const string & path) {
@@ -1793,9 +1879,9 @@ namespace OS {
 		return (filesize_t)st.st_size;
 	}
 
-	static std::vector<File> s_list(const string & path) {
+	static vector<File> s_list(const string & path) {
 
-		std::vector<File> ret;
+		vector<File> ret;
 
 		string dir = path;
 		dir.append("\\*");
@@ -1900,7 +1986,7 @@ namespace OS {
 	string File::getFileNameWithoutExtension(const string & path) {
 		string fn = getFileName(path);
 		size_t dot = fn.find_last_of(".");
-		if (dot != std::string::npos && dot > 0) {
+		if (dot != string::npos && dot > 0) {
 			return fn.substr(0, dot);
 		}
 
@@ -1928,12 +2014,12 @@ namespace OS {
 	}
 
 	string File::getCreationDate(const string & path, string fmt) {
-		TIME t = s_get_creation_date(path);
-		return Date::format(fmt, t);
+		Date date = s_get_creation_date(path);
+		return Date::format(fmt, date);
 	}
 	string File::getModifiedDate(const string & path, string fmt) {
-		TIME t = s_get_modified_date(path);
-		return Date::format(fmt, t);
+		Date date = s_get_modified_date(path);
+		return Date::format(fmt, date);
 	}
 	filesize_t File::getSize(const string & path) {
 		return s_get_file_size(path);

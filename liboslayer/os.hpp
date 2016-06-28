@@ -667,6 +667,8 @@ public: \
 	private:
 	public:
 		static std::string DEFAULT_FORMAT;
+		int gmtoff;
+		std::string timezone;
 		int year;
 		int month;
 		int day;
@@ -678,8 +680,9 @@ public: \
 		Date();
 		virtual ~Date();
 		static Date now();
-		static std::string format(const std::string & fmt, TIME seconds);
         static std::string format(const std::string & fmt, const Date & date);
+		void setGmtOffset(int gmtoff);
+		void setTimezone(const std::string & timezone);
 		void setYear(int year);
 		void setMonth(int month);
 		void setDay(int day);
@@ -687,6 +690,8 @@ public: \
 		void setMinute(int minute);
 		void setSecond(int second);
 		void setMillisecond(int millisecond);
+		int getGmtOffset() const;
+		std::string getTimezone() const;
 		int getYear() const;
 		int getMonth() const;
 		int getDay() const;

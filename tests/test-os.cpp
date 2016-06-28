@@ -7,6 +7,23 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
+static void test_date() {
+}
+
+static void test_file() {
+
+	ASSERT(system("touch ./xxxxxx"), ==, 0);
+
+	File file("./xxxxxx");
+
+	string c = file.getCreationDate();
+	cout << c << endl;
+
+	cout << Date::format("%Y-%c-%d %H:%i:%s", Date::now()) << endl;
+
+	ASSERT(system("rm ./xxxxxx"), ==, 0);
+}
+
 static void test_file_io() {
 
 	File file("big");
@@ -57,6 +74,8 @@ static void test_path() {
 
 int main(int argc, char *args[]) {
 
+	test_date();
+	test_file();
 	test_file_io();
 	test_path();
     

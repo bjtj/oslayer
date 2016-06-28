@@ -36,8 +36,6 @@
 #   include <mach/mach.h>
 #   include <dlfcn.h>
 
-#	define TIME time_t
-
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
 #	define USE_UNIX_STD
@@ -62,8 +60,6 @@
 #	include <fcntl.h>
 #	include <signal.h>
 #   include <dlfcn.h>
-
-#	define TIME time_t
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
