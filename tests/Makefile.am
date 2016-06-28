@@ -26,7 +26,8 @@ check_PROGRAMS = \
 	test-property-map \
 	test-socket \
 	test-secure-socket \
-	test-observer-pattern
+	test-observer-pattern \
+	test-register
 
 test_os_SOURCES=test-os.cpp
 test_base64_SOURCES=test-base64.cpp
@@ -54,6 +55,7 @@ test_property_map_SOURCES=test-property-map.cpp
 test_socket_SOURCES=test-socket.cpp
 test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
+test_register_SOURCES=test-register.cpp
 
 AM_CPPFLAGS=-I$(top_srcdir)
 AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\""

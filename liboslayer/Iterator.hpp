@@ -13,8 +13,8 @@ namespace UTIL {
 		std::vector<T> & _vec;
 		typename std::vector<T>::iterator _iter;
 	private:
-		Iterator(const Iterator<T> & other); // not allowed
-		Iterator & operator=(const Iterator<T> & other); // not allowed
+		// Iterator(const Iterator<T> & other); // not allowed
+		// Iterator & operator=(const Iterator<T> & other); // not allowed
 	public:
 		Iterator(std::vector<T> & vec) : _idx(0), _vec(vec), _iter(vec.begin()) {}
 		virtual ~Iterator() {}

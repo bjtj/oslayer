@@ -23,6 +23,7 @@ liboslayerinc_HEADERS= \
 	Random.hpp \
 	RandomPortBinders.hpp \
 	Regex.hpp \
+	Register.hpp \
 	SecureSocket.hpp \
 	Socket.hpp \
 	StringElements.hpp \
@@ -75,6 +76,7 @@ liboslayer_la_SOURCES= \
 	RandomPortBinders.hpp \
 	Regex.cpp \
 	Regex.hpp \
+	Register.hpp \
 	SecureSocket.cpp \
 	SecureSocket.hpp \
 	Socket.cpp \
