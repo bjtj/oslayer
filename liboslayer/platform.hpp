@@ -85,6 +85,7 @@
 #	define strcasecmp(x,y) _stricmp((x),(y))
 #	define strncasecmp(x,y,z) _strnicmp((x),(y),(z))
 #	define osl_vsnprintf(b,bs,f,v) vsnprintf_s((b),(bs),_TRUNCATE,(f),(v))
+#	define osl_strncpy(b,t,s) strncpy_s((b),(s),(t),_TRUNCATE)
 
 #	define TIME SYSTEMTIME
 

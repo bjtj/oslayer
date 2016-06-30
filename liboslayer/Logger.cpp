@@ -301,7 +301,7 @@ namespace UTIL {
 		virtual ~BasicFormatter() {}
 
 		virtual string getDate() {
-			return Date::format("", Date::now());
+			return Date::format("%Y-%c-%d %H:%i:%s.%f", Date::now());
 		}
 
 		virtual string format(const LogSession & session, const string & msg) {
