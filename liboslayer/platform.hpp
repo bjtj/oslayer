@@ -36,6 +36,8 @@
 #   include <mach/mach.h>
 #   include <dlfcn.h>
 
+#	define osl_vsnprintf vsnprintf
+
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
 #	define USE_UNIX_STD
@@ -61,6 +63,8 @@
 #	include <signal.h>
 #   include <dlfcn.h>
 
+#	define osl_vsnprintf vsnprintf
+
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
 // #	define _WIN32_WINNT 0x501 /* force to use windows xp APIs */
@@ -80,6 +84,7 @@
 
 #	define strcasecmp(x,y) _stricmp((x),(y))
 #	define strncasecmp(x,y,z) _strnicmp((x),(y),(z))
+#	define osl_vsnprintf(b,bs,f,v) vsnprintf_s((b),(bs),_TRUNCATE,(f),(v))
 
 #	define TIME SYSTEMTIME
 

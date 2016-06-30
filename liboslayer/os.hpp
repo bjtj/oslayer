@@ -504,8 +504,8 @@ public: \
         bool isSelectable();
         void setSelectable(bool selectable);
         
-		virtual void registerSelector(Selector & selector, unsigned long flags);
-		virtual void unregisterSelector(Selector & selector, unsigned long flags);
+		virtual void registerSelector(Selector & selector, unsigned char flags);
+		virtual void unregisterSelector(Selector & selector, unsigned char flags);
 		virtual bool isSelected(Selector & selector);
 		virtual bool isReadableSelected(Selector & selector);
 		virtual bool isWritableSelected(Selector & selector);

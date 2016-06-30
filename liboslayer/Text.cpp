@@ -334,7 +334,7 @@ namespace UTIL {
 	}
 
 	float Text::toFloat(const string & str) {
-		return atof(str.c_str());
+		return (float)atof(str.c_str());
 	}
 
 	/**
@@ -520,7 +520,7 @@ namespace UTIL {
         char buffer[1024] = {0,};
         va_list args;
         va_start(args, fmt);
-        vsnprintf(buffer, sizeof(buffer), fmt, args);
+        osl_vsnprintf(buffer, sizeof(buffer), fmt, args);
         va_end(args);
         return buffer;
     }

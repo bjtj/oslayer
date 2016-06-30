@@ -11,7 +11,7 @@ namespace OS {
 	}
 
 	bool Random::nextBool() {
-		return (bool)(rand() % 2);
+		return (rand() % 2 ? true : false);
 	}
 	int Random::nextInteger() {
 		return (int)rand();

@@ -844,10 +844,10 @@ namespace OS {
     void Selectable::setSelectable(bool selectable) {
         this->selectable = selectable;
     }
-	void Selectable::registerSelector(Selector & selector, unsigned long flags) {
+	void Selectable::registerSelector(Selector & selector, unsigned char flags) {
 		selector.set(getFd(), flags);
 	}
-	void Selectable::unregisterSelector(Selector & selector, unsigned long flags) {
+	void Selectable::unregisterSelector(Selector & selector, unsigned char flags) {
 		selector.unset(getFd(), flags);
 	}
 	bool Selectable::isSelected(Selector & selector) {
@@ -1633,13 +1633,13 @@ namespace OS {
 
 	static Date s_systemtime_to_date(SYSTEMTIME t) {
 		Date date;
-		date.setYear(now.wYear);
-		date.setMonth(now.wMonth);
-		date.setDay(now.wDay);
-		date.setHour(now.wHour);
-		date.setMinute(now.wMinute);
-		date.setSecond(now.wSecond);
-		date.setMillisecond(now.wMilliseconds);
+		date.setYear(t.wYear);
+		date.setMonth(t.wMonth);
+		date.setDay(t.wDay);
+		date.setHour(t.wHour);
+		date.setMinute(t.wMinute);
+		date.setSecond(t.wSecond);
+		date.setMillisecond(t.wMilliseconds);
 		return date;
 	}
 

@@ -69,6 +69,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\liboslayer\ArgumentParser.cpp" />
     <ClCompile Include="..\liboslayer\AutoRef.cpp" />
     <ClCompile Include="..\liboslayer\Base64.cpp" />
     <ClCompile Include="..\liboslayer\CountDownLatch.cpp" />
@@ -81,8 +82,11 @@
     <ClCompile Include="..\liboslayer\Process.cpp" />
     <ClCompile Include="..\liboslayer\Properties.cpp" />
     <ClCompile Include="..\liboslayer\DatagramSocket.cpp" />
+    <ClCompile Include="..\liboslayer\Random.cpp" />
+    <ClCompile Include="..\liboslayer\Regex.cpp" />
     <ClCompile Include="..\liboslayer\SecureSocket.cpp" />
     <ClCompile Include="..\liboslayer\Socket.cpp" />
+    <ClCompile Include="..\liboslayer\StringElements.cpp" />
     <ClCompile Include="..\liboslayer\TaskThreadPool.cpp" />
     <ClCompile Include="..\liboslayer\TestSuite.cpp" />
     <ClCompile Include="..\liboslayer\ThreadPool.cpp" />
@@ -91,6 +95,7 @@
     <ClCompile Include="..\liboslayer\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\liboslayer\ArgumentParser.hpp" />
     <ClInclude Include="..\liboslayer\AutoRef.hpp" />
     <ClInclude Include="..\liboslayer\AutoRelease.hpp" />
     <ClInclude Include="..\liboslayer\Base64.hpp" />
@@ -98,6 +103,7 @@
     <ClInclude Include="..\liboslayer\FileReaderWriter.hpp" />
     <ClInclude Include="..\liboslayer\FileStream.hpp" />
     <ClInclude Include="..\liboslayer\Hash.hpp" />
+    <ClInclude Include="..\liboslayer\Iterator.hpp" />
     <ClInclude Include="..\liboslayer\Lisp.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\MessageQueue.hpp" />
@@ -109,14 +115,17 @@
     <ClInclude Include="..\liboslayer\Properties.hpp" />
     <ClInclude Include="..\liboslayer\DatagramSocket.hpp" />
     <ClInclude Include="..\liboslayer\PropertyMap.hpp" />
+    <ClInclude Include="..\liboslayer\Random.hpp" />
+    <ClInclude Include="..\liboslayer\Regex.hpp" />
+    <ClInclude Include="..\liboslayer\Register.hpp" />
     <ClInclude Include="..\liboslayer\SecureSocket.hpp" />
     <ClInclude Include="..\liboslayer\Socket.hpp" />
+    <ClInclude Include="..\liboslayer\StringElements.hpp" />
     <ClInclude Include="..\liboslayer\Task.hpp" />
     <ClInclude Include="..\liboslayer\TaskThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\TestSuite.hpp" />
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
-    <ClInclude Include="..\liboslayer\StringElement.hpp" />
     <ClInclude Include="..\liboslayer\Text.hpp" />
     <ClInclude Include="..\liboslayer\Timer.hpp" />
     <ClInclude Include="..\liboslayer\Utils.hpp" />
