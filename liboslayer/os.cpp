@@ -66,7 +66,75 @@ namespace OS {
         
 		throw NotImplementedException("not implemented");
         
-#endif	
+#endif
+	}
+
+	/**
+	 * @brief 
+	 */
+	osl_time_t osl_get_time() {
+		
+#if defined(USE_APPLE_STD)
+        
+        // @ref http://stackoverflow.com/a/11681069
+
+		osl_time_t ti;
+        
+        clock_serv_t cclock;
+        mach_timespec_t mts;
+        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+        clock_get_time(cclock, &mts);
+        mach_port_deallocate(mach_task_self(), cclock);
+
+		ti.sec = mts.tv_sec;
+		ti.nano = mts.tv_nsec;
+
+		return ti;
+        
+#elif defined(USE_POSIX_STD)
+
+		osl_time_t ti;
+        
+        struct timespec spec;
+        clock_gettime(CLOCK_REALTIME, &spec);
+		
+		ti.sec = spec.tv_sec;
+		ti.nano = spec.tv_nsec;
+
+		return ti;
+        
+#elif defined(USE_MS_WIN)
+
+		// TODO: check in win32 machine
+		
+		osl_time_t ti;
+		
+		ULARGE_INTEGER time;
+		GetSystemTimeAsFileTime((FILETIME *)&time);
+
+		ti.sec = (unsigned long)(time / (ULARGE_INTEGER)10000000);
+		ti.nano = (time % (ULARGE_INTEGER)10000000) * 100;
+
+		return ti;
+#else
+
+		throw Exception("Not implemented");
+		
+#endif
+		
+	}
+
+	/**
+	 * @brief 
+	 */
+	osl_time_t osl_get_time_unix() {
+		osl_time_t ti = osl_get_time();
+
+#if defined(USE_MS_WIN)
+		ti.sec -= 11644473600LL;
+#endif
+
+		return ti;
 	}
 
 	/**
@@ -643,6 +711,7 @@ namespace OS {
     /* Network Interface */
     
     NetworkInterface::NetworkInterface(const string & name) : name(name), loopback(false) {
+		memset(mac_address, 0, sizeof(uint8_t) * 6);
     }
     NetworkInterface::~NetworkInterface() {
     }
@@ -661,28 +730,30 @@ namespace OS {
     vector<InetAddress> NetworkInterface::getInetAddresses() {
         return inetAddresses;
     }
-
 	const vector<InetAddress> NetworkInterface::getInetAddresses() const {
         return inetAddresses;
     }
-
+	void NetworkInterface::setMacAddress(const unsigned char * mac_address, size_t size) {
+		size_t s = sizeof(this->mac_address);
+		memcpy(this->mac_address, mac_address, (s < size ? s : size));
+	}
+	void NetworkInterface::getMacAddress(unsigned char * out, size_t size) const {
+		size_t s = sizeof(this->mac_address);
+		memcpy(out, this->mac_address, (s < size ? s : size));
+	}
 	void NetworkInterface::setLoopBack(bool loopback) {
 		this->loopback = loopback;
 	}
-
-    bool NetworkInterface::isLoopBack() {
+    bool NetworkInterface::isLoopBack() const {
 		if (loopback) {
 			return true;
 		}
-
-        for (size_t i = 0; i < inetAddresses.size(); i++) {
-            InetAddress & addr = inetAddresses[i];
-            if (!addr.getHost().compare("127.0.0.1") ||
-                !addr.getHost().compare("::1")) {
+		for (vector<InetAddress>::const_iterator iter = inetAddresses.begin(); iter != inetAddresses.end(); iter++) {
+			if (!iter->getHost().compare("127.0.0.1") ||
+                !iter->getHost().compare("::1")) {
                 return true;
             }
-        }
-
+		}
         return false;
     }
     
@@ -711,9 +782,40 @@ namespace OS {
         
         while (tmp) {
             
-            if (tmp->ifa_addr && (tmp->ifa_addr->sa_family == AF_INET || tmp->ifa_addr->sa_family == AF_INET6)) {
-                NetworkInterface & iface = s_obtain_network_interface(ifaces, tmp->ifa_name);
-                iface.setInetAddress(InetAddress((struct sockaddr*)tmp->ifa_addr));
+            if (tmp->ifa_addr) {
+
+				NetworkInterface & iface = s_obtain_network_interface(ifaces, tmp->ifa_name);
+
+				switch (tmp->ifa_addr->sa_family) {
+				case AF_INET:
+					{
+						iface.setInetAddress(InetAddress((struct sockaddr*)tmp->ifa_addr));
+					}
+					break;
+				case AF_INET6:
+					{
+						iface.setInetAddress(InetAddress((struct sockaddr*)tmp->ifa_addr));
+					}
+					break;
+#if defined(USE_APPLE_STD)
+				case AF_LINK:
+					{
+						unsigned char * ptr = (unsigned char *)LLADDR((struct sockaddr_dl *)(tmp->ifa_addr));
+						iface.setMacAddress(ptr, 6);
+					}
+					break;
+#else
+				case AF_PACKET:
+					{
+						struct sockaddr_ll * s = (struct sockaddr_ll*)tmp->ifa_addr;
+						iface.setMacAddress(s->sll_addr, 6);
+					}
+					break;
+#endif
+				default:
+					break;
+				}
+                
             }
             
             tmp = tmp->ifa_next;
@@ -1199,15 +1301,7 @@ namespace OS {
 	
 	/* Date */
 
-	// http://www.cplusplus.com/reference/ctime/strftime/
-
-	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
-
-	Date::Date() : gmtoff(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
-	}
-	Date::~Date() {
-	}
-	Date Date::now() {
+	static Date s_get_localtime() {
 		Date date;
 
 #if defined(USE_APPLE_STD)
@@ -1221,8 +1315,7 @@ namespace OS {
         mach_port_deallocate(mach_task_self(), cclock);
         time_t t = (time_t)mts.tv_sec;
         struct tm info;
-        localtime_r(&t, &info); // localtime
-		// gmtime_r(&t, &info); // gmt
+        localtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
         date.setMonth(1 + info.tm_mon);
         date.setDay(info.tm_mday);
@@ -1237,8 +1330,7 @@ namespace OS {
         clock_gettime(CLOCK_REALTIME, &spec);
         time_t t = (time_t)spec.tv_sec;
         struct tm info;
-        localtime_r(&t, &info); // localtime
-		// gmtime_r(&t, &info); // gmt
+        localtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
@@ -1250,9 +1342,7 @@ namespace OS {
 #elif defined(USE_MS_WIN)
         
         SYSTEMTIME now;
-        GetLocalTime(&now); // localtime
-		// https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms724390(v=vs.85).aspx
-		// GetSystemTime(&now); // utc
+        GetLocalTime(&now);
 		date.setYear(now.wYear);
 		date.setMonth(now.wMonth - 1);
 		date.setDay(now.wDay);
@@ -1263,6 +1353,73 @@ namespace OS {
         
 #endif
 		return date;
+	}
+
+	static Date s_get_gmttime() {
+		Date date;
+
+#if defined(USE_APPLE_STD)
+        
+        // @ref http://stackoverflow.com/a/11681069
+        
+        clock_serv_t cclock;
+        mach_timespec_t mts;
+        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+        clock_get_time(cclock, &mts);
+        mach_port_deallocate(mach_task_self(), cclock);
+        time_t t = (time_t)mts.tv_sec;
+        struct tm info;
+		gmtime_r(&t, &info);
+        date.setYear(1900 + info.tm_year);
+        date.setMonth(1 + info.tm_mon);
+        date.setDay(info.tm_mday);
+        date.setHour(info.tm_hour);
+        date.setMinute(info.tm_min);
+        date.setSecond(info.tm_sec);
+        date.setMillisecond(mts.tv_nsec / 1000000);
+        
+#elif defined(USE_POSIX_STD)
+        
+        struct timespec spec;
+        clock_gettime(CLOCK_REALTIME, &spec);
+        time_t t = (time_t)spec.tv_sec;
+        struct tm info;
+		gmtime_r(&t, &info);
+        date.setYear(1900 + info.tm_year);
+        date.setMonth(info.tm_mon);
+        date.setDay(info.tm_mday);
+        date.setHour(info.tm_hour);
+        date.setMinute(info.tm_min);
+        date.setSecond(info.tm_sec);
+        date.setMillisecond(spec.tv_nsec / 1000000);
+        
+#elif defined(USE_MS_WIN)
+        
+        SYSTEMTIME now;
+		GetSystemTime(&now);
+		date.setYear(now.wYear);
+		date.setMonth(now.wMonth - 1);
+		date.setDay(now.wDay);
+		date.setHour(now.wHour);
+		date.setMinute(now.wMinute);
+		date.setSecond(now.wSecond);
+		date.setMillisecond(now.wMilliseconds);
+        
+#endif
+		return date;
+	}
+
+	// http://www.cplusplus.com/reference/ctime/strftime/
+
+	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
+
+	Date::Date() : gmtoff(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	}
+	Date::~Date() {
+	}
+	Date Date::now() {
+		(void)s_get_gmttime;
+		return s_get_localtime();
 	}
 
 	static string s_to_string(int i) {

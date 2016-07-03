@@ -75,9 +75,15 @@ typedef HANDLE THREAD_HANDLE;
 #	include <sys/stat.h>
 #	include <sys/socket.h>
 #	include <ifaddrs.h>
-
 #	include <netdb.h>
 #	include <netinet/in.h>
+
+#	if defined(USE_APPLE_STD)
+#		include <net/if_dl.h>
+#	else
+#		include <linux/if_packet.h>
+#		include <net/ethernet.h>
+#	endif
 
 typedef int SOCK_HANDLE;
 
@@ -216,6 +222,24 @@ public: \
 	 * @brief get tick count
 	 */
 	unsigned long tick_milli();
+
+	/**
+	 * @brief 
+	 */
+	typedef struct _osl_time_t {
+		unsigned long sec;
+		unsigned long nano;
+	} osl_time_t;
+
+	/**
+	 * @brief 
+	 */
+	osl_time_t osl_get_time();
+
+	/**
+	 * @brief 
+	 */
+	osl_time_t osl_get_time_unix();
 
 	/**
 	 * @brief library
@@ -433,26 +457,25 @@ public: \
      * @brief network interface
      */
     class NetworkInterface {
-    private:
-        std::string name;
+	private:
+		std::string name;
 		std::string description;
-        std::vector<InetAddress> inetAddresses;
+		std::vector<InetAddress> inetAddresses;
+		char mac_address[6];
 		bool loopback;
-
-    public:
-        NetworkInterface(const std::string & name);
-        virtual ~NetworkInterface();
-        
-        std::string getName() const;
+	public:
+		NetworkInterface(const std::string & name);
+		virtual ~NetworkInterface();
+		std::string getName() const;
 		void setDescription(const std::string & description);
 		std::string getDescription() const;
-        void setInetAddress(const InetAddress & address);
-        std::vector<InetAddress> getInetAddresses();
+		void setInetAddress(const InetAddress & address);
+		std::vector<InetAddress> getInetAddresses();
 		const std::vector<InetAddress> getInetAddresses() const;
-        
+		void setMacAddress(const unsigned char * mac_address, size_t size);
+		void getMacAddress(unsigned char * out, size_t size) const;
 		void setLoopBack(bool loopback);
-        bool isLoopBack();
-        
+		bool isLoopBack() const;
     };
 
 	/**
@@ -769,10 +792,8 @@ public: \
 		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
 		filesize_t getSize() const;
 		std::vector<File> list() const;
-
 		virtual std::string toString() const;
-	};
-	
+	};	
 }
 
 #endif

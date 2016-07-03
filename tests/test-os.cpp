@@ -7,7 +7,9 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
-static void test_date() {
+static void test_time() {
+	osl_time_t ti = osl_get_time();
+	printf("%lu.%lu (0x%lx.0x%lx)\n", ti.sec, ti.nano, ti.sec, ti.nano);
 }
 
 static void test_file() {
@@ -74,7 +76,7 @@ static void test_path() {
 
 int main(int argc, char *args[]) {
 
-	test_date();
+	test_time();
 	test_file();
 	test_file_io();
 	test_path();
