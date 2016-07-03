@@ -37,6 +37,7 @@
 #   include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
+#	define osl_strncpy strncpy
 
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
@@ -64,6 +65,7 @@
 #   include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
+#	define osl_strncpy strncpy
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
