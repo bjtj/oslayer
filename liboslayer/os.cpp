@@ -112,8 +112,10 @@ namespace OS {
 		ULARGE_INTEGER time;
 		GetSystemTimeAsFileTime((FILETIME *)&time);
 
-		ti.sec = (unsigned long)(time / (ULARGE_INTEGER)10000000);
-		ti.nano = (time % (ULARGE_INTEGER)10000000) * 100;
+		unsigned __int64 uit = time.QuadPart;
+
+		ti.sec = (unsigned long)(uit / 10000000);
+		ti.nano = (unsigned long)(uit % 10000000) * 100;
 
 		return ti;
 #else
@@ -131,7 +133,7 @@ namespace OS {
 		osl_time_t ti = osl_get_time();
 
 #if defined(USE_MS_WIN)
-		ti.sec -= 11644473600LL;
+		ti.sec = (unsigned long)(ti.sec - (unsigned long)11644473600LL);
 #endif
 
 		return ti;
@@ -711,7 +713,7 @@ namespace OS {
     /* Network Interface */
     
     NetworkInterface::NetworkInterface(const string & name) : name(name), loopback(false) {
-		memset(mac_address, 0, sizeof(uint8_t) * 6);
+		memset(mac_address, 0, 6);
     }
     NetworkInterface::~NetworkInterface() {
     }
@@ -1417,8 +1419,7 @@ namespace OS {
 	}
 	Date::~Date() {
 	}
-	Date Date::now() {
-		(void)s_get_gmttime;
+	Date Date::now() {		
 		return s_get_localtime();
 	}
 
@@ -1791,7 +1792,7 @@ namespace OS {
 	static Date s_systemtime_to_date(SYSTEMTIME t) {
 		Date date;
 		date.setYear(t.wYear);
-		date.setMonth(t.wMonth);
+		date.setMonth(t.wMonth - 1);
 		date.setDay(t.wDay);
 		date.setHour(t.wHour);
 		date.setMinute(t.wMinute);
@@ -1979,7 +1980,9 @@ namespace OS {
 	}
 	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
 		SYSTEMTIME stime;
-		FileTimeToSystemTime(&ftime, &stime);
+		FILETIME localtime;
+		FileTimeToLocalFileTime(&ftime, &localtime);
+		FileTimeToSystemTime(&localtime, &stime);
 		return stime;
 	}
 	static Date s_get_creation_date(const string & path) {
@@ -1997,8 +2000,11 @@ namespace OS {
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
+			CloseHandle(hFile);
 			throw Exception("GetFileTime() failed");
 		}
+
+		CloseHandle(hFile);
 
 		return s_systemtime_to_date(s_filetime_to_systemtime(ftCreate));
 	}
@@ -2017,8 +2023,11 @@ namespace OS {
 		}
 
 		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
+			CloseHandle(hFile);
 			throw Exception("GetFileTime() failed");
 		}
+
+		CloseHandle(hFile);
 
 		return s_systemtime_to_date(s_filetime_to_systemtime(ftWrite));
 	}

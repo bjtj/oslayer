@@ -269,6 +269,14 @@ namespace UTIL {
         va_end(args);
 		return vec;
 	}
+	
+	vector<string> Text::toVector(int cnt, char ** strs) {
+		vector<string> vec;
+		for (int i = 0; i < cnt; i++) {
+			vec.push_back(string(strs[i]));
+		}
+		return vec;
+	}
 
 	map<string, string> Text::toMap(const vector<string> & vec) {
 		map<string, string> m;

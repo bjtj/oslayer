@@ -14,7 +14,9 @@ static void test_time() {
 
 static void test_file() {
 
-	ASSERT(system("touch ./xxxxxx"), ==, 0);
+	cout << File::getCwd() << endl;
+
+	ASSERT(system("touch xxxxxx"), ==, 0);
 
 	File file("./xxxxxx");
 
@@ -23,7 +25,11 @@ static void test_file() {
 
 	cout << Date::format("%Y-%c-%d %H:%i:%s", Date::now()) << endl;
 
-	ASSERT(system("rm ./xxxxxx"), ==, 0);
+#if defined(USE_MS_WIN)
+	ASSERT(system("del xxxxxx"), ==, 0);
+#else
+	ASSERT(system("rm xxxxxx"), ==, 0);
+#endif
 }
 
 static void test_file_io() {
@@ -70,7 +76,10 @@ static void test_path() {
 	ASSERT(File::getDirectory("/file.mp4"), ==, "/");
 	ASSERT(File::mergePaths("/", "file.mp4"), ==, "/file.mp4");
 	ASSERT(File::mergePaths("./", "file.mp4"), ==, "./file.mp4");
-	ASSERT(File::mergePaths(".", "file.mp4"), ==, "./file.mp4");
+
+	string path = File::mergePaths(".", "file.mp4");
+
+	ASSERT((path == "./file.mp4" || path == ".\\file.mp4"), ==, true);
 	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
 }
 
