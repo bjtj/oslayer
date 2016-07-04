@@ -7,6 +7,7 @@ liboslayerinc_HEADERS= \
 	AutoRelease.hpp \
 	Base64.hpp \
 	CountDownLatch.hpp \
+	DatabaseConnection.hpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.hpp \
 	FileStream.hpp \
@@ -34,6 +35,7 @@ liboslayerinc_HEADERS= \
 	ThreadPool.hpp \
 	Timer.hpp \
 	Utils.hpp \
+	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
 	os.hpp \
@@ -49,6 +51,8 @@ liboslayer_la_SOURCES= \
 	Base64.hpp \
 	CountDownLatch.cpp \
 	CountDownLatch.hpp \
+	DatabaseConnection.cpp \
+	DatabaseConnection.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
 	FileReaderWriter.cpp \
@@ -95,6 +99,8 @@ liboslayer_la_SOURCES= \
 	Timer.cpp \
 	Timer.hpp \
 	Utils.hpp \
+	Uuid.cpp \
+	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
 	os.cpp \
