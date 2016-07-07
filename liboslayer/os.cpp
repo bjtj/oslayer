@@ -1319,7 +1319,7 @@ namespace OS {
         struct tm info;
         localtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
-        date.setMonth(1 + info.tm_mon);
+        date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
@@ -1373,7 +1373,7 @@ namespace OS {
         struct tm info;
 		gmtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
-        date.setMonth(1 + info.tm_mon);
+        date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
