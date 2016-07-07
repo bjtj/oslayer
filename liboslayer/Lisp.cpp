@@ -1706,7 +1706,7 @@ namespace LISP {
 				memset(buffer, 0, sizeof(buffer));
 				Date date = Date::now();
 				snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d.%d",
-						 date.getYear(), date.getMonth(), date.getDay(),
+						 date.getYear(), date.getMonth() + 1, date.getDay(),
 						 date.getHour(), date.getMinute(), date.getSecond(),
 						 date.getMillisecond());
 				return Var(text(buffer));
