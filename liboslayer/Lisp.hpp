@@ -430,31 +430,31 @@ namespace LISP {
 	/**
 	 * @brief Iterator
 	 */
-	template <typename T>
-	class Iterator {
-	private:
-		std::vector<T> & lst;
-		typename std::vector<T>::iterator iter;
-	public:
-		Iterator(std::vector<T> & lst) : lst(lst) {
-			iter = lst.begin();
-		}
-		virtual ~Iterator() {}
+	// template <typename T>
+	// class Iterator {
+	// private:
+	// 	std::vector<T> & lst;
+	// 	typename std::vector<T>::iterator iter;
+	// public:
+	// 	Iterator(std::vector<T> & lst) : lst(lst) {
+	// 		iter = lst.begin();
+	// 	}
+	// 	virtual ~Iterator() {}
 
-		void offset(size_t o) {
-			iter += o;
-		}
+	// 	void offset(size_t o) {
+	// 		iter += o;
+	// 	}
 
-		bool hasNext() {
-			return (iter != lst.end());
-		}
-		T & next() {
-			if (!hasNext()) {
-				throw LispException("out of bound");
-			}
-			return *(iter++);
-		}
-	};
+	// 	bool hasNext() {
+	// 		return (iter != lst.end());
+	// 	}
+	// 	T & next() {
+	// 		if (!hasNext()) {
+	// 			throw LispException("out of bound");
+	// 		}
+	// 		return *(iter++);
+	// 	}
+	// };
 
 	/**
 	 * @brief lisp utility

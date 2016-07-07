@@ -3,6 +3,7 @@
 #include "utils.hpp"
 
 using namespace std;
+using namespace OS;
 using namespace LISP;
 
 static Var parseAndEval(const string & cmd, Env & env) {
@@ -449,13 +450,12 @@ static void test_format() {
 	native(env);
 
 	ASSERT(compile("(format nil \"hello world\")", env).toString(), ==, "hello world");
-
 	ASSERT(compile("(format nil \"hello, ~a?\" \"friend\")", env).toString(), ==, "hello, friend?");
 
 	string err;
 	try {
 		compile("(format nil \"hello ~a\")", env);
-	} catch (LispException & e) {
+	} catch (Exception & e) {
 		err = e.getMessage();
 	}
 	ASSERT(err, ==, "out of bound");

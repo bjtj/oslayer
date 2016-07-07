@@ -1,6 +1,7 @@
 #include "Lisp.hpp"
 #include "os.hpp"
 #include "Text.hpp"
+#include "Iterator.hpp"
 #include "FileReaderWriter.hpp"
 
 #define DECL_NATIVE(NAME,CLS,CODE)										\
@@ -576,12 +577,11 @@ namespace LISP {
 		return _keywords;
 	}
 
-	static string format(Env & env, const string & fmt, vector<Var> & args, size_t offset) {
+	static string format(Env & env, const string & fmt, vector<Var> & args) {
 		string ret;
 		size_t f = 0;
 		size_t s = 0;
 		Iterator<Var> iter(args);
-		iter.offset(offset);
 		while ((f = fmt.find("~", f)) != string::npos) {
 			if (f - s > 0) {
 				ret.append(fmt.substr(s, f - s));
@@ -1377,7 +1377,8 @@ namespace LISP {
 		DECL_NATIVE("format", Format, {
 				testArgumentCount(args, 2);
 				Var test = eval(args[0], env);
-				string str = format(env, args[1].toString(), args, 2);
+				vector<Var> fargs(args.begin() + 2, args.end());
+				string str = format(env, args[1].toString(), fargs);
 				if (!test.isNil()) {
 					fputs(str.c_str(), stdout);
 					fputs("\n", stdout);

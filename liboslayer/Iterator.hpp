@@ -1,6 +1,7 @@
 #ifndef __ITERATOR_HPP__
 #define __ITERATOR_HPP__
 
+#include "os.hpp"
 #include <string>
 #include <vector>
 
@@ -29,7 +30,7 @@ namespace UTIL {
 		}
 		T & next() {
 			if (!hasNext()) {
-				throw "out of bound";
+				throw OS::Exception("out of bound");
 			}
 			_idx++;
 			return *_iter++;
