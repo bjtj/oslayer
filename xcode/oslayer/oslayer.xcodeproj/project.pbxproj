@@ -28,6 +28,11 @@
 		E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940301D19F97100192CBB /* ArgumentParser.cpp */; };
 		E86940441D19F9F400192CBB /* Random.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940331D19F97100192CBB /* Random.cpp */; };
 		E86940451D19F9F400192CBB /* StringElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940371D19F97100192CBB /* StringElements.cpp */; };
+		E86940621D2A66B900192CBB /* DatabaseConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */; };
+		E86940631D2A66B900192CBB /* Uuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940601D2A66B900192CBB /* Uuid.cpp */; };
+		E86940641D2A66ED00192CBB /* DatabaseConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */; };
+		E86940651D2A66ED00192CBB /* Uuid.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940601D2A66B900192CBB /* Uuid.cpp */; };
+		E86940661D2A66ED00192CBB /* Regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940351D19F97100192CBB /* Regex.cpp */; };
 		E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */; };
 		E87F36511C4CFF1B00970869 /* SecureSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */; };
 		E882FE821BD5312600E1C8C7 /* oslayer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E882FE811BD5312600E1C8C7 /* oslayer.h */; };
@@ -115,6 +120,11 @@
 		E86940361D19F97100192CBB /* Regex.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Regex.hpp; path = ../../liboslayer/Regex.hpp; sourceTree = "<group>"; };
 		E86940371D19F97100192CBB /* StringElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = StringElements.cpp; path = ../../liboslayer/StringElements.cpp; sourceTree = "<group>"; };
 		E86940381D19F97100192CBB /* StringElements.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = StringElements.hpp; path = ../../liboslayer/StringElements.hpp; sourceTree = "<group>"; };
+		E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatabaseConnection.cpp; path = ../../liboslayer/DatabaseConnection.cpp; sourceTree = "<group>"; };
+		E869405E1D2A66B900192CBB /* DatabaseConnection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatabaseConnection.hpp; path = ../../liboslayer/DatabaseConnection.hpp; sourceTree = "<group>"; };
+		E869405F1D2A66B900192CBB /* Register.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Register.hpp; path = ../../liboslayer/Register.hpp; sourceTree = "<group>"; };
+		E86940601D2A66B900192CBB /* Uuid.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uuid.cpp; path = ../../liboslayer/Uuid.cpp; sourceTree = "<group>"; };
+		E86940611D2A66B900192CBB /* Uuid.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Uuid.hpp; path = ../../liboslayer/Uuid.hpp; sourceTree = "<group>"; };
 		E87F364B1C4CF2AF00970869 /* SecureSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SecureSocket.cpp; path = ../../liboslayer/SecureSocket.cpp; sourceTree = "<group>"; };
 		E87F364C1C4CF2AF00970869 /* SecureSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = SecureSocket.hpp; path = ../../liboslayer/SecureSocket.hpp; sourceTree = "<group>"; };
 		E882FE7E1BD5312600E1C8C7 /* liboslayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liboslayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -205,6 +215,11 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */,
+				E869405E1D2A66B900192CBB /* DatabaseConnection.hpp */,
+				E869405F1D2A66B900192CBB /* Register.hpp */,
+				E86940601D2A66B900192CBB /* Uuid.cpp */,
+				E86940611D2A66B900192CBB /* Uuid.hpp */,
 				E86940301D19F97100192CBB /* ArgumentParser.cpp */,
 				E86940311D19F97100192CBB /* ArgumentParser.hpp */,
 				E86940321D19F97100192CBB /* Iterator.hpp */,
@@ -350,6 +365,7 @@
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */,
 				E89501421C146379009434B1 /* Socket.cpp in Sources */,
+				E86940621D2A66B900192CBB /* DatabaseConnection.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
 				E8447C971BF4AC11000E2903 /* RandomPortBinders.cpp in Sources */,
@@ -361,6 +377,7 @@
 				E8B161601C0054D4002D68C7 /* AutoRef.cpp in Sources */,
 				E8447C961BF4AC11000E2903 /* FileReaderWriter.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
+				E86940631D2A66B900192CBB /* Uuid.cpp in Sources */,
 				E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */,
 				E869403B1D19F97100192CBB /* Regex.cpp in Sources */,
 				E882FEA81BD687E100E1C8C7 /* OSThread.mm in Sources */,
@@ -376,6 +393,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E86940641D2A66ED00192CBB /* DatabaseConnection.cpp in Sources */,
+				E86940651D2A66ED00192CBB /* Uuid.cpp in Sources */,
+				E86940661D2A66ED00192CBB /* Regex.cpp in Sources */,
 				E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */,
 				E86940441D19F9F400192CBB /* Random.cpp in Sources */,
 				E86940451D19F9F400192CBB /* StringElements.cpp in Sources */,
