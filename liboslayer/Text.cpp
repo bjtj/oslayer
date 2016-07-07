@@ -273,7 +273,11 @@ namespace UTIL {
 	vector<string> Text::toVector(int cnt, char ** strs) {
 		vector<string> vec;
 		for (int i = 0; i < cnt; i++) {
-			vec.push_back(string(strs[i]));
+			if (strs[i]) {
+				vec.push_back(string(strs[i]));
+			} else {
+				vec.push_back("(null)");
+			}
 		}
 		return vec;
 	}

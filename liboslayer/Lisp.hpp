@@ -15,7 +15,9 @@
 namespace LISP {
 
 	class Env;
+	class Func;
 	class Var;
+	class RefVar;
 
 	/**
 	 * @brief lisp exception
@@ -47,6 +49,22 @@ namespace LISP {
 		virtual ~Procedure() {}
 		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
 		std::string getName() const {return name;}
+	};
+
+	/**
+	 * @brief 
+	 */
+	class Boolean {
+	private:
+		bool _val;
+	public:
+		Boolean() : _val(false) {}
+		Boolean(bool val) : _val(val) {}
+		virtual ~Boolean() {}
+		bool & val() { return _val; }
+		bool const_val() const { return _val; }
+		Boolean & operator= (bool val) { _val = val;  return *this; }
+		std::string toString() const { return (_val ? "T" : "NIL"); }
 	};
 
 	/**
@@ -212,6 +230,73 @@ namespace LISP {
 		}
 	};
 
+	/**
+	 * @brief env
+	 */
+	class Env {
+	private:
+		Env * parent;
+		bool _quit;
+		std::map<std::string, Var> _vars;
+		std::vector<Var> _stack;
+	public:
+		Env();
+		Env(Env * parent);
+		virtual ~Env();
+		bool find (const std::string & name);
+		Var & operator[] (const std::string & name);
+		std::map<std::string, Var> & root();
+		std::map<std::string, Var> & local();
+		std::vector<Var> & stack();
+		void push(Var var);
+		Var pop();
+		Var & last();
+		void quit(bool q);
+		bool quit();
+		std::string toString();
+	};
+
+	/**
+	 * @brief func
+	 */
+	class Func {
+	private:
+		std::vector<Var> _vars;
+	public:
+		Func();
+		Func(const Var & params, const Var & body);
+		virtual ~Func();
+		Var & params();
+		Var & body();
+		Var const_params() const;
+		Var const_body() const;
+		bool empty();
+	};
+
+	/**
+	 * @brief 
+	 */
+	class RefVar {
+	private:
+		Var * _ref;
+	public:
+		explicit RefVar();
+		explicit RefVar(Var * ref);
+		virtual ~RefVar();
+		static Var * dereference(Var * ref);
+		Var * dereference();
+		bool isNil() const;
+		void testNilThrow() const;
+		void testDoubleRefThrow() const;
+		Var * ref();
+		Var * const_ref() const;
+		Var & operator* ();
+		Var * operator-> ();
+		RefVar & operator= (const RefVar & other);
+		RefVar & operator= (const Var & other);
+		std::string toString() const;
+	};
+
 
 	/**
 	 * @brief Var
@@ -235,325 +320,69 @@ namespace LISP {
 		std::string symbol;
 		std::string str;
 		std::vector<Var> lst;
-		bool bval;
+		Boolean bval;
         Integer inum;
 		Float fnum;
-		std::vector<Var> params;
-		std::vector<Var> body;
+		Func func;
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
 		FileDescriptor fd;
-		Var * refvar;
+		RefVar refvar;
 		
 	public:
-		Var() : type(NIL), bval(false), refvar(NULL) {}
-		Var(const char * token) : type(NIL), refvar(NULL) {
-			init(std::string(token));
-		}
-		Var(const std::string & token) : type(NIL), refvar(NULL) {
-			init(token);
-		}
-		Var(std::vector<Var> lst) : type(LIST), lst(lst), bval(false), refvar(NULL) {}
-		Var(bool bval) : type(BOOLEAN), bval(bval) {
-			if (!bval) {
-				type = NIL;
-			}
-		}
-		Var(short inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
-		Var(int inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
-		Var(long inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
-		Var(long long inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
-		Var(Integer inum) : type(INTEGER), bval(false), inum(inum), refvar(NULL) {}
-		Var(float fnum) : type(FLOAT), bval(false), fnum(fnum), refvar(NULL) {}
-		Var(Float fnum) : type(FLOAT), bval(false), fnum(fnum), refvar(NULL) {}
-		Var(std::vector<Var> params, std::vector<Var> body) : type(FUNC), bval(false), params(params), body(body), refvar(NULL) {}
-		Var(UTIL::AutoRef<Procedure> procedure) : type(FUNC), bval(false), procedure(procedure), refvar(NULL) {}
-		Var(OS::File & file) : type(FILE), bval(false), file(file), refvar(NULL) {}
-		Var(FileDescriptor fd) : type(FILE_DESCRIPTOR), bval(false), fd(fd), refvar(NULL) {}
-		Var(Var * refvar) : type(REF), bval(false), refvar(refvar) {
-			if (refvar == NULL) {
-				type = NIL;
-			}
+		explicit Var();
+		explicit Var(const char * token);
+		explicit Var(const std::string & token);
+		explicit Var(std::vector<Var> lst);
+		explicit Var(bool bval);
+		explicit Var(const Boolean & bval);
+		explicit Var(short inum);
+		explicit Var(int inum);
+		explicit Var(long inum);
+		explicit Var(long long inum);
+		explicit Var(const Integer & inum);
+		explicit Var(float fnum);
+		explicit Var(const Float & fnum);
+		explicit Var(const Func & func);
+		explicit Var(UTIL::AutoRef<Procedure> procedure);
+		explicit Var(OS::File & file);
+		explicit Var(const FileDescriptor & fd);
+		explicit Var(Var * refvar);
+		explicit Var(const RefVar & refvar);
+		virtual ~Var();
 
-			if (refvar->isRef()) {
-				this->refvar = refvar->refvar;
-			}
-		}
-		virtual ~Var() {}
-
-		void init(const std::string & token) {
-			if (token.empty()) {
-				throw LispException("empty token");
-			}
-			if (token == "nil") {
-				type = NIL;
-			} else if (token == "t") {
-				type = BOOLEAN;
-				bval = true;
-			} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
-				type = STRING;
-				str = token;
-			} else if (Integer::isIntegerString(token)) {
-				type = INTEGER;
-                inum = Integer::toInteger(token);
-			} else if (Float::isFloatString(token)) {
-				type = FLOAT;
-				fnum = Float::toFloat(token);
-			} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
-				type = FILE;
-				file = OS::File(token.substr(3, token.length() - 4));
-			} else {
-				type = SYMBOL;
-				symbol = token;
-			}
-		}
-		int getType() { return type; }
-		std::string getTypeString() const {
-			return getTypeString(type);
-		}
-		std::string getTypeString(int type) const {
-			switch (type) {
-			case NIL:
-				return "NIL";
-			case SYMBOL:
-				return "SYMBOL";
-			case LIST:
-				return "LIST";
-			case BOOLEAN:
-				return "BOOLEAN";
-			case INTEGER:
-				return "INTEGER";
-			case FLOAT:
-				return "FLOAT";
-			case STRING:
-				return "STRING";
-			case FUNC:
-				return "FUNCTION";
-			case FILE:
-				return "FILE";
-			case REF:
-				return "REFERENCE";
-			case FILE_DESCRIPTOR:
-				return "FILE DESCRIPTOR";
-			default:
-				break;
-			}
-			throw LispException("unknown variable type / " + UTIL::Text::toString(type));
-		}
-		void checkTypeThrow(int t) const {
-			if (type != t) {
-				throw LispException(toString() + " / type not match (type: " + getTypeString() +
-									", but required: " + getTypeString(t) + ")");
-			}
-		}
-		bool isNil() const {return type == NIL;}
-		bool isList() const {return type == LIST;}
-		bool isSymbol() const {return type == SYMBOL;}
-		bool isBoolean() const {return type == BOOLEAN;}
-		bool isInteger() const {return type == INTEGER;}
-		bool isFloat() const {return type == FLOAT;}
-		bool isString() const {return type == STRING;}
-		bool isFunction() const {return type == FUNC;}
-		bool isFile() const {return type == FILE;}
-		bool isRef() const {return type == REF;}
-		bool isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
-		std::string getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
-		std::string getString() const {checkTypeThrow(STRING); return str;}
-		std::vector<Var> & getList() {checkTypeThrow(LIST); return lst;}
-		bool getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
-		Integer getInteger() {checkTypeThrow(INTEGER); return inum;}
-		Float getFloat() {checkTypeThrow(FLOAT); return fnum;}
-		OS::File & getFile() {checkTypeThrow(FILE); return file;}
-		Var getParams() {checkTypeThrow(FUNC); return Var(params);}
-		Var getBody() {checkTypeThrow(FUNC); return Var(body);}
-		UTIL::AutoRef<Procedure> getProcedure() {checkTypeThrow(FUNC); return procedure;}
-		Var * getRef() const {checkTypeThrow(REF); return refvar;}
-		FileDescriptor & getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
-		virtual Var proc(std::vector<Var> & args, Env & env) {
-			if (!procedure.nil()) {
-				return proc(procedure->getName(), args, env);
-			} else {
-				return proc(Var("nil"), args, env);
-			}
-		}
-		virtual Var proc(Var name, std::vector<Var> & args, Env & env);
-		std::string toString() const {
-			switch (type) {
-			case NIL:
-				return "NIL";
-			case SYMBOL:
-				return symbol;
-			case LIST:
-				{
-					std::string ret = "(";
-					for (std::vector<Var>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
-						if (iter != lst.begin()) {
-							ret += " ";
-						}
-						ret += iter->toString();
-					}
-					ret += ")";
-					return ret;
-				}
-			case BOOLEAN:
-				return bval ? "T" : "NIL";
-			case INTEGER:
-				{
-					char buffer[1024] = {0,};
-					snprintf(buffer, sizeof(buffer), "%lld", inum.raw());
-					return buffer;
-				}
-			case FLOAT:
-				{
-					char buffer[1024] = {0,};
-					snprintf(buffer, sizeof(buffer), "%f", fnum.raw());
-					return buffer;
-				}
-			case STRING:
-				return untext(str);
-			case FUNC:
-				{
-					if (!procedure.empty()) {
-						return "#<COMPILED FUNCTION " + procedure->getName() + ">";
-					}
-					Var p(params);
-					Var b(body);
-					return "#<FUNCTION (PARAMS:" + p.toString() + ", BODY:" + b.toString() + ")>";
-				}
-			case FILE:
-				return "#p\"" + file.getPath() + "\"";
-			case REF:
-				return "#REFERENCE/" + refvar->toString();
-			case FILE_DESCRIPTOR:
-				return "#<FD>";
-			default:
-				break;
-			}
-			throw LispException("unknown variable type / " + UTIL::Text::toString(type));
-		}
-
-		Var & operator* () {
-			if (type == REF) {
-				return *refvar;
-			}
-			return *this;
-		}
-
-		Var & operator= (const Var & other) {
-			
-			this->symbol = other.symbol;
-			this->str = other.str;
-			this->bval = other.bval;
-			this->inum = other.inum;
-			this->fnum = other.fnum;
-			this->params = other.params;
-			this->body = other.body;
-			this->procedure = other.procedure;
-			this->file = other.file;
-			this->fd = other.fd;
-
-			if (this->type == LIST && this->lst.size() > 0 && this->lst[0].isRef() && other.type == LIST) {
-				std::vector<Var>::const_iterator o = other.lst.begin();
-				for (std::vector<Var>::iterator i = this->lst.begin(); i != this->lst.end() && o != other.lst.end(); i++, o++) {
-					*i = *o;
-				}
-			} else {
-				this->lst.clear();
-				if (other.type == LIST) {
-					for (std::vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {
-						this->lst.push_back(iter->isRef() ? *(iter->getRef()) : *iter);
-					}
-				}
-			}
-
-			if (this->type == REF) {
-				if (other.type == REF) {
-					*(this->refvar) = other.refvar;
-				} else {
-					*(this->refvar) = other;
-				}
-			} else if (other.type == REF) {
-				(*this) = *(other.refvar);
-			} else {
-				this->type = other.type;
-			}
-			return *this;
-		}
-	};
-
-	/**
-	 * @brief env
-	 */
-	class Env {
-	private:
-		Env * parent;
-		bool _quit;
-		std::map<std::string, Var> _vars;
-		std::vector<Var> _stack;
-	public:
-		Env() : parent(NULL), _quit(false) {}
-		Env(Env * parent) : parent(parent), _quit(false) {}
-		virtual ~Env() {}
-		bool find (const std::string & name) {
-			if ((_vars.find(name) == _vars.end()) == false) {
-				return true;
-			}
-			if (parent && parent->find(name)) {
-				return true;
-			}
-			return false;
-		}
-		Var & operator[] (const std::string & name) {
-			if (parent && _vars.find(name) == _vars.end()) {
-				return (*parent)[name];
-			}
-			return _vars[name];
-		}
-		std::map<std::string, Var> & root() {
-			if (parent) {
-				return parent->local();
-			}
-			return _vars;
-		}
-		std::map<std::string, Var> & local() {
-			return _vars;
-		}
-		std::vector<Var> & stack() {
-			if (parent) {
-				return parent->stack();
-			}
-			return _stack;
-		}
-		void push(Var var) {
-			stack().push_back(var);
-		}
-		Var pop() {
-			Var ret = *(stack().rbegin());
-			stack().erase(stack().begin() + stack().size() - 1);
-			return ret;
-		}
-		Var & last() {
-			if (stack().size() == 0) {
-				throw LispException("empty stack");
-			}
-			return *(stack().rbegin());
-		}
-		void quit(bool q) {
-			_quit = q;
-			if (parent) {
-				parent->quit(q);
-			}
-		}
-		bool quit() {
-			return _quit;
-		}
-		std::string toString() {
-			std::string ret;
-			for (std::map<std::string, Var>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
-				ret.append(iter->first + " : " + iter->second.toString());
-			}
-			return ret;
-		}
+		void init(const std::string & token);
+		int getType();
+		std::string getTypeString() const;
+		std::string getTypeString(int type) const;
+		void checkTypeThrow(int t) const;
+		bool isNil() const;
+		bool isList() const;
+		bool isSymbol() const;
+		bool isBoolean() const;
+		bool isInteger() const;
+		bool isFloat() const;
+		bool isString() const;
+		bool isFunction() const;
+		bool isFile() const;
+		bool isRef() const;
+		bool isFileDescriptor() const;
+		std::string getSymbol() const;
+		std::string getString() const;
+		std::vector<Var> & getList();
+		Boolean getBoolean();
+		Integer getInteger();
+		Float getFloat();
+		OS::File & getFile();
+		Func getFunc();
+		UTIL::AutoRef<Procedure> getProcedure();
+		RefVar getRef() const;
+		FileDescriptor & getFileDescriptor();
+		Var proc(std::vector<Var> & args, Env & env);
+		Var proc(Var name, std::vector<Var> & args, Env & env);
+		std::string toString() const;
+		Var & operator* ();
+		Var & operator= (const Var & other);
 	};
 
 	/**

@@ -11,9 +11,9 @@
 	virtual ~CLS() {}													\
 	virtual Var proc(Var name, vector<Var> & args, Env & env) {CODE}	\
 	};																	\
-	env[NAME] = Var(UTIL::AutoRef<Procedure>(new CLS(NAME)));
+	env[NAME] = Var(AutoRef<Procedure>(new CLS(NAME)));
 
-#define PUSH_AND_RETURN(ENV,VAR) ENV.push(VAR); return VAR;
+#define PUSH_AND_RETURN(ENV,VAR) do { ENV.push(VAR); return VAR; } while(0);
 
 #define HAS(M,E) (M.find(E) != M.end())
 
@@ -22,6 +22,428 @@ namespace LISP {
 	using namespace std;
 	using namespace OS;
 	using namespace UTIL;
+
+
+	/**
+	 * @brief 
+	 */
+
+	Env::Env() : parent(NULL), _quit(false) {}
+	Env::Env(Env * parent) : parent(parent), _quit(false) {}
+	Env::~Env() {}
+	bool Env::find (const string & name) {
+		if ((_vars.find(name) == _vars.end()) == false) {
+			return true;
+		}
+		if (parent && parent->find(name)) {
+			return true;
+		}
+		return false;
+	}
+	Var & Env::operator[] (const string & name) {
+		if (parent && _vars.find(name) == _vars.end()) {
+			return (*parent)[name];
+		}
+		return _vars[name];
+	}
+	map<string, Var> & Env::root() {
+		if (parent) {
+			return parent->local();
+		}
+		return _vars;
+	}
+	map<string, Var> & Env::local() {
+		return _vars;
+	}
+	vector<Var> & Env::stack() {
+		if (parent) {
+			return parent->stack();
+		}
+		return _stack;
+	}
+	void Env::push(Var var) {
+		stack().push_back(var);
+	}
+	Var Env::pop() {
+		Var ret = *(stack().rbegin());
+		stack().erase(stack().begin() + stack().size() - 1);
+		return ret;
+	}
+	Var & Env::last() {
+		if (stack().size() == 0) {
+			throw LispException("empty stack");
+		}
+		return *(stack().rbegin());
+	}
+	void Env::quit(bool q) {
+		_quit = q;
+		if (parent) {
+			parent->quit(q);
+		}
+	}
+	bool Env::quit() {
+		return _quit;
+	}
+	string Env::toString() {
+		string ret;
+		for (map<string, Var>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			ret.append(iter->first + " : " + iter->second.toString());
+		}
+		return ret;
+	}
+
+
+	/**
+	 * @brief 
+	 */
+
+	Func::Func() {
+	}
+	Func::Func(const Var & params, const Var & body) {
+		_vars.push_back(params);
+		_vars.push_back(body);
+	}
+	Func::~Func() {
+	}
+	Var & Func::params() {
+		return _vars[0];
+	}
+	Var & Func::body() {
+		return _vars[1];
+	}
+	Var Func::const_params() const {
+		return _vars[0];
+	}
+	Var Func::const_body() const {
+		return _vars[1];
+	}
+	bool Func::empty() {
+		return _vars.size() < 2 || params().isNil() || body().isNil();
+	}
+
+	/**
+	 * @brief 
+	 */
+
+	RefVar::RefVar() : _ref(NULL) {
+	}
+	RefVar::RefVar(Var * ref) : _ref(dereference(ref)) {
+		if (_ref) {
+			testDoubleRefThrow();
+		}
+	}
+	RefVar::~RefVar() {
+	}
+	Var * RefVar::dereference(Var * ref) {
+		Var * r = ref;
+		while (r && r->isRef()) {
+			r = r->getRef().ref();
+		}
+		return r;
+	}
+	Var * RefVar::dereference() {
+		return dereference(_ref);
+	}
+	bool RefVar::isNil() const {
+		return _ref == NULL;
+	}
+	void RefVar::testNilThrow() const {
+		if (isNil()) {
+			throw LispException("exception: null reference");
+		}
+	}
+	void RefVar::RefVar::testDoubleRefThrow() const {
+		if (_ref->isRef()) {
+			throw LispException("exception: double reference");
+		}
+	}
+	Var * RefVar::ref() {
+		return _ref;
+	}
+	Var * RefVar::const_ref() const {
+		return _ref;
+	}
+	Var & RefVar::operator* () {
+		testNilThrow();
+		return *_ref;
+	}
+	Var * RefVar::operator-> () {
+		testNilThrow();
+		return _ref;
+	}
+	RefVar & RefVar::operator= (const RefVar & other) {
+		_ref = other._ref;
+		return *this;
+	}
+	RefVar & RefVar::operator= (const Var & other) {
+		*_ref = other;
+		return *this;
+	}
+	string RefVar::toString() const {
+		testNilThrow();
+		testDoubleRefThrow();
+		return _ref->toString();
+	}
+	
+	
+	/**
+	 * @brief 
+	 */
+
+	Var::Var() : type(NIL) {}
+	Var::Var(const char * token) : type(NIL) {
+		init(string(token));
+	}
+	Var::Var(const string & token) : type(NIL) {
+		init(token);
+	}
+	Var::Var(vector<Var> lst) : type(LIST), lst(lst) {}
+	Var::Var(bool bval) : type(BOOLEAN), bval(bval) {
+		if (!bval) {
+			type = NIL;
+		}
+	}
+	Var::Var(const Boolean & bval) : type(BOOLEAN), bval(bval) {
+		if (!bval.const_val()) {
+			type = NIL;
+		}
+	}
+	Var::Var(short inum) : type(INTEGER), inum(inum) {}
+	Var::Var(int inum) : type(INTEGER), inum(inum) {}
+	Var::Var(long inum) : type(INTEGER), inum(inum) {}
+	Var::Var(long long inum) : type(INTEGER), inum(inum) {}
+	Var::Var(const Integer & inum) : type(INTEGER), inum(inum) {}
+	Var::Var(float fnum) : type(FLOAT), fnum(fnum) {}
+	Var::Var(const Float & fnum) : type(FLOAT), fnum(fnum) {}
+	Var::Var(const Func & func) : type(FUNC), func(func) {}
+	Var::Var(AutoRef<Procedure> procedure) : type(FUNC), procedure(procedure) {}
+	Var::Var(OS::File & file) : type(FILE), file(file) {}
+	Var::Var(const FileDescriptor & fd) : type(FILE_DESCRIPTOR), fd(fd) {}
+	Var::Var(Var * refvar) : type(REF), refvar(refvar) {
+		if (refvar == NULL) {
+			type = NIL;
+		}
+	}
+	Var::Var(const RefVar & refvar) : type(REF), refvar(refvar) {
+		if (refvar.isNil()) {
+			type = NIL;
+		}
+	}
+	Var::~Var() {}
+
+	void Var::init(const string & token) {
+		if (token.empty()) {
+			throw LispException("empty token");
+		}
+		if (token == "nil") {
+			type = NIL;
+		} else if (token == "t") {
+			type = BOOLEAN;
+			bval = true;
+		} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
+			type = STRING;
+			str = token;
+		} else if (Integer::isIntegerString(token)) {
+			type = INTEGER;
+			inum = Integer::toInteger(token);
+		} else if (Float::isFloatString(token)) {
+			type = FLOAT;
+			fnum = Float::toFloat(token);
+		} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
+			type = FILE;
+			file = OS::File(token.substr(3, token.length() - 4));
+		} else {
+			type = SYMBOL;
+			symbol = token;
+		}
+	}
+	int Var::getType() { return type; }
+	string Var::getTypeString() const {
+		return getTypeString(type);
+	}
+	string Var::getTypeString(int type) const {
+		switch (type) {
+		case NIL:
+			return "NIL";
+		case SYMBOL:
+			return "SYMBOL";
+		case LIST:
+			return "LIST";
+		case BOOLEAN:
+			return "BOOLEAN";
+		case INTEGER:
+			return "INTEGER";
+		case FLOAT:
+			return "FLOAT";
+		case STRING:
+			return "STRING";
+		case FUNC:
+			return "FUNCTION";
+		case FILE:
+			return "FILE";
+		case REF:
+			return "REFERENCE";
+		case FILE_DESCRIPTOR:
+			return "FILE DESCRIPTOR";
+		default:
+			break;
+		}
+		throw LispException("unknown variable type / " + Text::toString(type));
+	}
+	void Var::checkTypeThrow(int t) const {
+		if (type != t) {
+			throw LispException(toString() + " / type not match (type: " + getTypeString() +
+								", but required: " + getTypeString(t) + ")");
+		}
+	}
+	bool Var::isNil() const {return type == NIL;}
+	bool Var::isList() const {return type == LIST;}
+	bool Var::isSymbol() const {return type == SYMBOL;}
+	bool Var::isBoolean() const {return type == BOOLEAN;}
+	bool Var::isInteger() const {return type == INTEGER;}
+	bool Var::isFloat() const {return type == FLOAT;}
+	bool Var::isString() const {return type == STRING;}
+	bool Var::isFunction() const {return type == FUNC;}
+	bool Var::isFile() const {return type == FILE;}
+	bool Var::isRef() const {return type == REF;}
+	bool Var::isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
+	string Var::getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
+	string Var::getString() const {checkTypeThrow(STRING); return str;}
+	vector<Var> & Var::getList() {checkTypeThrow(LIST); return lst;}
+	Boolean Var::getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
+	Integer Var::getInteger() {checkTypeThrow(INTEGER); return inum;}
+	Float Var::getFloat() {checkTypeThrow(FLOAT); return fnum;}
+	OS::File & Var::getFile() {checkTypeThrow(FILE); return file;}
+	Func Var::getFunc() {checkTypeThrow(FUNC); return func;}
+	AutoRef<Procedure> Var::getProcedure() {checkTypeThrow(FUNC); return procedure;}
+	RefVar Var::getRef() const {checkTypeThrow(REF); return refvar;}
+	FileDescriptor & Var::getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
+	Var Var::proc(Var name, vector<Var> & args, Env & env) {
+
+		if (!isFunction()) {
+			throw LispException("not function / name: '" + name.toString() + "' / type : '" + getTypeString() + "'");
+		}
+
+		if (!procedure.nil()) {
+			return procedure->proc(name, args, env);
+		}
+
+		Env e(&env);
+		vector<Var> proto = getFunc().params().getList();
+		Arguments binder(proto);
+		binder.mapArguments(e, e.local(), args);
+		Var body = getFunc().body();
+		return eval(body, e);
+	}
+	Var Var::proc(vector<Var> & args, Env & env) {
+		if (!procedure.nil()) {
+			return proc(Var(procedure->getName()), args, env);
+		} else {
+			return proc(Var("nil"), args, env);
+		}
+	}
+
+	string Var::toString() const {
+		switch (type) {
+		case NIL:
+			return "NIL";
+		case SYMBOL:
+			return symbol;
+		case LIST:
+			{
+				string ret = "(";
+				for (vector<Var>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
+					if (iter != lst.begin()) {
+						ret += " ";
+					}
+					ret += iter->toString();
+				}
+				ret += ")";
+				return ret;
+			}
+		case BOOLEAN:
+			return bval.toString();
+		case INTEGER:
+			{
+				char buffer[1024] = {0,};
+				snprintf(buffer, sizeof(buffer), "%lld", inum.raw());
+				return buffer;
+			}
+		case FLOAT:
+			{
+				char buffer[1024] = {0,};
+				snprintf(buffer, sizeof(buffer), "%f", fnum.raw());
+				return buffer;
+			}
+		case STRING:
+			return untext(str);
+		case FUNC:
+			{
+				if (!procedure.empty()) {
+					return "#<COMPILED FUNCTION " + procedure->getName() + ">";
+				}
+				return "#<FUNCTION (PARAMS:" + func.const_params().toString() +
+					", BODY:" + func.const_body().toString() + ")>";
+			}
+		case FILE:
+			return "#p\"" + file.getPath() + "\"";
+		case REF:
+			return "#REFERENCE/" + refvar.toString();
+		case FILE_DESCRIPTOR:
+			return "#<FD>";
+		default:
+			break;
+		}
+		throw LispException("unknown variable type / " + Text::toString(type));
+	}
+
+	Var & Var::operator* () {
+		if (type == REF) {
+			return *refvar;
+		}
+		return *this;
+	}
+
+	Var & Var::operator= (const Var & other) {
+			
+		this->symbol = other.symbol;
+		this->str = other.str;
+		this->bval = other.bval;
+		this->inum = other.inum;
+		this->fnum = other.fnum;
+		this->func = other.func;
+		this->procedure = other.procedure;
+		this->file = other.file;
+		this->fd = other.fd;
+
+		if (this->type == LIST && this->lst.size() > 0 && this->lst[0].isRef() && other.type == LIST) {
+			vector<Var>::const_iterator o = other.lst.begin();
+			for (vector<Var>::iterator i = this->lst.begin(); i != this->lst.end() && o != other.lst.end(); i++, o++) {
+				*i = *o;
+			}
+		} else {
+			this->lst.clear();
+			if (other.type == LIST) {
+				for (vector<Var>::const_iterator iter = other.lst.begin(); iter != other.lst.end(); iter++) {
+					this->lst.push_back(iter->isRef() ? *(iter->getRef()) : *iter);
+				}
+			}
+		}
+
+		if (this->type == REF) {
+			if (other.type == REF) {
+				*(this->refvar) = *(other.refvar.const_ref());
+			} else {
+				*(this->refvar) = other;
+			}
+		} else if (other.type == REF) {
+			(*this) = *(other.refvar.const_ref());
+		} else {
+			this->type = other.type;
+		}
+		return *this;
+	}
+
 
 	// builtin
 	static void builtin_type(Env & env);
@@ -94,7 +516,7 @@ namespace LISP {
 			if (i + 1 >= proto.size()) {
 				throw LispException("Wrong function declaration");
 			}
-			Var val = extractRest(env, args, ai);
+			Var val = Var(extractRest(env, args, ai));
 			scope[proto[i + 1].getSymbol()] = val;
 		}
 
@@ -205,7 +627,7 @@ namespace LISP {
 			return path;
 		}
 		File file(path.toString());
-		return file;
+		return Var(file);
 	}
 
 	string text(const string & txt) {
@@ -482,12 +904,14 @@ namespace LISP {
 				env.quit(true);
 			} else if (silentsymboleq(lv[0], "lambda")) {
 				testArgumentCount(lv, 3);
-				Var func(lv[1].getList(), lv[2].getList());
+				lv[1].checkTypeThrow(Var::LIST);
+				Var func(Func(lv[1], lv[2]));
 				PUSH_AND_RETURN(env, func);
 			} else if (silentsymboleq(lv[0], "defun")) {
 				testArgumentCount(lv, 4);
-				env[lv[1].getSymbol()] = Var(lv[2].getList(), lv[3].getList());
-				PUSH_AND_RETURN(env, lv[1].getSymbol());
+				lv[2].checkTypeThrow(Var::LIST);
+				env[lv[1].getSymbol()] = Var(Func(lv[2], lv[3]));
+				PUSH_AND_RETURN(env, Var(lv[1].getSymbol()));
 			} else if (silentsymboleq(lv[0], "setf")) {
 				testArgumentCount(lv, 3);
 				refeval(lv[1], env);
@@ -596,8 +1020,8 @@ namespace LISP {
 				vector<Var> steps = lv[1].getList();
 				string sym = steps[0].getSymbol();
 				Integer limit = eval(steps[1], env).getInteger();
-				e.local()[sym] = Integer(0);
-				for (; e[sym].getInteger() < limit; e[sym] = e[sym].getInteger() + 1) {
+				e.local()[sym] = Var(Integer(0));
+				for (; e[sym].getInteger() < limit; e[sym] = Var(e[sym].getInteger() + 1)) {
 					eval(lv[2], e);
 				}
 				PUSH_AND_RETURN(env, nil());
@@ -608,8 +1032,7 @@ namespace LISP {
 					Var elt = eval(*iter, env);
 					elts.push_back(elt);
 				}
-				Var ret(elts);
-				PUSH_AND_RETURN(env, ret);
+				PUSH_AND_RETURN(env, Var(elts));
 			} else if (silentsymboleq(lv[0], "cons")) {
 				testArgumentCount(lv, 3);
 				vector<Var> ret;
@@ -622,7 +1045,7 @@ namespace LISP {
 				} else {
 					ret.push_back(cell);
 				}
-				PUSH_AND_RETURN(env, ret);
+				PUSH_AND_RETURN(env, Var(ret));
 			} else if (silentsymboleq(lv[0], "car")) {
 				testArgumentCount(lv, 2);
 				refeval(lv[1], env);
@@ -677,7 +1100,7 @@ namespace LISP {
 				for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
 					ret.push_back(Var(&lst[i]));
 				}
-				PUSH_AND_RETURN(env, ret);
+				PUSH_AND_RETURN(env, Var(ret));
 			} else if (silentsymboleq(lv[0], "defmacro")) {
 			} else if (silentsymboleq(lv[0], "expansion")) {
 			} else {
@@ -691,32 +1114,14 @@ namespace LISP {
 		PUSH_AND_RETURN(env, nil());
 	}
 
-	Var compile(const std::string & cmd, Env & env) {
+	Var compile(const string & cmd, Env & env) {
 		env.stack().clear();
 		Var tokens = parse(BufferedCommandReader::trimComment(cmd));
 		eval(tokens, env);
 		Var ret;
-		ret = env.last();
+		ret = *env.last();
 		env.stack().clear();
 		return ret;
-	}
-
-	Var Var::proc(Var name, vector<Var> & args, Env & env) {
-
-		if (!isFunction()) {
-			throw LispException("not function / name: '" + name.toString() + "' / type : '" + getTypeString() + "'");
-		}
-
-		if (!procedure.nil()) {
-			return procedure->proc(name, args, env);
-		}
-
-		Env e(&env);
-		vector<Var> proto = getParams().getList();
-		Arguments binder(proto);
-		binder.mapArguments(e, e.local(), args);
-		Var body = getBody();
-		return eval(body, e);
 	}
 
 	void native(Env & env) {
@@ -738,57 +1143,57 @@ namespace LISP {
 		DECL_NATIVE("symbolp", Symbolp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isSymbol();
+				return Var(var.isSymbol());
 			});
 		DECL_NATIVE("listp", Listp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isList();
+				return Var(var.isList());
 			});
 		DECL_NATIVE("booleanp", Booleanp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isBoolean();
+				return Var(var.isBoolean());
 			});
 		DECL_NATIVE("integerp", Integerp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isInteger();
+				return Var(var.isInteger());
 			});
 		DECL_NATIVE("floatp", Floatp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isFloat();
+				return Var(var.isFloat());
 			});
 		DECL_NATIVE("stringp", Stringp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isString();
+				return Var(var.isString());
 			});
 		DECL_NATIVE("funcp", Funcp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isFunction();
+				return Var(var.isFunction());
 			});
 		DECL_NATIVE("pathnamep", Pathnamep, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isFile();
+				return Var(var.isFile());
 			});
 		DECL_NATIVE("streamp", Streamp, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isFileDescriptor();
+				return Var(var.isFileDescriptor());
 			});
 	}
 
 	void builtin_algorithm(Env & env) {
 		DECL_NATIVE("map", Map, {
 				testArgumentCount(args, 3);
-				Var sym = eval(args[0], env);
+				Var sym = eval(args[0], env); /* TODO: use it */
 				Var func = eval(args[1], env);
 				func = function(func, env);
-				Var seq = eval(args[2], env);
+				Var seq = eval(args[2], env); /* TODO: use it */
 
 				vector<Var> ret;
 
@@ -811,7 +1216,7 @@ namespace LISP {
 					ret.push_back(func.proc(fargs, env));
 				}
 
-				return ret;
+				return Var(ret);
 			});
 
 		DECL_NATIVE("sort", Sort, {
@@ -821,7 +1226,7 @@ namespace LISP {
 				func = function(func, env);
 
 				if (lst.size() <= 1) {
-					return lst;
+					return Var(lst);
 				}
 
 				for (size_t loop = 0; loop < lst.size() - 1; loop++) {
@@ -829,12 +1234,12 @@ namespace LISP {
 						vector<Var> fargs;
 						fargs.push_back(lst[i]);
 						fargs.push_back(lst[i + 1]);
-						if (!func.proc("#sort", fargs, env).isNil()) {
-							std::iter_swap(lst.begin() + i, lst.begin() + (i + 1));
+						if (!func.proc(Var("#sort"), fargs, env).isNil()) {
+							iter_swap(lst.begin() + i, lst.begin() + (i + 1));
 						}
 					}
 				}
-				return lst;
+				return Var(lst);
 			});
 	}
 
@@ -842,7 +1247,7 @@ namespace LISP {
 		DECL_NATIVE("length", Length, {
 				testArgumentCount(args, 1);
 				vector<Var> lst = eval(args[0], env).getList();
-				return Integer((long long)lst.size());
+				return Var(Integer((long long)lst.size()));
 			});
 		
 		DECL_NATIVE("append", Append, {
@@ -852,7 +1257,7 @@ namespace LISP {
 					vector<Var> lst = eval(*iter, env).getList();
 					ret.insert(ret.end(), lst.begin(), lst.end());
 				}
-				return ret;
+				return Var(ret);
 			});
 		
 		DECL_NATIVE("remove", Remove, {
@@ -866,7 +1271,7 @@ namespace LISP {
 						iter++;
 					}
 				}
-				return lst;
+				return Var(lst);
 			});
         
         class RemoveIf : public Procedure {
@@ -888,10 +1293,10 @@ namespace LISP {
                         iter++;
                     }
                 }
-                return lst;
+                return Var(lst);
             }
         };
-        env["remove-if"] = Var(UTIL::AutoRef<Procedure>(new RemoveIf("remove-if")));
+        env["remove-if"] = Var(AutoRef<Procedure>(new RemoveIf("remove-if")));
         
 	}
 
@@ -899,7 +1304,7 @@ namespace LISP {
 		DECL_NATIVE("not", Not, {
 				testArgumentCount(args, 1);
 				Var var = eval(args[0], env);
-				return var.isNil();
+				return Var(var.isNil());
 			});
 
 		DECL_NATIVE("or", Or, {
@@ -937,27 +1342,27 @@ namespace LISP {
 						return nil();
 					}
 				}
-				return true;
+				return Var(true);
 			});
 
 		DECL_NATIVE("string-prefix-p", StringPrefixP, {
 				testArgumentCount(args, 2);
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				return Text::startsWith(str, dst);
+				return Var(Text::startsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-suffix-p", StringSuffixP, {
 				testArgumentCount(args, 2);
 				string str = eval(args[0], env).toString();
 				string dst = eval(args[1], env).toString();
-				return Text::endsWith(str, dst);
+				return Var(Text::endsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-length", StringLength, {
 				testArgumentCount(args, 1);
 				Integer len((long long)eval(args[0], env).toString().length());
-				return len;
+				return Var(len);
 			});
 
 		DECL_NATIVE("string-append", StringAppend, {
@@ -966,7 +1371,7 @@ namespace LISP {
 				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					ret.append(eval(*iter, env).toString());
 				}
-				return text(ret);
+				return Var(text(ret));
 			});
 
 		DECL_NATIVE("format", Format, {
@@ -978,7 +1383,7 @@ namespace LISP {
 					fputs("\n", stdout);
 					return nil();
 				} else {
-					return text(str);
+					return Var(text(str));
 				}
 			});
 		
@@ -987,9 +1392,9 @@ namespace LISP {
 				string org = eval(args[0], env).toString();
 				string prefix = eval(args[1], env).toString();
 				if (Text::startsWith(org, prefix)) {
-					return text(org.substr(prefix.length()));
+					return Var(text(org.substr(prefix.length())));
 				}
-				return text(org);
+				return Var(text(org));
 			});
 	}
 	void builtin_artithmetic(Env & env) {
@@ -1002,7 +1407,7 @@ namespace LISP {
 						return nil();
 					}
 				}
-				return true;
+				return Var(true);
 			});
 		DECL_NATIVE("+", Plus, {
 				testArgumentCount(args, 1);
@@ -1042,33 +1447,33 @@ namespace LISP {
 				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum %= eval(*iter, env).getInteger();
 				}
-				return sum;
+				return Var(sum);
 			});
 
 		DECL_NATIVE(">", Greater, {
 				testArgumentCount(args, 2);
-				return gt(eval(args[0], env), eval(args[1], env));
+				return Var(gt(eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE("<", Less, {
 				testArgumentCount(args, 2);
-				return lt(eval(args[0], env), eval(args[1], env));
+				return Var(lt(eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE(">=", GreaterEq, {
 				testArgumentCount(args, 2);
-				return gteq(eval(args[0], env), eval(args[1], env));
+				return Var(gteq(eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE("<=", LessEq, {
 				testArgumentCount(args, 2);
-				return lteq(eval(args[0], env), eval(args[1], env));
+				return Var(lteq(eval(args[0], env), eval(args[1], env)));
 			});
 	}
 	void builtin_io(Env & env) {
 
-		env["*standard-output*"] = FileDescriptor(stdout);
-		env["*standard-input*"] = FileDescriptor(stdin);
+		env["*standard-output*"] = Var(FileDescriptor(stdout));
+		env["*standard-input*"] = Var(FileDescriptor(stdin));
 		
         class Read : public Procedure {
         public:
@@ -1079,7 +1484,7 @@ namespace LISP {
                 Var ret;
                 FileDescriptor fd = eval(args[0], env).getFileDescriptor();
                 if (fd.eof()) {
-                    return true;
+                    return Var(true);
                 }
                 BufferedCommandReader reader;
                 while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
@@ -1091,32 +1496,16 @@ namespace LISP {
                 return ret;
             }
         };
-        env["read"] = Var(UTIL::AutoRef<Procedure>(new Read("read")));
-        
-//		DECL_NATIVE("read", Read, {
-//				testArgumentCount(args, 1);
-//				Var ret;
-//				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
-//				if (fd.eof()) {
-//					return true;
-//				}
-//				BufferedCommandReader reader;
-//				while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
-//
-//				vector<string> commands = reader.getCommands();
-//				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-//					ret = compile(*iter, env);
-//				}
-//				return ret;
-//			});
+        env["read"] = Var(AutoRef<Procedure>(new Read("read")));
+
 		DECL_NATIVE("read-line", ReadLine, {
 				testArgumentCount(args, 1);
 				FileDescriptor fd = eval(args[0], env).getFileDescriptor();
 				if (fd.eof()) {
-					return true;
+					return Var(true);
 				}
 				string line = fd.readline();
-				return text(line);
+				return Var(text(line));
 			});
 		DECL_NATIVE("print", Print, {
 				testArgumentCount(args, 1);
@@ -1127,7 +1516,7 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				return text(msg);
+				return Var(text(msg));
 			});
 
 		DECL_NATIVE("write-string", WriteString, {
@@ -1138,7 +1527,7 @@ namespace LISP {
 				}
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
-				return text(msg);
+				return Var(text(msg));
 			});
 
 		DECL_NATIVE("write-line", WriteLine, {
@@ -1150,7 +1539,7 @@ namespace LISP {
 				string msg = eval(args[0], env).toString();
 				fd.write(msg);
 				fd.write("\n");
-				return text(msg);
+				return Var(text(msg));
 			});
 	}
 	void builtin_pathname(Env & env) {
@@ -1162,59 +1551,59 @@ namespace LISP {
 		DECL_NATIVE("pathname-name", PathnameName, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getFileNameWithoutExtension());
+				return Var(text(file.getFileNameWithoutExtension()));
 			});
 		DECL_NATIVE("pathname-type", PathnameType, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getExtension());
+				return Var(text(file.getExtension()));
 			});
 		DECL_NATIVE("namestring", Namestring, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getPath());
+				return Var(text(file.getPath()));
 			});
 		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getDirectory());
+				return Var(text(file.getDirectory()));
 			});
 		DECL_NATIVE("file-namestring", FileNamestring, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return text(file.getFileName());
+				return Var(text(file.getFileName()));
 			});
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE("dir", Dir, {
 				testArgumentCount(args, 0);
-				Var path = args.size() > 0 ? pathname(eval(args[0], env)) : "#p\".\"";
+				Var path = ((args.size() > 0) ? pathname(eval(args[0], env)) : Var("#p\".\""));
 				vector<File> files = File::list(path.getFile().getPath());
 				vector<Var> lst;
 				for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
-					lst.push_back(*iter);
+					lst.push_back(Var(*iter));
 				}
-				return lst;
+				return Var(lst);
 			});
 		DECL_NATIVE("probe-file", ProbeFile, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.exists();
+				return Var(file.exists());
 			});
 		DECL_NATIVE("dirp", Dirp, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.isDirectory();
+				return Var(file.isDirectory());
 			});
 		DECL_NATIVE("filep", Filep, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return file.isFile();
+				return Var(file.isFile());
 			});
 		DECL_NATIVE("file-length", FileLength, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return Integer((long long)file.getSize());
+				return Var(Integer((long long)file.getSize()));
 			});
 
 
@@ -1254,17 +1643,17 @@ namespace LISP {
 				if (!fp) {
 					throw LispException("Cannot open file");
 				}
-				return FileDescriptor(fp);
+				return Var(FileDescriptor(fp));
 #elif defined(USE_MS_WIN)
 				FILE * fp = NULL;
 				if (fopen_s(&fp, file.getPath().c_str(), flags) != 0) {
 					throw LispException("Cannot open file");
 				}
-				return FileDescriptor(fp);
+				return Var(FileDescriptor(fp));
 #endif		
 			}
 		};
-		env["open"] = Var(UTIL::AutoRef<Procedure>(new Open("open")));
+		env["open"] = Var(AutoRef<Procedure>(new Open("open")));
 
 		DECL_NATIVE("file-position", FilePosition, {
 				testArgumentCount(args, 1);
@@ -1272,7 +1661,7 @@ namespace LISP {
 				if (args.size() > 1) {
 					fd.position((size_t)*eval(args[1], env).getInteger());
 				}
-				return Integer((long long)fd.position());
+				return Var(Integer((long long)fd.position()));
 				
 			});
 		
@@ -1289,7 +1678,7 @@ namespace LISP {
 		DECL_NATIVE("system", System, {
 				testArgumentCount(args, 1);
 				Integer ret(system(eval(args[0], env).toString().c_str()));
-				return ret;
+				return Var(ret);
 			});
 		DECL_NATIVE("load", Load, {
 				testArgumentCount(args, 1);
@@ -1306,7 +1695,7 @@ namespace LISP {
 						}
 					}
 				}
-				return true;
+				return Var(true);
 			});
 	}
 	void builtin_date(Env & env) {
@@ -1319,7 +1708,7 @@ namespace LISP {
 						 date.getYear(), date.getMonth(), date.getDay(),
 						 date.getHour(), date.getMinute(), date.getSecond(),
 						 date.getMillisecond());
-				return text(buffer);
+				return Var(text(buffer));
 			});
 	}
 

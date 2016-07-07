@@ -47,7 +47,8 @@ static void test_comment() {
 static void test_var() {
 	Var var1(1);
 	Var var2(2);
-	Var ref(&var1);
+	RefVar rv(&var1);
+	Var ref(rv);
 	ASSERT(var1.getType(), ==, Var::INTEGER);
 	ASSERT(var2.getType(), ==, Var::INTEGER);
 	ASSERT(ref.getType(), ==, Var::REF);
@@ -57,6 +58,7 @@ static void test_var() {
 	ASSERT(*ref.getRef()->getInteger(), ==, 2);
 	ASSERT(*var1.getInteger(), ==, 2);
 	ASSERT(*var2.getInteger(), ==, 2);
+	
 	Var c;
 	c = ref;
 	ASSERT(c.getType(), ==, Var::INTEGER);
@@ -65,6 +67,7 @@ static void test_var() {
 	ASSERT(ref.getType(), ==, Var::REF);
 	ASSERT(*ref.getRef()->getInteger(), ==, 3);
 	ASSERT(*c.getInteger(), ==, 2);
+	
 	vector<Var> lst;
 	lst.push_back(Var(10));
 	lst.push_back(Var(11));
@@ -86,6 +89,12 @@ static void test_var() {
 	ASSERT(lv.getType(), ==, Var::LIST);
 	ASSERT(*lv.getList()[0].getInteger(), ==, 11);
 	ASSERT(*lv.getList()[1].getInteger(), ==, 12);
+}
+
+static void test_subseq() {
+	Env env;
+	native(env);
+	ASSERT(compile("(subseq (list 1 2 3) 0 2)", env).getList().size(), ==, 2);
 }
 
 static void test_ref() {
@@ -113,15 +122,8 @@ static void test_setf() {
 	Env env;
 	native(env);
 
+	compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env);
 	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList().size(), ==, 2);
-	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getType(),
-		   ==, Var::INTEGER);
-	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getType(),
-		   ==, Var::INTEGER);
-	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getInteger(),
-		   ==, 4);
-	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getInteger(),
-		   ==, 5);
 
 	compile("(setq n 2)", env);
 	ASSERT(*env["n"].getInteger(), ==, 2);
@@ -140,6 +142,22 @@ static void test_setf() {
 	ASSERT(*env["lst"].getList()[0].getInteger(), ==, 9);
 	ASSERT(*env["lst"].getList()[1].getInteger(), ==, 2);
 	ASSERT(*env["lst"].getList()[2].getInteger(), ==, 3);
+
+	ASSERT(compile("(setf (list 1 2) (list 4 5))", env).getList().size(), ==, 2);
+	ASSERT(*compile("(setf (list 1 2) (list 4 5))", env).getList()[0].getInteger(), ==, 4);
+	ASSERT(*compile("(setf (list 1 2) (list 4 5))", env).getList()[1].getInteger(), ==, 5);
+	ASSERT(*compile("(car (setf (list 1 2) (list 4 5)))", env).getInteger(), ==, 4);
+	ASSERT(*compile("(car (cdr (setf (list 1 2) (list 4 5))))", env).getInteger(), ==, 5);
+
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList().size(), ==, 2);
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getType(),
+		   ==, Var::INTEGER);
+	ASSERT(compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getType(),
+		   ==, Var::INTEGER);
+	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[0].getInteger(),
+		   ==, 4);
+	ASSERT(*compile("(setf (subseq (list 1 2 3) 0 2) (list 4 5))", env).getList()[1].getInteger(),
+		   ==, 5);
 	
 }
 
@@ -660,6 +678,8 @@ int main(int argc, char *args[]) {
 		test_comment();
 		cout << " *** test_var()" << endl;
 		test_var();
+		cout << " *** test_subseq()" << endl;
+		test_subseq();
 		cout << " *** test_ref()" << endl;
 		test_ref();
 		cout << " *** test_setf()" << endl;
