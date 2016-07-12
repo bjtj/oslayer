@@ -153,7 +153,7 @@ namespace LISP {
 			throw LispException("exception: null reference");
 		}
 	}
-	void RefVar::RefVar::testDoubleRefThrow() const {
+	void RefVar::testDoubleRefThrow() const {
 		if (_ref->isRef()) {
 			throw LispException("exception: double reference");
 		}
