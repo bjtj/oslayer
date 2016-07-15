@@ -83,12 +83,24 @@ static void test_path() {
 	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
 }
 
+static void test_library() {
+#if defined(USE_MS_WIN)
+
+	Library lib("..\\Debug", "libhello");
+
+	/*void (*func)() = (void (*)())lib.getSymbol("hello").getHandle();
+	func();*/
+	lib.getSymbol("hello").asFunc()();
+#endif
+}
+
 int main(int argc, char *args[]) {
 
 	test_time();
 	test_file();
 	test_file_io();
 	test_path();
+	test_library();
     
     return 0;
 }

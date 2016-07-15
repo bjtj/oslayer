@@ -251,7 +251,11 @@ namespace OS {
 		}
 		return Library::Symbol(ret);
 #elif defined(USE_MS_WIN)
-		return Library::Symbol(GetProcAddress(handle, sym.c_str()));
+		SYM_HANDLE ret = GetProcAddress(handle, sym.c_str());
+		if (!ret) {
+			throw Exception("dlsym() failed");
+		}
+		return Library::Symbol(ret);
 #else
 		throw NotImplementedException("Not implemeneted - get symbol from library");
 #endif
