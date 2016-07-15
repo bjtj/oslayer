@@ -143,6 +143,44 @@ namespace OS {
 	 * @brief Library
 	 */
 
+	Library::Symbol::Symbol(SYM_HANDLE handle) : handle(handle) {
+	}
+	Library::Symbol::~Symbol() {
+	}
+	SYM_HANDLE Library::Symbol::getHandle() {
+		return handle;
+	}
+	short Library::Symbol::asShort() {
+		return *(short*)handle;
+	}
+	unsigned short Library::Symbol::asUnsignedShort() {
+		return *(unsigned short*)handle;
+	}
+	int Library::Symbol::asInt() {
+		return *(int*)handle;
+	}
+	unsigned int Library::Symbol::asUnsignedInt() {
+		return *(unsigned int*)handle;
+	}
+	long Library::Symbol::asLong() {
+		return *(long*)handle;
+	}
+	unsigned long Library::Symbol::asUnsignedLong() {
+		return *(unsigned long*)handle;
+	}
+	char Library::Symbol::asChar() {
+		return *(char*)handle;
+	}
+	unsigned char Library::Symbol::asUnsignedChar() {
+		return *(unsigned char*)handle;
+	}
+	char * Library::Symbol::asCharString() {
+		return *(char**)handle;
+	}
+	func_arbitrary Library::Symbol::asFunc() {
+		return (func_arbitrary)handle;
+	}
+
 	static string s_to_lib_name(const string & name) {
 #if defined(USE_APPLE_STD)
 		return "lib" + name + ".dylib";
@@ -205,15 +243,15 @@ namespace OS {
 	LIB_HANDLE Library::getHandle() {
 		return handle;
 	}
-	SYM_HANDLE Library::getSymbol(const string & sym) {
+	Library::Symbol Library::getSymbol(const string & sym) {
 #if defined(USE_UNIX_STD)
 		SYM_HANDLE ret = dlsym(handle, sym.c_str());
 		if (!ret) {
 			throw Exception("dlsym() failed");
 		}
-		return ret;
+		return Library::Symbol(ret);
 #elif defined(USE_MS_WIN)
-		return GetProcAddress(handle, sym.c_str());
+		return Library::Symbol(GetProcAddress(handle, sym.c_str()));
 #else
 		throw NotImplementedException("Not implemeneted - get symbol from library");
 #endif

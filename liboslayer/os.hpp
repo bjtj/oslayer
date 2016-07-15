@@ -244,7 +244,30 @@ public: \
 	/**
 	 * @brief library
 	 */
+
+	typedef void * (*func_arbitrary)();
+	
 	class Library {
+	public:
+		class Symbol {
+		private:
+			SYM_HANDLE handle;
+		public:
+			Symbol(SYM_HANDLE handle);
+			virtual ~Symbol();
+			SYM_HANDLE getHandle();
+			short asShort();
+			unsigned short asUnsignedShort();
+			int asInt();
+			unsigned int asUnsignedInt();
+			long asLong();
+			unsigned long asUnsignedLong();
+			char asChar();
+			unsigned char asUnsignedChar();
+			char * asCharString();
+			func_arbitrary asFunc();
+		};
+
 	private:
 		LIB_HANDLE handle;
 		std::string path;
@@ -258,7 +281,7 @@ public: \
 		std::string & getPath();
 		std::string & getName();
 		LIB_HANDLE getHandle();
-		SYM_HANDLE getSymbol(const std::string & sym);
+		Symbol getSymbol(const std::string & sym);
 	};
     
     /**
