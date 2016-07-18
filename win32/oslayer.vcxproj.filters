@@ -87,6 +87,9 @@
     <ClCompile Include="..\liboslayer\ArgumentParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\liboslayer\Uuid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\os.hpp">
@@ -195,6 +198,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\ArgumentParser.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\Uuid.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

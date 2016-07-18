@@ -37,7 +37,6 @@
 #   include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
-#	define osl_strncpy strncpy
 
 #elif defined(unix) || defined(__unix__) || defined(__unix) /* unix or linux */
 
@@ -65,7 +64,6 @@
 #   include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
-#	define osl_strncpy strncpy
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
@@ -87,7 +85,6 @@
 #	define strcasecmp(x,y) _stricmp((x),(y))
 #	define strncasecmp(x,y,z) _strnicmp((x),(y),(z))
 #	define osl_vsnprintf(b,bs,f,v) vsnprintf_s((b),(bs),_TRUNCATE,(f),(v))
-#	define osl_strncpy(b,t,s) strncpy_s((b),(s),(t),_TRUNCATE)
 
 #	define TIME SYSTEMTIME
 

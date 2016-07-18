@@ -93,6 +93,7 @@
     <ClCompile Include="..\liboslayer\RandomPortBinders.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
     <ClCompile Include="..\liboslayer\Timer.cpp" />
+    <ClCompile Include="..\liboslayer\Uuid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\ArgumentParser.hpp" />
@@ -129,6 +130,7 @@
     <ClInclude Include="..\liboslayer\Text.hpp" />
     <ClInclude Include="..\liboslayer\Timer.hpp" />
     <ClInclude Include="..\liboslayer\Utils.hpp" />
+    <ClInclude Include="..\liboslayer\Uuid.hpp" />
     <ClInclude Include="..\liboslayer\XmlEncoderDecoder.hpp" />
     <ClInclude Include="..\liboslayer\XmlParser.hpp" />
   </ItemGroup>
