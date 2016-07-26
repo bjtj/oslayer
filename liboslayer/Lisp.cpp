@@ -1411,25 +1411,23 @@ namespace LISP {
 				return Var(true);
 			});
 		DECL_NATIVE("+", Plus, {
-				testArgumentCount(args, 1);
-				Var v = eval(args[0], env);
-				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				Var v(0);
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					v = plus(v, eval(*iter, env));
 				}
 				return v;
 			});
 		DECL_NATIVE("-", Minus, {
 				testArgumentCount(args, 1);
-				Var v = eval(args[0], env);
-				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				Var v(0);
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					v = minus(v, eval(*iter, env));
 				}
 				return v;
 			});
 		DECL_NATIVE("*", Multitude, {
-				testArgumentCount(args, 1);
-				Var v = eval(args[0], env);
-				for (vector<Var>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				Var v(1);
+				for (vector<Var>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					v = multiply(v, eval(*iter, env));
 				}
 				return v;
