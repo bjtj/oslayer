@@ -180,6 +180,9 @@ namespace OS {
 	func_arbitrary Library::Symbol::asFunc() {
 		return (func_arbitrary)handle;
 	}
+	SYM_HANDLE & Library::Symbol::operator* () {
+		return handle;
+	}
 
 	static string s_to_lib_name(const string & name) {
 #if defined(USE_APPLE_STD)
@@ -463,17 +466,21 @@ namespace OS {
 		if (!handle || !thread) {
 			return false;
 		}
-
 		if (pthread_attr_init(&attr) != 0) {
 			return false;
 		}
 
-		if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
-			return false;
-		}
-			
-		if (pthread_create(handle, &attr, func, (void*)thread) == 0) {
+		try {
+			if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
+				throw Exception("pthread_attr_setdetachstate() failed");
+			}
+			if (pthread_create(handle, &attr, func, (void*)thread) != 0) {
+				throw Exception("pthread_create() failed");
+			}
 			started = true;
+			
+		} catch (Exception e) {
+			// ...
 		}
 
 		pthread_attr_destroy(&attr);

@@ -25,6 +25,9 @@ public:
 	}
 };
 
+/**
+ * @brief 
+ */
 class SecureServerThread : public Thread {
 private:
 	int port;
@@ -75,7 +78,7 @@ public:
 	virtual void setUp(TestEnvironment & env) {
 		serverThread = new SecureServerThread(port, certPath, keyPath);
 		serverThread->start();
-		idle(100);
+		idle(500);
 	}
 	virtual void tearDown() {
 

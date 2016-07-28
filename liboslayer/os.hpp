@@ -266,6 +266,7 @@ public: \
 			unsigned char asUnsignedChar();
 			char * asCharString();
 			func_arbitrary asFunc();
+			SYM_HANDLE & operator* ();
 		};
 
 	private:

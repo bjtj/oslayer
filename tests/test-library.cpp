@@ -14,7 +14,7 @@ public:
 	}
 	virtual void test() {
 		Library lib(DATA_PATH, "hello");
-		((void (*)(void))lib.getSymbol("hello"))();
+		((void (*)(void))*lib.getSymbol("hello"))();
 	}
 };
 
