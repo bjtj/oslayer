@@ -290,8 +290,8 @@ namespace OS {
 			virtual void bind() {
 				bind(bindAddr);
 			}
-			virtual void listen(int queueLimit) {
-				if (::listen(sock, queueLimit) != 0) {
+			virtual void listen(int backlog) {
+				if (::listen(sock, backlog) != 0) {
 					SocketUtil::throwSocketException("listen() error");
 				}
 			}

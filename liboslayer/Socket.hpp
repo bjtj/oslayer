@@ -55,7 +55,7 @@ namespace OS {
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
 		virtual void bind();
-		virtual void listen(int queueLimit);
+		virtual void listen(int backlog);
 		virtual Socket * accept();
 		virtual SOCK_HANDLE accept(OS::SocketAddress & addr);
 		virtual void close();
