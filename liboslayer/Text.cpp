@@ -185,10 +185,19 @@ namespace UTIL {
 		return false;
 	}
 
+	static bool s_in(char ch, const string & toks) {
+		for (string::const_iterator iter = toks.begin(); iter != toks.end(); iter++) {
+			if (ch == *iter) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * @brief split string with sep
 	 */
-	vector<string> Text::split(string target, string sep) {
+	vector<string> Text::split(const string & target, const string & sep) {
 
 		vector<string> vec;
 		size_t s = 0;
@@ -198,17 +207,20 @@ namespace UTIL {
 			return vec;
 		}
 
-		f = target.find(sep);
-
-		while (f != string::npos) {
-
-			vec.push_back(target.substr(s, f - s));
-			
-			s = f + sep.length();
-			f = target.find(sep, s);
+		string buf;
+		for (string::const_iterator iter = target.begin(); iter != target.end(); iter++) {
+			if (s_in(*iter, sep)) {
+				if (buf.size() > 0) {
+					vec.push_back(buf);
+					buf.clear();
+				}
+			} else {
+				buf.append(1, *iter);
+			}
 		}
-
-		vec.push_back(target.substr(s));
+		if (buf.size() > 0) {
+			vec.push_back(buf);
+		}
 
 		return vec;
 	}

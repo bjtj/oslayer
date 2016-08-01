@@ -40,11 +40,51 @@ public:
 	}
 };
 
+class SplitTestCase : public TestCase {
+public:
+	SplitTestCase() : TestCase("split") {
+	}
+	virtual ~SplitTestCase() {
+	}
+	virtual void test() {
+		vector<string> vec = Text::split("a b c", " ");
+		ASSERT(vec.size(), ==, 3);
+		ASSERT(vec[0], ==, "a");
+		ASSERT(vec[1], ==, "b");
+		ASSERT(vec[2], ==, "c");
+
+		vec = Text::split("a b  c", " ");
+		ASSERT(vec.size(), ==, 3);
+		ASSERT(vec[0], ==, "a");
+		ASSERT(vec[1], ==, "b");
+		ASSERT(vec[2], ==, "c");
+
+		vec = Text::split("a b  c ", " ");
+		ASSERT(vec.size(), ==, 3);
+		ASSERT(vec[0], ==, "a");
+		ASSERT(vec[1], ==, "b");
+		ASSERT(vec[2], ==, "c");
+
+		vec = Text::split("a b \tc", " \t");
+		ASSERT(vec.size(), ==, 3);
+		ASSERT(vec[0], ==, "a");
+		ASSERT(vec[1], ==, "b");
+		ASSERT(vec[2], ==, "c");
+
+		vec = Text::split("\ta b \tc", " \t");
+		ASSERT(vec.size(), ==, 3);
+		ASSERT(vec[0], ==, "a");
+		ASSERT(vec[1], ==, "b");
+		ASSERT(vec[2], ==, "c");
+	}
+};
+
 
 int main(int argc, char *args[]) {
 
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new TextTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new SplitTestCase));
 
 	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);
