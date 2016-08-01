@@ -1587,7 +1587,7 @@ namespace LISP {
 		DECL_NATIVE("probe-file", ProbeFile, {
 				testArgumentCount(args, 1);
 				File file = pathname(eval(args[0], env)).getFile();
-				return Var(file.exists());
+				return file.exists() ? Var(file) : nil();
 			});
 		DECL_NATIVE("dirp", Dirp, {
 				testArgumentCount(args, 1);
