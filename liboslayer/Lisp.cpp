@@ -928,6 +928,7 @@ namespace LISP {
 			} else if (silentsymboleq(lv[0], "quote")) {
 				testArgumentCount(lv, 2);
 				PUSH_AND_RETURN(env, lv[1]);
+				// TODO: implement backquote (quasiquote)
 			} else if (silentsymboleq(lv[0], "function")) {
 				testArgumentCount(lv, 2);
 				Var func = function(lv[1], env);
@@ -1025,6 +1026,23 @@ namespace LISP {
 					eval(lv[2], e);
 				}
 				PUSH_AND_RETURN(env, nil());
+			} else if (silentsymboleq(lv[0], "loop")) {
+				
+				throw LispException("not implemeneted");
+				
+				// TODO: implement
+				// [http://www.ai.sri.com/pkarp/loop.html]
+				// code:
+				//  (loop for x in '(a b c d e) do (print x))
+				//
+				// result:
+				//  A
+				//  B
+				//  C
+				//  D
+				//  E
+				//  NIL
+				
 			} else if (silentsymboleq(lv[0], "list")) {
 				testArgumentCount(lv, 1);
 				vector<Var> elts;
@@ -1102,7 +1120,18 @@ namespace LISP {
 				}
 				PUSH_AND_RETURN(env, Var(ret));
 			} else if (silentsymboleq(lv[0], "defmacro")) {
-			} else if (silentsymboleq(lv[0], "expansion")) {
+				
+				throw LispException("not implemeneted");
+				
+				// TODO: implement
+				// refer [http://clhs.lisp.se/Body/m_defmac.htm]
+				
+			} else if (silentsymboleq(lv[0], "macroexpand")) {
+				
+				throw LispException("not implemeneted");
+				
+				// TODO: implement
+				
 			} else {
 				vector<Var> args(lv.begin() + 1, lv.end());
 				Var func = function(lv[0], env);
@@ -1188,6 +1217,10 @@ namespace LISP {
 	}
 
 	void builtin_algorithm(Env & env) {
+
+		// remove
+
+		// TODO: refer - [http://www.lispworks.com/documentation/lw60/CLHS/Body/f_map.htm]
 		DECL_NATIVE("map", Map, {
 				testArgumentCount(args, 3);
 				Var sym = eval(args[0], env); /* TODO: use it */
@@ -1297,7 +1330,13 @@ namespace LISP {
             }
         };
         env["remove-if"] = Var(AutoRef<Procedure>(new RemoveIf("remove-if")));
-        
+
+		// TODO: implement
+		// [https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node144.html]
+		// remove-if-not
+		// [http://www.jtra.cz/stuff/lisp/sclr/push.html]
+		// push
+		// pop
 	}
 
 	void builtin_logic(Env & env) {
