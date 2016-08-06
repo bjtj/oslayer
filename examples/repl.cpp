@@ -4,11 +4,11 @@
 using namespace LISP;
 using namespace std;
 
-
 int main(int argc, char *args[]) {
 
 	Env env;
 	native(env);
+	
 	while (!env.quit()) {
 		try {
 			repl(env);
@@ -16,6 +16,6 @@ int main(int argc, char *args[]) {
 			cout << " ** ERROR : " << e.getMessage() << endl;
 		}
 	}
-    
+	
     return 0;
 }

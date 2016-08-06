@@ -18,7 +18,6 @@ namespace LISP {
 	class Env;
 	class Func;
 	class Var;
-	class RefVar;
 
 	/**
 	 * @brief lisp exception
@@ -35,7 +34,7 @@ namespace LISP {
 	};
 
 
-	typedef Var (*fn_proc)(Var name, std::vector<Var> & args, Env & env);
+	typedef OS::Obj<Var> (*fn_proc)(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env);
 	extern std::string text(const std::string & txt);
 	extern std::string untext(const std::string & txt);
 
@@ -48,7 +47,7 @@ namespace LISP {
 	public:
 		Procedure(const std::string & name) : name(name) {}
 		virtual ~Procedure() {}
-		virtual Var proc(Var name, std::vector<Var> & args, Env & env) = 0;
+		virtual OS::Obj<Var> proc(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env) = 0;
 		std::string getName() const {return name;}
 	};
 
@@ -238,21 +237,18 @@ namespace LISP {
 	private:
 		Env * parent;
 		bool _quit;
-		std::map<std::string, Var> _vars;
-		std::vector<Var> _stack;
+		std::map<std::string, OS::Obj<Var> > _vars;
 		OS::Heap<Var> _heap;
 	public:
 		Env();
 		Env(Env * parent);
 		virtual ~Env();
 		bool find (const std::string & name);
-		Var & operator[] (const std::string & name);
-		std::map<std::string, Var> & root();
-		std::map<std::string, Var> & local();
-		std::vector<Var> & stack();
-		void push(Var var);
-		Var pop();
-		Var & last();
+		OS::Obj<Var> & get(const std::string & name);
+		OS::Obj<Var> & operator[] (const std::string & name);
+		std::map<std::string, OS::Obj<Var> > & root();
+		std::map<std::string, OS::Obj<Var> > & local();
+		void push(OS::Obj<Var> var);
 		void quit(bool q);
 		bool quit();
 		std::string toString();
@@ -266,40 +262,16 @@ namespace LISP {
 	 */
 	class Func {
 	private:
-		std::vector<Var> _vars;
+		std::vector<OS::Obj<Var> > _vars;
 	public:
 		Func();
-		Func(const Var & params, const Var & body);
+		Func(const OS::Obj<Var> & params, const OS::Obj<Var> & body);
 		virtual ~Func();
-		Var & params();
-		Var & body();
-		Var const_params() const;
-		Var const_body() const;
+		OS::Obj<Var> & params();
+		OS::Obj<Var> & body();
+		OS::Obj<Var> const_params() const;
+		OS::Obj<Var> const_body() const;
 		bool empty();
-	};
-
-	/**
-	 * @brief 
-	 */
-	class RefVar {
-	private:
-		Var * _ref;
-	public:
-		explicit RefVar();
-		explicit RefVar(Var * ref);
-		virtual ~RefVar();
-		static Var * dereference(Var * ref);
-		Var * dereference();
-		bool isNil() const;
-		void testNilThrow() const;
-		void testDoubleRefThrow() const;
-		Var * ref();
-		Var * const_ref() const;
-		Var & operator* ();
-		Var * operator-> ();
-		RefVar & operator= (const RefVar & other);
-		RefVar & operator= (const Var & other);
-		std::string toString() const;
 	};
 
 
@@ -317,14 +289,13 @@ namespace LISP {
 		const static int STRING = 6;
 		const static int FUNC = 7;
 		const static int FILE = 8;
-		const static int REF = 9;
-		const static int FILE_DESCRIPTOR = 10;
+		const static int FILE_DESCRIPTOR = 9;
 		
 	private:
 		int type;
 		std::string symbol;
 		std::string str;
-		std::vector<Var> lst;
+		std::vector<OS::Obj<Var> > lst;
 		Boolean bval;
         Integer inum;
 		Float fnum;
@@ -332,13 +303,12 @@ namespace LISP {
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
 		FileDescriptor fd;
-		RefVar refvar;
 		
 	public:
 		explicit Var();
 		explicit Var(const char * token);
 		explicit Var(const std::string & token);
-		explicit Var(std::vector<Var> lst);
+		explicit Var(std::vector<OS::Obj<Var> > lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);
 		explicit Var(short inum);
@@ -352,8 +322,6 @@ namespace LISP {
 		explicit Var(UTIL::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
 		explicit Var(const FileDescriptor & fd);
-		explicit Var(Var * refvar);
-		explicit Var(const RefVar & refvar);
 		virtual ~Var();
 
 		void init(const std::string & token);
@@ -370,24 +338,20 @@ namespace LISP {
 		bool isString() const;
 		bool isFunction() const;
 		bool isFile() const;
-		bool isRef() const;
 		bool isFileDescriptor() const;
 		std::string getSymbol() const;
 		std::string getString() const;
-		std::vector<Var> & getList();
+		std::vector<OS::Obj<Var> > & getList();
 		Boolean getBoolean();
 		Integer getInteger();
 		Float getFloat();
 		OS::File & getFile();
 		Func getFunc();
 		UTIL::AutoRef<Procedure> getProcedure();
-		RefVar getRef() const;
 		FileDescriptor & getFileDescriptor();
-		Var proc(std::vector<Var> & args, Env & env);
-		Var proc(Var name, std::vector<Var> & args, Env & env);
+		OS::Obj<Var> proc(std::vector<OS::Obj<Var> > & args, Env & env);
+		OS::Obj<Var> proc(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env);
 		std::string toString() const;
-		Var & operator* ();
-		Var & operator= (const Var & other);
 	};
 
 	/**
@@ -416,33 +380,39 @@ namespace LISP {
 	 */
 	class Arguments {
 	private:
-		std::vector<Var> proto;
-		std::map<std::string, Var> _keywords;
+		std::vector<OS::Obj<Var> > proto;
+		std::map<std::string, OS::Obj<Var> > _keywords;
 	public:
 		Arguments();
-		Arguments(std::vector<Var> & proto);
+		Arguments(std::vector<OS::Obj<Var> > & proto);
 		virtual ~Arguments();
 
-		size_t countPartArguments(std::vector<Var> & arr, size_t start);
-		void mapArguments(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & args);
-		size_t mapOptionals(Env & env, std::map<std::string, Var> & scope, std::vector<Var> & proto, size_t pstart, std::vector<Var> & args, size_t astart);
-		static std::vector<Var> extractRest(Env & env, std::vector<Var> & args, size_t start);
-		static std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
-		std::map<std::string, Var> & keywords();
+		size_t countPartArguments(std::vector<OS::Obj<Var> > & arr, size_t start);
+		void mapArguments(Env & env, std::map<std::string, OS::Obj<Var> > & scope,
+						  std::vector<OS::Obj<Var> > & args);
+		size_t mapOptionals(Env & env, std::map<std::string, OS::Obj<Var> > & scope,
+							std::vector<OS::Obj<Var> > & proto,
+							size_t pstart,
+							std::vector<OS::Obj<Var> > & args,
+							size_t astart);
+		static std::vector<OS::Obj<Var> > extractRest(Env & env,
+													  std::vector<OS::Obj<Var> > & args,
+													  size_t start);
+		static std::map<std::string, OS::Obj<Var> > extractKeywords(std::vector<OS::Obj<Var> > & args);
+		std::map<std::string, OS::Obj<Var> > & keywords();
 	};
 
 	/**
 	 * @brief lisp utility
 	 */
 
-	extern Var pathname(Var path);
+	extern OS::Obj<Var> pathname(OS::Obj<Var> path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
-	extern Var parse(const std::string & cmd);
-	extern Var refeval(Var & var, Env & env);
-	extern Var eval(Var & var, Env & env);
-	extern Var compile(const std::string & cmd, Env & env);
+	extern OS::Obj<Var> parse(Env & env, const std::string & cmd);
+	extern OS::Obj<Var> eval(OS::Obj<Var> var, Env & env);
+	extern OS::Obj<Var> compile(const std::string & cmd, Env & env);
 }
 
 #endif

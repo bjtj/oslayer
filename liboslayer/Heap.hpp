@@ -25,8 +25,8 @@ namespace OS {
 		Obj(const Obj<T> & other);
 		Obj & operator= (const Obj<T> & other);
 		T & operator* ();
-		T * operator-> ();
-		T * operator& ();
+		T * operator-> () const;
+		T * operator& () const;
 		bool nil() const;
 	};
 
@@ -55,6 +55,7 @@ namespace OS {
 	public:
 		Heap();
 		virtual ~Heap();
+		void clear();
 		Obj<T> alloc(T * mem);
 		void ref(void * mem);
 		void unref(void * mem);
@@ -95,28 +96,29 @@ namespace OS {
 			_heap->unref(_mem);
 		}
 		if (other.nil()) {
-			return;
+			return *this;
 		}
 		_heap = other._heap;
 		_mem = other._mem;
 		_heap->ref(_mem);
+		return *this;
 	}
 	template<typename T>
-	T & Obj<T>::operator* (){
+	T & Obj<T>::operator* () {
 		if (nil()) {
 			throw Exception("access nil");
 		}
 		return (T&)*_mem;
 	}
 	template<typename T>
-	T * Obj<T>::operator-> (){
+	T * Obj<T>::operator-> () const {
 		if (nil()) {
 			throw Exception("access nil");
 		}
 		return (T*)_mem;
 	}
 	template<typename T>
-	T * Obj<T>::operator& (){
+	T * Obj<T>::operator& () const {
 		if (nil()) {
 			throw Exception("access nil");
 		}
@@ -165,6 +167,13 @@ namespace OS {
 	}
 	template <typename T>
 	Heap<T>::~Heap() {
+	}
+	template <typename T>
+	void Heap<T>::clear() {
+		for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end();) {
+			iter->second.dealloc();
+			_mems.erase(iter++);
+		}
 	}
 	template <typename T>
 	Obj<T> Heap<T>::alloc(T * mem) {
