@@ -30,7 +30,7 @@ namespace UTIL {
         
         AutoRef();
 		explicit AutoRef(T * _t);
-        AutoRef(const AutoRef & other);
+        AutoRef(const AutoRef<T> & other);
         virtual ~AutoRef();        
         AutoRef<T> & operator= (T * _t);        
         AutoRef<T> & operator= (const AutoRef<T> & other);
@@ -62,7 +62,7 @@ namespace UTIL {
     }
         
 	template <typename T>
-    AutoRef<T>::AutoRef(const AutoRef & other) : counter(NULL), _t(NULL) {
+    AutoRef<T>::AutoRef(const AutoRef<T> & other) : counter(NULL), _t(NULL) {
         copy(other);
     }
         

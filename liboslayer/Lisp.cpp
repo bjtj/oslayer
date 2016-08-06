@@ -18,6 +18,8 @@
 
 #define HAS(M,E) (M.find(E) != M.end())
 
+#define HEAP_ALLOC(E,V) E.alloc(new Var(V))
+
 namespace LISP {
 
 	using namespace std;
@@ -91,6 +93,15 @@ namespace LISP {
 			ret.append(iter->first + " : " + iter->second.toString());
 		}
 		return ret;
+	}
+	Heap<Var> & Env::heap() {
+		return _heap;
+	}
+	Obj<Var> Env::alloc(Var * var) {
+		return _heap.alloc(var);
+	}
+	void Env::gc() {
+		_heap.gc();
 	}
 
 
@@ -1171,6 +1182,10 @@ namespace LISP {
 	void builtin_type(Env & env) {
 		DECL_NATIVE("symbolp", Symbolp, {
 				testArgumentCount(args, 1);
+
+				// Obj<Var> var = eval(args[0], env);
+				// return env.alloc(new Var(var.isSymbol()));
+				
 				Var var = eval(args[0], env);
 				return Var(var.isSymbol());
 			});
@@ -1737,6 +1752,7 @@ namespace LISP {
 			});
 	}
 	void builtin_date(Env & env) {
+		env["internal-time-units-per-second"] = Var(1000);
 		DECL_NATIVE("now", Now, {
 				testArgumentCount(args, 0);
 				char buffer[512];
@@ -1747,6 +1763,20 @@ namespace LISP {
 						 date.getHour(), date.getMinute(), date.getSecond(),
 						 date.getMillisecond());
 				return Var(text(buffer));
+			});
+		DECL_NATIVE("get-universal-time", GetUniversalTime, {
+				testArgumentCount(args, 0);
+				return Var((long long)osl_get_time_network().sec);
+			});
+		DECL_NATIVE("decode-universal-time", DecodeUniversalTime, {
+				testArgumentCount(args, 1);
+				// TODO: implement
+				throw LispException("not implemented");
+			});
+		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
+				testArgumentCount(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
+				// TODO: implement
+				throw LispException("not implemented");
 			});
 	}
 

@@ -127,16 +127,62 @@ namespace OS {
 	}
 
 	/**
-	 * @brief 
+	 * @brief Jan. 1, 1970 based
 	 */
 	osl_time_t osl_get_time_unix() {
 		osl_time_t ti = osl_get_time();
 
 #if defined(USE_MS_WIN)
-		ti.sec = (unsigned long)(ti.sec - (unsigned long)11644473600LL);
+		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/6161842
+		ti.sec -= 11644473600ULL;
 #endif
 
 		return ti;
+	}
+
+	/**
+	 * @brief Jan. 1, 1900 based
+	 */
+	osl_time_t osl_get_time_network() {
+		osl_time_t ti = osl_get_time_unix();
+
+		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/29138806
+		ti.sec += 2208988800ULL;
+		
+		return ti;
+	}
+
+	osl_time_t osl_system_time_to_unix_time(osl_time_t t) {
+#if defined(USE_MS_WIN)
+		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/6161842
+		t.sec -= 11644473600ULL;
+#endif
+		return t;
+	}
+	osl_time_t osl_system_time_to_network_time(osl_time_t t) {
+		t = osl_system_time_to_unix_time(t);
+		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/29138806
+		t.sec += 2208988800ULL;
+		return t;
+	}
+	osl_time_t osl_unix_time_to_system_time(osl_time_t t) {
+#if defined(USE_MS_WIN)
+		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/6161842
+		t.sec += 11644473600ULL;
+#endif
+		return t;
+	}
+	osl_time_t osl_network_time_to_system_time(osl_time_t t) {
+		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+		// @ref http://stackoverflow.com/a/29138806
+		t.sec -= 2208988800ULL;
+		
+		return osl_unix_time_to_system_time(t);
 	}
 
 	/**
@@ -1374,6 +1420,12 @@ namespace OS {
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
         date.setMillisecond(mts.tv_nsec / 1000000);
+
+		time_t local = mktime(&info);
+		gmtime_r(&t, &info);
+		time_t gmt = mktime(&info);
+		double offset = difftime(gmt, local);
+		date.setGmtOffset((int)(offset / 60));
         
 #elif defined(USE_POSIX_STD)
         
@@ -1389,6 +1441,12 @@ namespace OS {
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
         date.setMillisecond(spec.tv_nsec / 1000000);
+
+		time_t local = mktime(&info);
+		gmtime_r(&t, &info);
+		time_t gmt = mktime(&info);
+		double offset = difftime(gmt, local);
+		date.setGmtOffset((int)(offset / 60));
         
 #elif defined(USE_MS_WIN)
         
@@ -1401,6 +1459,9 @@ namespace OS {
 		date.setMinute(now.wMinute);
 		date.setSecond(now.wSecond);
 		date.setMillisecond(now.wMilliseconds);
+
+		// TODO: implement gmt offset
+		// http://stackoverflow.com/a/597562
         
 #endif
 		return date;
@@ -1464,7 +1525,7 @@ namespace OS {
 
 	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
 
-	Date::Date() : gmtoff(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	Date::Date() : gmtoffset(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
 	}
 	Date::~Date() {
 	}
@@ -1549,8 +1610,8 @@ namespace OS {
 		}
 		return ret;
     }
-	void Date::setGmtOffset(int gmtoff) {
-		this->gmtoff = gmtoff;
+	void Date::setGmtOffset(int gmtoffset) {
+		this->gmtoffset = gmtoffset;
 	}
 	void Date::setTimezone(const string & timezone) {
 		this->timezone = timezone;
@@ -1577,7 +1638,7 @@ namespace OS {
 		this->millisecond = millisecond;
 	}
 	int Date::getGmtOffset() const {
-		return gmtoff;
+		return gmtoffset;
 	}
 	string Date::getTimezone() const {
 		return timezone;

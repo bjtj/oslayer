@@ -12,6 +12,7 @@ liboslayerinc_HEADERS= \
 	FileReaderWriter.hpp \
 	FileStream.hpp \
 	Hash.hpp \
+	Heap.hpp \
 	Iterator.hpp \
 	Lisp.hpp \
 	Logger.hpp \
@@ -41,6 +42,7 @@ liboslayerinc_HEADERS= \
 	os.hpp \
 	platform.hpp
 
+
 liboslayer_la_SOURCES= \
 	ArgumentParser.cpp \
 	ArgumentParser.hpp \
@@ -60,6 +62,7 @@ liboslayer_la_SOURCES= \
 	FileStream.cpp \
 	FileStream.hpp \
 	Hash.hpp \
+	Heap.hpp \
 	Iterator.hpp \
 	Lisp.cpp \
 	Lisp.hpp \
@@ -106,6 +109,7 @@ liboslayer_la_SOURCES= \
 	os.cpp \
 	os.hpp \
 	platform.hpp
+
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)

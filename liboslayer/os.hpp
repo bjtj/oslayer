@@ -242,6 +242,16 @@ public: \
 	osl_time_t osl_get_time_unix();
 
 	/**
+	 * @brief 
+	 */
+	osl_time_t osl_get_time_network();
+
+	osl_time_t osl_system_time_to_unix_time(osl_time_t t);
+	osl_time_t osl_system_time_to_network_time(osl_time_t t);
+	osl_time_t osl_unix_time_to_system_time(osl_time_t t);
+	osl_time_t osl_network_time_to_system_time(osl_time_t t);
+
+	/**
 	 * @brief library
 	 */
 
@@ -714,7 +724,7 @@ public: \
 	private:
 	public:
 		static std::string DEFAULT_FORMAT;
-		int gmtoff;
+		int gmtoffset;
 		std::string timezone;
 		int year;
 		int month;
@@ -728,7 +738,7 @@ public: \
 		virtual ~Date();
 		static Date now();
         static std::string format(const std::string & fmt, const Date & date);
-		void setGmtOffset(int gmtoff);
+		void setGmtOffset(int gmtoffset);
 		void setTimezone(const std::string & timezone);
 		void setYear(int year);
 		void setMonth(int month);

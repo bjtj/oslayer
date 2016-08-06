@@ -10,8 +10,6 @@ namespace UTIL {
 	/**
 	 * @brief uuid
 	 * @ref https://tools.ietf.org/html/rfc4122 (there's sample source)
-	 * TODO: implement spec.
-	 *
 	 * @ref https://en.wikipedia.org/wiki/Universally_unique_identifier
 	 */
     class Uuid {

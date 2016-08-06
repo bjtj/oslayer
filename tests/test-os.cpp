@@ -94,6 +94,12 @@ static void test_library() {
 #endif
 }
 
+static void test_date() {
+	Date date;
+
+	cout << " * offset: " << date.getGmtOffset() << endl;
+}
+
 int main(int argc, char *args[]) {
 
 	test_time();
@@ -101,6 +107,7 @@ int main(int argc, char *args[]) {
 	test_file_io();
 	test_path();
 	test_library();
+	test_date();
     
     return 0;
 }

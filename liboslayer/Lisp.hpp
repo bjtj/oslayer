@@ -11,6 +11,7 @@
 #include "os.hpp"
 #include "AutoRef.hpp"
 #include "Text.hpp"
+#include "Heap.hpp"
 
 namespace LISP {
 
@@ -239,6 +240,7 @@ namespace LISP {
 		bool _quit;
 		std::map<std::string, Var> _vars;
 		std::vector<Var> _stack;
+		OS::Heap<Var> _heap;
 	public:
 		Env();
 		Env(Env * parent);
@@ -254,6 +256,9 @@ namespace LISP {
 		void quit(bool q);
 		bool quit();
 		std::string toString();
+		OS::Heap<Var> & heap();
+		OS::Obj<Var> alloc(Var * var);
+		void gc();
 	};
 
 	/**
@@ -425,36 +430,6 @@ namespace LISP {
 		static std::map<std::string, Var> extractKeywords(std::vector<Var> & args);
 		std::map<std::string, Var> & keywords();
 	};
-
-
-	/**
-	 * @brief Iterator
-	 */
-	// template <typename T>
-	// class Iterator {
-	// private:
-	// 	std::vector<T> & lst;
-	// 	typename std::vector<T>::iterator iter;
-	// public:
-	// 	Iterator(std::vector<T> & lst) : lst(lst) {
-	// 		iter = lst.begin();
-	// 	}
-	// 	virtual ~Iterator() {}
-
-	// 	void offset(size_t o) {
-	// 		iter += o;
-	// 	}
-
-	// 	bool hasNext() {
-	// 		return (iter != lst.end());
-	// 	}
-	// 	T & next() {
-	// 		if (!hasNext()) {
-	// 			throw LispException("out of bound");
-	// 		}
-	// 		return *(iter++);
-	// 	}
-	// };
 
 	/**
 	 * @brief lisp utility
