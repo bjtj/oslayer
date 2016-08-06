@@ -406,7 +406,7 @@ namespace LISP {
 	 * @brief lisp utility
 	 */
 
-	extern OS::Obj<Var> pathname(OS::Obj<Var> path);
+	extern OS::Obj<Var> pathname(Env & env, OS::Obj<Var> path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
