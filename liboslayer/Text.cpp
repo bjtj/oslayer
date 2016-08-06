@@ -200,8 +200,6 @@ namespace UTIL {
 	vector<string> Text::split(const string & target, const string & sep) {
 
 		vector<string> vec;
-		size_t s = 0;
-		size_t f = 0;
 
 		if (target.empty()) {
 			return vec;
