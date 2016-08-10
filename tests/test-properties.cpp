@@ -29,6 +29,12 @@ static void test_properties() {
 
 	ASSERT(props["name1"], ==, "value1");
 	ASSERT(props["name2"], ==, "value2");
+
+	ASSERT(props.hasProperty("x"), ==, false);
+	ASSERT(props["x"], ==, "");
+	ASSERT(props["x"].empty(), ==, true);
+	ASSERT(props.hasProperty("x"), ==, true);
+	
 }
 
 int main(int argc, char *args[]) {

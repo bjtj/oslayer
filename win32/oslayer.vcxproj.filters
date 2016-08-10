@@ -90,6 +90,9 @@
     <ClCompile Include="..\liboslayer\Uuid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\liboslayer\DatabaseConnection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\os.hpp">
@@ -201,6 +204,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\Uuid.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\DatabaseConnection.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\Heap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
