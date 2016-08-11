@@ -95,9 +95,37 @@ static void test_library() {
 }
 
 static void test_date() {
-	Date date;
+	Date date = Date::now();
 
-	cout << " * offset: " << date.getGmtOffset() << endl;
+	cout << "[OS date test]" << endl;
+	cout << " * offset: " << date.getGmtOffset() << " (" << ((double)date.getGmtOffset() / 60.0) << ")" << endl;
+	cout << " * time: " << date.getTime().sec << endl;
+}
+
+static void test_c_date() {
+	time_t currtime;
+	struct tm * timeinfo;
+	time_t utc;
+	time_t local;
+	time_t base = {0,};
+	double offset;
+
+	printf(" * CLOCKS_PER_SEC : %ld\n", CLOCKS_PER_SEC);
+
+	time(&currtime);
+	timeinfo = gmtime(&currtime);
+	utc = mktime(timeinfo);
+	timeinfo = localtime(&currtime);
+	local = mktime(timeinfo);
+
+	offset = difftime(local, utc);
+
+	printf("offset : %f => %f\n", offset, offset / (60.0 * 60.0));
+
+	printf("curr : %ld, base : %f (diff: %f)\n", currtime, difftime(utc, base), currtime - difftime(utc, base));
+	printf("calc : %f\n", difftime(utc, base) + offset);
+
+	ASSERT(currtime, ==, (long long)(difftime(utc, base) + offset));
 }
 
 int main(int argc, char *args[]) {
@@ -108,6 +136,7 @@ int main(int argc, char *args[]) {
 	test_path();
 	test_library();
 	test_date();
+	test_c_date();
     
     return 0;
 }

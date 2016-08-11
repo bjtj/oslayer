@@ -1424,7 +1424,7 @@ namespace OS {
 		time_t local = mktime(&info);
 		gmtime_r(&t, &info);
 		time_t gmt = mktime(&info);
-		double offset = difftime(gmt, local);
+		double offset = difftime(local, gmt);
 		date.setGmtOffset((int)(offset / 60));
         
 #elif defined(USE_POSIX_STD)
@@ -1445,7 +1445,7 @@ namespace OS {
 		time_t local = mktime(&info);
 		gmtime_r(&t, &info);
 		time_t gmt = mktime(&info);
-		double offset = difftime(gmt, local);
+		double offset = difftime(local, gmt);
 		date.setGmtOffset((int)(offset / 60));
         
 #elif defined(USE_MS_WIN)
@@ -1663,6 +1663,23 @@ namespace OS {
 	}
 	int Date::getMillisecond() const {
 		return millisecond;
+	}
+	osl_time_t Date::getTime() const {
+		struct tm info = {0,};
+		info.tm_year = year - 1900;
+		info.tm_mon = month;
+		info.tm_mday = day;
+		info.tm_hour = hour;
+		info.tm_min = minute;
+		info.tm_sec = second;
+		time_t t = mktime(&info);
+		time_t base = {0,};
+		double seconds = difftime(t, base);
+
+		osl_time_t ret;
+		ret.sec = (unsigned long)seconds;
+		ret.nano = millisecond * 1000000;
+		return ret;
 	}
 
 	// file system

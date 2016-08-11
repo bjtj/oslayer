@@ -756,6 +756,7 @@ public: \
 		int getMinute() const;
 		int getSecond() const;
 		int getMillisecond() const;
+		osl_time_t getTime() const;
 	};
 
 	/**
