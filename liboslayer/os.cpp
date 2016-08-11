@@ -1467,59 +1467,59 @@ namespace OS {
 		return date;
 	}
 
-	static Date s_get_gmttime() {
-		Date date;
+// 	static Date s_get_gmttime() {
+// 		Date date;
 
-#if defined(USE_APPLE_STD)
+// #if defined(USE_APPLE_STD)
         
-        // @ref http://stackoverflow.com/a/11681069
+//         // @ref http://stackoverflow.com/a/11681069
         
-        clock_serv_t cclock;
-        mach_timespec_t mts;
-        host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-        clock_get_time(cclock, &mts);
-        mach_port_deallocate(mach_task_self(), cclock);
-        time_t t = (time_t)mts.tv_sec;
-        struct tm info;
-		gmtime_r(&t, &info);
-        date.setYear(1900 + info.tm_year);
-        date.setMonth(info.tm_mon);
-        date.setDay(info.tm_mday);
-        date.setHour(info.tm_hour);
-        date.setMinute(info.tm_min);
-        date.setSecond(info.tm_sec);
-        date.setMillisecond(mts.tv_nsec / 1000000);
+//         clock_serv_t cclock;
+//         mach_timespec_t mts;
+//         host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+//         clock_get_time(cclock, &mts);
+//         mach_port_deallocate(mach_task_self(), cclock);
+//         time_t t = (time_t)mts.tv_sec;
+//         struct tm info;
+// 		gmtime_r(&t, &info);
+//         date.setYear(1900 + info.tm_year);
+//         date.setMonth(info.tm_mon);
+//         date.setDay(info.tm_mday);
+//         date.setHour(info.tm_hour);
+//         date.setMinute(info.tm_min);
+//         date.setSecond(info.tm_sec);
+//         date.setMillisecond(mts.tv_nsec / 1000000);
         
-#elif defined(USE_POSIX_STD)
+// #elif defined(USE_POSIX_STD)
         
-        struct timespec spec;
-        clock_gettime(CLOCK_REALTIME, &spec);
-        time_t t = (time_t)spec.tv_sec;
-        struct tm info;
-		gmtime_r(&t, &info);
-        date.setYear(1900 + info.tm_year);
-        date.setMonth(info.tm_mon);
-        date.setDay(info.tm_mday);
-        date.setHour(info.tm_hour);
-        date.setMinute(info.tm_min);
-        date.setSecond(info.tm_sec);
-        date.setMillisecond(spec.tv_nsec / 1000000);
+//         struct timespec spec;
+//         clock_gettime(CLOCK_REALTIME, &spec);
+//         time_t t = (time_t)spec.tv_sec;
+//         struct tm info;
+// 		gmtime_r(&t, &info);
+//         date.setYear(1900 + info.tm_year);
+//         date.setMonth(info.tm_mon);
+//         date.setDay(info.tm_mday);
+//         date.setHour(info.tm_hour);
+//         date.setMinute(info.tm_min);
+//         date.setSecond(info.tm_sec);
+//         date.setMillisecond(spec.tv_nsec / 1000000);
         
-#elif defined(USE_MS_WIN)
+// #elif defined(USE_MS_WIN)
         
-        SYSTEMTIME now;
-		GetSystemTime(&now);
-		date.setYear(now.wYear);
-		date.setMonth(now.wMonth - 1);
-		date.setDay(now.wDay);
-		date.setHour(now.wHour);
-		date.setMinute(now.wMinute);
-		date.setSecond(now.wSecond);
-		date.setMillisecond(now.wMilliseconds);
+//         SYSTEMTIME now;
+// 		GetSystemTime(&now);
+// 		date.setYear(now.wYear);
+// 		date.setMonth(now.wMonth - 1);
+// 		date.setDay(now.wDay);
+// 		date.setHour(now.wHour);
+// 		date.setMinute(now.wMinute);
+// 		date.setSecond(now.wSecond);
+// 		date.setMillisecond(now.wMilliseconds);
         
-#endif
-		return date;
-	}
+// #endif
+// 		return date;
+// 	}
 
 	// http://www.cplusplus.com/reference/ctime/strftime/
 
