@@ -33,6 +33,7 @@ namespace UTIL {
 	public:
 
 		void clear();
+		bool hasProperty(const std::string & name) const;
 		std::string getProperty(const std::string & name);
 		std::string getProperty(const std::string & name, const std::string & def);
 		int getIntegerProperty(const std::string & name, int def = 0);
@@ -40,6 +41,7 @@ namespace UTIL {
 		void setProperty(const std::string & name, int value);
 		std::vector<std::string> getPropertyNames();
 		std::string & operator[] (const std::string & name);
+		const std::string operator[] (const std::string & name) const;
 		std::map<std::string, std::string> toStandardMap();
 	};
 

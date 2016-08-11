@@ -135,7 +135,7 @@ namespace OS {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		ti.sec -= 11644473600ULL;
+		ti.sec -= (unsigned long)11644473600ULL;
 #endif
 
 		return ti;
@@ -158,7 +158,7 @@ namespace OS {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		t.sec -= 11644473600ULL;
+		t.sec -= (unsigned long)11644473600ULL;
 #endif
 		return t;
 	}
@@ -173,7 +173,7 @@ namespace OS {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		t.sec += 11644473600ULL;
+		t.sec += (unsigned long)11644473600ULL;
 #endif
 		return t;
 	}
@@ -221,7 +221,7 @@ namespace OS {
 		return *(unsigned char*)handle;
 	}
 	char * Library::Symbol::asCharString() {
-		return *(char**)handle;
+		return *((char**)handle);
 	}
 	func_arbitrary Library::Symbol::asFunc() {
 		return (func_arbitrary)handle;

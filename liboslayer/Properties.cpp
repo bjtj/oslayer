@@ -92,6 +92,10 @@ namespace UTIL {
 		return ret;
 	}
 
+	bool Properties::hasProperty(const string & name) const {
+		return properties.contains(name);
+	}
+
 	string Properties::getProperty(const string & name) {
 		return properties.get(name).getValue();
 	}
@@ -127,6 +131,10 @@ namespace UTIL {
 
 	string & Properties::operator[] (const string & name) {
 		return properties.get(name).getValue();
+	}
+
+	const string Properties::operator[] (const string & name) const {
+		return properties.const_get(name).getValue();
 	}
 
 	map<string, string> Properties::toStandardMap() {
