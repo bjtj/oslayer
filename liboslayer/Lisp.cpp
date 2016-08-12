@@ -1297,9 +1297,12 @@ namespace LISP {
 				return v;
 			});
 		DECL_NATIVE("-", Minus, {
-				testArgumentCount(args, 1);
-				_VAR v = HEAP_ALLOC(env, 0);
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				testArgumentCount(args, 1);				
+				if (args.size() == 1) {
+					return minus(env, HEAP_ALLOC(env, 0), eval(args[0], env));
+				}
+				_VAR v = eval(args[0], env);
+				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					v = minus(env, v, eval(*iter, env));
 				}
 				return v;
