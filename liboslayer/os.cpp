@@ -1174,6 +1174,62 @@ namespace OS {
         return isExceptSelected(selectable.getFd());
     }
 
+
+
+	SharedSelector::SharedSelector() : semSet(1), semCur(1) {
+	}
+	SharedSelector::~SharedSelector() {
+	}
+	void SharedSelector::set(int fd, unsigned char flags) {
+		AutoLock lock(semSet);
+		Selector::set(fd, flags);
+	}
+	void SharedSelector::unset(int fd, unsigned char flags) {
+		AutoLock lock(semSet);
+		Selector::unset(fd, flags);
+	}
+	int SharedSelector::select(unsigned long timeout_milli) {
+		AutoLock lock(semCur);
+		return Selector::select(timeout_milli);
+	}
+	std::vector<Selection> & SharedSelector::getSelections() {
+		AutoLock lock(semCur);
+		return Selector::getSelections();
+	}
+	bool SharedSelector::isSelected(int fd) {
+		AutoLock lock(semCur);
+		return Selector::isSelected(fd);
+	}
+	bool SharedSelector::isSelected(Selectable & selectable) {
+		AutoLock lock(semCur);
+		return Selector::isSelected(selectable);
+	}
+	bool SharedSelector::isReadableSelected(int fd) {
+		AutoLock lock(semCur);
+		return Selector::isReadableSelected(fd);
+	}
+	bool SharedSelector::isReadableSelected(Selectable & selectable) {
+		AutoLock lock(semCur);
+		return Selector::isReadableSelected(selectable);
+	}
+	bool SharedSelector::isWritableSelected(int fd) {
+		AutoLock lock(semCur);
+		return Selector::isWritableSelected(fd);
+	}
+	bool SharedSelector::isWritableSelected(Selectable & selectable) {
+		AutoLock lock(semCur);
+		return Selector::isWritableSelected(selectable);
+	}
+	bool SharedSelector::isExceptSelected(int fd) {
+		AutoLock lock(semCur);
+		return Selector::isExceptSelected(fd);
+	}
+	bool SharedSelector::isExceptSelected(Selectable & selectable) {
+		AutoLock lock(semCur);
+		return Selector::isExceptSelected(selectable);
+	}
+	
+
 	/**
 	 *
 	 */

@@ -598,13 +598,39 @@ public: \
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<Selection> & getSelections();
 		virtual bool isSelected(int fd);
-        virtual bool isSelected(Selectable & selectable);
-        virtual bool isReadableSelected(int fd);
-        virtual bool isReadableSelected(Selectable & selectable);
-        virtual bool isWritableSelected(int fd);
-        virtual bool isWritableSelected(Selectable & selectable);
+		virtual bool isSelected(Selectable & selectable);
+		virtual bool isReadableSelected(int fd);
+		virtual bool isReadableSelected(Selectable & selectable);
+		virtual bool isWritableSelected(int fd);
+		virtual bool isWritableSelected(Selectable & selectable);
 		virtual bool isExceptSelected(int fd);
-        virtual bool isExceptSelected(Selectable & selectable);
+		virtual bool isExceptSelected(Selectable & selectable);
+	};
+
+
+	/**
+	 * @brief 
+	 */
+	class SharedSelector : public Selector {
+	private:
+		Semaphore semSet;
+		Semaphore semCur;
+	public:
+		SharedSelector();
+		virtual ~SharedSelector();
+
+		virtual void set(int fd, unsigned char flags);
+		virtual void unset(int fd, unsigned char flags);
+		virtual int select(unsigned long timeout_milli);
+		virtual std::vector<Selection> & getSelections();
+		virtual bool isSelected(int fd);
+		virtual bool isSelected(Selectable & selectable);
+		virtual bool isReadableSelected(int fd);
+		virtual bool isReadableSelected(Selectable & selectable);
+		virtual bool isWritableSelected(int fd);
+		virtual bool isWritableSelected(Selectable & selectable);
+		virtual bool isExceptSelected(int fd);
+		virtual bool isExceptSelected(Selectable & selectable);
 	};
 	
 
