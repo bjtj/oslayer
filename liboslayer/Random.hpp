@@ -10,11 +10,8 @@ namespace OS {
 		Random();
 		Random(unsigned long seed);
 		virtual ~Random();
-
-		bool nextBool();
-		int nextInteger();
-		long nextLong();
 		void setSeed(unsigned long seed);
+		int next();
 	};
 }
 

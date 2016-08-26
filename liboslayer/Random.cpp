@@ -9,17 +9,10 @@ namespace OS {
 	}
 	Random::~Random() {
 	}
-
-	bool Random::nextBool() {
-		return (rand() % 2 ? true : false);
-	}
-	int Random::nextInteger() {
-		return (int)rand();
-	}
-	long Random::nextLong() {
-		return (long)rand();
-	}
 	void Random::setSeed(unsigned long seed) {
 		srand(seed);
+	}
+	int Random::next() {
+		return rand();
 	}
 }

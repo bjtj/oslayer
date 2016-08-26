@@ -12,9 +12,9 @@ public:
 
 	void test() {
 		Random random(time(NULL));
-		cout << random.nextInteger() << endl;
-		cout << random.nextInteger() << endl;
-		cout << random.nextInteger() << endl;
+		cout << random.next() << endl;
+		cout << random.next() << endl;
+		cout << random.next() << endl;
 	}
 };
 
