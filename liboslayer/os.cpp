@@ -504,7 +504,7 @@ namespace OS {
 	/**
 	 * @brief pthread_create
 	 */
-	static bool s_startThread(THREAD_HANDLE * handle, thread_func func, Thread * thread) {
+	static bool s_startThread(THREAD_HANDLE * handle, thread_func func, Thread * thread, size_t stack_size) {
 	
 		pthread_attr_t attr;
 		bool started = false;
@@ -519,6 +519,11 @@ namespace OS {
 		try {
 			if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0) {
 				throw Exception("pthread_attr_setdetachstate() failed");
+			}
+			if (stack_size > 0) {
+				if (pthread_attr_setstacksize(&attr, stack_size) != 0) {
+					throw Exception("pthread_attr_setstacksize() failed");
+				}
 			}
 			if (pthread_create(handle, &attr, func, (void*)thread) != 0) {
 				throw Exception("pthread_create() failed");
@@ -553,7 +558,7 @@ namespace OS {
 	/**
 	 * @brief win32 thread start
 	 */
-	static bool s_startThread(THREAD_HANDLE * handle, thread_func func, Thread * thread) {
+	static bool s_startThread(THREAD_HANDLE * handle, thread_func func, Thread * thread, size_t stack_size) {
 		UINT dwThreadID;
 		HANDLE h;
 
@@ -561,7 +566,7 @@ namespace OS {
 			return false;
 		}
 
-		h = (HANDLE)_beginthreadex(NULL, 0, func, (void*)thread, 0, &dwThreadID);
+		h = (HANDLE)_beginthreadex(NULL, stack_size, func, (void*)thread, 0, &dwThreadID);
 		*handle = h;
 		
 		return false;
@@ -577,13 +582,21 @@ namespace OS {
 	/**
 	 * @brief thread constructor
 	 */
-	Thread::Thread() : handle(0), signal_interrupt(false) {
-		id = (++s_thread_id_seed == 0) ? ++s_thread_id_seed : s_thread_id_seed;
+	Thread::Thread() : handle(0), signal_interrupt(false), stack_size(0) {
+		init();
+	}
 
-		reset();
+	Thread::Thread(size_t stack_size) : handle(0), signal_interrupt(false), stack_size(stack_size) {
+		init();
 	}
 	
 	Thread::~Thread() {
+	}
+
+	void Thread::init() {
+		id = (++s_thread_id_seed == 0) ? ++s_thread_id_seed : s_thread_id_seed;
+
+		reset();
 	}
 
 	unsigned int Thread::getId() {
@@ -598,7 +611,7 @@ namespace OS {
 	bool Thread::start() {
 		
 		if (!isRunning()) {
-			bool ret = s_startThread(&handle, s_thread_wrapper, this);
+			bool ret = s_startThread(&handle, s_thread_wrapper, this, stack_size);
 			running = true;
 			return ret;
 		}

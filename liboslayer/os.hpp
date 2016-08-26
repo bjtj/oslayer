@@ -340,23 +340,29 @@ public: \
 	 * @brief Thread
 	 */
 	class Thread {
-	private: /* private */
+	private:
 		
 		THREAD_HANDLE handle;
 		bool signal_interrupt;
 		bool running;
+		size_t stack_size;
 
-	private: /* private static */
+	private:
 		
 		static unsigned int s_thread_id_seed;
 
-	public: /* public */
+	public:
 		
 		unsigned int id;
+
+	private:
+
+		void init();
 		
-	public: /* methods */
+	public:
 		
 		Thread();
+		Thread(size_t stack_size);
 		virtual ~Thread();
 
 		unsigned int getId();
