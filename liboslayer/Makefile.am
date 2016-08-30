@@ -34,6 +34,7 @@ liboslayerinc_HEADERS= \
 	TestSuite.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
+	Timebase.hpp \
 	Timer.hpp \
 	Utils.hpp \
 	Uuid.hpp \
@@ -41,7 +42,6 @@ liboslayerinc_HEADERS= \
 	XmlParser.hpp \
 	os.hpp \
 	platform.hpp
-
 
 liboslayer_la_SOURCES= \
 	ArgumentParser.cpp \
@@ -99,6 +99,7 @@ liboslayer_la_SOURCES= \
 	Text.hpp \
 	ThreadPool.cpp \
 	ThreadPool.hpp \
+	Timebase.hpp \
 	Timer.cpp \
 	Timer.hpp \
 	Utils.hpp \
@@ -109,7 +110,6 @@ liboslayer_la_SOURCES= \
 	os.cpp \
 	os.hpp \
 	platform.hpp
-
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)

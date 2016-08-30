@@ -16,6 +16,7 @@ check_PROGRAMS = \
 	test-network \
 	test-process \
 	test-file-stream \
+	test-timebase \
 	test-timer \
 	test-exception \
 	test-message-queue \
@@ -45,6 +46,7 @@ test_properties_SOURCES=test-properties.cpp
 test_network_SOURCES=test-network.cpp
 test_process_SOURCES=test-process.cpp
 test_file_stream_SOURCES=test-file-stream.cpp
+test_timebase_SOURCES=test-timebase.cpp
 test_timer_SOURCES=test-timer.cpp
 test_exception_SOURCES=test-exception.cpp
 test_message_queue_SOURCES=test-message-queue.cpp
