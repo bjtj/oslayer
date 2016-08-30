@@ -131,6 +131,7 @@
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\RandomPortBinders.hpp" />
     <ClInclude Include="..\liboslayer\Text.hpp" />
+    <ClInclude Include="..\liboslayer\Timebase.hpp" />
     <ClInclude Include="..\liboslayer\Timer.hpp" />
     <ClInclude Include="..\liboslayer\Utils.hpp" />
     <ClInclude Include="..\liboslayer\Uuid.hpp" />

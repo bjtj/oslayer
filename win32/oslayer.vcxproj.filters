@@ -212,5 +212,8 @@
     <ClInclude Include="..\liboslayer\Heap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\liboslayer\Timebase.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
