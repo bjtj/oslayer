@@ -87,7 +87,7 @@ namespace UTIL {
 			return _list.size();
 		}
 		Iterator<Timebase<T> > getIterator() {
-			return Iterator(_list);
+			return Iterator<Timebase<T> >(_list);
 		}
 		void collectOutdated() {
 			for (typename std::vector<Timebase<T> >::iterator iter = _list.begin(); iter != _list.end();) {
