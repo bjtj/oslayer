@@ -1,6 +1,6 @@
 #include <iostream>
 #include <liboslayer/os.hpp>
-#include <liboslayer/FileReaderWriter.hpp>
+#include <liboslayer/FileStream.hpp>
 #include "utils.hpp"
 
 using namespace std;
@@ -36,21 +36,21 @@ static void test_file_io() {
 
 	File file("big");
 
-	FileWriter writer(file);
+	FileStream writer(file, "wb");
 	string text = "abcdefghijklmnopqrstuvwxyz";
 	ASSERT(writer.write(text.c_str(), text.length()), ==, text.length());
 	writer.close();
 	
-	RandomAccessFile rf(file, "rb+");
+	FileStream reader(file, "rb+");
 	char buffer[1024] = {0,};
-	rf.read(buffer, sizeof(buffer));
+	reader.read(buffer, sizeof(buffer));
 	ASSERT(string(buffer), ==, "abcdefghijklmnopqrstuvwxyz");
 
-	rf.seek(5);
+	reader.seek(5);
 	memset(buffer, 0, sizeof(buffer));
-	rf.read(buffer, sizeof(buffer));
+	reader.read(buffer, sizeof(buffer));
 	ASSERT(string(buffer), ==, "fghijklmnopqrstuvwxyz");
-	rf.close();
+	reader.close();
 }
 
 static void test_path() {

@@ -5,6 +5,9 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
+/**
+ * @brief 
+ */
 class Object {
 private:
 	string msg;
@@ -18,7 +21,9 @@ public:
 	}
 };
 
-
+/**
+ * @brief 
+ */
 class TimebaseTestCase : public TestCase {
 public:
 	TimebaseTestCase() : TestCase("timebase test") {
@@ -57,7 +62,9 @@ public:
 	}
 };
 
-
+/**
+ * @brief 
+ */
 class TimebaseListTestCase : public TestCase {
 public:
 	TimebaseListTestCase() : TestCase("timebase list test") {
@@ -98,11 +105,35 @@ public:
 	}
 };
 
+class Ext : public Timebase<Object> {
+public:
+	Ext(const string & msg, unsigned long timeout) : Timebase<Object>(Object(msg), timeout) {
+	}
+	virtual ~Ext() {
+	}
+};
+
+class TimebaseExtTestCase : public TestCase {
+public:
+	TimebaseExtTestCase() : TestCase("ext test") {
+	}
+	virtual ~TimebaseExtTestCase() {
+	}
+	virtual void test() {
+		Ext ext("hello", 1000);
+
+		ASSERT(ext.outdated(), ==, false);
+	}
+};
+
+
+
 int main(int argc, char *args[]) {
 
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new TimebaseTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new TimebaseListTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new TimebaseExtTestCase));
 
 	TestReport report(ts.testAll());
 	report.validate();

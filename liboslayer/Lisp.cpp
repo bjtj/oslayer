@@ -2,7 +2,7 @@
 #include "os.hpp"
 #include "Text.hpp"
 #include "Iterator.hpp"
-#include "FileReaderWriter.hpp"
+#include "FileStream.hpp"
 
 #define HAS(M,E) (M.find(E) != M.end())
 #define HEAP_ALLOC(E,V) E.alloc(new Var(V))
@@ -1564,8 +1564,8 @@ namespace LISP {
 		DECL_NATIVE("load", Load, {
 				testArgumentCount(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
-				FileReader fileReader(file);
-				string dump = fileReader.dumpAsString();
+				FileStream stream(file, "rb");
+				string dump = stream.readFullAsString();
 				vector<string> lines = Text::split(dump, "\n");
 				BufferedCommandReader reader;
 				for (vector<string>::iterator iter = lines.begin(); !env.quit() && iter != lines.end(); iter++) {

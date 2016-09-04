@@ -73,6 +73,15 @@ namespace UTIL {
 		}
 		return ret;
 	}
+	string FileStream::readFullAsString() {
+		string ret;
+		char buffer[1024] = {0,};
+		size_t len;
+		while ((len = read(buffer, sizeof(buffer))) > 0) {
+			ret.append(buffer, len);
+		}
+		return ret;
+	}
 	void FileStream::write(int ch) {
 		testFileOpen(fp);
 		fputc(ch, fp);

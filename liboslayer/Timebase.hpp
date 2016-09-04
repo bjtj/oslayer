@@ -2,6 +2,7 @@
 #define __TIME_BASE_HPP__
 
 #include "os.hpp"
+#include "Iterator.hpp"
 #include <vector>
 
 namespace UTIL {
@@ -67,6 +68,9 @@ namespace UTIL {
 		}
 		virtual ~TimebaseList() {
 		}
+		void clear() {
+			_list.clear();
+		}
 		void add(Timebase<T> t) {
 			_list.push_back(t);
 		}
@@ -81,6 +85,9 @@ namespace UTIL {
 		}
 		size_t size() {
 			return _list.size();
+		}
+		Iterator<Timebase<T> > getIterator() {
+			return Iterator(_list);
 		}
 		void collectOutdated() {
 			for (typename std::vector<Timebase<T> >::iterator iter = _list.begin(); iter != _list.end();) {

@@ -6,10 +6,10 @@ liboslayerinc_HEADERS= \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
+	Condition.hpp \
 	CountDownLatch.hpp \
 	DatabaseConnection.hpp \
 	DatagramSocket.hpp \
-	FileReaderWriter.hpp \
 	FileStream.hpp \
 	Hash.hpp \
 	Heap.hpp \
@@ -23,7 +23,6 @@ liboslayerinc_HEADERS= \
 	Properties.hpp \
 	PropertyMap.hpp \
 	Random.hpp \
-	RandomPortBinders.hpp \
 	Regex.hpp \
 	Register.hpp \
 	SecureSocket.hpp \
@@ -51,14 +50,13 @@ liboslayer_la_SOURCES= \
 	AutoRelease.hpp \
 	Base64.cpp \
 	Base64.hpp \
+	Condition.hpp \
 	CountDownLatch.cpp \
 	CountDownLatch.hpp \
 	DatabaseConnection.cpp \
 	DatabaseConnection.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
-	FileReaderWriter.cpp \
-	FileReaderWriter.hpp \
 	FileStream.cpp \
 	FileStream.hpp \
 	Hash.hpp \
@@ -79,8 +77,6 @@ liboslayer_la_SOURCES= \
 	PropertyMap.hpp \
 	Random.cpp \
 	Random.hpp \
-	RandomPortBinders.cpp \
-	RandomPortBinders.hpp \
 	Regex.cpp \
 	Regex.hpp \
 	Register.hpp \

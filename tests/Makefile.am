@@ -8,6 +8,7 @@ check_PROGRAMS = \
 	test-argument-parser \
 	test-text \
 	test-logger \
+	test-iterator \
 	test-library \
 	test-count-down-latch \
 	test-test-suite \
@@ -38,6 +39,7 @@ test_regex_SOURCES=test-regex.cpp
 test_argument_parser_SOURCES=test-argument-parser.cpp
 test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
+test_iterator_SOURCES=test-iterator.cpp
 test_library_SOURCES=test-library.cpp
 test_count_down_latch_SOURCES=test-count-down-latch.cpp
 test_test_suite_SOURCES=test-test-suite.cpp

@@ -1,5 +1,6 @@
 #include "Properties.hpp"
 #include "Text.hpp"
+#include "FileStream.hpp"
 
 namespace UTIL {
 
@@ -22,8 +23,8 @@ namespace UTIL {
 	}
 
 	void Properties::loadFromFile(File & file) {
-		FileReader reader(file);
-		string dump = reader.dumpAsString();
+		FileStream stream(file, "rb");
+		string dump = stream.readFullAsString();
 		parsePropertiesString(dump);
 	}
 
@@ -38,8 +39,8 @@ namespace UTIL {
 
 	void Properties::writeToFile(File & file) {
 		string ret = convertToPropertiesString();
-		FileWriter writer(file);
-		writer.write(ret.c_str(), ret.length());
+		FileStream stream(file, "wb");
+		stream.write(ret.c_str(), ret.length());
 	}
 
 	void Properties::parsePropertiesString(const string & text) {

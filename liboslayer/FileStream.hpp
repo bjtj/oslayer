@@ -22,6 +22,7 @@ namespace UTIL {
 		int read();
 		size_t read(char * buffer, size_t len);
 		std::string readline();
+		std::string readFullAsString();
 		void write(int ch);
 		size_t write(const char * buffer, size_t len);
 		void write(const std::string & data);
