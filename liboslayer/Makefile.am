@@ -33,7 +33,6 @@ liboslayerinc_HEADERS= \
 	TestSuite.hpp \
 	Text.hpp \
 	ThreadPool.hpp \
-	Timebase.hpp \
 	Timer.hpp \
 	Utils.hpp \
 	Uuid.hpp \
@@ -95,7 +94,6 @@ liboslayer_la_SOURCES= \
 	Text.hpp \
 	ThreadPool.cpp \
 	ThreadPool.hpp \
-	Timebase.hpp \
 	Timer.cpp \
 	Timer.hpp \
 	Utils.hpp \
