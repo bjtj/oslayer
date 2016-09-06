@@ -74,12 +74,16 @@ namespace UTIL {
 		return ret;
 	}
 	string FileStream::readFullAsString() {
+		return readFullAsString(1024);
+	}
+	string FileStream::readFullAsString(size_t bufferSize) {
 		string ret;
-		char buffer[1024] = {0,};
+		char * buffer = new char[bufferSize];
 		size_t len;
-		while ((len = read(buffer, sizeof(buffer))) > 0) {
+		while ((len = read(buffer, bufferSize)) > 0) {
 			ret.append(buffer, len);
 		}
+		delete buffer;
 		return ret;
 	}
 	void FileStream::write(int ch) {
