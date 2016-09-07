@@ -476,6 +476,11 @@ namespace UTIL {
 	/**
 	 * @brief starts with
 	 */
+
+	bool Text::startsWithIgnoreCase(string a, string b) {
+		return startsWith(a, b, true);
+	}
+	
 	bool Text::startsWith(string a, string b, bool ignorecase) {
 		
 		if (b.empty()) {
@@ -497,6 +502,11 @@ namespace UTIL {
 	/**
 	 * @brief ends with
 	 */
+
+	bool Text::endsWithIgnoreCase(string a, string b) {
+		return endsWith(a, b, true);
+	}
+
 	bool Text::endsWith(string a, string b, bool ignorecase) {
 
 		if (b.empty()) {

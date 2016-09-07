@@ -69,7 +69,9 @@ namespace UTIL {
         static std::string toString(const NameValueList & lst, const std::string & item_sep = ": ", const std::string & line_sep = ", ");
         
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
+		static bool startsWithIgnoreCase(std::string a, std::string b);
 		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
+		static bool endsWithIgnoreCase(std::string a, std::string b);
 		static int compareIgnoreCase(std::string a, std::string b);
 		static bool equalsIgnoreCase(std::string a, std::string b);
         
