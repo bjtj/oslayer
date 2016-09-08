@@ -24,7 +24,7 @@ static void test_properties() {
 	ASSERT(m["d"], ==, "D");
 	ASSERT(m["e"], ==, "E");
 
-	string dump = "# comment\nname1: value1\n\nname2: value2";
+	string dump = "# comment\nname1= value1\n\nname2= value2";
 	props.loadFromString(dump);
 
 	ASSERT(props["name1"], ==, "value1");

@@ -47,7 +47,6 @@ namespace UTIL {
 		vector<string> lines = Text::split(text, "\n");
 		for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
 			string & line = *iter;
-
 			if (isMeaningfulLine(line)) {
 				NameValue nv = parseLine(line);
 				setProperty(nv.name(), nv.value());
@@ -57,7 +56,7 @@ namespace UTIL {
 
 	NameValue Properties::parseLine(const std::string & line) {
 		NameValue nv;
-		size_t sep = line.find(":");
+		size_t sep = line.find("=");
 		if (sep == string::npos) {
 			nv.name() = Text::trim(line);
 		} else {
@@ -86,7 +85,7 @@ namespace UTIL {
 		for (size_t i = 0; i < properties.size(); i++) {
 			NameProperty prop = properties[i];
 			ret.append(prop.getName());
-			ret.append(":");
+			ret.append("=");
 			ret.append(prop.getValue());
 			ret.append("\n");
 		}

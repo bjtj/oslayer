@@ -850,6 +850,7 @@ public: \
 		bool isDirectory() const;
 		bool isWritable() const;
 		std::string getDirectory() const;
+		std::string getName() const;
 		std::string getFileName() const;
 		std::string getFileNameWithoutExtension() const;
 		std::string getExtension() const;

@@ -2413,6 +2413,9 @@ namespace OS {
 	string File::getDirectory() const {
 		return File::getDirectory(path);
 	}
+	string File::getName() const {
+		return getFileName();
+	}
 	string File::getFileName() const {
 		return File::getFileName(path);
 	}
