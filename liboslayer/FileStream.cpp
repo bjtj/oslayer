@@ -34,14 +34,14 @@ namespace UTIL {
 		
 		fp = fopen(path.c_str(), flags.c_str());
 		if (!fp) {
-			throw IOException("fopen() error", -1, 0);
+			throw IOException("fopen() error - '" + path + "'");
 		}
 
 
 #elif defined(USE_MS_WIN)
 
 		if (fopen_s(&fp, path.c_str(), flags.c_str()) != 0) {
-			throw IOException("fopen_s() error", -1, 0);
+			throw IOException("fopen_s() error - '" + path + "'");
 		}
 
 #endif
