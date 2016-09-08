@@ -11,7 +11,7 @@ namespace UTIL {
 	public:
 		Hash() {}
 		virtual ~Hash() {}
-		virtual unsigned long hash(const char * str) {}
+		virtual unsigned long hash(const char * str) = 0;
 	};
 
 	/**
@@ -33,7 +33,7 @@ namespace UTIL {
 		unsigned long hash(const char * str) {
 			unsigned long hash = seed;
 			int c;
-			while (c = *str++) {
+			while ((c = *str++)) {
 				hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 			}
 

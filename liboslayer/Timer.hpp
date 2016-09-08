@@ -73,11 +73,11 @@ namespace UTIL {
 		TimerLooper();
 		virtual ~TimerLooper();
 		void addSession(TimerSession & session);
-		void delay(unsigned long delay, UTIL::AutoRef<TimerTask> task);
-		void interval(unsigned long interval, UTIL::AutoRef<TimerTask> task);
-		void intervalWithCount(unsigned long interval, int count, UTIL::AutoRef<TimerTask> task);
-		void delayAndInterval(unsigned long delay, unsigned long interval, UTIL::AutoRef<TimerTask> task);
-		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, UTIL::AutoRef<TimerTask> task);
+		void delay(unsigned long delay, AutoRef<TimerTask> task);
+		void interval(unsigned long interval, AutoRef<TimerTask> task);
+		void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
+		void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
+		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
 		void loop();
 		void stop();
 	};
