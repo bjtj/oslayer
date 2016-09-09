@@ -9,7 +9,10 @@
 namespace OS {
 
 #if defined(USE_UNIX_STD)
-	
+
+	/**
+	 * @brief 
+	 */
 	class Process {
 	private:
 		pid_t pid;
@@ -32,9 +35,9 @@ namespace OS {
 		Process(const std::string & cmd, const std::vector<std::string> & env);
 		virtual ~Process();
 		void start();
-		size_t read(char * buffer, size_t size);
-		size_t readerr(char * buffer, size_t size);
-		size_t write(const char * buffer, size_t size);
+		FILE * in();
+		FILE * out();
+		FILE * err();
 		void wait();
 		bool exited();
 		void close();

@@ -69,19 +69,17 @@ namespace OS {
 			::close(pipe_err[1]);
 		}
 	}
-
-	size_t Process::read(char * buffer, size_t size) {
-		return fread(buffer, 1, size, fdout);
-	}
-
-	size_t Process::readerr(char * buffer, size_t size) {
-		return fread(buffer, 1, size, fderr);
+	
+	FILE * Process::in() {
+		return fdin;
 	}
 	
-	size_t Process::write(const char * buffer, size_t size) {
-		size_t ret = fwrite(buffer, 1, size, fdin);
-		fflush(fdin);
-		return ret;
+	FILE * Process::out() {
+		return fdout;
+	}
+	
+	FILE * Process::err() {
+		return fderr;
 	}
 
 	void Process::wait() {

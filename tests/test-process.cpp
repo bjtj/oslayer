@@ -1,8 +1,10 @@
 #include <iostream>
 #include <liboslayer/Process.hpp>
+#include <liboslayer/FileStream.hpp>
 
 using namespace std;
 using namespace OS;
+using namespace UTIL;
 
 #define ASSERT(A,CMP,B)													\
 	cout << #A << " (" << #CMP << " " << B << ") :: ";					\
@@ -25,18 +27,19 @@ static void test_process() {
 	s_system("touch .process-test/a.txt");
 	s_system("touch .process-test/b.txt");
 
-	char buffer[1024] = {0,};
 	Process p("ls -asl *.o");
 	p.start();
 
 	cout << "OUT > " << endl;
-	while (p.read(buffer, sizeof(buffer)) > 0) {
-		cout << buffer << endl;
+	FileStream out(p.out());
+	while (!out.eof()) {
+		cout << out.readline() << endl;
 	}
-
+	
 	cout << "ERR > " << endl;
-	while (p.readerr(buffer, sizeof(buffer)) > 0) {
-		cout << buffer << endl;
+	FileStream err(p.err());
+	while (!err.eof()) {
+		cout << err.readline() << endl;
 	}
 
 	p.wait();
