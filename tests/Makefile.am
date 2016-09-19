@@ -25,6 +25,7 @@ check_PROGRAMS = \
 	test-xml \
 	test-string-elements \
 	test-property-map \
+	test-database-connection \
 	test-socket \
 	test-secure-socket \
 	test-observer-pattern \
@@ -55,6 +56,7 @@ test_task_thread_pool_SOURCES=test-task-thread-pool.cpp
 test_xml_SOURCES=test-xml.cpp
 test_string_elements_SOURCES=test-string-elements.cpp
 test_property_map_SOURCES=test-property-map.cpp
+test_database_connection_SOURCES=test-database-connection.cpp
 test_socket_SOURCES=test-socket.cpp
 test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp

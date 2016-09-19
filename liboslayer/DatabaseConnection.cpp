@@ -1,8 +1,10 @@
 #include "DatabaseConnection.hpp"
+#include "os.hpp"
 
 namespace UTIL {
 
 	using namespace std;
+	using namespace OS;
 	
 	/**
 	 * @brief 
@@ -25,8 +27,10 @@ namespace UTIL {
 	 * @brief 
 	 */
 	
-	ResultSet::ResultSet() {}
-	ResultSet::~ResultSet() {}
+	ResultSet::ResultSet() : _row(-1) {
+	}
+	ResultSet::~ResultSet() {
+	}
 
 	vector<string> & ResultSet::cols() {
 		return _cols;
@@ -42,6 +46,23 @@ namespace UTIL {
 
 	ResultSet::Row & ResultSet::operator[] (size_t idx) {
 		return _rows[idx];
+	}
+
+	bool ResultSet::next() {
+		return ((size_t)++_row < _rows.size());
+	}
+
+	string ResultSet::getString(size_t idx) {
+		return _rows[_row][idx];
+	}
+	
+	string ResultSet::getString(const std::string & column) {
+		for (size_t i = 0; i < _cols.size(); i++) {
+			if (_cols[i] == column) {
+				return _rows[_row][i];
+			}
+		}
+		throw Exception("no column name found - '" + column + "'");
 	}
 
 	/**

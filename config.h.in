@@ -42,6 +42,12 @@
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
+/* Define to 1 if you have the 'sqlite3_open' function. */
+#undef HAVE_SQLITE3
+
+/* Define to 1 if you have the `sqlite3_open' function. */
+#undef HAVE_SQLITE3_OPEN
+
 /* Define to 1 if you have the `SSL_library_init' function. */
 #undef HAVE_SSL_LIBRARY_INIT
 

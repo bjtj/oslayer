@@ -12,6 +12,7 @@ namespace UTIL {
 	 */
 	class ResultSet {
 	public:
+		
 		/**
 		 * @brief 
 		 */
@@ -29,6 +30,8 @@ namespace UTIL {
 	private:
 		std::vector<std::string> _cols;
 		std::vector<Row> _rows;
+		long _row;
+		
 	public:
 		ResultSet();
 		virtual ~ResultSet();
@@ -36,6 +39,9 @@ namespace UTIL {
 		void append(const std::vector<std::string> & strs);
 		size_t size();
 		Row & operator[] (size_t idx);
+		bool next();
+		std::string getString(size_t idx);
+		std::string getString(const std::string & column);
 	};
 
 	/**
@@ -49,7 +55,8 @@ namespace UTIL {
 		virtual ~PreparedStatement();
 		std::string & sql();
 		virtual bool execute() = 0;
-		virtual size_t executeQuery(ResultSet & rs) = 0;
+		virtual AutoRef<ResultSet> executeQuery() = 0;
+		virtual AutoRef<ResultSet> executeStep() = 0;
 	};
 
 	/**
@@ -59,9 +66,14 @@ namespace UTIL {
 	public:
 		DatabaseConnection();
 		virtual ~DatabaseConnection();
+		virtual void connect(const std::string & url) = 0;
 		virtual void connect(const std::string & url, const std::string & username, const std::string & password) = 0;
 		virtual void disconnect() = 0;
 		virtual AutoRef<PreparedStatement> prepareStatement(const std::string & sql) = 0;
+		virtual void setAutoCommit() = 0;
+		virtual void beginTransaction() = 0;
+		virtual void commit() = 0;
+		virtual void rollback() = 0;
 	};
 	
 }
