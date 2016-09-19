@@ -818,6 +818,8 @@ public: \
 		File(const std::string & path);
 		virtual ~File();
 
+		static std::string getSeparators();
+
 		static std::string mergePaths(const std::string & dir, const std::string & filename);
 		static std::string mergePaths(const std::string & dir, const std::string & filename, const std::string & separators);
 		static std::string fullpath(const std::string & dir, const std::string & filename);

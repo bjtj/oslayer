@@ -1454,6 +1454,31 @@ namespace LISP {
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getFileName()));
 			});
+		
+		// https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Names.html
+		
+		DECL_NATIVE("directory-file-name", DirectoryFileName, {
+				testArgumentCount(args, 1);
+				File file = pathname(env, eval(args[0], env))->getFile();
+				string path = file.getPath();
+				if (path.empty()) {
+					return nil(env);
+				}
+				if (File::getSeparators().find(*path.rbegin()) != string::npos) {
+					return HEAP_ALLOC(env, text(path.substr(0, path.size() - 1)));
+				}
+				return HEAP_ALLOC(env, text(path));
+			});
+		DECL_NATIVE("file-name-directory", FileNameDirectory, {
+				testArgumentCount(args, 1);
+				File file = pathname(env, eval(args[0], env))->getFile();
+				string path = file.getPath();
+				size_t f = path.find_last_of(File::getSeparators());
+				if (f == string::npos) {
+					return nil(env);
+				}
+				return HEAP_ALLOC(env, text(path.substr(0, f+1)));
+			});
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE("dir", Dir, {

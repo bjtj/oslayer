@@ -2282,6 +2282,10 @@ namespace OS {
 	File::~File() {
 	}
 
+	string File::getSeparators() {
+		return s_get_separators();
+	}
+
 	string File::mergePaths(const string & dir, const string & filename) {
 		return fullpath(dir, filename);
 	}
