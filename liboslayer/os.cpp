@@ -2345,6 +2345,10 @@ namespace OS {
 		return s_get_path_part(path);
 	}
 
+	string File::getName(const string & path) {
+		return getFileName(path);
+	}
+
 	string File::getFileName(const string & path){
 		return s_get_filename_part(path);
 	}

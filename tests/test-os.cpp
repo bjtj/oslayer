@@ -25,10 +25,18 @@ static void test_file() {
 
 	cout << Date::format("%Y-%c-%d %H:%i:%s", Date::now()) << endl;
 
+	File dir("./dir");
+
+	ASSERT(dir.exists(), ==, false);
+	dir.mkdir();
+	ASSERT(dir.exists(), ==, true);
+
 #if defined(USE_MS_WIN)
 	ASSERT(system("del xxxxxx"), ==, 0);
+	ASSERT(system("rmdir dir"), ==, 0);
 #else
 	ASSERT(system("rm xxxxxx"), ==, 0);
+	ASSERT(system("rm -rf dir"), ==, 0);
 #endif
 }
 

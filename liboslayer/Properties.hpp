@@ -8,6 +8,9 @@
 
 namespace UTIL {
 
+	/**
+	 * @brief 
+	 */
 	class Properties {
 	private:
 		LinkedStringProperties properties;
@@ -43,7 +46,6 @@ namespace UTIL {
 		const std::string operator[] (const std::string & name) const;
 		std::map<std::string, std::string> toStandardMap();
 	};
-
 }
 
 #endif

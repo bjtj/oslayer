@@ -834,6 +834,7 @@ public: \
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
 		static std::string getDirectory(const std::string & path);
+		static std::string getName(const std::string & path);
 		static std::string getFileName(const std::string & path);
 		static std::string getFileNameWithoutExtension(const std::string & path);
 		static std::string getExtension(const std::string & path);

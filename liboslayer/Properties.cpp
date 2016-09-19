@@ -97,13 +97,13 @@ namespace UTIL {
 	}
 
 	string Properties::getProperty(const string & name) {
-		return properties.get(name).getValue();
+		return properties.obtain(name).getValue();
 	}
 	string Properties::getProperty(const string & name, const string & def) {
 		if (!properties.contains(name)) {
 			return def;
 		}
-		return properties.get(name).getValue();
+		return properties.obtain(name).getValue();
 	}
 
 	int Properties::getIntegerProperty(const std::string & name, int def) {
@@ -114,7 +114,7 @@ namespace UTIL {
 	}
 
 	void Properties::setProperty(const string & name, const string & value) {
-		properties.get(name).setValue(value);
+		properties.obtain(name).setValue(value);
 	}
 	
 	void Properties::setProperty(const string & name, int value) {
@@ -130,7 +130,7 @@ namespace UTIL {
 	}
 
 	string & Properties::operator[] (const string & name) {
-		return properties.get(name).getValue();
+		return properties.obtain(name).getValue();
 	}
 
 	const string Properties::operator[] (const string & name) const {

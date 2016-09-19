@@ -30,7 +30,7 @@ namespace UTIL {
 		}
 
 		// http://stackoverflow.com/a/7666577
-		unsigned long hash(const char * str) {
+		virtual unsigned long hash(const char * str) {
 			unsigned long hash = seed;
 			int c;
 			while ((c = *str++)) {

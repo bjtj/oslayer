@@ -261,7 +261,7 @@ namespace UTIL {
 	void LinkedStringProperties::clear() {
 		elements.clear();
 	}
-	NameProperty & LinkedStringProperties::get(const string & name) {
+	NameProperty & LinkedStringProperties::obtain(const string & name) {
 		for (size_t i = 0; i < elements.size(); i++) {
 			NameProperty & np = elements[i];
 			if (np == name) {
@@ -269,7 +269,7 @@ namespace UTIL {
 			}
 		}
 		elements.push_back(NameProperty(name));
-		return get(name);
+		return obtain(name);
 	}
 	const NameProperty & LinkedStringProperties::const_get(const string & name) const {
 		for (size_t i = 0; i < elements.size(); i++) {
@@ -290,7 +290,7 @@ namespace UTIL {
 		return false;
 	}
 	NameProperty & LinkedStringProperties::operator[] (const string & name) {
-		return get(name);
+		return obtain(name);
 	}
 	const NameProperty & LinkedStringProperties::operator[] (size_t index) const {
 		return elements[index];

@@ -155,7 +155,7 @@ namespace UTIL {
 		virtual ~LinkedStringProperties();
 		size_t size() const;
         void clear();
-		NameProperty & get(const std::string & name);
+		NameProperty & obtain(const std::string & name);
 		const NameProperty & const_get(const std::string & name) const;
 		bool contains(const std::string & name) const;
 		NameProperty & operator[] (const std::string & name);
