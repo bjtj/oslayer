@@ -65,40 +65,179 @@ namespace UTIL {
 	}
 
 
+	/**
+	 * @brief 
+	 */
+
+	Arguments::Arguments() {
+	}
+
+	Arguments::~Arguments() {
+	}
+
+	void Arguments::clear() {
+		_programName.clear();
+		_vars.clear();
+		_texts.clear();
+	}
+
+	string & Arguments::programName() {
+		return _programName;
+	}
+
+	vector<string> & Arguments::texts() {
+		return _texts;
+	}
+	
+	string & Arguments::text(size_t idx) {
+		return _texts[idx];
+	}
+
+	string Arguments::varAsString(const string & any, const string & def) {
+		if (!hasVarWithAny(any)) {
+			return def;
+		}
+		return varWithAny(any).value();
+	}
+	
+	bool Arguments::varAsBoolean(const string & any, bool def) {
+		if (!hasVarWithAny(any)) {
+			return def;
+		}
+		return varWithAny(any).valueAsBoolean();
+	}
+	
+	int Arguments::varAsInteger(const string & any, int def) {
+		if (!hasVarWithAny(any)) {
+			return def;
+		}
+		return varWithAny(any).valueAsInteger();
+	}
+
+	bool Arguments::hasVarWithAny(const string & any) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->name() == any || iter->alias() == any || iter->shortAlias() == any) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	bool Arguments::hasVarWithName(const string & name) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->name() == name) {
+				return true;
+			}
+		}
+		return false;
+	}
+	bool Arguments::hasVarWithAlias(const string & alias) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->alias() == alias) {
+				return true;
+			}
+		}
+		return false;
+	}
+	bool Arguments::hasVarWithShortAlias(const string & shortAlias) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->shortAlias() == shortAlias) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	Variable & Arguments::varWithAny(const string & any) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->name() == any || iter->alias() == any || iter->shortAlias() == any) {
+				return *iter;
+			}
+		}
+		throw Exception("not found var with - '" + any + "'");
+	}
+	
+	Variable & Arguments::varWithName(const string & name) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->name() == name) {
+				return *iter;
+			}
+		}
+		throw Exception("not found var with name - '" + name + "'");
+	}
+	
+	Variable & Arguments::varWithAlias(const string & alias) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->alias() == alias) {
+				return *iter;
+			}
+		}
+		throw Exception("not found var with alias - '" + alias + "'");
+	}
+	
+	Variable & Arguments::varWithShortAlias(const string & shortAlias) {
+		for (vector<Variable>::iterator iter = _vars.begin(); iter != _vars.end(); iter++) {
+			if (iter->shortAlias() == shortAlias) {
+				return *iter;
+			}
+		}
+		throw Exception("not found var with short alias - '" + shortAlias + "'");
+	}
+	
+	Variable & Arguments::obtainVar(const string & name, const string & alias, const string & shortAlias) {
+		if (hasVarWithName(name)) {
+			Variable & v = varWithName(name);
+			v.alias() = alias;
+			v.shortAlias() = shortAlias;
+			return v;
+		}
+		_vars.push_back(Variable(name, alias, shortAlias));
+		return *_vars.rbegin();
+	}
+	
+	Variable & Arguments::obtainVar(const string & name) {
+		if (hasVarWithName(name)) {
+			return varWithName(name);
+		}
+		_vars.push_back(Variable(name));
+		return *_vars.rbegin();
+	}
+
+
+	/**
+	 * @brief 
+	 */
 	
 	ArgumentParser::ArgumentParser() {
 	}
+	
 	ArgumentParser::~ArgumentParser() {
 	}
-	void ArgumentParser::clear() {
-		programName.clear();
-		vars.clear();
-		_texts.clear();
-	}
-	void ArgumentParser::parse(int argc, char * args[]) {
+	
+	Arguments ArgumentParser::parse(int argc, char * args[]) {
 		vector<string> lst;
 		for (int i = 0; i < argc; i++) {
 			lst.push_back(string(args[i]));
 		}
-		parse(lst);
+		return parse(lst);
 	}
-	void ArgumentParser::parse(int argc, const char * args[]) {
+	
+	Arguments ArgumentParser::parse(int argc, const char * args[]) {
 		vector<string> lst;
 		for (int i = 0; i < argc; i++) {
 			lst.push_back(string(args[i]));
 		}
-		parse(lst);
+		return parse(lst);
 	}
-	void ArgumentParser::parse(const vector<string> & args) {
-
-		programName = args[0];
+	
+	Arguments ArgumentParser::parse(const vector<string> & args) {
+		Arguments ret;
+		ret.programName() = args[0];
 		for (vector<string>::const_iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 			string tok = *iter;
 			if (testLongIndicator(tok) || testShortIndicator(tok)) {
-
 				string indicator = tok;
 				string value;
-
 				if (testInlineSetter(tok)) {
 					indicator = tok.substr(0, tok.find("="));
 					value = tok.substr(tok.find("=") + 1);
@@ -108,18 +247,23 @@ namespace UTIL {
 					value = *(++iter);
 				}
 
-				if (hasVarWithIndicator(indicator)) {
-					Variable & var = varWithIndicator(indicator);
-					var = value;
+				string indicatorName = getIndicatorName(indicator);
+				
+				if (testLongIndicator(tok) && ret.hasVarWithAlias(indicatorName)) {
+					ret.varWithAlias(indicatorName) = value;
+				} else if (testShortIndicator(tok) && ret.hasVarWithShortAlias(indicatorName)) {
+					ret.varWithShortAlias(indicatorName) = value;
 				} else {
 					string alias = trimIndicator(indicator);
-					var(alias, alias, alias) = value;
+					ret.obtainVar(alias, alias, alias) = value;
 				}
 			} else {
-				_texts.push_back(tok);
+				ret.texts().push_back(tok);
 			}
 		}
+		return ret;
 	}
+	
 	string ArgumentParser::trimIndicator(const string & token) {
 		if (testLongIndicator(token)) {
 			return token.substr(2);
@@ -128,119 +272,32 @@ namespace UTIL {
 		}
 		return token;
 	}
+	
 	bool ArgumentParser::testLongIndicator(const string & token) {
 		return Text::startsWith(token, "--");
 	}
+	
 	bool ArgumentParser::testShortIndicator(const string & token) {
 		return Text::startsWith(token, "-") && !Text::startsWith(token, "--");
 	}
+	
 	bool ArgumentParser::testText(const string & token) {
 		return !testLongIndicator(token) && !testShortIndicator(token);
 	}
+	
 	bool ArgumentParser::testInlineSetter(const string & token) {
 		if (testLongIndicator(token) || testShortIndicator(token)) {
 			return token.find("=") != string::npos;
 		}
 		return false;
 	}
-	bool ArgumentParser::hasVarWithName(const string & name) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->name() == name) {
-				return true;
-			}
-		}
-		return false;
-	}
-	bool ArgumentParser::hasVarWithAlias(const string & alias) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->alias() == alias) {
-				return true;
-			}
-		}
-		return false;
-	}
-	bool ArgumentParser::hasVarWithShortAlias(const string & shortAlias) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->shortAlias() == shortAlias) {
-				return true;
-			}
-		}
-		return false;
-	}
-	bool ArgumentParser::hasVarWithIndicator(const string & indicator) {
+
+	string ArgumentParser::getIndicatorName(const string & indicator) {
 		if (testLongIndicator(indicator)) {
-			string alias = indicator.substr(2);
-			return hasVarWithAlias(alias);
+			return indicator.substr(2);
 		} else if (testShortIndicator(indicator)) {
-			string shortAlias = indicator.substr(1);
-			return hasVarWithShortAlias(shortAlias);
+			return indicator.substr(1);
 		}
-		return false;
-	}
-	Variable & ArgumentParser::varWithName(const string & name) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->name() == name) {
-				return *iter;
-			}
-		}
-		throw Exception("not found var with name - '" + name + "'");
-	}
-	Variable & ArgumentParser::varWithAlias(const string & alias) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->alias() == alias) {
-				return *iter;
-			}
-		}
-		throw Exception("not found var with alias - '" + alias + "'");
-	}
-	Variable & ArgumentParser::varWithShortAlias(const string & shortAlias) {
-		for (vector<Variable>::iterator iter = vars.begin(); iter != vars.end(); iter++) {
-			if (iter->shortAlias() == shortAlias) {
-				return *iter;
-			}
-		}
-		throw Exception("not found var with short alias - '" + shortAlias + "'");
-	}
-	Variable & ArgumentParser::varWithIndicator(const string & indicator) {
-		if (testLongIndicator(indicator)) {
-			string alias = indicator.substr(2);
-			return varWithAlias(alias);
-		} else if (testShortIndicator(indicator)) {
-			string shortAlias = indicator.substr(1);
-			return varWithShortAlias(shortAlias);
-		}
-		throw Exception("wrong indicator - '" + indicator + "'");
-	}
-	Variable & ArgumentParser::var(const string & name, const string & alias, const string & shortAlias) {
-		if (hasVarWithName(name)) {
-			Variable & v = varWithName(name);
-			v.alias() = alias;
-			v.shortAlias() = shortAlias;
-			return v;
-		}
-		vars.push_back(Variable(name, alias, shortAlias));
-		return *vars.rbegin();
-	}
-	Variable & ArgumentParser::var(const string & name) {
-		if (hasVarWithName(name)) {
-			return varWithName(name);
-		}
-		vars.push_back(Variable(name));
-		return *vars.rbegin();
-	}
-	vector<string> ArgumentParser::texts() {
-		return _texts;
-	}
-	string ArgumentParser::text(size_t idx) {
-		return _texts[idx];
-	}
-	string ArgumentParser::text(size_t idx, const string & def) {
-		if (idx >= _texts.size()) {
-			return def;
-		}
-		return text(idx);
-	}
-	string ArgumentParser::getProgramName() {
-		return programName;
+		throw Exception("Unknown indicator type");
 	}
 }

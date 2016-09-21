@@ -1,6 +1,8 @@
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/SecureSocket.hpp>
 
+#if defined(USE_OPENSSL)
+
 using namespace std;
 using namespace OS;
 using namespace UTIL;
@@ -152,3 +154,13 @@ int main(int argc, char *args[]) {
     return 0;
 }
 
+#else
+
+int main(int argc, char *args[]) {
+
+	// no ssl
+    
+    return 0;
+}
+
+#endif

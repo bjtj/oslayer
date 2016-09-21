@@ -150,4 +150,14 @@ int main(int argc, char *args[]) {
     return 0;
 }
 
+#else
+
+int main(int argc, char * args[]) {
+
+	// no sqlite
+
+    return 0;
+}
+
+
 #endif
