@@ -761,20 +761,28 @@ public: \
 		int year;
 		int month;
 		int day;
+		int wday;
 		int hour;
 		int minute;
 		int second;
 		int millisecond;
 	public:
 		Date();
+		Date(struct tm & info);
 		virtual ~Date();
 		static Date now();
-        static std::string format(const std::string & fmt, const Date & date);
+		static std::string format(const Date & date);
+        static std::string format(const Date & date, const std::string & fmt);
+		static std::string formatRfc1123(const Date & date);
+		// static std::string formatRfc1036(const Date & date);
+		static int getDefaultGmtOffset();
+		Date toGmt() const;
 		void setGmtOffset(int gmtoffset);
 		void setTimezone(const std::string & timezone);
 		void setYear(int year);
 		void setMonth(int month);
 		void setDay(int day);
+		void setDayOfWeek(int wday);
 		void setHour(int hour);
 		void setMinute(int minute);
 		void setSecond(int second);
@@ -784,6 +792,7 @@ public: \
 		int getYear() const;
 		int getMonth() const;
 		int getDay() const;
+		int getDayOfWeek() const;
 		int getHour() const;
 		int getMinute() const;
 		int getSecond() const;

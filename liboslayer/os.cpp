@@ -1485,6 +1485,7 @@ namespace OS {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1506,6 +1507,7 @@ namespace OS {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1524,6 +1526,7 @@ namespace OS {
 		date.setYear(now.wYear);
 		date.setMonth(now.wMonth - 1);
 		date.setDay(now.wDay);
+		date.setDayOfWeek(now.wDayOfWeek);
 		date.setHour(now.wHour);
 		date.setMinute(now.wMinute);
 		date.setSecond(now.wSecond);
@@ -1594,10 +1597,27 @@ namespace OS {
 
 	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
 
-	Date::Date() : gmtoffset(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	Date::Date()
+		: gmtoffset(0), year(0), month(0), day(0), wday(0),
+		  hour(0), minute(0), second(0), millisecond(0) {
 	}
+
+	Date::Date(struct tm & info)
+		: gmtoffset(0), year(0), month(0), day(0), wday(0),
+		  hour(0), minute(0), second(0), millisecond(0) {
+
+		setYear(1900 + info.tm_year);
+        setMonth(info.tm_mon);
+        setDay(info.tm_mday);
+		setDayOfWeek(info.tm_wday);
+        setHour(info.tm_hour);
+        setMinute(info.tm_min);
+        setSecond(info.tm_sec);
+	}
+
 	Date::~Date() {
 	}
+	
 	Date Date::now() {		
 		return s_get_localtime();
 	}
@@ -1614,12 +1634,16 @@ namespace OS {
         return string(num);
 	}
 
+	string Date::format(const Date & date) {
+		return format(date, DEFAULT_FORMAT);
+	}
+
 	/**
 	 * @brief seconds to string
 	 * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
 	 * @ref http://www.cplusplus.com/reference/ctime/strftime/
 	 */
-    string Date::format(const string & fmt, const Date & date) {
+    string Date::format(const Date & date, const string & fmt) {
 
 		if (fmt.empty()) {
 			return "";
@@ -1679,6 +1703,44 @@ namespace OS {
 		}
 		return ret;
     }
+	string Date::formatRfc1123(const Date & date) {
+		
+		static const char * wkday[] = {"Sun", "Mon", "Tue",
+									   "Wed", "Thu", "Fri", "Sat"};
+		static const char * month[] = {"Jan", "Feb", "Mar",
+									   "Apr", "May", "Jun",
+									   "Jul", "Aug", "Sep",
+									   "Oct", "Nov", "Dec"};
+
+		Date gmt = date.toGmt();
+
+		char buffer[64] = {0,};
+		snprintf(buffer, sizeof(buffer), "%s, %02d %s %04d %02d:%02d:%02d GMT",
+				 wkday[gmt.getDayOfWeek()],
+				 gmt.getDay(),
+				 month[gmt.getMonth()],
+				 gmt.getYear(),
+				 gmt.getHour(),
+				 gmt.getMinute(),
+				 gmt.getSecond());
+
+		return string(buffer);
+	}
+	// string Date::formatRfc1036(const Date & date) {
+	// }
+	int Date::getDefaultGmtOffset() {
+		return now().getGmtOffset();
+	}
+	Date Date::toGmt() const {
+		int defaultOffset = Date::getDefaultGmtOffset();
+		int offset = getGmtOffset();
+		osl_time_t time = getTime();
+		unsigned long seconds = time.sec;
+		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
+		struct tm info;
+		gmtime_r(&x, &info);
+		return Date(info);
+	}
 	void Date::setGmtOffset(int gmtoffset) {
 		this->gmtoffset = gmtoffset;
 	}
@@ -1693,6 +1755,9 @@ namespace OS {
 	}
 	void Date::setDay(int day) {
 		this->day = day;
+	}
+	void Date::setDayOfWeek(int wday) {
+		this->wday = wday;
 	}
 	void Date::setHour(int hour) {
 		this->hour = hour;
@@ -1720,6 +1785,9 @@ namespace OS {
 	}
 	int Date::getDay() const {
 		return day;
+	}
+	int Date::getDayOfWeek() const {
+		return wday;
 	}
 	int Date::getHour() const {
 		return hour;
@@ -1757,11 +1825,11 @@ namespace OS {
 	static Date s_time_to_date(time_t t) {
 		Date date;
         struct tm info;
-        // gmtime_r(&t, &info);
-		localtime_r(&t, &info);
+		localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1990,6 +2058,7 @@ namespace OS {
 		date.setYear(t.wYear);
 		date.setMonth(t.wMonth - 1);
 		date.setDay(t.wDay);
+		date.setDayOfWeek(t.wDayOfWeek);
 		date.setHour(t.wHour);
 		date.setMinute(t.wMinute);
 		date.setSecond(t.wSecond);
@@ -2385,11 +2454,11 @@ namespace OS {
 
 	string File::getCreationDate(const string & path, string fmt) {
 		Date date = s_get_creation_date(path);
-		return Date::format(fmt, date);
+		return Date::format(date, fmt);
 	}
 	string File::getModifiedDate(const string & path, string fmt) {
 		Date date = s_get_modified_date(path);
-		return Date::format(fmt, date);
+		return Date::format(date, fmt);
 	}
 	filesize_t File::getSize(const string & path) {
 		return s_get_file_size(path);

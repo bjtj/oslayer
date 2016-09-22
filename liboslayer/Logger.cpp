@@ -295,13 +295,16 @@ namespace UTIL {
 		}
 	};
 
+	/**
+	 * @brief 
+	 */
 	class BasicFormatter : public LogFormatter {
 	public:
 		BasicFormatter() {}
 		virtual ~BasicFormatter() {}
 
 		virtual string getDate() {
-			return Date::format("%Y-%c-%d %H:%i:%s.%f", Date::now());
+			return Date::format(Date::now(), "%Y-%c-%d %H:%i:%s.%f");
 		}
 
 		virtual string format(const LogSession & session, const string & msg) {
