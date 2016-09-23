@@ -31,6 +31,13 @@ build() {
 	$BASE/configure --prefix="$DIR_WORLD" --enable-debug && make && make install
 }
 
+build32() {
+	mkdir -p $DIR_BUILD
+	mkdir -p $DIR_WORLD
+	cd $DIR_BUILD
+	$BASE/configure --prefix="$DIR_WORLD" --enable-debug --build=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32" && make && make install
+}
+
 install() {
 	clean
 	mkdir -p $DIR_BUILD
@@ -50,6 +57,10 @@ case $OPT in
 	build)
 		reconf_if_need
 		build
+		;;
+	build32)
+		reconf_if_need
+		build32
 		;;
 	all)
 		prepare
