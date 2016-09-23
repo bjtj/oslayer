@@ -1737,21 +1737,27 @@ namespace OS {
 	int Date::getDefaultGmtOffset() {
 		return now().getGmtOffset();
 	}
-	Date Date::toGmt() const {
+	Date Date::toGmt(const Date & from) {
+		if (from.getGmtOffset() == 0) {
+			return from;
+		}
 		int defaultOffset = Date::getDefaultGmtOffset();
-		int offset = getGmtOffset();
-		osl_time_t time = getTime();
+		int offset = from.getGmtOffset();
+		osl_time_t time = from.getTime();
 		unsigned long seconds = time.sec;
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
-
 #if defined(USE_MS_WIN)
 		gmtime_s(&info, &x);
 #else
 		gmtime_r(&x, &info);
 #endif
-		
-		return Date(info);
+		Date date = Date(info);
+		date.setMillisecond(from.getMillisecond());
+		return date;
+	}
+	Date Date::toGmt() const {
+		return toGmt(*this);
 	}
 	void Date::setGmtOffset(int gmtoffset) {
 		this->gmtoffset = gmtoffset;

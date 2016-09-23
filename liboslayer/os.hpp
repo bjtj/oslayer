@@ -776,6 +776,7 @@ public: \
 		static std::string formatRfc1123(const Date & date);
 		// static std::string formatRfc1036(const Date & date);
 		static int getDefaultGmtOffset();
+		static Date toGmt(const Date & from);
 		Date toGmt() const;
 		void setGmtOffset(int gmtoffset);
 		void setTimezone(const std::string & timezone);
