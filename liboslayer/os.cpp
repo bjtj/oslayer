@@ -1534,6 +1534,12 @@ namespace OS {
 
 		// TODO: implement gmt offset
 		// http://stackoverflow.com/a/597562
+
+		int offset;
+		TIME_ZONE_INFORMATION TimeZoneInfo;
+		GetTimeZoneInformation(&TimeZoneInfo);
+		offset = -((int)TimeZoneInfo.Bias);
+		date.setGmtOffset(offset);
         
 #endif
 		return date;
@@ -1738,7 +1744,13 @@ namespace OS {
 		unsigned long seconds = time.sec;
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
+
+#if defined(USE_MS_WIN)
+		gmtime_s(&info, &x);
+#else
 		gmtime_r(&x, &info);
+#endif
+		
 		return Date(info);
 	}
 	void Date::setGmtOffset(int gmtoffset) {

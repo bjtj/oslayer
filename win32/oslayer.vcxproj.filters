@@ -24,12 +24,6 @@
     <ClCompile Include="..\liboslayer\Logger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\liboslayer\FileReaderWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\liboslayer\RandomPortBinders.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\liboslayer\ThreadPool.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -102,12 +96,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\Logger.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\liboslayer\FileReaderWriter.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\liboslayer\RandomPortBinders.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\ThreadPool.hpp">
@@ -212,7 +200,7 @@
     <ClInclude Include="..\liboslayer\Heap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\liboslayer\Timebase.hpp">
+    <ClInclude Include="..\liboslayer\Condition.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
