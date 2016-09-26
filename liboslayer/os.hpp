@@ -843,6 +843,7 @@ public: \
 		static bool isFile(const std::string & path);
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
+		static std::string getAbsolutePath(const std::string & path);
 		static std::string getDirectory(const std::string & path);
 		static std::string getName(const std::string & path);
 		static std::string getFileName(const std::string & path);
@@ -862,6 +863,7 @@ public: \
 		bool isFile() const;
 		bool isDirectory() const;
 		bool isWritable() const;
+		std::string getAbsolutePath();
 		std::string getDirectory() const;
 		std::string getName() const;
 		std::string getFileName() const;

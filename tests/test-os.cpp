@@ -89,6 +89,11 @@ static void test_path() {
 
 	ASSERT((path == "./file.mp4" || path == ".\\file.mp4"), ==, true);
 	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
+
+	cout << File::getAbsolutePath("/home") << endl;
+	cout << File::getAbsolutePath(".") << endl;
+	ASSERT(File::getAbsolutePath("."), ==, File::getCwd());
+	ASSERT(File::getAbsolutePath("./not exists"), ==, File::getCwd() + "/not exists");
 }
 
 static void test_library() {
@@ -153,13 +158,18 @@ static void test_c_date() {
 
 int main(int argc, char *args[]) {
 
-	test_time();
-	test_file();
-	test_file_io();
-	test_path();
-	test_library();
-	test_date();
-	test_c_date();
+	try {
+		test_time();
+		test_file();
+		test_file_io();
+		test_path();
+		test_library();
+		test_date();
+		test_c_date();
+	} catch (Exception e) {
+		cerr << e.getMessage() << endl;
+		return 1;
+	}
     
     return 0;
 }

@@ -2049,6 +2049,47 @@ namespace OS {
 		free(list);
 		return ret;
 	}
+
+	static string s_get_absolute_path(const string & path) {
+		bool abs = (path[0] == '/');
+		vector<string> toks;
+		string p = path;
+
+		if (!abs) {
+			char buffer[2048] = {0,};
+			getcwd(buffer, sizeof(buffer));
+			p = string(buffer) + "/" + p;
+		}
+	
+		string buf;
+		for (string::iterator iter = p.begin(); iter != p.end(); iter++) {
+			char ch = *iter;
+
+			if (ch != '/') {
+				buf.append(1, ch);
+			}
+		
+			if (ch == '/' || (iter + 1 == p.end())) {
+				if (!buf.empty()) {
+					if (buf == ".") {
+						// no op
+					} else if (buf == "..") {
+						toks.pop_back();
+					} else {
+						toks.push_back(buf);
+					}
+				}
+				buf = "";
+			}
+		}
+
+		string ret;
+		for (vector<string>::iterator iter = toks.begin(); iter != toks.end(); iter++) {
+			ret.append("/" + *iter);
+		}
+
+		return ret;
+	}
 	
 #elif defined(USE_MS_WIN)
 
@@ -2354,6 +2395,15 @@ namespace OS {
 
 		return ret;
 	}
+
+	static string s_get_absolute_path(const string & path) {
+		// TODO: implement
+		throw Exception("not implemented");
+	}
+
+#else
+
+	/* other platform */
 	
 #endif
 
@@ -2426,6 +2476,10 @@ namespace OS {
 
 	bool File::isWritable(const string & path) {
 		return s_is_writable(path);
+	}
+
+	string File::getAbsolutePath(const string & path) {
+		return s_get_absolute_path(path);
 	}
 
 	string File::getDirectory(const string & path){
@@ -2504,6 +2558,9 @@ namespace OS {
 	}
 	bool File::isWritable() const {
 		return File::isWritable(path);
+	}
+	string File::getAbsolutePath() {
+		return File::getAbsolutePath(path);
 	}
 	string File::getDirectory() const {
 		return File::getDirectory(path);
