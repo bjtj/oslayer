@@ -2004,6 +2004,10 @@ namespace OS {
 		return mkdir(tmp, mode);
 	}
 
+	static bool s_remove_file(const char * path) {
+		return (remove(path) == 0 ? true : false);
+	}
+
 	static Date s_get_creation_date(const string & path) {
 		struct stat st;
 		memset(&st, 0, sizeof(struct stat));
@@ -2056,9 +2060,7 @@ namespace OS {
 		string p = path;
 
 		if (!abs) {
-			char buffer[2048] = {0,};
-			getcwd(buffer, sizeof(buffer));
-			p = string(buffer) + "/" + p;
+			p = s_get_cwd() + "/" + p;
 		}
 	
 		string buf;
