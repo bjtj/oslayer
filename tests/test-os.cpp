@@ -59,6 +59,8 @@ static void test_file_io() {
 	reader.read(buffer, sizeof(buffer));
 	ASSERT(string(buffer), ==, "fghijklmnopqrstuvwxyz");
 	reader.close();
+
+	file.remove();
 }
 
 static void test_path() {
@@ -90,10 +92,9 @@ static void test_path() {
 	ASSERT((path == "./file.mp4" || path == ".\\file.mp4"), ==, true);
 	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
 
-	cout << File::getAbsolutePath("/home") << endl;
-	cout << File::getAbsolutePath(".") << endl;
+	cout << File::getAbsolutePath("..") << endl;
 	ASSERT(File::getAbsolutePath("."), ==, File::getCwd());
-	ASSERT(File::getAbsolutePath("./not exists"), ==, File::getCwd() + "/not exists");
+	ASSERT(File::getAbsolutePath("./not exists"), ==, File::getCwd() + File::getSeparators()[0] + "not exists");
 }
 
 static void test_library() {

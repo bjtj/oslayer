@@ -2298,10 +2298,12 @@ namespace OS {
 		}
 	
 		return _mkdir(tmp);
-
-
-		return 0;
 	}
+
+	static bool s_remove_file(const char * path) {
+		return DeleteFile(path) == TRUE ? true : false;
+	}
+
 	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
 		SYSTEMTIME stime;
 		FILETIME localtime;
@@ -2397,8 +2399,21 @@ namespace OS {
 	}
 
 	static string s_get_absolute_path(const string & path) {
-		// TODO: implement
-		throw Exception("not implemented");
+
+		static const unsigned int BUFFER_SIZE = 4096;
+
+		DWORD  retval = 0;	
+		char buffer[BUFFER_SIZE] = {0,}; 
+		char ** lpppart = {NULL};
+
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364963(v=vs.85).aspx
+		retval = GetFullPathName(path.c_str(), BUFFER_SIZE, buffer, lpppart);
+
+		if (retval == 0)  {
+			throw Exception("GetFullPathName failed\n", GetLastError(), 0);
+		}
+
+		return string(buffer);
 	}
 
 #else
@@ -2524,6 +2539,10 @@ namespace OS {
 		return s_mkdir(path.c_str(), 0755);
 	}
 
+	bool File::remove(const string & path) {
+		return s_remove_file(path.c_str());
+	}
+
 	string File::getCreationDate(const string & path, string fmt) {
 		Date date = s_get_creation_date(path);
 		return Date::format(date, fmt);
@@ -2582,6 +2601,9 @@ namespace OS {
 	}
 	int File::mkdir() const {
 		return File::mkdir(path);
+	}
+	bool File::remove() {
+		return File::remove(path);
 	}
 	string File::getCreationDate(const string & fmt) const {
 		return File::getCreationDate(path, fmt);

@@ -851,6 +851,7 @@ public: \
 		static std::string getExtension(const std::string & path);
 		static bool compareExtension(const std::string & path, std::string extension);
 		static int mkdir(const std::string & path);
+		static bool remove(const std::string & path);
 		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static std::string getModifiedDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static filesize_t getSize(const std::string & path);
@@ -871,6 +872,7 @@ public: \
 		std::string getExtension() const;
 		bool compareExtension(std::string extension) const;
 		int mkdir() const;
+		bool remove();
 		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
 		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
 		filesize_t getSize() const;
