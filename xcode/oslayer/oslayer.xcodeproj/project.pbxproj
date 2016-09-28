@@ -527,14 +527,9 @@
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-I/usr/local/ssl/openssl_x86_64/include",
+					"-I/usr/local/ssl/include",
 				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-L/usr/local/ssl/openssl_x86_64",
-					"-lssl",
-					"-lcrypto",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -549,14 +544,9 @@
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-I/usr/local/ssl/openssl_x86_64/include",
+					"-I/usr/local/ssl/include",
 				);
-				OTHER_LDFLAGS = (
-					"-ObjC",
-					"-L/usr/local/ssl/openssl_x86_64",
-					"-lssl",
-					"-lcrypto",
-				);
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;

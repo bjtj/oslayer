@@ -8,9 +8,9 @@ namespace OS {
 	class Random {
 	public:
 		Random();
-		Random(unsigned long seed);
+		Random(unsigned seed);
 		virtual ~Random();
-		void setSeed(unsigned long seed);
+		void setSeed(unsigned seed);
 		int next();
 	};
 }

@@ -4,12 +4,12 @@ namespace OS {
 	
 	Random::Random() {
 	}
-	Random::Random(unsigned long seed) {
-		srand(seed);
+	Random::Random(unsigned seed) {
+        setSeed(seed);
 	}
 	Random::~Random() {
 	}
-	void Random::setSeed(unsigned long seed) {
+	void Random::setSeed(unsigned seed) {
 		srand(seed);
 	}
 	int Random::next() {

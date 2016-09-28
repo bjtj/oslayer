@@ -126,7 +126,7 @@
 		E8FAB1EC1BD7C2C200E89DC5 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = TJ;
 				TargetAttributes = {
 					E8FAB1F31BD7C2C200E89DC5 = {
@@ -207,8 +207,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -230,6 +232,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -250,8 +253,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -266,6 +271,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
@@ -276,15 +282,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = ../../;
+				LIBRARY_SEARCH_PATHS = /usr/local/ssl/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-I/usr/local/ssl/openssl_x86_64/include",
+					"-I/usr/local/ssl/include",
 				);
 				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
+					"-Wl,/usr/local/ssl/lib/libssl.1.0.0.dylib",
+					"-Wl,/usr/local/ssl/lib/libcrypto.1.0.0.dylib",
 				);
+				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "oslayer-console";
 			};
 			name = Debug;
@@ -294,15 +303,18 @@
 			buildSettings = {
 				GCC_PREPROCESSOR_DEFINITIONS = "HAVE_OPENSSL=1";
 				HEADER_SEARCH_PATHS = ../../;
+				LIBRARY_SEARCH_PATHS = /usr/local/ssl/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OTHER_CFLAGS = "";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
-					"-I/usr/local/ssl/openssl_x86_64/include",
+					"-I/usr/local/ssl/include",
 				);
 				OTHER_LDFLAGS = (
-					"-lssl",
-					"-lcrypto",
+					"-Wl,/usr/local/ssl/lib/libssl.1.0.0.dylib",
+					"-Wl,/usr/local/ssl/lib/libcrypto.1.0.0.dylib",
 				);
+				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "oslayer-console";
 			};
 			name = Release;
