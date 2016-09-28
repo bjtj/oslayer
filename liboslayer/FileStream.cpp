@@ -83,7 +83,7 @@ namespace UTIL {
 		while ((len = read(buffer, bufferSize)) > 0) {
 			ret.append(buffer, len);
 		}
-		delete buffer;
+		delete[] buffer;
 		return ret;
 	}
 	void FileStream::write(int ch) {
