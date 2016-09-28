@@ -20,7 +20,6 @@ namespace UTIL {
 		Variable(const std::string & name);
 		Variable(const std::string & name, const std::string & alias, const std::string & shortAlias);
 		virtual ~Variable();
-
 		std::string & name();
 		std::string & alias();
 		std::string & shortAlias();
@@ -34,42 +33,56 @@ namespace UTIL {
 		void operator=(int ival);
 		void operator=(float fval);
 	};
+
+	/**
+	 * @brief
+	 */
+	class Arguments {
+	private:
+		std::string _programName;
+		std::vector<Variable> _vars;
+		std::vector<std::string> _texts;
+		
+	public:
+		Arguments();
+		virtual ~Arguments();
+		void clear();
+		std::string & programName();
+		std::vector<std::string> & texts();
+		std::string & text(size_t idx);
+		std::string varAsString(const std::string & any, const std::string & def);
+		bool varAsBoolean(const std::string & any, bool def);
+		int varAsInteger(const std::string & any, int def);
+		bool hasVarWithAny(const std::string & any);
+		bool hasVarWithName(const std::string & name);
+		bool hasVarWithAlias(const std::string & alias);
+		bool hasVarWithShortAlias(const std::string & shortAlias);
+		Variable & varWithAny(const std::string & any);
+		Variable & varWithName(const std::string & name);
+		Variable & varWithAlias(const std::string & alias);
+		Variable & varWithShortAlias(const std::string & shortAlias);
+		Variable & obtainVar(const std::string & name, const std::string & alias, const std::string & shortAlias);
+		Variable & obtainVar(const std::string & name);
+	};
 	
 	/**
 	 * @brief 
 	 */
 	class ArgumentParser {
 	private:
-		std::string programName;
-		std::vector<Variable> vars;
-		std::vector<std::string> _texts;
+		
 	public:
 		ArgumentParser();
 		virtual ~ArgumentParser();
-
-		void clear();
-		void parse(int argc, char * args[]);
-		void parse(int argc, const char * args[]);
-		void parse(const std::vector<std::string> & args);
-		std::string trimIndicator(const std::string & token);
-		bool testLongIndicator(const std::string & token);
-		bool testShortIndicator(const std::string & token);
-		bool testText(const std::string & token);
-		bool testInlineSetter(const std::string & token);
-		bool hasVarWithName(const std::string & name);
-		bool hasVarWithAlias(const std::string & alias);
-		bool hasVarWithShortAlias(const std::string & shortAlias);
-		bool hasVarWithIndicator(const std::string & indicator);
-		Variable & varWithName(const std::string & name);
-		Variable & varWithAlias(const std::string & alias);
-		Variable & varWithShortAlias(const std::string & shortAlias);
-		Variable & varWithIndicator(const std::string & indicator);
-		Variable & var(const std::string & name, const std::string & alias, const std::string & shortAlias);
-		Variable & var(const std::string & name);
-		std::vector<std::string> texts();
-		std::string text(size_t idx);
-		std::string text(size_t idx, const std::string & def);
-		std::string getProgramName();
+		static Arguments parse(int argc, char * args[]);
+		static Arguments parse(int argc, const char * args[]);
+		static Arguments parse(const std::vector<std::string> & args);
+		static std::string trimIndicator(const std::string & token);
+		static bool testLongIndicator(const std::string & token);
+		static bool testShortIndicator(const std::string & token);
+		static bool testText(const std::string & token);
+		static bool testInlineSetter(const std::string & token);
+		static std::string getIndicatorName(const std::string & indicator);
 	};
 }
 

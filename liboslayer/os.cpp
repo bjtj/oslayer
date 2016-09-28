@@ -1485,6 +1485,7 @@ namespace OS {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1506,6 +1507,7 @@ namespace OS {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1524,6 +1526,7 @@ namespace OS {
 		date.setYear(now.wYear);
 		date.setMonth(now.wMonth - 1);
 		date.setDay(now.wDay);
+		date.setDayOfWeek(now.wDayOfWeek);
 		date.setHour(now.wHour);
 		date.setMinute(now.wMinute);
 		date.setSecond(now.wSecond);
@@ -1531,6 +1534,12 @@ namespace OS {
 
 		// TODO: implement gmt offset
 		// http://stackoverflow.com/a/597562
+
+		int offset;
+		TIME_ZONE_INFORMATION TimeZoneInfo;
+		GetTimeZoneInformation(&TimeZoneInfo);
+		offset = -((int)TimeZoneInfo.Bias);
+		date.setGmtOffset(offset);
         
 #endif
 		return date;
@@ -1594,10 +1603,27 @@ namespace OS {
 
 	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
 
-	Date::Date() : gmtoffset(0), year(0), month(0), day(0), hour(0), minute(0), second(0), millisecond(0) {
+	Date::Date()
+		: gmtoffset(0), year(0), month(0), day(0), wday(0),
+		  hour(0), minute(0), second(0), millisecond(0) {
 	}
+
+	Date::Date(struct tm & info)
+		: gmtoffset(0), year(0), month(0), day(0), wday(0),
+		  hour(0), minute(0), second(0), millisecond(0) {
+
+		setYear(1900 + info.tm_year);
+        setMonth(info.tm_mon);
+        setDay(info.tm_mday);
+		setDayOfWeek(info.tm_wday);
+        setHour(info.tm_hour);
+        setMinute(info.tm_min);
+        setSecond(info.tm_sec);
+	}
+
 	Date::~Date() {
 	}
+	
 	Date Date::now() {		
 		return s_get_localtime();
 	}
@@ -1614,12 +1640,16 @@ namespace OS {
         return string(num);
 	}
 
+	string Date::format(const Date & date) {
+		return format(date, DEFAULT_FORMAT);
+	}
+
 	/**
 	 * @brief seconds to string
 	 * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
 	 * @ref http://www.cplusplus.com/reference/ctime/strftime/
 	 */
-    string Date::format(const string & fmt, const Date & date) {
+    string Date::format(const Date & date, const string & fmt) {
 
 		if (fmt.empty()) {
 			return "";
@@ -1679,6 +1709,56 @@ namespace OS {
 		}
 		return ret;
     }
+	string Date::formatRfc1123(const Date & date) {
+		
+		static const char * wkday[] = {"Sun", "Mon", "Tue",
+									   "Wed", "Thu", "Fri", "Sat"};
+		static const char * month[] = {"Jan", "Feb", "Mar",
+									   "Apr", "May", "Jun",
+									   "Jul", "Aug", "Sep",
+									   "Oct", "Nov", "Dec"};
+
+		Date gmt = date.toGmt();
+
+		char buffer[64] = {0,};
+		snprintf(buffer, sizeof(buffer), "%s, %02d %s %04d %02d:%02d:%02d GMT",
+				 wkday[gmt.getDayOfWeek()],
+				 gmt.getDay(),
+				 month[gmt.getMonth()],
+				 gmt.getYear(),
+				 gmt.getHour(),
+				 gmt.getMinute(),
+				 gmt.getSecond());
+
+		return string(buffer);
+	}
+	// string Date::formatRfc1036(const Date & date) {
+	// }
+	int Date::getDefaultGmtOffset() {
+		return now().getGmtOffset();
+	}
+	Date Date::toGmt(const Date & from) {
+		if (from.getGmtOffset() == 0) {
+			return from;
+		}
+		int defaultOffset = Date::getDefaultGmtOffset();
+		int offset = from.getGmtOffset();
+		osl_time_t time = from.getTime();
+		unsigned long seconds = time.sec;
+		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
+		struct tm info;
+#if defined(USE_MS_WIN)
+		gmtime_s(&info, &x);
+#else
+		gmtime_r(&x, &info);
+#endif
+		Date date = Date(info);
+		date.setMillisecond(from.getMillisecond());
+		return date;
+	}
+	Date Date::toGmt() const {
+		return toGmt(*this);
+	}
 	void Date::setGmtOffset(int gmtoffset) {
 		this->gmtoffset = gmtoffset;
 	}
@@ -1693,6 +1773,9 @@ namespace OS {
 	}
 	void Date::setDay(int day) {
 		this->day = day;
+	}
+	void Date::setDayOfWeek(int wday) {
+		this->wday = wday;
 	}
 	void Date::setHour(int hour) {
 		this->hour = hour;
@@ -1720,6 +1803,9 @@ namespace OS {
 	}
 	int Date::getDay() const {
 		return day;
+	}
+	int Date::getDayOfWeek() const {
+		return wday;
 	}
 	int Date::getHour() const {
 		return hour;
@@ -1757,11 +1843,11 @@ namespace OS {
 	static Date s_time_to_date(time_t t) {
 		Date date;
         struct tm info;
-        // gmtime_r(&t, &info);
-		localtime_r(&t, &info);
+		localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
+		date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
@@ -1918,6 +2004,10 @@ namespace OS {
 		return mkdir(tmp, mode);
 	}
 
+	static bool s_remove_file(const char * path) {
+		return (remove(path) == 0 ? true : false);
+	}
+
 	static Date s_get_creation_date(const string & path) {
 		struct stat st;
 		memset(&st, 0, sizeof(struct stat));
@@ -1963,6 +2053,45 @@ namespace OS {
 		free(list);
 		return ret;
 	}
+
+	static string s_get_absolute_path(const string & path) {
+		bool abs = (path[0] == '/');
+		vector<string> toks;
+		string p = path;
+
+		if (!abs) {
+			p = s_get_cwd() + "/" + p;
+		}
+	
+		string buf;
+		for (string::iterator iter = p.begin(); iter != p.end(); iter++) {
+			char ch = *iter;
+
+			if (ch != '/') {
+				buf.append(1, ch);
+			}
+		
+			if (ch == '/' || (iter + 1 == p.end())) {
+				if (!buf.empty()) {
+					if (buf == ".") {
+						// no op
+					} else if (buf == "..") {
+						toks.pop_back();
+					} else {
+						toks.push_back(buf);
+					}
+				}
+				buf = "";
+			}
+		}
+
+		string ret;
+		for (vector<string>::iterator iter = toks.begin(); iter != toks.end(); iter++) {
+			ret.append("/" + *iter);
+		}
+
+		return ret;
+	}
 	
 #elif defined(USE_MS_WIN)
 
@@ -1990,6 +2119,7 @@ namespace OS {
 		date.setYear(t.wYear);
 		date.setMonth(t.wMonth - 1);
 		date.setDay(t.wDay);
+		date.setDayOfWeek(t.wDayOfWeek);
 		date.setHour(t.wHour);
 		date.setMinute(t.wMinute);
 		date.setSecond(t.wSecond);
@@ -2170,10 +2300,12 @@ namespace OS {
 		}
 	
 		return _mkdir(tmp);
-
-
-		return 0;
 	}
+
+	static bool s_remove_file(const char * path) {
+		return DeleteFile(path) == TRUE ? true : false;
+	}
+
 	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
 		SYSTEMTIME stime;
 		FILETIME localtime;
@@ -2267,6 +2399,28 @@ namespace OS {
 
 		return ret;
 	}
+
+	static string s_get_absolute_path(const string & path) {
+
+		static const unsigned int BUFFER_SIZE = 4096;
+
+		DWORD  retval = 0;	
+		char buffer[BUFFER_SIZE] = {0,}; 
+		char ** lpppart = {NULL};
+
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364963(v=vs.85).aspx
+		retval = GetFullPathName(path.c_str(), BUFFER_SIZE, buffer, lpppart);
+
+		if (retval == 0)  {
+			throw Exception("GetFullPathName failed\n", GetLastError(), 0);
+		}
+
+		return string(buffer);
+	}
+
+#else
+
+	/* other platform */
 	
 #endif
 
@@ -2341,6 +2495,10 @@ namespace OS {
 		return s_is_writable(path);
 	}
 
+	string File::getAbsolutePath(const string & path) {
+		return s_get_absolute_path(path);
+	}
+
 	string File::getDirectory(const string & path){
 		return s_get_path_part(path);
 	}
@@ -2383,13 +2541,17 @@ namespace OS {
 		return s_mkdir(path.c_str(), 0755);
 	}
 
+	bool File::remove(const string & path) {
+		return s_remove_file(path.c_str());
+	}
+
 	string File::getCreationDate(const string & path, string fmt) {
 		Date date = s_get_creation_date(path);
-		return Date::format(fmt, date);
+		return Date::format(date, fmt);
 	}
 	string File::getModifiedDate(const string & path, string fmt) {
 		Date date = s_get_modified_date(path);
-		return Date::format(fmt, date);
+		return Date::format(date, fmt);
 	}
 	filesize_t File::getSize(const string & path) {
 		return s_get_file_size(path);
@@ -2418,6 +2580,9 @@ namespace OS {
 	bool File::isWritable() const {
 		return File::isWritable(path);
 	}
+	string File::getAbsolutePath() {
+		return File::getAbsolutePath(path);
+	}
 	string File::getDirectory() const {
 		return File::getDirectory(path);
 	}
@@ -2438,6 +2603,9 @@ namespace OS {
 	}
 	int File::mkdir() const {
 		return File::mkdir(path);
+	}
+	bool File::remove() {
+		return File::remove(path);
 	}
 	string File::getCreationDate(const string & fmt) const {
 		return File::getCreationDate(path, fmt);

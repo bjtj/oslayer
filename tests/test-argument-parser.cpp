@@ -20,13 +20,12 @@ public:
 				"b"
 			};
 
-			ArgumentParser parser;
-			parser.parse(3, args);
+			Arguments arguments = ArgumentParser::parse(3, args);
 
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.texts().size(), ==, 2);
-			ASSERT(parser.texts()[0], ==, "a");
-			ASSERT(parser.texts()[1], ==, "b");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.texts().size(), ==, 2);
+			ASSERT(arguments.texts()[0], ==, "a");
+			ASSERT(arguments.texts()[1], ==, "b");
 			
 		}
 
@@ -37,16 +36,14 @@ public:
 				"b"
 			};
 
-			ArgumentParser parser;
-			parser.var("greeting") = "hello";
+			Arguments arguments = ArgumentParser::parse(3, args);
+			arguments.obtainVar("greeting") = "hello";
 			
-			parser.parse(3, args);
-
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.texts().size(), ==, 2);
-			ASSERT(parser.texts()[0], ==, "a");
-			ASSERT(parser.texts()[1], ==, "b");
-			ASSERT(parser.var("greeting").value(), ==, "hello");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.texts().size(), ==, 2);
+			ASSERT(arguments.texts()[0], ==, "a");
+			ASSERT(arguments.texts()[1], ==, "b");
+			ASSERT(arguments.obtainVar("greeting").value(), ==, "hello");
 		}
 
 		{
@@ -58,16 +55,16 @@ public:
 				"allo"
 			};
 
-			ArgumentParser parser;
-			parser.var("greeting") = "hello";
+			Arguments arguments;
+			arguments.obtainVar("greeting") = "hello";
 			
-			parser.parse(5, args);
+			arguments = ArgumentParser::parse(5, args);
 
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.texts().size(), ==, 2);
-			ASSERT(parser.texts()[0], ==, "a");
-			ASSERT(parser.texts()[1], ==, "b");
-			ASSERT(parser.var("greeting").value(), ==, "allo");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.texts().size(), ==, 2);
+			ASSERT(arguments.texts()[0], ==, "a");
+			ASSERT(arguments.texts()[1], ==, "b");
+			ASSERT(arguments.obtainVar("greeting").value(), ==, "allo");
 		}
 
 		{
@@ -76,11 +73,10 @@ public:
 				"--oneline"
 			};
 
-			ArgumentParser parser;
-			parser.parse(2, args);
+			Arguments arguments = ArgumentParser::parse(2, args);
 
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.varWithAlias("oneline").value(), ==, "yes");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.varWithAlias("oneline").value(), ==, "yes");
 		}
 
 		{
@@ -89,11 +85,10 @@ public:
 				"--oneline="
 			};
 
-			ArgumentParser parser;
-			parser.parse(2, args);
+			Arguments arguments = ArgumentParser::parse(2, args);
 
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.varWithAlias("oneline").value(), ==, "");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.varWithAlias("oneline").value(), ==, "");
 		}
 
 		{
@@ -111,19 +106,20 @@ public:
 				"overwritten"
 			};
 
-			ArgumentParser parser;
-			parser.parse(11, args);
+			Arguments arguments = ArgumentParser::parse(11, args);
 
-			ASSERT(parser.getProgramName(), ==, "program");
-			ASSERT(parser.texts().size(), ==, 2);
-			ASSERT(parser.texts()[0], ==, "text1");
-			ASSERT(parser.texts()[1], ==, "text2");
-			ASSERT(parser.varWithShortAlias("v").value(), ==, "yes");
-			ASSERT(parser.varWithAlias("oneline").value(), ==, "yes");
-			ASSERT(parser.varWithAlias("oneline").valueAsBoolean(), ==, true);
-			ASSERT(parser.varWithAlias("st").value(), ==, "upnp:rootdevice");
-			ASSERT(parser.varWithAlias("message").value(), ==, "hello world");
-			ASSERT(parser.varWithAlias("x").value(), ==, "overwritten");
+			ASSERT(arguments.programName(), ==, "program");
+			ASSERT(arguments.texts().size(), ==, 2);
+			ASSERT(arguments.texts()[0], ==, "text1");
+			ASSERT(arguments.texts()[1], ==, "text2");
+			ASSERT(arguments.varWithShortAlias("v").value(), ==, "yes");
+			ASSERT(arguments.varWithAlias("oneline").value(), ==, "yes");
+			ASSERT(arguments.varWithAlias("oneline").valueAsBoolean(), ==, true);
+			ASSERT(arguments.varWithAlias("st").value(), ==, "upnp:rootdevice");
+			ASSERT(arguments.varWithAlias("message").value(), ==, "hello world");
+			ASSERT(arguments.varWithAlias("x").value(), ==, "overwritten");
+			ASSERT(arguments.varAsBoolean("notspecified", false), ==, false);
+			ASSERT(arguments.varAsBoolean("notspecified", true), ==, true);
 		}
 	}
 };

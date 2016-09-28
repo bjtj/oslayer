@@ -23,7 +23,7 @@ static void test_file() {
 	string c = file.getCreationDate();
 	cout << c << endl;
 
-	cout << Date::format("%Y-%c-%d %H:%i:%s", Date::now()) << endl;
+	cout << Date::format(Date::now(), "%Y-%c-%d %H:%i:%s") << endl;
 
 	File dir("./dir");
 
@@ -59,6 +59,8 @@ static void test_file_io() {
 	reader.read(buffer, sizeof(buffer));
 	ASSERT(string(buffer), ==, "fghijklmnopqrstuvwxyz");
 	reader.close();
+
+	file.remove();
 }
 
 static void test_path() {
@@ -89,6 +91,10 @@ static void test_path() {
 
 	ASSERT((path == "./file.mp4" || path == ".\\file.mp4"), ==, true);
 	ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
+
+	cout << File::getAbsolutePath("..") << endl;
+	ASSERT(File::getAbsolutePath("."), ==, File::getCwd());
+	ASSERT(File::getAbsolutePath("./not exists"), ==, File::getCwd() + File::getSeparators()[0] + "not exists");
 }
 
 static void test_library() {
@@ -102,8 +108,23 @@ static void test_library() {
 #endif
 }
 
+static void print_date(const Date & date) {
+	cout << Date::format(date) << "/" << Date::formatRfc1123(date) << endl;
+}
+
 static void test_date() {
 	Date date = Date::now();
+
+	cout << "[now]" << endl;
+	print_date(date);
+	cout << "[gmt]" << endl;
+	print_date(date.toGmt());
+	cout << "[gmt now-1]" << endl;
+	date.setGmtOffset(date.getGmtOffset() - 60);
+	print_date(date.toGmt());
+	cout << "[gmt 0]" << endl;
+	date.setGmtOffset(0);
+	print_date(date.toGmt());
 
 	cout << "[OS date test]" << endl;
 	cout << " * offset: " << date.getGmtOffset() << " (" << ((double)date.getGmtOffset() / 60.0) << ")" << endl;
@@ -138,13 +159,18 @@ static void test_c_date() {
 
 int main(int argc, char *args[]) {
 
-	test_time();
-	test_file();
-	test_file_io();
-	test_path();
-	test_library();
-	test_date();
-	test_c_date();
+	try {
+		test_time();
+		test_file();
+		test_file_io();
+		test_path();
+		test_library();
+		test_date();
+		test_c_date();
+	} catch (Exception e) {
+		cerr << e.getMessage() << endl;
+		return 1;
+	}
     
     return 0;
 }

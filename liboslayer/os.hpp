@@ -761,20 +761,29 @@ public: \
 		int year;
 		int month;
 		int day;
+		int wday;
 		int hour;
 		int minute;
 		int second;
 		int millisecond;
 	public:
 		Date();
+		Date(struct tm & info);
 		virtual ~Date();
 		static Date now();
-        static std::string format(const std::string & fmt, const Date & date);
+		static std::string format(const Date & date);
+        static std::string format(const Date & date, const std::string & fmt);
+		static std::string formatRfc1123(const Date & date);
+		// static std::string formatRfc1036(const Date & date);
+		static int getDefaultGmtOffset();
+		static Date toGmt(const Date & from);
+		Date toGmt() const;
 		void setGmtOffset(int gmtoffset);
 		void setTimezone(const std::string & timezone);
 		void setYear(int year);
 		void setMonth(int month);
 		void setDay(int day);
+		void setDayOfWeek(int wday);
 		void setHour(int hour);
 		void setMinute(int minute);
 		void setSecond(int second);
@@ -784,6 +793,7 @@ public: \
 		int getYear() const;
 		int getMonth() const;
 		int getDay() const;
+		int getDayOfWeek() const;
 		int getHour() const;
 		int getMinute() const;
 		int getSecond() const;
@@ -833,6 +843,7 @@ public: \
 		static bool isFile(const std::string & path);
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
+		static std::string getAbsolutePath(const std::string & path);
 		static std::string getDirectory(const std::string & path);
 		static std::string getName(const std::string & path);
 		static std::string getFileName(const std::string & path);
@@ -840,6 +851,7 @@ public: \
 		static std::string getExtension(const std::string & path);
 		static bool compareExtension(const std::string & path, std::string extension);
 		static int mkdir(const std::string & path);
+		static bool remove(const std::string & path);
 		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static std::string getModifiedDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
 		static filesize_t getSize(const std::string & path);
@@ -852,6 +864,7 @@ public: \
 		bool isFile() const;
 		bool isDirectory() const;
 		bool isWritable() const;
+		std::string getAbsolutePath();
 		std::string getDirectory() const;
 		std::string getName() const;
 		std::string getFileName() const;
@@ -859,6 +872,7 @@ public: \
 		std::string getExtension() const;
 		bool compareExtension(std::string extension) const;
 		int mkdir() const;
+		bool remove();
 		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
 		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
 		filesize_t getSize() const;

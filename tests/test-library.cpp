@@ -6,15 +6,19 @@ using namespace UTIL;
 
 class LoadLibraryTestCase : public TestCase {
 public:
-	LoadLibraryTestCase() : TestCase("LoadLibraryTestCase") {}
-	virtual ~LoadLibraryTestCase() {}
+	LoadLibraryTestCase() : TestCase("LoadLibraryTestCase") { /**/ }
+	virtual ~LoadLibraryTestCase() { /**/ }
 	virtual void setUp(TestEnvironment & env) {
 	}
 	virtual void tearDown() {
 	}
 	virtual void test() {
-		Library lib(DATA_PATH, "hello");
-		((void (*)(void))*lib.getSymbol("hello"))();
+		try {
+			Library lib(DATA_PATH, "hello");
+			((void (*)(void))*lib.getSymbol("hello"))();
+		} catch (Exception e) {
+			cerr << e.getMessage() << endl;
+		}
 	}
 };
 
