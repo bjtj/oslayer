@@ -128,25 +128,18 @@ typedef FARPROC SYM_HANDLE;
 
 namespace OS {
 
-#define DECL_NAMED_ONLY_EXCEPTION(NAME) class NAME : public OS::Exception { \
-public: \
-    explicit NAME() { \
-    } \
-	explicit NAME(const std::string & message) \
-    : OS::Exception(message) { \
-    } \
-	explicit NAME(const char * message) \
-    : OS::Exception(message) { \
-    } \
-    explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
-    : OS::Exception(message, errorCode, subErrorCode) { \
-    } \
-    explicit NAME(const char * message, int errorCode, int subErrorCode) \
-    : OS::Exception(message, errorCode, subErrorCode) { \
-    } \
-    virtual ~NAME() throw() { \
-    } \
-}
+#define DECL_NAMED_ONLY_EXCEPTION(NAME) \
+	class NAME : public OS::Exception { \
+	public:										   \
+		explicit NAME() {/**/}												\
+		explicit NAME(const std::string & message) : OS::Exception(message) {/**/} \
+		explicit NAME(const char * message) : OS::Exception(message) {/**/} \
+		explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
+		: OS::Exception(message, errorCode, subErrorCode) {/**/} \
+		explicit NAME(const char * message, int errorCode, int subErrorCode) \
+		: OS::Exception(message, errorCode, subErrorCode) {/**/} \
+		virtual ~NAME() throw() {/**/} \
+	};
 
 	/**
 	 * @brief Exception
