@@ -60,7 +60,8 @@ namespace UTIL {
 	/**
 	 *
 	 */
-	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator) : freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
+	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator)
+		: freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
 	}
 
 	
@@ -194,8 +195,13 @@ namespace UTIL {
 	size_t ThreadPool::freeCount() {
 		return freeQueue.size();
 	}
+	
 	size_t ThreadPool::workingCount() {
 		return workingQueue.size();
+	}
+	
+	size_t ThreadPool::capacity() {
+		return poolSize;
 	}
 	
 	void ThreadPool::update(Observable * target) {

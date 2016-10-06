@@ -71,6 +71,7 @@ namespace UTIL {
 		StatefulThread * dequeue();
 		size_t freeCount();
 		size_t workingCount();
+		size_t capacity();
 		virtual void update(Observable * target);
 	};
 

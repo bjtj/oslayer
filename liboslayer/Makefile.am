@@ -2,8 +2,6 @@ lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS= \
-	platform.hpp \
-	os.hpp \
 	ArgumentParser.hpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
@@ -16,6 +14,7 @@ liboslayerinc_HEADERS= \
 	Hash.hpp \
 	Heap.hpp \
 	Iterator.hpp \
+	Lifetime.hpp \
 	Lisp.hpp \
 	Logger.hpp \
 	MessageQueue.hpp \
@@ -39,12 +38,11 @@ liboslayerinc_HEADERS= \
 	Utils.hpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
-	XmlParser.hpp
+	XmlParser.hpp \
+	os.hpp \
+	platform.hpp
 
 liboslayer_la_SOURCES= \
-	platform.hpp \
-	os.cpp \
-	os.hpp \
 	ArgumentParser.cpp \
 	ArgumentParser.hpp \
 	AutoRef.cpp \
@@ -64,6 +62,7 @@ liboslayer_la_SOURCES= \
 	Hash.hpp \
 	Heap.hpp \
 	Iterator.hpp \
+	Lifetime.hpp \
 	Lisp.cpp \
 	Lisp.hpp \
 	Logger.cpp \
@@ -103,7 +102,10 @@ liboslayer_la_SOURCES= \
 	Uuid.cpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
-	XmlParser.hpp
+	XmlParser.hpp \
+	os.cpp \
+	os.hpp \
+	platform.hpp
 
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)

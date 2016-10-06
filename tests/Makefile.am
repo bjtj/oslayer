@@ -30,7 +30,8 @@ check_PROGRAMS = \
 	test-secure-socket \
 	test-observer-pattern \
 	test-register \
-	test-heap
+	test-heap \
+	test-lifetime
 
 test_os_SOURCES=test-os.cpp
 test_base64_SOURCES=test-base64.cpp
@@ -62,6 +63,7 @@ test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
 test_register_SOURCES=test-register.cpp
 test_heap_SOURCES=test-heap.cpp
+test_lifetime_SOURCES=test-lifetime.cpp
 
 AM_CPPFLAGS=-I$(top_srcdir)
 AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\""
