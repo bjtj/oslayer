@@ -85,7 +85,16 @@ namespace OS {
 	}
 	
 	/* created by server accept */
-	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
+	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) :
+		Socket(sock, addr, addrlen),
+		ctx(NULL),
+		ssl(NULL),
+		peerCert(NULL),
+		verifier(NULL),
+		peerCertRequired(false),
+		needHandshake(true),
+		recvTimeout(0)
+	{
 		SecureContext::getInstance();
         setSelectable(false);
 		ctx = SSL_CTX_new(TLSv1_server_method());
@@ -97,15 +106,21 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
-		
 		SSL_set_accept_state(ssl);
-		
 		if (SSL_set_fd(ssl, sock) != 1) {
 			throw IOException("SSL_set_fd() failed");
 		}
 	}
 
-	SecureSocket::SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) : Socket(sock, addr, addrlen), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(false), needHandshake(true) {
+	SecureSocket::SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) :
+		Socket(sock, addr, addrlen),
+		ctx(NULL),
+		ssl(NULL),
+		peerCert(NULL),
+		verifier(NULL),
+		peerCertRequired(false),
+		needHandshake(true)
+	{
         setSelectable(false);
 		if (!ctx) {
 			throw IOException("SSL_CTX is null");
@@ -114,20 +129,24 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
-		
 		SSL_set_accept_state(ssl);
-		
 		if (SSL_set_fd(ssl, sock) != 1) {
 			throw IOException("SSL_set_fd() failed");
 		}
 	}
 
 	/* created to connect (client mode) */
-	SecureSocket::SecureSocket(const InetAddress & remoteAddr) : Socket(remoteAddr), ctx(NULL), ssl(NULL), peerCert(NULL), verifier(NULL), peerCertRequired(true), needHandshake(false) {
-
+	SecureSocket::SecureSocket(const InetAddress & remoteAddr) :
+		Socket(remoteAddr),
+		ctx(NULL),
+		ssl(NULL),
+		peerCert(NULL),
+		verifier(NULL),
+		peerCertRequired(true),
+		needHandshake(false)
+	{
 		setSelectable(false);
 		SecureContext::getInstance();
-		
 		ctx = SSL_CTX_new(SSLv23_client_method());
 		if (!ctx) {
 			throw IOException("SSL_CTX_new() failed");
@@ -137,9 +156,7 @@ namespace OS {
 		if (!ssl) {
 			throw IOException("SSL_new() failed");
 		}
-		
 		SSL_set_connect_state(ssl);
-
 		if (SSL_set_fd(ssl, getSocket()) != 1) {
 			throw IOException("SSL_set_fd() failed");
 		}
@@ -221,16 +238,30 @@ namespace OS {
 	}
 	
 	int SecureSocket::recv(char * buffer, size_t size) {
-		
+	retry:
 		int len = SSL_read(ssl, buffer, (int)size);
 		if (len <= 0) {
 			if (SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN) {
 				SSL_shutdown(ssl);
 			} else {
-				SSL_clear(ssl);
+				int err = SSL_get_error(ssl, len);
+				switch (err) {
+				case SSL_ERROR_WANT_READ:
+				{
+					Selector selector;
+					selector.set(SSL_get_rfd(ssl), Selector::READ);
+					if (selector.select(recvTimeout) > 0) {
+						goto retry;
+					}
+					SSL_clear(ssl);
+					throw IOException("Receive timeout");
+				}
+				default:
+					SSL_clear(ssl);
+					break;
+				}
 			}
 		}
-			
 		if (len == 0) {
 			throw IOException("SecureSocket::recv() - normal close", len, 0);
 		} else if (len < 0) {
@@ -238,10 +269,9 @@ namespace OS {
 		}
 		return len;
 	}
+	
 	int SecureSocket::send(const char * data, size_t size) {
-		
 		int len = SSL_write(ssl, data, (int)size);
-
 		if (len == 0) {
 			SSL_shutdown(ssl);
 			throw IOException("SecureSocket::send() - maybe internal close", len, 0);
@@ -249,9 +279,17 @@ namespace OS {
 			SSL_clear(ssl);
 			throw IOException("SecureSocket::send() - something wrong", len, 0);
 		}
-		
 		return len;
 	}
+
+	void SecureSocket::setRecvTimeout(unsigned long timeout) {
+		this->recvTimeout = timeout;
+	}
+	
+	unsigned long SecureSocket::setRecvTimeout() {
+		return recvTimeout;
+	}
+	
 	void SecureSocket::close() {
 
 		if (peerCert) {

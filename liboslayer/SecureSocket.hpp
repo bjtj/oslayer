@@ -41,6 +41,7 @@ namespace OS {
 		UTIL::AutoRef<CertificateVerifier> verifier;
 		bool peerCertRequired;
 		bool needHandshake;
+		unsigned long recvTimeout;
 	public:
 		SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
@@ -54,6 +55,8 @@ namespace OS {
 		void verify();
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
+		virtual void setRecvTimeout(unsigned long timeout);
+		virtual unsigned long setRecvTimeout();
 		virtual void close();
 		void setVerifier(UTIL::AutoRef<CertificateVerifier> verifier);
 		void setPeertCertRequired(bool required);
