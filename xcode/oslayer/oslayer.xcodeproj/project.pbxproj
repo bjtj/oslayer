@@ -144,6 +144,7 @@
 		E89501301C109924009434B1 /* Properties.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Properties.hpp; path = ../../liboslayer/Properties.hpp; sourceTree = "<group>"; };
 		E89501401C146379009434B1 /* Socket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Socket.cpp; path = ../../liboslayer/Socket.cpp; sourceTree = "<group>"; };
 		E89501411C146379009434B1 /* Socket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Socket.hpp; path = ../../liboslayer/Socket.hpp; sourceTree = "<group>"; };
+		E89C52D11DA7CE91001F2321 /* Lifetime.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Lifetime.hpp; path = ../../liboslayer/Lifetime.hpp; sourceTree = "<group>"; };
 		E8AC4F5F1C89C0B600504E50 /* Base64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Base64.cpp; path = ../../liboslayer/Base64.cpp; sourceTree = "<group>"; };
 		E8AC4F601C89C0B600504E50 /* Base64.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Base64.hpp; path = ../../liboslayer/Base64.hpp; sourceTree = "<group>"; };
 		E8AC4F611C89C0B600504E50 /* Hash.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Hash.hpp; path = ../../liboslayer/Hash.hpp; sourceTree = "<group>"; };
@@ -209,6 +210,7 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E89C52D11DA7CE91001F2321 /* Lifetime.hpp */,
 				E84DE9A41D901A2100EE539A /* Condition.hpp */,
 				E85690101D560E9100F7517B /* Heap.hpp */,
 				E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */,
