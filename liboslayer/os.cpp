@@ -1467,6 +1467,29 @@ namespace OS {
 	
 	/* Date */
 
+	/**
+	 * @return gmtoffset in minute
+	 */
+	static int s_get_gmt_offset() {
+#if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
+		struct tm info;
+		time_t t = 0;
+		localtime_r(&t, &info);
+		time_t local = mktime(&info);
+		gmtime_r(&t, &info);
+		time_t gmt = mktime(&info);
+		double offset = difftime(local, gmt);
+		return (int)(offset / 60);
+#elif defined(USE_MS_WIN)
+		// http://stackoverflow.com/a/597562
+		TIME_ZONE_INFORMATION TimeZoneInfo;
+		GetTimeZoneInformation(&TimeZoneInfo);
+		return -((int)TimeZoneInfo.Bias);
+#else
+		throw Exception("Not implemented");
+#endif
+	}
+
 	static Date s_get_localtime() {
 		Date date;
 
@@ -1491,11 +1514,7 @@ namespace OS {
         date.setSecond(info.tm_sec);
         date.setMillisecond(mts.tv_nsec / 1000000);
 
-		time_t local = mktime(&info);
-		gmtime_r(&t, &info);
-		time_t gmt = mktime(&info);
-		double offset = difftime(local, gmt);
-		date.setGmtOffset((int)(offset / 60));
+		date.setGmtOffset(s_get_gmt_offset());
         
 #elif defined(USE_POSIX_STD)
         
@@ -1513,11 +1532,7 @@ namespace OS {
         date.setSecond(info.tm_sec);
         date.setMillisecond(spec.tv_nsec / 1000000);
 
-		time_t local = mktime(&info);
-		gmtime_r(&t, &info);
-		time_t gmt = mktime(&info);
-		double offset = difftime(local, gmt);
-		date.setGmtOffset((int)(offset / 60));
+		date.setGmtOffset(s_get_gmt_offset());
         
 #elif defined(USE_MS_WIN)
         
@@ -1532,72 +1547,11 @@ namespace OS {
 		date.setSecond(now.wSecond);
 		date.setMillisecond(now.wMilliseconds);
 
-		// TODO: implement gmt offset
-		// http://stackoverflow.com/a/597562
-
-		int offset;
-		TIME_ZONE_INFORMATION TimeZoneInfo;
-		GetTimeZoneInformation(&TimeZoneInfo);
-		offset = -((int)TimeZoneInfo.Bias);
-		date.setGmtOffset(offset);
+		date.setGmtOffset(s_get_gmt_offset());
         
 #endif
 		return date;
 	}
-
-// 	static Date s_get_gmttime() {
-// 		Date date;
-
-// #if defined(USE_APPLE_STD)
-        
-//         // @ref http://stackoverflow.com/a/11681069
-        
-//         clock_serv_t cclock;
-//         mach_timespec_t mts;
-//         host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-//         clock_get_time(cclock, &mts);
-//         mach_port_deallocate(mach_task_self(), cclock);
-//         time_t t = (time_t)mts.tv_sec;
-//         struct tm info;
-// 		gmtime_r(&t, &info);
-//         date.setYear(1900 + info.tm_year);
-//         date.setMonth(info.tm_mon);
-//         date.setDay(info.tm_mday);
-//         date.setHour(info.tm_hour);
-//         date.setMinute(info.tm_min);
-//         date.setSecond(info.tm_sec);
-//         date.setMillisecond(mts.tv_nsec / 1000000);
-        
-// #elif defined(USE_POSIX_STD)
-        
-//         struct timespec spec;
-//         clock_gettime(CLOCK_REALTIME, &spec);
-//         time_t t = (time_t)spec.tv_sec;
-//         struct tm info;
-// 		gmtime_r(&t, &info);
-//         date.setYear(1900 + info.tm_year);
-//         date.setMonth(info.tm_mon);
-//         date.setDay(info.tm_mday);
-//         date.setHour(info.tm_hour);
-//         date.setMinute(info.tm_min);
-//         date.setSecond(info.tm_sec);
-//         date.setMillisecond(spec.tv_nsec / 1000000);
-        
-// #elif defined(USE_MS_WIN)
-        
-//         SYSTEMTIME now;
-// 		GetSystemTime(&now);
-// 		date.setYear(now.wYear);
-// 		date.setMonth(now.wMonth - 1);
-// 		date.setDay(now.wDay);
-// 		date.setHour(now.wHour);
-// 		date.setMinute(now.wMinute);
-// 		date.setSecond(now.wSecond);
-// 		date.setMillisecond(now.wMilliseconds);
-        
-// #endif
-// 		return date;
-// 	}
 
 	// http://www.cplusplus.com/reference/ctime/strftime/
 
@@ -1619,6 +1573,31 @@ namespace OS {
         setHour(info.tm_hour);
         setMinute(info.tm_min);
         setSecond(info.tm_sec);
+	}
+
+	Date::Date(osl_time_t time)
+		: gmtoffset(0), year(0), month(0), day(0), wday(0),
+		  hour(0), minute(0), second(0), millisecond(0) {
+
+		time_t t = (time_t)time.sec;
+        struct tm info;
+		// localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
+#if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
+		localtime_r(&t, &info);
+#elif defined(USE_MS_WIN)
+		localtime_s(&info, &t);
+#else
+		throw Exception("Not implemented");
+#endif
+        setYear(1900 + info.tm_year);
+        setMonth(info.tm_mon);
+        setDay(info.tm_mday);
+		setDayOfWeek(info.tm_wday);
+        setHour(info.tm_hour);
+        setMinute(info.tm_min);
+        setSecond(info.tm_sec);
+		setMillisecond(time.nano / (1000 * 1000));
+		setGmtOffset(s_get_gmt_offset());
 	}
 
 	Date::~Date() {
@@ -1650,13 +1629,10 @@ namespace OS {
 	 * @ref http://www.cplusplus.com/reference/ctime/strftime/
 	 */
     string Date::format(const Date & date, const string & fmt) {
-
 		if (fmt.empty()) {
 			return "";
 		}
-
 		string ret;
-		
 		for (size_t i = 0; i < fmt.size(); i++) {
 			char ch = fmt[i];
 			if (ch == '%') {
@@ -1709,17 +1685,15 @@ namespace OS {
 		}
 		return ret;
     }
+	
 	string Date::formatRfc1123(const Date & date) {
-		
 		static const char * wkday[] = {"Sun", "Mon", "Tue",
 									   "Wed", "Thu", "Fri", "Sat"};
 		static const char * month[] = {"Jan", "Feb", "Mar",
 									   "Apr", "May", "Jun",
 									   "Jul", "Aug", "Sep",
 									   "Oct", "Nov", "Dec"};
-
 		Date gmt = date.toGmt();
-
 		char buffer[64] = {0,};
 		snprintf(buffer, sizeof(buffer), "%s, %02d %s %04d %02d:%02d:%02d GMT",
 				 wkday[gmt.getDayOfWeek()],
@@ -1729,7 +1703,6 @@ namespace OS {
 				 gmt.getHour(),
 				 gmt.getMinute(),
 				 gmt.getSecond());
-
 		return string(buffer);
 	}
 	// string Date::formatRfc1036(const Date & date) {
@@ -1747,10 +1720,12 @@ namespace OS {
 		unsigned long seconds = time.sec;
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
-#if defined(USE_MS_WIN)
+#if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
+		gmtime_r(&x, &info);
+#elif defined(USE_MS_WIN)
 		gmtime_s(&info, &x);
 #else
-		gmtime_r(&x, &info);
+		throw Exception("Not implemented");
 #endif
 		Date date = Date(info);
 		date.setMillisecond(from.getMillisecond());
@@ -1830,14 +1805,18 @@ namespace OS {
 		time_t t = mktime(&info);
 		time_t base = {0,};
 		double seconds = difftime(t, base);
-
 		osl_time_t ret;
 		ret.sec = (unsigned long)seconds;
-		ret.nano = millisecond * 1000000;
+		ret.nano = millisecond * (1000 * 1000);
 		return ret;
 	}
 
+	Date Date::toDate(osl_time_t time) {
+		return Date(time);
+	}
+
 	// file system
+	
 #if defined(USE_UNIX_STD)
 
 	static Date s_time_to_date(time_t t) {

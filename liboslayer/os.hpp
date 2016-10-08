@@ -762,6 +762,7 @@ namespace OS {
 	public:
 		Date();
 		Date(struct tm & info);
+		Date(osl_time_t time);
 		virtual ~Date();
 		static Date now();
 		static std::string format(const Date & date);
@@ -792,6 +793,7 @@ namespace OS {
 		int getSecond() const;
 		int getMillisecond() const;
 		osl_time_t getTime() const;
+		static Date toDate(osl_time_t time);
 	};
 
 	/**

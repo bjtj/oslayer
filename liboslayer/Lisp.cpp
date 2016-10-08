@@ -14,7 +14,7 @@
 	public:																\
 	CLS(const string & name) : Procedure(name) {}						\
 	virtual ~CLS() {}													\
-	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {CODE}	\
+	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {CODE;} \
 	};																	\
 	env[NAME] = env.alloc(new Var(AutoRef<Procedure>(new CLS(NAME))));
 
@@ -1604,6 +1604,7 @@ namespace LISP {
 				return HEAP_ALLOC(env, true);
 			});
 	}
+	
 	void builtin_date(Env & env) {
 		env["internal-time-units-per-second"] = HEAP_ALLOC(env, 1000);
 		DECL_NATIVE("now", Now, {
@@ -1621,15 +1622,40 @@ namespace LISP {
 				testArgumentCount(args, 0);
 				return HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
 			});
-		DECL_NATIVE("decode-universal-time", DecodeUniversalTime, {
-				testArgumentCount(args, 1);
-				// TODO: implement
-				throw LispException("not implemented");
-			});
+		DECL_NATIVE("decode-universal-time", DecodeUniversalTime, ({
+					testArgumentCount(args, 1);
+					// TODO: apply specific zone
+					osl_time_t time = {0,};
+					time.sec = (unsigned long)*eval(args[0], env)->getInteger();
+					time = osl_network_time_to_system_time(time);
+					Date date(time);
+					vector<_VAR> ret;
+					ret.push_back(HEAP_ALLOC(env, date.getSecond()));
+					ret.push_back(HEAP_ALLOC(env, date.getMinute()));
+					ret.push_back(HEAP_ALLOC(env, date.getHour()));
+					ret.push_back(HEAP_ALLOC(env, date.getDay()));
+					ret.push_back(HEAP_ALLOC(env, date.getMonth() + 1));
+					ret.push_back(HEAP_ALLOC(env, date.getYear()));
+					// day
+					// daylight-p
+					// zone
+					return HEAP_ALLOC(env, ret);
+					// throw LispException("not implemented");
+				}));
 		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
 				testArgumentCount(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
-				// TODO: implement
-				throw LispException("not implemented");
+				Date date = Date::now();
+				date.setSecond(*args[0]->getInteger());
+				date.setMinute(*args[1]->getInteger());
+				date.setHour(*args[2]->getInteger());
+				date.setDay(*args[3]->getInteger());
+				date.setMonth((*args[4]->getInteger()) - 1);
+				date.setYear(*args[5]->getInteger());
+				if (args.size() > 6) {
+					date.setGmtOffset(*args[6]->getInteger());
+				}
+				return HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
+				// throw LispException("not implemented");
 			});
 	}
 
