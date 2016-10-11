@@ -337,7 +337,7 @@ namespace LISP {
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 
-	void testArgumentCount(vector<_VAR> & args, size_t expect) {
+	void validateArgumentCountMin(vector<_VAR> & args, size_t expect) {
 		if (args.size() < expect) {
 			throw LispException("Wrong argument count");
 		}
@@ -367,7 +367,7 @@ namespace LISP {
 	void Arguments::mapArguments(Env & env, map<string, _VAR> & scope, vector<_VAR> & args) {
 
 		size_t ec = countPartArguments(proto, 0);
-		testArgumentCount(args, ec);
+		validateArgumentCountMin(args, ec);
 
 		size_t ai = 0;
 		size_t i = 0;
@@ -415,7 +415,7 @@ namespace LISP {
 				sym = proto[i]->getSymbol();
 				scope[sym] = nil(env);
 			} else if (proto[i]->isList()) {
-				testArgumentCount(proto[i]->getList(), 2);
+				validateArgumentCountMin(proto[i]->getList(), 2);
 				sym = proto[i]->getList()[0]->getSymbol();
 				scope[sym] = proto[i]->getList()[1];
 			}
@@ -770,16 +770,16 @@ namespace LISP {
 			if (silentsymboleq(lv[0], "quit")) {
 				env.quit(true);
 			} else if (silentsymboleq(lv[0], "lambda")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				lv[1]->checkTypeThrow(Var::LIST);
 				return HEAP_ALLOC(env, Func(lv[1], lv[2]));
 			} else if (silentsymboleq(lv[0], "defun")) {
-				testArgumentCount(lv, 4);
+				validateArgumentCountMin(lv, 4);
 				lv[2]->checkTypeThrow(Var::LIST);
 				env[lv[1]->getSymbol()] = HEAP_ALLOC(env, Func(lv[2], lv[3]));
 				return HEAP_ALLOC(env, lv[1]->getSymbol());
 			} else if (silentsymboleq(lv[0], "setf")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR var = eval(lv[1], env);
 				_VAR other = eval(lv[2], env);
 				if (var->isList() && other->isList()) {
@@ -791,25 +791,25 @@ namespace LISP {
 				}
 				return var;
 			} else if (silentsymboleq(lv[0], "setq")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR val = eval(lv[2], env);
 				env[lv[1]->getSymbol()] = val;
 				return val;
 			} else if (silentsymboleq(lv[0], "quote")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				return lv[1];
 				// TODO: implement backquote (quasiquote)
 			} else if (silentsymboleq(lv[0], "function")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				return function(lv[1], env);
 			} else if (silentsymboleq(lv[0], "funcall")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				_VAR funcsym = eval(lv[1], env);
 				_VAR func = function(funcsym, env);
 				vector<_VAR> args(lv.begin() + 2, lv.end());
 				return func->proc(args, env);
 			} else if (silentsymboleq(lv[0], "let")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				_VAR ret = nil(env);
 				vector<_VAR> & lets = lv[1]->getList();
 				Env e(&env);
@@ -823,7 +823,7 @@ namespace LISP {
 				}
 				return ret;
 			} else if (silentsymboleq(lv[0], "if")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR val = eval(lv[1], env);
 				if (!val->isNil()) {
 					return eval(lv[2], env);
@@ -832,21 +832,21 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "when")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR test = eval(lv[1], env);
 				if (!test->isNil()) {
 					return eval(lv[2], env);
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "unless")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR test = eval(lv[1], env);
 				if (test->isNil()) {
 					return eval(lv[2], env);
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "cond")) {
-				testArgumentCount(lv, 1);
+				validateArgumentCountMin(lv, 1);
 				for (vector<_VAR>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					vector<_VAR> lst = (*iter)->getList();
 					if (!eval(lst[0], env)->isNil()) {
@@ -855,21 +855,21 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "progn")) {
-				testArgumentCount(lv, 1);
+				validateArgumentCountMin(lv, 1);
 				_VAR ret = nil(env);
 				for (vector<_VAR>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					ret = eval(*iter, env);
 				}
 				return ret;
 			} else if (silentsymboleq(lv[0], "while")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				_VAR pre_test = lv[1];
 				while (!eval(pre_test, env)->isNil()) {
 					eval(lv[2], env);
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "dolist")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				Env e(&env);
 				vector<_VAR> decl = lv[1]->getList();
 				string param = decl[0]->getSymbol();
@@ -880,7 +880,7 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "dotimes")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				Env e(&env);
 				vector<_VAR> steps = lv[1]->getList();
 				string sym = steps[0]->getSymbol();
@@ -908,14 +908,14 @@ namespace LISP {
 				//  NIL
 				
 			} else if (silentsymboleq(lv[0], "list")) {
-				testArgumentCount(lv, 1);
+				validateArgumentCountMin(lv, 1);
 				vector<_VAR> elts;
 				for (vector<_VAR>::iterator iter = lv.begin() + 1; iter != lv.end(); iter++) {
 					elts.push_back(eval(*iter, env));
 				}
 				return HEAP_ALLOC(env, elts);
 			} else if (silentsymboleq(lv[0], "cons")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				vector<_VAR> ret;
 				_VAR cons = eval(lv[1], env);
 				_VAR cell = eval(lv[2], env);
@@ -928,14 +928,14 @@ namespace LISP {
 				}
 				return HEAP_ALLOC(env, ret);
 			} else if (silentsymboleq(lv[0], "car")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				vector<_VAR> & lst = eval(lv[1], env)->getList();
 				if (lst.size() > 0) {
 					return lst[0];
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "cdr")) {
-				testArgumentCount(lv, 2);
+				validateArgumentCountMin(lv, 2);
 				vector<_VAR> & lst = eval(lv[1], env)->getList();
 				if (lst.size() > 1) {
 					vector<_VAR> rest;
@@ -946,7 +946,7 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "nth")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				size_t idx = (size_t)(*(eval(lv[1], env)->getInteger()));
 				vector<_VAR> & lst = eval(lv[2], env)->getList();
 				if (idx < lst.size()) {
@@ -954,7 +954,7 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "nthcdr")) {
-				testArgumentCount(lv, 3);
+				validateArgumentCountMin(lv, 3);
 				size_t idx = (size_t)(*eval(lv[1], env)->getInteger());
 				vector<_VAR> & lst = eval(lv[2], env)->getList();
 				if (idx < lst.size()) {
@@ -966,7 +966,7 @@ namespace LISP {
 				}
 				return nil(env);
 			} else if (silentsymboleq(lv[0], "subseq")) {
-				testArgumentCount(lv, 4);
+				validateArgumentCountMin(lv, 4);
 				vector<_VAR> & lst = eval(lv[1], env)->getList();
 				Integer start = eval(lv[2], env)->getInteger();
 				Integer end = eval(lv[3], env)->getInteger();
@@ -1021,39 +1021,39 @@ namespace LISP {
 
 	void builtin_type(Env & env) {
 		DECL_NATIVE("symbolp", Symbolp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isSymbol());
 			});
 		DECL_NATIVE("listp", Listp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isList());
 			});
 		DECL_NATIVE("booleanp", Booleanp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isBoolean());
 			});
 		DECL_NATIVE("integerp", Integerp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isInteger());
 			});
 		DECL_NATIVE("floatp", Floatp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isFloat());
 			});
 		DECL_NATIVE("stringp", Stringp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isString());
 			});
 		DECL_NATIVE("funcp", Funcp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isFunction());
 			});
 		DECL_NATIVE("pathnamep", Pathnamep, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isFile());
 			});
 		DECL_NATIVE("streamp", Streamp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isFileDescriptor());
 			});
 	}
@@ -1064,7 +1064,7 @@ namespace LISP {
 
 		// TODO: refer - [http://www.lispworks.com/documentation/lw60/CLHS/Body/f_map.htm]
 		DECL_NATIVE("map", Map, {
-				testArgumentCount(args, 3);
+				validateArgumentCountMin(args, 3);
 				_VAR sym = eval(args[0], env); /* TODO: use it */
 				_VAR func = eval(args[1], env);
 				func = function(func, env);
@@ -1095,7 +1095,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("sort", Sort, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				vector<_VAR> lst = eval(args[0], env)->getList();
 				_VAR func = eval(args[1], env);
 				func = function(func, env);
@@ -1120,13 +1120,13 @@ namespace LISP {
 
 	void builtin_list(Env & env) {
 		DECL_NATIVE("length", Length, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				vector<_VAR> lst = eval(args[0], env)->getList();
 				return HEAP_ALLOC(env, Integer((long long)lst.size()));
 			});
 		
 		DECL_NATIVE("append", Append, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				vector<_VAR> ret;
 				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					vector<_VAR> lst = eval(*iter, env)->getList();
@@ -1136,7 +1136,7 @@ namespace LISP {
 			});
 		
 		DECL_NATIVE("remove", Remove, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				_VAR val = eval(args[0], env);
 				vector<_VAR> lst = eval(args[1], env)->getList();
 				for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
@@ -1155,7 +1155,7 @@ namespace LISP {
             RemoveIf(const string & name) : Procedure(name) {}
             virtual ~RemoveIf() {}
             virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {
-                testArgumentCount(args, 2);
+                validateArgumentCountMin(args, 2);
                 _VAR func = eval(args[0], env);
 				func = function(func, env);
                 vector<_VAR> lst = eval(args[1], env)->getList();
@@ -1183,12 +1183,12 @@ namespace LISP {
 
 	void builtin_logic(Env & env) {
 		DECL_NATIVE("not", Not, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isNil());
 			});
 
 		DECL_NATIVE("or", Or, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				_VAR var = nil(env);
 				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
@@ -1200,7 +1200,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("and", And, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				_VAR var = HEAP_ALLOC(env, "t");
 				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					var = eval(*iter, env);
@@ -1215,7 +1215,7 @@ namespace LISP {
 	void builtin_string(Env & env) {
 
 		DECL_NATIVE("string=", LiteralEqual, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				string val = eval(args[0], env)->toString();
 				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					if (val != eval(*iter, env)->toString()) {
@@ -1226,27 +1226,27 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("string-prefix-p", StringPrefixP, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				string str = eval(args[0], env)->toString();
 				string dst = eval(args[1], env)->toString();
 				return HEAP_ALLOC(env, Text::startsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-suffix-p", StringSuffixP, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				string str = eval(args[0], env)->toString();
 				string dst = eval(args[1], env)->toString();
 				return HEAP_ALLOC(env, Text::endsWith(str, dst));
 			});
 
 		DECL_NATIVE("string-length", StringLength, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				Integer len((long long)eval(args[0], env)->toString().length());
 				return HEAP_ALLOC(env, len);
 			});
 
 		DECL_NATIVE("string-append", StringAppend, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				string ret;
 				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 					ret.append(eval(*iter, env)->toString());
@@ -1255,7 +1255,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("format", Format, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				_VAR test = eval(args[0], env);
 				vector<_VAR> fargs(args.begin() + 2, args.end());
 				string str = format(env, args[1]->toString(), fargs);
@@ -1268,7 +1268,7 @@ namespace LISP {
 			});
 		
 		DECL_NATIVE("enough-namestring", EnoughNamestring, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				string org = eval(args[0], env)->toString();
 				string prefix = eval(args[1], env)->toString();
 				if (Text::startsWith(org, prefix)) {
@@ -1279,7 +1279,7 @@ namespace LISP {
 	}
 	void builtin_artithmetic(Env & env) {
 		DECL_NATIVE("=", ArithmeticEqual, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				_VAR v = eval(args[0], env);
 				Integer val = v->getInteger();
 				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
@@ -1297,7 +1297,7 @@ namespace LISP {
 				return v;
 			});
 		DECL_NATIVE("-", Minus, {
-				testArgumentCount(args, 1);				
+				validateArgumentCountMin(args, 1);				
 				if (args.size() == 1) {
 					return minus(env, HEAP_ALLOC(env, 0), eval(args[0], env));
 				}
@@ -1315,7 +1315,7 @@ namespace LISP {
 				return v;
 			});
 		DECL_NATIVE("/", Divide, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				_VAR v = eval(args[0], env);
 				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					v = divide(env, v, eval(*iter, env));
@@ -1323,7 +1323,7 @@ namespace LISP {
 				return v;
 			});
 		DECL_NATIVE("%", Rest, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				Integer sum = eval(args[0], env)->getInteger();
 				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 					sum %= eval(*iter, env)->getInteger();
@@ -1332,22 +1332,22 @@ namespace LISP {
 			});
 
 		DECL_NATIVE(">", Greater, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				return HEAP_ALLOC(env, gt(env, eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE("<", Less, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				return HEAP_ALLOC(env, lt(env, eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE(">=", GreaterEq, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				return HEAP_ALLOC(env, gteq(env, eval(args[0], env), eval(args[1], env)));
 			});
 
 		DECL_NATIVE("<=", LessEq, {
-				testArgumentCount(args, 2);
+				validateArgumentCountMin(args, 2);
 				return HEAP_ALLOC(env, lteq(env, eval(args[0], env), eval(args[1], env)));
 			});
 	}
@@ -1361,7 +1361,7 @@ namespace LISP {
             Read(const string & name) : Procedure(name) {}
             virtual ~Read() {}
             virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {
-                testArgumentCount(args, 1);
+                validateArgumentCountMin(args, 1);
                 _VAR ret = nil(env);
                 FileDescriptor fd = eval(args[0], env)->getFileDescriptor();
                 if (fd.eof()) {
@@ -1380,7 +1380,7 @@ namespace LISP {
         env["read"] = HEAP_ALLOC(env, AutoRef<Procedure>(new Read("read")));
 
 		DECL_NATIVE("read-line", ReadLine, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				FileDescriptor fd = eval(args[0], env)->getFileDescriptor();
 				if (fd.eof()) {
 					return HEAP_ALLOC(env, true);
@@ -1389,7 +1389,7 @@ namespace LISP {
 				return HEAP_ALLOC(env, text(line));
 			});
 		DECL_NATIVE("print", Print, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
 				if (args.size() == 2) {
 					fd = eval(args[1], env)->getFileDescriptor();
@@ -1401,7 +1401,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("write-string", WriteString, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
 				if (args.size() == 2) {
 					fd = eval(args[1], env)->getFileDescriptor();
@@ -1412,7 +1412,7 @@ namespace LISP {
 			});
 
 		DECL_NATIVE("write-line", WriteLine, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
 				if (args.size() == 2) {
 					fd = eval(args[1], env)->getFileDescriptor();
@@ -1425,32 +1425,32 @@ namespace LISP {
 	}
 	void builtin_pathname(Env & env) {
 		DECL_NATIVE("pathname", Pathname, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				_VAR path = pathname(env, eval(args[0], env));
 				return path;
 			});
 		DECL_NATIVE("pathname-name", PathnameName, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getFileNameWithoutExtension()));
 			});
 		DECL_NATIVE("pathname-type", PathnameType, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getExtension()));
 			});
 		DECL_NATIVE("namestring", Namestring, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getPath()));
 			});
 		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getDirectory()));
 			});
 		DECL_NATIVE("file-namestring", FileNamestring, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, text(file.getFileName()));
 			});
@@ -1458,7 +1458,7 @@ namespace LISP {
 		// https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Names.html
 		
 		DECL_NATIVE("directory-file-name", DirectoryFileName, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				string path = file.getPath();
 				if (path.empty()) {
@@ -1470,7 +1470,7 @@ namespace LISP {
 				return HEAP_ALLOC(env, text(path));
 			});
 		DECL_NATIVE("file-name-directory", FileNameDirectory, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				string path = file.getPath();
 				size_t f = path.find_last_of(File::getSeparators());
@@ -1482,7 +1482,7 @@ namespace LISP {
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE("dir", Dir, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				_VAR path = ((args.size() > 0) ? pathname(env, eval(args[0], env)) : HEAP_ALLOC(env, "#p\".\""));
 				vector<File> files = File::list(path->getFile().getPath());
 				vector<_VAR> lst;
@@ -1492,22 +1492,22 @@ namespace LISP {
 				return HEAP_ALLOC(env, lst);
 			});
 		DECL_NATIVE("probe-file", ProbeFile, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return file.exists() ? HEAP_ALLOC(env, file) : nil(env);
 			});
 		DECL_NATIVE("dirp", Dirp, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, file.isDirectory());
 			});
 		DECL_NATIVE("filep", Filep, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, file.isFile());
 			});
 		DECL_NATIVE("file-length", FileLength, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, Integer((long long)file.getSize()));
 			});
@@ -1562,7 +1562,7 @@ namespace LISP {
 		env["open"] = HEAP_ALLOC(env, AutoRef<Procedure>(new Open("open")));
 
 		DECL_NATIVE("file-position", FilePosition, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				FileDescriptor fd = eval(args[0], env)->getFileDescriptor();
 				if (args.size() > 1) {
 					fd.position((size_t)*eval(args[1], env)->getInteger());
@@ -1572,7 +1572,7 @@ namespace LISP {
 			});
 		
 		DECL_NATIVE("close", Close, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				eval(args[0], env)->getFileDescriptor().close();
 				return nil(env);
 			});
@@ -1582,12 +1582,12 @@ namespace LISP {
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE("system", System, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				Integer ret(system(eval(args[0], env)->toString().c_str()));
 				return HEAP_ALLOC(env, ret);
 			});
 		DECL_NATIVE("load", Load, {
-				testArgumentCount(args, 1);
+				validateArgumentCountMin(args, 1);
 				File file = pathname(env, eval(args[0], env))->getFile();
 				FileStream stream(file, "rb");
 				string dump = stream.readFullAsString();
@@ -1608,7 +1608,7 @@ namespace LISP {
 	void builtin_date(Env & env) {
 		env["internal-time-units-per-second"] = HEAP_ALLOC(env, 1000);
 		DECL_NATIVE("now", Now, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				char buffer[512];
 				memset(buffer, 0, sizeof(buffer));
 				Date date = Date::now();
@@ -1619,11 +1619,11 @@ namespace LISP {
 				return HEAP_ALLOC(env, text(buffer));
 			});
 		DECL_NATIVE("get-universal-time", GetUniversalTime, {
-				testArgumentCount(args, 0);
+				validateArgumentCountMin(args, 0);
 				return HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
 			});
 		DECL_NATIVE("decode-universal-time", DecodeUniversalTime, ({
-					testArgumentCount(args, 1);
+					validateArgumentCountMin(args, 1);
 					// TODO: apply specific zone
 					osl_time_t time = {0,};
 					time.sec = (unsigned long)*eval(args[0], env)->getInteger();
@@ -1643,7 +1643,7 @@ namespace LISP {
 					// throw LispException("not implemented");
 				}));
 		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
-				testArgumentCount(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
+				validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
 				Date date = Date::now();
 				date.setSecond(*args[0]->getInteger());
 				date.setMinute(*args[1]->getInteger());
