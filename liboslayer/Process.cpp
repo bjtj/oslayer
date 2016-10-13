@@ -8,10 +8,15 @@ namespace OS {
 #if defined(USE_UNIX_STD)
 
 	Process::Process(const std::string & cmd) : pid(0), cmd(cmd), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)  {
+		/**/
 	}
-	Process::Process(const std::string & cmd, const std::vector<std::string> & env) : pid(0), cmd(cmd), env(env), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)  {
+	Process::Process(const std::string & cmd, const std::vector<std::string> & env) :
+		pid(0), cmd(cmd), env(env), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)
+	{
+		/**/
 	}
 	Process::~Process() {
+		/**/
 	}
 	void Process::start() {
 		pid_t pid = 0;
@@ -37,7 +42,7 @@ namespace OS {
 			::close(pipe_out[1]);
 			::close(pipe_err[1]);
 
-			execlp("sh", "sh", "-c", cmd.c_str(), NULL);
+			execlp("sh", "sh", "-c", cmd.c_str(), (char*)NULL);
 		
 			// execl do not return if successful
 			// -- http://stackoverflow.com/a/16089327/5676460
@@ -136,6 +141,15 @@ namespace OS {
 		return _exitCode;
 	}
 
-#endif // #if defined(USE_UNIX_STD)
+#elif defined(USE_MS_WIN)
+
+
+	// win32
+	
+#else
+	
+	// not implemented
+	
+#endif
 
 }

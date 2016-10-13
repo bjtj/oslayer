@@ -44,6 +44,34 @@ namespace OS {
 		int exitCode();
 	};
 
+#elif defined(USE_MS_WIN)
+
+	class Process {
+	private:
+
+	private:
+		Process(const Process & other);
+	    Process & operator=(const Process & other);
+		
+	public:
+		Process(const std::string & cmd);
+		Process(const std::string & cmd, const std::vector<std::string> & env);
+		virtual ~Process();
+	};
+
+	
+#else
+
+	// not implemented
+
+	class Process {
+	private:
+	public:
+		Process();
+		virtual ~Process();
+	};
+
+
 #endif // USE_UNIX_STD
 
 }
