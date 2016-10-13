@@ -1596,7 +1596,7 @@ namespace OS {
         setHour(info.tm_hour);
         setMinute(info.tm_min);
         setSecond(info.tm_sec);
-		setMillisecond(time.nano / (1000 * 1000));
+		setMillisecond((int)(time.nano / (1000 * 1000)));
 		setGmtOffset(s_get_gmt_offset());
 	}
 

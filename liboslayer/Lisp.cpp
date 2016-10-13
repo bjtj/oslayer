@@ -1653,14 +1653,14 @@ namespace LISP {
 		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
 				validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
 				Date date = Date::now();
-				date.setSecond(*args[0]->getInteger());
-				date.setMinute(*args[1]->getInteger());
-				date.setHour(*args[2]->getInteger());
-				date.setDay(*args[3]->getInteger());
-				date.setMonth((*args[4]->getInteger()) - 1);
-				date.setYear(*args[5]->getInteger());
+				date.setSecond((int)*args[0]->getInteger());
+				date.setMinute((int)*args[1]->getInteger());
+				date.setHour((int)*args[2]->getInteger());
+				date.setDay((int)*args[3]->getInteger());
+				date.setMonth((int)((*args[4]->getInteger()) - 1));
+				date.setYear((int)*args[5]->getInteger());
 				if (args.size() > 6) {
-					date.setGmtOffset(*args[6]->getInteger());
+					date.setGmtOffset((int)*args[6]->getInteger());
 				}
 				return HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
 			});
