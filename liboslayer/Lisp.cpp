@@ -1511,7 +1511,16 @@ namespace LISP {
 				File file = pathname(env, eval(args[0], env))->getFile();
 				return HEAP_ALLOC(env, Integer((long long)file.getSize()));
 			});
-
+		DECL_NATIVE("file-attribute-creation", FileAttributeCreation, {
+				validateArgumentCountMin(args, 1);
+				File file = pathname(env, eval(args[0], env))->getFile();
+				return HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.creationTime()).sec));
+			});
+		DECL_NATIVE("file-attribute-lastmodified", FileAttributeLastModified, {
+				validateArgumentCountMin(args, 1);
+				File file = pathname(env, eval(args[0], env))->getFile();
+				return HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.lastModifiedTime()).sec));
+			});
 
 		class Open : public Procedure {
 		public:
@@ -1640,7 +1649,6 @@ namespace LISP {
 					// daylight-p
 					// zone
 					return HEAP_ALLOC(env, ret);
-					// throw LispException("not implemented");
 				}));
 		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
 				validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
@@ -1655,7 +1663,6 @@ namespace LISP {
 					date.setGmtOffset(*args[6]->getInteger());
 				}
 				return HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
-				// throw LispException("not implemented");
 			});
 	}
 

@@ -847,8 +847,10 @@ namespace OS {
 		static bool compareExtension(const std::string & path, std::string extension);
 		static int mkdir(const std::string & path);
 		static bool remove(const std::string & path);
-		static std::string getCreationDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
-		static std::string getModifiedDate(const std::string & path, std::string fmt = Date::DEFAULT_FORMAT);
+		static Date creationDate(const std::string & path);
+		static Date lastModifiedDate(const std::string & path);
+		static osl_time_t creationTime(const std::string & path);
+		static osl_time_t lastModifiedTime(const std::string & path);
 		static filesize_t getSize(const std::string & path);
 		static std::vector<File> list(const std::string & path);
 
@@ -868,8 +870,10 @@ namespace OS {
 		bool compareExtension(std::string extension) const;
 		int mkdir() const;
 		bool remove();
-		std::string getCreationDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
-		std::string getModifiedDate(const std::string & fmt = Date::DEFAULT_FORMAT) const;
+		Date creationDate();
+		Date lastModifiedDate();
+		osl_time_t creationTime();
+		osl_time_t lastModifiedTime();
 		filesize_t getSize() const;
 		std::vector<File> list() const;
 		virtual std::string toString() const;

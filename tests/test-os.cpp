@@ -20,7 +20,7 @@ static void test_file() {
 
 	File file("./xxxxxx");
 
-	string c = file.getCreationDate();
+	string c = Date::format(file.creationDate());
 	cout << c << endl;
 
 	cout << Date::format(Date::now(), "%Y-%c-%d %H:%i:%s") << endl;

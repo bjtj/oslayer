@@ -2002,7 +2002,6 @@ namespace OS {
 		if (stat(path.c_str(), &st) != 0) {
 			throw Exception("stat() failed");
 		}
-
 		return s_time_to_date(st.st_mtime);
 	}
     
@@ -2524,13 +2523,17 @@ namespace OS {
 		return s_remove_file(path.c_str());
 	}
 
-	string File::getCreationDate(const string & path, string fmt) {
-		Date date = s_get_creation_date(path);
-		return Date::format(date, fmt);
+	Date File::creationDate(const string & path) {
+		return s_get_creation_date(path);
 	}
-	string File::getModifiedDate(const string & path, string fmt) {
-		Date date = s_get_modified_date(path);
-		return Date::format(date, fmt);
+	Date File::lastModifiedDate(const string & path) {
+		return s_get_modified_date(path);
+	}
+	osl_time_t File::creationTime(const string & path) {
+		return creationDate(path).getTime();
+	}
+	osl_time_t File::lastModifiedTime(const string & path) {
+		return lastModifiedDate(path).getTime();
 	}
 	filesize_t File::getSize(const string & path) {
 		return s_get_file_size(path);
@@ -2586,11 +2589,17 @@ namespace OS {
 	bool File::remove() {
 		return File::remove(path);
 	}
-	string File::getCreationDate(const string & fmt) const {
-		return File::getCreationDate(path, fmt);
+	Date File::creationDate() {
+		return creationDate(path);
 	}
-	string File::getModifiedDate(const string & fmt) const {
-		return File::getModifiedDate(path, fmt);
+	Date File::lastModifiedDate() {
+		return lastModifiedDate(path);
+	}
+	osl_time_t File::creationTime() {
+		return creationDate(path).getTime();
+	}
+	osl_time_t File::lastModifiedTime() {
+		return lastModifiedDate(path).getTime();
 	}
 	filesize_t File::getSize() const {
 		return File::getSize(path);
