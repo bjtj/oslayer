@@ -8,15 +8,32 @@
 #define HEAP_ALLOC(E,V) E.alloc(new Var(V))
 #define _VAR Obj<Var> 
 
-#define DECL_NATIVE(NAME,CLS,CODE)										\
-	class CLS : public Procedure {										\
-	private:															\
-	public:																\
-	CLS(const string & name) : Procedure(name) {}						\
-	virtual ~CLS() {}													\
-	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {CODE;} \
-	};																	\
+//#define DECL_NATIVE(NAME,CLS,CODE)										\
+//	class CLS : public Procedure {										\
+//	private:															\
+//	public:																\
+//	CLS(const string & name) : Procedure(name) {}						\
+//	virtual ~CLS() {}													\
+//	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {CODE;} \
+//	};																	\
+//	env[NAME] = env.alloc(new Var(AutoRef<Procedure>(new CLS(NAME))));
+
+#define DECL_NATIVE_BEGIN(NAME,CLS) \
+	class CLS : public Procedure { \
+	private: \
+	public: \
+	CLS(const string & name) : Procedure(name) {} \
+	virtual ~CLS() {} \
+	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {
+#define DECL_NATIVE_END(NAME,CLS) \
+	} \
+	}; \
 	env[NAME] = env.alloc(new Var(AutoRef<Procedure>(new CLS(NAME))));
+
+#define DECL_NATIVE(NAME,CLS,CODE) \
+	DECL_NATIVE_BEGIN(NAME,CLS); \
+	CODE; \
+	DECL_NATIVE_END(NAME,CLS);
 
 namespace LISP {
 
@@ -1631,39 +1648,44 @@ namespace LISP {
 				validateArgumentCountMin(args, 0);
 				return HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
 			});
-		DECL_NATIVE("decode-universal-time", DecodeUniversalTime, ({
-					validateArgumentCountMin(args, 1);
-					// TODO: apply specific zone
-					osl_time_t time = {0,};
-					time.sec = (unsigned long)*eval(args[0], env)->getInteger();
-					time = osl_network_time_to_system_time(time);
-					Date date(time);
-					vector<_VAR> ret;
-					ret.push_back(HEAP_ALLOC(env, date.getSecond()));
-					ret.push_back(HEAP_ALLOC(env, date.getMinute()));
-					ret.push_back(HEAP_ALLOC(env, date.getHour()));
-					ret.push_back(HEAP_ALLOC(env, date.getDay()));
-					ret.push_back(HEAP_ALLOC(env, date.getMonth() + 1));
-					ret.push_back(HEAP_ALLOC(env, date.getYear()));
-					// day
-					// daylight-p
-					// zone
-					return HEAP_ALLOC(env, ret);
-				}));
-		DECL_NATIVE("encode-universal-time", EncodeUniversalTime, {
-				validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
-				Date date = Date::now();
-				date.setSecond((int)*args[0]->getInteger());
-				date.setMinute((int)*args[1]->getInteger());
-				date.setHour((int)*args[2]->getInteger());
-				date.setDay((int)*args[3]->getInteger());
-				date.setMonth((int)((*args[4]->getInteger()) - 1));
-				date.setYear((int)*args[5]->getInteger());
-				if (args.size() > 6) {
-					date.setGmtOffset((int)*args[6]->getInteger());
-				}
-				return HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
-			});
+		DECL_NATIVE_BEGIN("decode-universal-time", DecodeUniversalTime);
+		{
+			validateArgumentCountMin(args, 1);
+			// TODO: apply specific zone
+			osl_time_t time = {0,};
+			time.sec = (unsigned long)*eval(args[0], env)->getInteger();
+			time = osl_network_time_to_system_time(time);
+			Date date(time);
+			vector<_VAR> ret;
+			ret.push_back(HEAP_ALLOC(env, date.getSecond()));
+			ret.push_back(HEAP_ALLOC(env, date.getMinute()));
+			ret.push_back(HEAP_ALLOC(env, date.getHour()));
+			ret.push_back(HEAP_ALLOC(env, date.getDay()));
+			ret.push_back(HEAP_ALLOC(env, date.getMonth() + 1));
+			ret.push_back(HEAP_ALLOC(env, date.getYear()));
+			// day of week
+			// daylight-p
+			// zone
+			return HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END("decode-universal-time", DecodeUniversalTime);
+
+		DECL_NATIVE_BEGIN("encode-universal-time", EncodeUniversalTime);
+		{
+			validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
+			Date date = Date::now();
+			date.setSecond((int)*args[0]->getInteger());
+			date.setMinute((int)*args[1]->getInteger());
+			date.setHour((int)*args[2]->getInteger());
+			date.setDay((int)*args[3]->getInteger());
+			date.setMonth((int)((*args[4]->getInteger()) - 1));
+			date.setYear((int)*args[5]->getInteger());
+			if (args.size() > 6) {
+				date.setGmtOffset((int)*args[6]->getInteger());
+			}
+			return HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
+		}
+		DECL_NATIVE_END("encode-universal-time", EncodeUniversalTime);
 	}
 
 	BufferedCommandReader::BufferedCommandReader() {

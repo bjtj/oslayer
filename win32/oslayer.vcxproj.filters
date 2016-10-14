@@ -203,5 +203,8 @@
     <ClInclude Include="..\liboslayer\Condition.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\liboslayer\Lifetime.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -42,6 +42,7 @@ static void test_process() {
 		cout << err.readline() << endl;
 	}
 
+	cout << "wait..." << endl;
 	p.wait();
 
 	ASSERT(p.exitCode(), ==, 0);

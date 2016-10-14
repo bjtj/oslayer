@@ -145,7 +145,101 @@ namespace OS {
 
 
 	// win32
-	
+
+	Process::Process(const string & cmd)
+		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL) {
+	}
+	Process::Process(const string & cmd, const vector<string> & env) 
+		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL) {
+	}
+	Process::~Process(){
+	}
+
+	void Process::start() {
+
+		/* make pipe */
+
+		SECURITY_ATTRIBUTES saAttr = {0,};
+		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+		saAttr.bInheritHandle = TRUE;
+		saAttr.lpSecurityDescriptor = NULL;
+		if (!CreatePipe(&out_read, &out_write, &saAttr, 0)) {
+			throw Exception("CreatePipe() failed - stdout read");
+		}	
+		if (!SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0)) {
+			throw Exception("SetHandleInformation() failed - stdout");
+		}
+		if (!CreatePipe(&err_read, &err_write, &saAttr, 0)) {
+			throw Exception("CreatePipe() failed - stderr read");
+		}	
+		if (!SetHandleInformation(err_read, HANDLE_FLAG_INHERIT, 0)) {
+			throw Exception("SetHandleInformation() failed - stderr");
+		}
+		if (!CreatePipe(&in_read, &in_write, &saAttr, 0))  {
+			throw Exception("CreatePipe() failed - stdin read");
+		}
+		if (!SetHandleInformation(in_write, HANDLE_FLAG_INHERIT, 0)) {
+			throw Exception("SetHandleInformation() failed - stdin");
+		}
+		
+		/* create process */
+		PROCESS_INFORMATION piProcInfo = {0,};
+		STARTUPINFO siStartInfo = {0,};
+		BOOL bSuccess = FALSE;
+
+		siStartInfo.cb = sizeof(STARTUPINFO); 
+		siStartInfo.hStdError = err_write;
+		siStartInfo.hStdOutput = out_write;
+		siStartInfo.hStdInput = in_read;
+		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+		bSuccess = CreateProcess(NULL, 
+			//(cmd.empty() ? (TCHAR*)wcmd.c_str() : (TCHAR*)cmd.c_str()),
+			// TODO: multibyte string support
+			(TCHAR*)cmd.c_str(),
+			NULL,          // process security attributes 
+			NULL,          // primary thread security attributes 
+			TRUE,          // handles are inherited 
+			0,             // creation flags 
+			NULL,          // use parent's environment 
+			NULL,          // use parent's current directory 
+			&siStartInfo,  // STARTUPINFO pointer 
+			&piProcInfo);
+
+		if (!bSuccess) {
+			throw Exception("CreateProcess() failed");
+		}
+
+		CloseHandle(piProcInfo.hProcess);
+		CloseHandle(piProcInfo.hThread);
+	}
+	HANDLE Process::in() {
+		return in_write;
+	}
+	HANDLE Process::out() {
+		return out_read;
+	}
+	HANDLE Process::err() {
+		return err_read;
+	}
+	void Process::wait() {
+		// TODO: implement it
+		throw Exception("Not implemented");
+	}
+	bool Process::exited() {
+		// TODO: implement it
+		throw Exception("Not implemented");
+	}
+	void Process::close() {
+		CloseHandle(in_write);
+		CloseHandle(out_read);
+		CloseHandle(err_read);
+	}
+	int Process::exitCode() {
+		// TODO: implement it
+		throw Exception("Not implemented");
+	}
+
 #else
 	
 	// not implemented

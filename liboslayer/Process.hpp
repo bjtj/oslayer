@@ -48,7 +48,13 @@ namespace OS {
 
 	class Process {
 	private:
-
+		std::string cmd;
+		HANDLE in_read;
+		HANDLE in_write;
+		HANDLE out_read;
+		HANDLE out_write;
+		HANDLE err_read;
+		HANDLE err_write;
 	private:
 		Process(const Process & other);
 	    Process & operator=(const Process & other);
@@ -57,9 +63,16 @@ namespace OS {
 		Process(const std::string & cmd);
 		Process(const std::string & cmd, const std::vector<std::string> & env);
 		virtual ~Process();
+		void start();
+		HANDLE in();
+		HANDLE out();
+		HANDLE err();
+		void wait();
+		bool exited();
+		void close();
+		int exitCode();
 	};
 
-	
 #else
 
 	// not implemented
