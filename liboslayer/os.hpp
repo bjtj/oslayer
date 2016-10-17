@@ -12,6 +12,7 @@
 #include <cstring>
 #include <exception>
 #include <cstdarg>
+#include <stdint.h>
 
 /**
  * @brief common feature
@@ -220,7 +221,7 @@ namespace OS {
 	 * @brief 
 	 */
 	typedef struct _osl_time_t {
-		unsigned long sec;
+		uint64_t sec;
 		unsigned long nano;
 	} osl_time_t;
 
@@ -768,7 +769,7 @@ namespace OS {
 		static std::string format(const Date & date);
         static std::string format(const Date & date, const std::string & fmt);
 		static std::string formatRfc1123(const Date & date);
-		// static std::string formatRfc1036(const Date & date);
+		static std::string formatRfc1036(const Date & date);
 		static int getDefaultGmtOffset();
 		static Date toGmt(const Date & from);
 		Date toGmt() const;

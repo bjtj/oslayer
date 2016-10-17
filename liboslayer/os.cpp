@@ -30,9 +30,8 @@ namespace OS {
 		Sleep(timeout);
         
 #else
-        
 		// sleep
-        
+		throw NotImplementedException("Not implemented");
 #endif
 	}
 
@@ -63,11 +62,63 @@ namespace OS {
 		return GetTickCount();
         
 #else
-        
-		throw NotImplementedException("not implemented");
-        
+		throw NotImplementedException("Not implemented");
 #endif
 	}
+
+
+#if defined(USE_MS_WIN)
+
+	static Date s_systemtime_to_date(SYSTEMTIME t) {
+		Date date;
+		date.setYear(t.wYear);
+		date.setMonth(t.wMonth - 1);
+		date.setDay(t.wDay);
+		date.setDayOfWeek(t.wDayOfWeek);
+		date.setHour(t.wHour);
+		date.setMinute(t.wMinute);
+		date.setSecond(t.wSecond);
+		date.setMillisecond(t.wMilliseconds);
+		return date;
+	}
+
+	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
+		SYSTEMTIME stime;
+		FILETIME localtime;
+		FileTimeToLocalFileTime(&ftime, &localtime);
+		FileTimeToSystemTime(&localtime, &stime);
+		return stime;
+	}
+
+	/**
+	 * @ref https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms724284(v=vs.85).aspx
+	 */
+	static osl_time_t s_filetime_to_osl_time(const FILETIME * ft) {
+		osl_time_t t = {0,};
+		ULARGE_INTEGER time;
+		time.LowPart = ft->dwLowDateTime;
+		time.HighPart = ft->dwHighDateTime;
+		unsigned __int64 uit = time.QuadPart;
+		t.sec = (uint64_t)(uit / 10000000);
+		t.nano = (unsigned long)(uit % 10000000) * 100;
+
+		return t;
+	}
+
+	/**
+	 * @ref https://support.microsoft.com/ko-kr/kb/167296
+	 */
+	static FILETIME s_osl_time_to_filetime(const osl_time_t * ot) {
+		unsigned __int64 uit = 0;
+		uit = ((unsigned __int64)ot->sec) * 10000000ULL;
+		uit += ((unsigned __int64)ot->nano) / 100ULL;
+		FILETIME t = {0,};
+		t.dwLowDateTime = (DWORD)uit;
+		t.dwHighDateTime= (DWORD)(uit >> 32);
+		return t;
+	}
+
+#endif
 
 	/**
 	 * @brief 
@@ -78,7 +129,7 @@ namespace OS {
         
         // @ref http://stackoverflow.com/a/11681069
 
-		osl_time_t ti;
+		osl_time_t ti = {0,};
         
         clock_serv_t cclock;
         mach_timespec_t mts;
@@ -93,7 +144,7 @@ namespace OS {
         
 #elif defined(USE_POSIX_STD)
 
-		osl_time_t ti;
+		osl_time_t ti = {0,};
         
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
@@ -105,25 +156,13 @@ namespace OS {
         
 #elif defined(USE_MS_WIN)
 
-		// TODO: check in win32 machine
-		
-		osl_time_t ti;
-		
-		ULARGE_INTEGER time;
-		GetSystemTimeAsFileTime((FILETIME *)&time);
+		FILETIME ft;
+		GetSystemTimeAsFileTime(&ft);
 
-		unsigned __int64 uit = time.QuadPart;
-
-		ti.sec = (unsigned long)(uit / 10000000);
-		ti.nano = (unsigned long)(uit % 10000000) * 100;
-
-		return ti;
+		return s_filetime_to_osl_time(&ft);
 #else
-
 		throw Exception("Not implemented");
-		
 #endif
-		
 	}
 
 	/**
@@ -135,7 +174,7 @@ namespace OS {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		ti.sec -= (unsigned long)11644473600ULL;
+		ti.sec -= (uint64_t)11644473600ULL;
 #endif
 
 		return ti;
@@ -146,11 +185,9 @@ namespace OS {
 	 */
 	osl_time_t osl_get_time_network() {
 		osl_time_t ti = osl_get_time_unix();
-
 		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/29138806
 		ti.sec += 2208988800ULL;
-		
 		return ti;
 	}
 
@@ -158,10 +195,11 @@ namespace OS {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		t.sec -= (unsigned long)11644473600ULL;
+		t.sec -= (uint64_t)11644473600ULL;
 #endif
 		return t;
 	}
+
 	osl_time_t osl_system_time_to_network_time(osl_time_t t) {
 		t = osl_system_time_to_unix_time(t);
 		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
@@ -169,14 +207,16 @@ namespace OS {
 		t.sec += 2208988800ULL;
 		return t;
 	}
+
 	osl_time_t osl_unix_time_to_system_time(osl_time_t t) {
 #if defined(USE_MS_WIN)
 		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/6161842
-		t.sec += (unsigned long)11644473600ULL;
+		t.sec += (uint64_t)11644473600ULL;
 #endif
 		return t;
 	}
+
 	osl_time_t osl_network_time_to_system_time(osl_time_t t) {
 		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
 		// @ref http://stackoverflow.com/a/29138806
@@ -1564,7 +1604,8 @@ namespace OS {
 
 	Date::Date(struct tm & info)
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0) {
+		  hour(0), minute(0), second(0), millisecond(0)
+	{
 
 		setYear(1900 + info.tm_year);
         setMonth(info.tm_mon);
@@ -1577,18 +1618,14 @@ namespace OS {
 
 	Date::Date(osl_time_t time)
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0) {
-
+		  hour(0), minute(0), second(0), millisecond(0) 
+	{
+#if defined(USE_MS_WIN)
+		*this = s_systemtime_to_date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
+#else
 		time_t t = (time_t)time.sec;
         struct tm info;
-		// localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
-#if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
 		localtime_r(&t, &info);
-#elif defined(USE_MS_WIN)
-		localtime_s(&info, &t);
-#else
-		throw Exception("Not implemented");
-#endif
         setYear(1900 + info.tm_year);
         setMonth(info.tm_mon);
         setDay(info.tm_mday);
@@ -1598,6 +1635,7 @@ namespace OS {
         setSecond(info.tm_sec);
 		setMillisecond((int)(time.nano / (1000 * 1000)));
 		setGmtOffset(s_get_gmt_offset());
+#endif
 	}
 
 	Date::~Date() {
@@ -1705,8 +1743,13 @@ namespace OS {
 				 gmt.getSecond());
 		return string(buffer);
 	}
-	// string Date::formatRfc1036(const Date & date) {
-	// }
+
+	
+	string Date::formatRfc1036(const Date & date) {
+		// TODO: implement
+		throw NotImplementedException("Not implemented");
+	}
+
 	int Date::getDefaultGmtOffset() {
 		return now().getGmtOffset();
 	}
@@ -1717,7 +1760,7 @@ namespace OS {
 		int defaultOffset = Date::getDefaultGmtOffset();
 		int offset = from.getGmtOffset();
 		osl_time_t time = from.getTime();
-		unsigned long seconds = time.sec;
+		uint64_t seconds = time.sec;
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
 #if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
@@ -1795,6 +1838,24 @@ namespace OS {
 		return millisecond;
 	}
 	osl_time_t Date::getTime() const {
+
+#if defined(USE_MS_WIN)
+
+		SYSTEMTIME st = {0,};
+		FILETIME ft = {0,};
+
+		st.wYear = year;
+		st.wMonth = month + 1;
+		st.wDay = day;
+		st.wHour = hour;
+		st.wMinute = minute;
+		st.wSecond = second;
+		st.wMilliseconds = millisecond;
+
+		SystemTimeToFileTime(&st, &ft);
+		return s_filetime_to_osl_time(&ft);
+
+#else
 		struct tm info = {0,};
 		info.tm_year = year - 1900;
 		info.tm_mon = month;
@@ -1806,9 +1867,10 @@ namespace OS {
 		time_t base = {0,};
 		double seconds = difftime(t, base);
 		osl_time_t ret;
-		ret.sec = (unsigned long)seconds;
+		ret.sec = (uint64_t)seconds;
 		ret.nano = millisecond * (1000 * 1000);
 		return ret;
+#endif
 	}
 
 	Date Date::toDate(osl_time_t time) {
@@ -2092,19 +2154,6 @@ namespace OS {
 	static Date s_get_creation_date(const string & path);
 	static Date s_get_modified_date(const string & path);
 
-	static Date s_systemtime_to_date(SYSTEMTIME t) {
-		Date date;
-		date.setYear(t.wYear);
-		date.setMonth(t.wMonth - 1);
-		date.setDay(t.wDay);
-		date.setDayOfWeek(t.wDayOfWeek);
-		date.setHour(t.wHour);
-		date.setMinute(t.wMinute);
-		date.setSecond(t.wSecond);
-		date.setMillisecond(t.wMilliseconds);
-		return date;
-	}
-
 	static const string s_get_separators() {
 		return "\\/";
 	}
@@ -2283,14 +2332,7 @@ namespace OS {
 	static bool s_remove_file(const char * path) {
 		return DeleteFile(path) == TRUE ? true : false;
 	}
-
-	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
-		SYSTEMTIME stime;
-		FILETIME localtime;
-		FileTimeToLocalFileTime(&ftime, &localtime);
-		FileTimeToSystemTime(&localtime, &stime);
-		return stime;
-	}
+	
 	static Date s_get_creation_date(const string & path) {
 		HANDLE hFile;
 		FILETIME ftCreate, ftAccess, ftWrite;
