@@ -80,18 +80,15 @@ public:
 	virtual void setUp(TestEnvironment & env) {
 		serverThread = new SecureServerThread(port, certPath, keyPath);
 		serverThread->start();
-		idle(500);
+		idle(1000);
 	}
 	virtual void tearDown() {
-
 		serverThread->interrupt();
 		serverThread->join();
 		delete serverThread;
 	}
 	virtual void test() {
-
 		char buffer[1024] = {0,};
-
 		SecureSocket client(InetAddress("localhost", port));
 		client.setVerifier(AutoRef<CertificateVerifier>(new KindVerifier));
 		client.connect();

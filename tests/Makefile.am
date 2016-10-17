@@ -2,6 +2,7 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-date \
 	test-base64 \
 	test-random \
 	test-regex \
@@ -34,6 +35,7 @@ check_PROGRAMS = \
 	test-lifetime
 
 test_os_SOURCES=test-os.cpp
+test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
 test_random_SOURCES=test-random.cpp
 test_regex_SOURCES=test-regex.cpp

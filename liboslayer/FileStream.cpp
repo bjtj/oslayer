@@ -3,6 +3,8 @@
 
 #if defined(USE_MS_WIN)
 #	define _INIT ,handle(NULL), _eof(false)
+#else
+#	define _INIT
 #endif
 
 namespace UTIL {
@@ -306,6 +308,51 @@ namespace UTIL {
 			CloseHandle(handle);
 			handle = NULL;
 		}
+	}
+#else
+
+	bool FileStream::eofWin32() {
+		throw Exception("Not implemented");
+	}
+
+	int FileStream::readWin32() {
+		throw Exception("Not implemented");
+	}
+
+	size_t FileStream::readWin32(char * buffer, size_t size) {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::writeWin32(int ch) {
+		throw Exception("Not implemented");
+	}
+
+	size_t FileStream::writeWin32(const char * buffer, size_t len) {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::rewindWin32() {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::seekWin32(size_t pos) {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::seekEndWin32(size_t pos) {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::seekOffsetWin32(long offset) {
+		throw Exception("Not implemented");
+	}
+
+	size_t FileStream::positionWin32() {
+		throw Exception("Not implemented");
+	}
+
+	void FileStream::closeWin32() {
+		throw Exception("Not implemented");
 	}
 #endif
 	

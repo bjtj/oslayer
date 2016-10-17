@@ -46,7 +46,8 @@ namespace UTIL {
 		bool _eof;
 	public:
 		FileStream(HANDLE handle);
-	private:
+#endif
+
 		bool eofWin32();
 		int readWin32();
 		size_t readWin32(char * buffer, size_t size);
@@ -58,7 +59,6 @@ namespace UTIL {
 		void seekOffsetWin32(long offset);
 		size_t positionWin32();
 		void closeWin32();
-#endif
 	};
 
 }

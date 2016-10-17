@@ -8,16 +8,6 @@
 #define HEAP_ALLOC(E,V) E.alloc(new Var(V))
 #define _VAR Obj<Var> 
 
-//#define DECL_NATIVE(NAME,CLS,CODE)										\
-//	class CLS : public Procedure {										\
-//	private:															\
-//	public:																\
-//	CLS(const string & name) : Procedure(name) {}						\
-//	virtual ~CLS() {}													\
-//	virtual _VAR proc(_VAR name, vector<_VAR> & args, Env & env) {CODE;} \
-//	};																	\
-//	env[NAME] = env.alloc(new Var(AutoRef<Procedure>(new CLS(NAME))));
-
 #define DECL_NATIVE_BEGIN(NAME,CLS) \
 	class CLS : public Procedure { \
 	private: \
