@@ -25,6 +25,7 @@ namespace UTIL {
 	void Properties::loadFromFile(File & file) {
 		FileStream stream(file, "rb");
 		string dump = stream.readFullAsString();
+		stream.close();
 		parsePropertiesString(dump);
 	}
 
@@ -41,6 +42,7 @@ namespace UTIL {
 		string ret = convertToPropertiesString();
 		FileStream stream(file, "wb");
 		stream.write(ret.c_str(), ret.length());
+		stream.close();
 	}
 
 	void Properties::parsePropertiesString(const string & text) {

@@ -1607,6 +1607,7 @@ namespace LISP {
 				File file = pathname(env, eval(args[0], env))->getFile();
 				FileStream stream(file, "rb");
 				string dump = stream.readFullAsString();
+				stream.close();
 				vector<string> lines = Text::split(dump, "\n");
 				BufferedCommandReader reader;
 				for (vector<string>::iterator iter = lines.begin(); !env.quit() && iter != lines.end(); iter++) {
