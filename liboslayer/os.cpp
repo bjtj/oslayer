@@ -779,6 +779,12 @@ namespace OS {
 	}
     
     /* SELECTION */
+
+	Selectable::Selectable() {
+	}
+	
+	Selectable::~Selectable() {
+	}
     
     Selection::Selection(int fd, bool readable, bool writeable, bool except)
 		: fd(fd), readable(readable), writeable(writeable), except(except) {
@@ -806,12 +812,12 @@ namespace OS {
 
 	/* Selectable */
     
-    bool Selectable::isSelectable() {
-        return selectable;
-    }
-    void Selectable::setSelectable(bool selectable) {
-        this->selectable = selectable;
-    }
+    // bool Selectable::isSelectable() {
+    //     return selectable;
+    // }
+    // void Selectable::setSelectable(bool selectable) {
+    //     this->selectable = selectable;
+    // }
 	void Selectable::registerSelector(Selector & selector, unsigned char flags) {
 		selector.set(getFd(), flags);
 	}

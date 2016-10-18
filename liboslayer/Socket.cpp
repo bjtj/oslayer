@@ -197,6 +197,9 @@ namespace OS {
 		bool Socket::isClosed() {
 			return SocketUtil::isValidSocket(getSocket()) == false;
 		}
+		int Socket::pending() {
+			return 0;
+		}
 		int Socket::recv(char * buffer, size_t size) {
 			return getImpl().recv(buffer, size);
 		}

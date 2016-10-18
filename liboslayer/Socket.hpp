@@ -26,6 +26,7 @@ namespace OS {
 		virtual void disconnect();
 		virtual void close();
 		virtual bool isClosed();
+		virtual int pending();
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
 		virtual InetAddress getLocalInetAddress();

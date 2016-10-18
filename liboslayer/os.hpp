@@ -464,16 +464,10 @@ namespace OS {
      */
     class Selectable {
     private:
-        bool selectable;
     public:
-        Selectable() : selectable(true) {}
-        virtual ~Selectable() {}
-        
+		Selectable();
+        virtual ~Selectable();
         virtual int getFd() = 0;
-        
-        bool isSelectable();
-        void setSelectable(bool selectable);
-        
 		virtual void registerSelector(Selector & selector, unsigned char flags);
 		virtual void unregisterSelector(Selector & selector, unsigned char flags);
 		virtual bool isSelected(Selector & selector);

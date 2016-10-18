@@ -96,7 +96,6 @@ namespace OS {
 		recvTimeout(0)
 	{
 		SecureContext::getInstance();
-        setSelectable(false);
 		ctx = SSL_CTX_new(TLSv1_server_method());
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
@@ -121,7 +120,6 @@ namespace OS {
 		peerCertRequired(false),
 		needHandshake(true)
 	{
-        setSelectable(false);
 		if (!ctx) {
 			throw IOException("SSL_CTX is null");
 		}
@@ -145,7 +143,6 @@ namespace OS {
 		peerCertRequired(true),
 		needHandshake(false)
 	{
-		setSelectable(false);
 		SecureContext::getInstance();
 		ctx = SSL_CTX_new(SSLv23_client_method());
 		if (!ctx) {
@@ -236,48 +233,41 @@ namespace OS {
 			throw IOException("Peer certificate verification failed"); 
 		}
 	}
+
+	int SecureSocket::pending() {
+		return SSL_pending(ssl);
+	}
 	
 	int SecureSocket::recv(char * buffer, size_t size) {
-	retry:
-		int len = SSL_read(ssl, buffer, (int)size);
+		int len = SSL_read(ssl, buffer, size);
 		if (len <= 0) {
 			if (SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN) {
 				SSL_shutdown(ssl);
-			} else {
-				int err = SSL_get_error(ssl, len);
-				switch (err) {
-				case SSL_ERROR_WANT_READ:
-				{
-					Selector selector;
-					selector.set(SSL_get_rfd(ssl), Selector::READ);
-					if (selector.select(recvTimeout) > 0) {
-						goto retry;
-					}
-					SSL_clear(ssl);
-					throw IOException("Receive timeout");
-				}
-				default:
-					SSL_clear(ssl);
-					break;
-				}
+				throw IOException("SSL error - SSL_RECEIVED_SHUTDOWN");
 			}
-		}
-		if (len == 0) {
-			throw IOException("SecureSocket::recv() - normal close", len, 0);
-		} else if (len < 0) {
-			throw IOException("SecureSocket::recv() - something wrong", len, 0);
+			int err = SSL_get_error(ssl, len);
+			switch (err) {
+			case SSL_ERROR_WANT_READ:
+			case SSL_ERROR_WANT_WRITE:
+				return 0;
+			default:
+				throw IOException("SSL error - SSL_read()", err, 0);
+			}
 		}
 		return len;
 	}
 	
 	int SecureSocket::send(const char * data, size_t size) {
 		int len = SSL_write(ssl, data, (int)size);
-		if (len == 0) {
-			SSL_shutdown(ssl);
-			throw IOException("SecureSocket::send() - maybe internal close", len, 0);
-		} else if (len < 0) {
-			SSL_clear(ssl);
-			throw IOException("SecureSocket::send() - something wrong", len, 0);
+		if (len <= 0) {
+			int err = SSL_get_error(ssl, len);
+			switch (err) {
+			case SSL_ERROR_WANT_READ:
+			case SSL_ERROR_WANT_WRITE:
+				return 0;
+			default:
+				throw IOException("SSL error - SSL_write()", err, 0);
+			}
 		}
 		return len;
 	}
@@ -307,12 +297,6 @@ namespace OS {
 			ctx = NULL;
 		}
 		Socket::close();
-
-//#if OPENSSL_API_COMPAT < 0x10000000L
-//		ERR_remove_state(0);
-//#else
-//		ERR_remove_thread_state(NULL);
-//#endif
 	}
 
 	void SecureSocket::setVerifier(AutoRef<CertificateVerifier> verifier) {
@@ -345,7 +329,6 @@ namespace OS {
 	}
 	void SecureServerSocket::initOpenSSL() {
 		SecureContext::getInstance();
-        setSelectable(false);
 		ctx = SSL_CTX_new(TLSv1_server_method());
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
@@ -373,11 +356,6 @@ namespace OS {
 	void SecureServerSocket::close() {
 		SSL_CTX_free(ctx);
 		ServerSocket::close();
-//#if OPENSSL_API_COMPAT < 0x10000000L
-//        ERR_remove_state(0);
-//#else
-//		ERR_remove_thread_state(NULL);
-//#endif
 	}
 
 	void SecureServerSocket::setVerifier(AutoRef<CertificateVerifier> verifier) {

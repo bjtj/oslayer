@@ -53,6 +53,7 @@ namespace OS {
 		virtual void connect();
 		void handshake();
 		void verify();
+		virtual int pending();
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);
 		virtual void setRecvTimeout(unsigned long timeout);

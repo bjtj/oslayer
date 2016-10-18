@@ -4,6 +4,7 @@ check_PROGRAMS = \
 	test-os \
 	test-date \
 	test-base64 \
+	test-bytebuffer \
 	test-random \
 	test-regex \
 	test-argument-parser \
@@ -37,6 +38,7 @@ check_PROGRAMS = \
 test_os_SOURCES=test-os.cpp
 test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
+test_bytebuffer_SOURCES=test-bytebuffer.cpp
 test_random_SOURCES=test-random.cpp
 test_regex_SOURCES=test-regex.cpp
 test_argument_parser_SOURCES=test-argument-parser.cpp
