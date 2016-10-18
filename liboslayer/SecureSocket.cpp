@@ -239,7 +239,7 @@ namespace OS {
 	}
 	
 	int SecureSocket::recv(char * buffer, size_t size) {
-		int len = SSL_read(ssl, buffer, size);
+		int len = SSL_read(ssl, buffer, (int)size);
 		if (len <= 0) {
 			if (SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN) {
 				SSL_shutdown(ssl);
