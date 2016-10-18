@@ -10,10 +10,13 @@ liboslayerinc_HEADERS= \
 	CountDownLatch.hpp \
 	DatabaseConnection.hpp \
 	DatagramSocket.hpp \
+	Date.hpp \
+	File.hpp \
 	FileStream.hpp \
 	Hash.hpp \
 	Heap.hpp \
 	Iterator.hpp \
+	Library.hpp \
 	Lifetime.hpp \
 	Lisp.hpp \
 	Logger.hpp \
@@ -57,11 +60,17 @@ liboslayer_la_SOURCES= \
 	DatabaseConnection.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
+	Date.cpp \
+	Date.hpp \
+	File.cpp \
+	File.hpp \
 	FileStream.cpp \
 	FileStream.hpp \
 	Hash.hpp \
 	Heap.hpp \
 	Iterator.hpp \
+	Library.cpp \
+	Library.hpp \
 	Lifetime.hpp \
 	Lisp.cpp \
 	Lisp.hpp \

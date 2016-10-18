@@ -2,6 +2,7 @@
 #define __FILE_STREAM_HPP__
 
 #include "os.hpp"
+#include "File.hpp"
 #include <string>
 
 namespace UTIL {

@@ -1,5 +1,6 @@
 #include "Uuid.hpp"
 #include "os.hpp"
+#include "Date.hpp"
 #include "Text.hpp"
 
 namespace UTIL {

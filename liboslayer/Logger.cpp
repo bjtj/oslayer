@@ -1,4 +1,5 @@
 #include <iostream>
+#include "Date.hpp"
 #include "Logger.hpp"
 #include "Text.hpp"
 

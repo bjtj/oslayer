@@ -9,6 +9,8 @@
 #include <cstring>
 
 #include "os.hpp"
+#include "File.hpp"
+#include "Date.hpp"
 #include "AutoRef.hpp"
 #include "Text.hpp"
 #include "Heap.hpp"

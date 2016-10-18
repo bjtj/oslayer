@@ -1,4 +1,5 @@
 #include <liboslayer/TestSuite.hpp>
+#include <liboslayer/Library.hpp>
 
 using namespace std;
 using namespace OS;
