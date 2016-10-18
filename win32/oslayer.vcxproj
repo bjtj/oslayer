@@ -74,7 +74,10 @@
     <ClCompile Include="..\liboslayer\Base64.cpp" />
     <ClCompile Include="..\liboslayer\CountDownLatch.cpp" />
     <ClCompile Include="..\liboslayer\DatabaseConnection.cpp" />
+    <ClCompile Include="..\liboslayer\Date.cpp" />
+    <ClCompile Include="..\liboslayer\File.cpp" />
     <ClCompile Include="..\liboslayer\FileStream.cpp" />
+    <ClCompile Include="..\liboslayer\Library.cpp" />
     <ClCompile Include="..\liboslayer\Lisp.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
     <ClCompile Include="..\liboslayer\Observer.cpp" />
@@ -102,10 +105,13 @@
     <ClInclude Include="..\liboslayer\Condition.hpp" />
     <ClInclude Include="..\liboslayer\CountDownLatch.hpp" />
     <ClInclude Include="..\liboslayer\DatabaseConnection.hpp" />
+    <ClInclude Include="..\liboslayer\Date.hpp" />
+    <ClInclude Include="..\liboslayer\File.hpp" />
     <ClInclude Include="..\liboslayer\FileStream.hpp" />
     <ClInclude Include="..\liboslayer\Hash.hpp" />
     <ClInclude Include="..\liboslayer\Heap.hpp" />
     <ClInclude Include="..\liboslayer\Iterator.hpp" />
+    <ClInclude Include="..\liboslayer\Library.hpp" />
     <ClInclude Include="..\liboslayer\Lifetime.hpp" />
     <ClInclude Include="..\liboslayer\Lisp.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />

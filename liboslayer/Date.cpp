@@ -290,7 +290,7 @@ namespace OS {
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0)
 	{
-		*this = s_systemtime_to_date(s_filetime_to_systemtime(ft);
+		*this = s_systemtime_to_date(s_filetime_to_systemtime(ft));
 	}
 #endif
 
