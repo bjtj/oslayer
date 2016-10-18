@@ -1760,7 +1760,7 @@ namespace OS {
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
 		gmtime_r(&x, &info);
-		Date date = Date(info, 0);
+		Date date = Date(info);
 		date.setMillisecond(from.getMillisecond());
 		return date;
 #endif
