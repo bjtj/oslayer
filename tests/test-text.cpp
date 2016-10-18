@@ -37,6 +37,10 @@ public:
 		ASSERT(m["c"], ==, "C");
 		ASSERT((m.find("d") != m.end()), ==, true);
 		ASSERT(m["d"], ==, "");
+
+		ASSERT(Text::trim(" hello world "), ==, "hello world");
+		ASSERT(Text::trim(" hello world"), ==, "hello world");
+		ASSERT(Text::trim("hello world "), ==, "hello world");
 	}
 };
 
