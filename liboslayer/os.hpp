@@ -764,13 +764,14 @@ namespace OS {
 		Date();
 		Date(struct tm & info);
 		Date(osl_time_t time);
+		Date(osl_time_t time, int gmtoffset);
 		virtual ~Date();
 		static Date now();
 		static std::string format(const Date & date);
         static std::string format(const Date & date, const std::string & fmt);
 		static std::string formatRfc1123(const Date & date);
 		static std::string formatRfc1036(const Date & date);
-		static int getDefaultGmtOffset();
+		static int getSystemGmtOffset();
 		static Date toGmt(const Date & from);
 		Date toGmt() const;
 		void setGmtOffset(int gmtoffset);
@@ -794,6 +795,8 @@ namespace OS {
 		int getSecond() const;
 		int getMillisecond() const;
 		osl_time_t getTime() const;
+		void setTime(const osl_time_t t);
+		void setTime(const osl_time_t t, int gmtoffset);
 		static Date toDate(osl_time_t time);
 	};
 

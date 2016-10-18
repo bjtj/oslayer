@@ -1620,22 +1620,11 @@ namespace OS {
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0) 
 	{
-#if defined(USE_MS_WIN)
-		*this = s_systemtime_to_date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
-#else
-		time_t t = (time_t)time.sec;
-        struct tm info;
-		localtime_r(&t, &info);
-        setYear(1900 + info.tm_year);
-        setMonth(info.tm_mon);
-        setDay(info.tm_mday);
-		setDayOfWeek(info.tm_wday);
-        setHour(info.tm_hour);
-        setMinute(info.tm_min);
-        setSecond(info.tm_sec);
-		setMillisecond((int)(time.nano / (1000 * 1000)));
-		setGmtOffset(s_get_gmt_offset());
-#endif
+		setTime(time);
+	}
+
+	Date::Date(osl_time_t time, int gmtoffset) {
+		setTime(time, gmtoffset);
 	}
 
 	Date::~Date() {
@@ -1750,29 +1739,31 @@ namespace OS {
 		throw NotImplementedException("Not implemented");
 	}
 
-	int Date::getDefaultGmtOffset() {
+	int Date::getSystemGmtOffset() {
 		return now().getGmtOffset();
 	}
 	Date Date::toGmt(const Date & from) {
 		if (from.getGmtOffset() == 0) {
 			return from;
 		}
-		int defaultOffset = Date::getDefaultGmtOffset();
+		
+#if defined(USE_MS_WIN)
+		int defaultOffset = Date::getSystemGmtOffset();
+		osl_time_t t = from.getTime();
+		t.sec -= (defaultOffset * 60);
+		return Date(t, 0);
+#else
+		int defaultOffset = Date::getSystemGmtOffset();
 		int offset = from.getGmtOffset();
 		osl_time_t time = from.getTime();
 		uint64_t seconds = time.sec;
 		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
 		struct tm info;
-#if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
 		gmtime_r(&x, &info);
-#elif defined(USE_MS_WIN)
-		gmtime_s(&info, &x);
-#else
-		throw Exception("Not implemented");
-#endif
-		Date date = Date(info);
+		Date date = Date(info, 0);
 		date.setMillisecond(from.getMillisecond());
 		return date;
+#endif
 	}
 	Date Date::toGmt() const {
 		return toGmt(*this);
@@ -1843,7 +1834,7 @@ namespace OS {
 
 		SYSTEMTIME st = {0,};
 		FILETIME ft = {0,};
-
+		
 		st.wYear = year;
 		st.wMonth = month + 1;
 		st.wDay = day;
@@ -1853,7 +1844,9 @@ namespace OS {
 		st.wMilliseconds = millisecond;
 
 		SystemTimeToFileTime(&st, &ft);
-		return s_filetime_to_osl_time(&ft);
+		osl_time_t ret = s_filetime_to_osl_time(&ft);
+		ret.sec -= (this->gmtoffset * 60);
+		return ret;
 
 #else
 		struct tm info = {0,};
@@ -1870,6 +1863,30 @@ namespace OS {
 		ret.sec = (uint64_t)seconds;
 		ret.nano = millisecond * (1000 * 1000);
 		return ret;
+#endif
+	}
+
+	void Date::setTime(const osl_time_t t) {
+		setTime(t, s_get_gmt_offset());
+	}
+
+	void Date::setTime(const osl_time_t time, int gmtoffset) {
+#if defined(USE_MS_WIN)
+		*this = s_systemtime_to_date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
+		setGmtOffset(gmtoffset);
+#else
+		time_t t = (time_t)time.sec;
+        struct tm info;
+		localtime_r(&t, &info);
+        setYear(1900 + info.tm_year);
+        setMonth(info.tm_mon);
+        setDay(info.tm_mday);
+		setDayOfWeek(info.tm_wday);
+        setHour(info.tm_hour);
+        setMinute(info.tm_min);
+        setSecond(info.tm_sec);
+		setMillisecond((int)(time.nano / (1000 * 1000)));
+		setGmtOffset(gmtoffset);
 #endif
 	}
 
