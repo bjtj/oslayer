@@ -470,10 +470,9 @@ namespace OS {
         virtual int getFd() = 0;
 		virtual void registerSelector(Selector & selector, unsigned char flags);
 		virtual void unregisterSelector(Selector & selector, unsigned char flags);
-		virtual bool isSelected(Selector & selector);
-		virtual bool isReadableSelected(Selector & selector);
-		virtual bool isWritableSelected(Selector & selector);
-		virtual bool isExceptSelected(Selector & selector);
+		virtual bool isReadable(Selector & selector);
+		virtual bool isWritable(Selector & selector);
+		virtual bool isExcept(Selector & selector);
     };
 
 	/**
@@ -504,14 +503,12 @@ namespace OS {
 		virtual void unset(int fd, unsigned char flags);
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<Selection> & getSelections();
-		virtual bool isSelected(int fd);
-		virtual bool isSelected(Selectable & selectable);
-		virtual bool isReadableSelected(int fd);
-		virtual bool isReadableSelected(Selectable & selectable);
-		virtual bool isWritableSelected(int fd);
-		virtual bool isWritableSelected(Selectable & selectable);
-		virtual bool isExceptSelected(int fd);
-		virtual bool isExceptSelected(Selectable & selectable);
+		virtual bool isReadable(int fd);
+		virtual bool isReadable(Selectable & selectable);
+		virtual bool isWritable(int fd);
+		virtual bool isWritable(Selectable & selectable);
+		virtual bool isExcept(int fd);
+		virtual bool isExcept(Selectable & selectable);
 	};
 
 
@@ -530,14 +527,12 @@ namespace OS {
 		virtual void unset(int fd, unsigned char flags);
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<Selection> & getSelections();
-		virtual bool isSelected(int fd);
-		virtual bool isSelected(Selectable & selectable);
-		virtual bool isReadableSelected(int fd);
-		virtual bool isReadableSelected(Selectable & selectable);
-		virtual bool isWritableSelected(int fd);
-		virtual bool isWritableSelected(Selectable & selectable);
-		virtual bool isExceptSelected(int fd);
-		virtual bool isExceptSelected(Selectable & selectable);
+		virtual bool isReadable(int fd);
+		virtual bool isReadable(Selectable & selectable);
+		virtual bool isWritable(int fd);
+		virtual bool isWritable(Selectable & selectable);
+		virtual bool isExcept(int fd);
+		virtual bool isExcept(Selectable & selectable);
 	};
 	
 
@@ -555,19 +550,6 @@ namespace OS {
 		static void closeSocket(SOCK_HANDLE sock);
         static void setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen);
 	};
-
-    /**
-     * @brief RandomPortBinder
-     */
-    class RandomPortBinder {
-    public:
-        RandomPortBinder() {}
-        virtual ~RandomPortBinder() {}
-        virtual void start() = 0;
-        virtual int getNextPort() = 0;
-        virtual bool wantFinish() = 0;
-        virtual int getSelectedPort() = 0;
-    };
 
 	/**
      * @brief GlobalSocketConfiguration

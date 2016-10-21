@@ -42,6 +42,9 @@ namespace OS {
 		bool peerCertRequired;
 		bool needHandshake;
 		unsigned long recvTimeout;
+		bool read_blocked;
+		bool read_blocked_on_write;
+		bool write_blocked_on_read;
 	public:
 		SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
@@ -53,6 +56,8 @@ namespace OS {
 		virtual void connect();
 		void handshake();
 		void verify();
+		virtual bool isReadable(Selector & selector);
+		virtual bool isWritable(Selector & selector);
 		virtual int pending();
 		virtual int recv(char * buffer, size_t size);
 		virtual int send(const char * data, size_t size);

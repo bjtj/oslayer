@@ -221,9 +221,9 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 
 	while (1) {
 		if (selector.select(1000) > 0) {
-			bool w = sock.isWritableSelected(selector);
-			bool r = sock.isReadableSelected(selector);
-			bool e = sock.isExceptSelected(selector);
+			bool w = sock.isWritable(selector);
+			bool r = sock.isReadable(selector);
+			bool e = sock.isExcept(selector);
 			LOG << "wre : " << w << r << e << endl;
 
 			if (r) {

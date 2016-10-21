@@ -779,12 +779,6 @@ namespace OS {
 	}
     
     /* SELECTION */
-
-	Selectable::Selectable() {
-	}
-	
-	Selectable::~Selectable() {
-	}
     
     Selection::Selection(int fd, bool readable, bool writeable, bool except)
 		: fd(fd), readable(readable), writeable(writeable), except(except) {
@@ -811,6 +805,12 @@ namespace OS {
 	}
 
 	/* Selectable */
+
+	Selectable::Selectable() {
+	}
+	
+	Selectable::~Selectable() {
+	}
     
     // bool Selectable::isSelectable() {
     //     return selectable;
@@ -821,20 +821,21 @@ namespace OS {
 	void Selectable::registerSelector(Selector & selector, unsigned char flags) {
 		selector.set(getFd(), flags);
 	}
+	
 	void Selectable::unregisterSelector(Selector & selector, unsigned char flags) {
 		selector.unset(getFd(), flags);
 	}
-	bool Selectable::isSelected(Selector & selector) {
-		return selector.isSelected(getFd());
+	
+	bool Selectable::isReadable(Selector & selector) {
+		return selector.isReadable(getFd());
 	}
-	bool Selectable::isReadableSelected(Selector & selector) {
-		return selector.isReadableSelected(getFd());
+
+	bool Selectable::isWritable(Selector & selector) {
+		return selector.isWritable(getFd());
 	}
-	bool Selectable::isWritableSelected(Selector & selector) {
-		return selector.isWritableSelected(getFd());
-	}
-	bool Selectable::isExceptSelected(Selector & selector) {
-		return selector.isExceptSelected(getFd());
+	
+	bool Selectable::isExcept(Selector & selector) {
+		return selector.isExcept(getFd());
 	}
 
 	/* Selector */
@@ -912,41 +913,29 @@ namespace OS {
 		}
 		return selections;
 	}
-
-	bool Selector::isSelected(int fd) {
-        bool readable = FD_ISSET(fd, &curreadfds) ? true : false;
-        bool writeable = FD_ISSET(fd, &curwritefds) ? true : false;
-		bool error = FD_ISSET(fd, &curexceptfds) ? true : false;
-        
-        return readable || writeable || error;
-	}
     
-    bool Selector::isSelected(Selectable & selectable) {
-        return isSelected(selectable.getFd());
-    }
-    
-    bool Selector::isReadableSelected(int fd) {
+    bool Selector::isReadable(int fd) {
         return FD_ISSET(fd, &curreadfds) ? true : false;
     }
     
-    bool Selector::isReadableSelected(Selectable & selectable) {
-        return isReadableSelected(selectable.getFd());
+    bool Selector::isReadable(Selectable & selectable) {
+        return isReadable(selectable.getFd());
     }
     
-    bool Selector::isWritableSelected(int fd) {
+    bool Selector::isWritable(int fd) {
         return FD_ISSET(fd, &curwritefds) ? true : false;
     }
     
-    bool Selector::isWritableSelected(Selectable & selectable) {
-        return isWritableSelected(selectable.getFd());
+    bool Selector::isWritable(Selectable & selectable) {
+        return isWritable(selectable.getFd());
     }
 
-	bool Selector::isExceptSelected(int fd) {
+	bool Selector::isExcept(int fd) {
         return FD_ISSET(fd, &curexceptfds) ? true : false;
     }
     
-    bool Selector::isExceptSelected(Selectable & selectable) {
-        return isExceptSelected(selectable.getFd());
+    bool Selector::isExcept(Selectable & selectable) {
+        return isExcept(selectable.getFd());
     }
 
 
@@ -967,41 +956,35 @@ namespace OS {
 		AutoLock lock(semCur);
 		return Selector::select(timeout_milli);
 	}
+	
 	std::vector<Selection> & SharedSelector::getSelections() {
 		AutoLock lock(semCur);
 		return Selector::getSelections();
 	}
-	bool SharedSelector::isSelected(int fd) {
+
+	bool SharedSelector::isReadable(int fd) {
 		AutoLock lock(semCur);
-		return Selector::isSelected(fd);
+		return Selector::isReadable(fd);
 	}
-	bool SharedSelector::isSelected(Selectable & selectable) {
+	bool SharedSelector::isReadable(Selectable & selectable) {
 		AutoLock lock(semCur);
-		return Selector::isSelected(selectable);
+		return Selector::isReadable(selectable);
 	}
-	bool SharedSelector::isReadableSelected(int fd) {
+	bool SharedSelector::isWritable(int fd) {
 		AutoLock lock(semCur);
-		return Selector::isReadableSelected(fd);
+		return Selector::isWritable(fd);
 	}
-	bool SharedSelector::isReadableSelected(Selectable & selectable) {
+	bool SharedSelector::isWritable(Selectable & selectable) {
 		AutoLock lock(semCur);
-		return Selector::isReadableSelected(selectable);
+		return Selector::isWritable(selectable);
 	}
-	bool SharedSelector::isWritableSelected(int fd) {
+	bool SharedSelector::isExcept(int fd) {
 		AutoLock lock(semCur);
-		return Selector::isWritableSelected(fd);
+		return Selector::isExcept(fd);
 	}
-	bool SharedSelector::isWritableSelected(Selectable & selectable) {
+	bool SharedSelector::isExcept(Selectable & selectable) {
 		AutoLock lock(semCur);
-		return Selector::isWritableSelected(selectable);
-	}
-	bool SharedSelector::isExceptSelected(int fd) {
-		AutoLock lock(semCur);
-		return Selector::isExceptSelected(fd);
-	}
-	bool SharedSelector::isExceptSelected(Selectable & selectable) {
-		AutoLock lock(semCur);
-		return Selector::isExceptSelected(selectable);
+		return Selector::isExcept(selectable);
 	}
 	
 

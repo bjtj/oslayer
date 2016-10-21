@@ -83,6 +83,10 @@ namespace OS {
 	string SecureContext::getOpenSSLVersion() {
 		return string(OPENSSL_VERSION_TEXT);
 	}
+
+	/**
+	 * @brief secure server
+	 */
 	
 	/* created by server accept */
 	SecureSocket::SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen) :
@@ -93,7 +97,10 @@ namespace OS {
 		verifier(NULL),
 		peerCertRequired(false),
 		needHandshake(true),
-		recvTimeout(0)
+		recvTimeout(0),
+		read_blocked(false),
+		read_blocked_on_write(false),
+		write_blocked_on_read(false)
 	{
 		SecureContext::getInstance();
 		ctx = SSL_CTX_new(TLSv1_server_method());
@@ -118,7 +125,10 @@ namespace OS {
 		peerCert(NULL),
 		verifier(NULL),
 		peerCertRequired(false),
-		needHandshake(true)
+		needHandshake(true),
+		read_blocked(false),
+		read_blocked_on_write(false),
+		write_blocked_on_read(false)
 	{
 		if (!ctx) {
 			throw IOException("SSL_CTX is null");
@@ -141,7 +151,10 @@ namespace OS {
 		peerCert(NULL),
 		verifier(NULL),
 		peerCertRequired(true),
-		needHandshake(false)
+		needHandshake(false),
+		read_blocked(false),
+		read_blocked_on_write(false),
+		write_blocked_on_read(false)
 	{
 		SecureContext::getInstance();
 		ctx = SSL_CTX_new(SSLv23_client_method());
@@ -234,42 +247,55 @@ namespace OS {
 		}
 	}
 
+	bool SecureSocket::isReadable(Selector & selector) {
+		return ((selector.isReadable(getFd()) && !write_blocked_on_read) ||
+				(read_blocked_on_write && selector.isWritable(getFd())));
+	}
+	
+	bool SecureSocket::isWritable(Selector & selector) {
+		return ((selector.isWritable(getFd())) ||
+				(write_blocked_on_read && selector.isReadable(getFd())));
+	}
+
 	int SecureSocket::pending() {
-		return SSL_pending(ssl);
+		return (read_blocked ? 0 : SSL_pending(ssl));
 	}
 	
 	int SecureSocket::recv(char * buffer, size_t size) {
-		int len = SSL_read(ssl, buffer, (int)size);
-		if (len <= 0) {
-			if (SSL_get_shutdown(ssl) & SSL_RECEIVED_SHUTDOWN) {
-				SSL_shutdown(ssl);
-				throw IOException("SSL error - SSL_RECEIVED_SHUTDOWN");
-			}
-			int err = SSL_get_error(ssl, len);
-			switch (err) {
-			case SSL_ERROR_WANT_READ:
-			case SSL_ERROR_WANT_WRITE:
-				return 0;
-			default:
-				throw IOException("SSL error - SSL_read()", err, 0);
-			}
+		read_blocked_on_write = false;
+		read_blocked = false;
+		int ret = SSL_read(ssl, buffer, (int)size);
+		switch (SSL_get_error(ssl, ret)) {
+		case SSL_ERROR_NONE:
+			return ret;
+		case SSL_ERROR_ZERO_RETURN:
+			SSL_shutdown(ssl);
+			throw IOException("normal close", ret, 0);
+		case SSL_ERROR_WANT_READ:
+			read_blocked = true;
+			return 0;
+		case SSL_ERROR_WANT_WRITE:
+			read_blocked_on_write = true;
+			return 0;
+		default:
+			throw IOException("SSL error - SSL_read()");
 		}
-		return len;
 	}
 	
 	int SecureSocket::send(const char * data, size_t size) {
-		int len = SSL_write(ssl, data, (int)size);
-		if (len <= 0) {
-			int err = SSL_get_error(ssl, len);
-			switch (err) {
-			case SSL_ERROR_WANT_READ:
-			case SSL_ERROR_WANT_WRITE:
-				return 0;
-			default:
-				throw IOException("SSL error - SSL_write()", err, 0);
-			}
+		write_blocked_on_read = false;
+		int ret = SSL_write(ssl, data, (int)size);
+		switch(SSL_get_error(ssl, ret)) {
+		case SSL_ERROR_NONE:
+			return ret;
+		case SSL_ERROR_WANT_WRITE:
+			return 0;
+		case SSL_ERROR_WANT_READ:
+			write_blocked_on_read = true;
+			return 0;
+		default:
+			throw IOException("SSL error - SSL_write()");
 		}
-		return len;
 	}
 
 	void SecureSocket::setRecvTimeout(unsigned long timeout) {
@@ -281,17 +307,14 @@ namespace OS {
 	}
 	
 	void SecureSocket::close() {
-
 		if (peerCert) {
 			X509_free(peerCert);
 			peerCert = NULL;
 		}
-		
 		if (ssl) {
 			SSL_free(ssl);
 			ssl = NULL;
 		}
-
 		if (ctx) {
 			SSL_CTX_free(ctx);
 			ctx = NULL;
@@ -311,9 +334,11 @@ namespace OS {
 		ERR_error_string_n(err, buffer, sizeof(buffer));
 		return string(buffer);
 	}
-
 	
 
+	/**
+	 * @brief secure server socket
+	 */
 	SecureServerSocket::SecureServerSocket() {
 		initOpenSSL();
 	}
