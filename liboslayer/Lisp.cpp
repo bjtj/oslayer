@@ -776,6 +776,7 @@ namespace LISP {
 			vector<_VAR> & lv = var->getList();
 			if (silentsymboleq(lv[0], "quit")) {
 				env.quit(true);
+                return nil(env);
 			} else if (silentsymboleq(lv[0], "lambda")) {
 				validateArgumentCountMin(lv, 3);
 				lv[1]->checkTypeThrow(Var::LIST);

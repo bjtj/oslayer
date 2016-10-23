@@ -914,6 +914,19 @@ namespace OS {
 		return selections;
 	}
     
+    bool Selector::isRegistered(int fd, unsigned char type) {
+        switch (type) {
+        case READ:
+            return FD_ISSET(fd, &readfds);
+        case WRITE:
+            return FD_ISSET(fd, &writefds);
+        case EXCEPT:
+            return FD_ISSET(fd, &exceptfds);
+        default:
+            return false;
+        }
+    }
+    
     bool Selector::isReadable(int fd) {
         return FD_ISSET(fd, &curreadfds) ? true : false;
     }

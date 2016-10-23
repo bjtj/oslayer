@@ -503,6 +503,7 @@ namespace OS {
 		virtual void unset(int fd, unsigned char flags);
 		virtual int select(unsigned long timeout_milli);
 		virtual std::vector<Selection> & getSelections();
+        virtual bool isRegistered(int fd, unsigned char type);
 		virtual bool isReadable(int fd);
 		virtual bool isReadable(Selectable & selectable);
 		virtual bool isWritable(int fd);
