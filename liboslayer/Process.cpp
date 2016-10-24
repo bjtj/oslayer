@@ -147,10 +147,14 @@ namespace OS {
 	// win32
 
 	Process::Process(const string & cmd)
-		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL) {
+		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
+	{
+		memset(&piProcInfo, 0, sizeof(PROCESS_INFORMATION));
 	}
 	Process::Process(const string & cmd, const vector<string> & env) 
-		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL) {
+		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
+	{
+		memset(&piProcInfo, 0, sizeof(PROCESS_INFORMATION));
 	}
 	Process::~Process(){
 	}
@@ -183,20 +187,17 @@ namespace OS {
 		}
 		
 		/* create process */
-		PROCESS_INFORMATION piProcInfo = {0,};
-		STARTUPINFO siStartInfo = {0,};
 		BOOL bSuccess = FALSE;
+		STARTUPINFO siStartInfo = {0,};
 
 		siStartInfo.cb = sizeof(STARTUPINFO); 
 		siStartInfo.hStdError = err_write;
 		siStartInfo.hStdOutput = out_write;
 		siStartInfo.hStdInput = in_read;
 		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
-
+		
 		bSuccess = CreateProcess(NULL, 
-			//(cmd.empty() ? (TCHAR*)wcmd.c_str() : (TCHAR*)cmd.c_str()),
-			// TODO: multibyte string support
-			(TCHAR*)cmd.c_str(),
+			(LPSTR)cmd.c_str(),
 			NULL,          // process security attributes 
 			NULL,          // primary thread security attributes 
 			TRUE,          // handles are inherited 
@@ -209,9 +210,6 @@ namespace OS {
 		if (!bSuccess) {
 			throw Exception("CreateProcess() failed");
 		}
-
-		CloseHandle(piProcInfo.hProcess);
-		CloseHandle(piProcInfo.hThread);
 	}
 	HANDLE Process::in() {
 		return in_write;
@@ -223,21 +221,26 @@ namespace OS {
 		return err_read;
 	}
 	void Process::wait() {
-		// TODO: implement it
-		throw Exception("Not implemented");
+		while (!exited()) {
+			idle(10);
+		}
 	}
 	bool Process::exited() {
-		// TODO: implement it
-		throw Exception("Not implemented");
+		return (exitCode() != STILL_ACTIVE);
 	}
 	void Process::close() {
+		CloseHandle(piProcInfo.hProcess);
+		CloseHandle(piProcInfo.hThread);
 		CloseHandle(in_write);
 		CloseHandle(out_read);
 		CloseHandle(err_read);
 	}
 	int Process::exitCode() {
-		// TODO: implement it
-		throw Exception("Not implemented");
+		DWORD code;
+		if (!GetExitCodeProcess(piProcInfo.hProcess, &code)) {
+			throw Exception("GetExitCodeProcess() failed");
+		}
+		return (int)code;
 	}
 
 #else

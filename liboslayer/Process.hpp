@@ -48,6 +48,7 @@ namespace OS {
 
 	class Process {
 	private:
+		PROCESS_INFORMATION piProcInfo;
 		std::string cmd;
 		HANDLE in_read;
 		HANDLE in_write;

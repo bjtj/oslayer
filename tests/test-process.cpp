@@ -27,7 +27,7 @@ static void test_process() {
 	s_system("touch .process-test/a.txt");
 	s_system("touch .process-test/b.txt");
 
-	Process p("ls -asl *.o");
+	Process p("ls -asl");
 	p.start();
 
 	cout << "OUT > " << endl;
