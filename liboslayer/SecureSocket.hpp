@@ -137,6 +137,18 @@ namespace OS {
 	};
 }
 
+#else
+
+namespace OS {
+	// no ssl
+	class SecureServerSocket { 
+		/* suppressing compile warning */ 
+	private:
+		SecureServerSocket();
+		virtual ~SecureServerSocket();
+	};
+}
+
 #endif // OPENSSL capability
 
 #endif

@@ -432,4 +432,12 @@ namespace OS {
 	}
 }
 
+#else
+
+namespace OS {
+	// no ssl
+	SecureServerSocket::SecureServerSocket() {}
+	SecureServerSocket::~SecureServerSocket() {}
+}
+
 #endif

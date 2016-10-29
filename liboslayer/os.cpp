@@ -917,11 +917,11 @@ namespace OS {
     bool Selector::isRegistered(int fd, unsigned char type) {
         switch (type) {
         case READ:
-            return FD_ISSET(fd, &readfds);
+            return FD_ISSET(fd, &readfds) ? true : false;
         case WRITE:
-            return FD_ISSET(fd, &writefds);
+            return FD_ISSET(fd, &writefds) ? true : false;
         case EXCEPT:
-            return FD_ISSET(fd, &exceptfds);
+            return FD_ISSET(fd, &exceptfds) ? true : false;
         default:
             return false;
         }
