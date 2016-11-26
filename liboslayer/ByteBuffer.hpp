@@ -7,6 +7,7 @@ namespace UTIL {
 
 	class ByteBuffer {
 	private:
+		bool _delete_on_destruct;
 		char * _buffer;
 		size_t _position;
 		size_t _limit;
@@ -16,6 +17,7 @@ namespace UTIL {
 		ByteBuffer & operator=(const ByteBuffer & other);
 	public:
 		ByteBuffer(size_t size);
+		ByteBuffer(char * buffer, size_t size);
 		virtual ~ByteBuffer();
 		char * buffer();
 		size_t position();

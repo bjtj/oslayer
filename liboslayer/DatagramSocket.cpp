@@ -5,6 +5,10 @@ namespace OS {
 
 	DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
 
+	/**
+	 * @brief datagram socket
+	 */
+
 #if defined(USE_BSD_SOCKET) || defined(USE_WINSOCK2)
 
 	class DatagramSocketImpl : public DatagramSocket, public SocketAddressResolver {
@@ -16,21 +20,31 @@ namespace OS {
 			addr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 			bind(addr);
 		}
+		
 		DatagramSocketImpl(int port) : sock(INVALID_SOCKET) {
 			InetAddress addr(port);
 			addr.setInetVersion(GlobalSocketConfiguration::getPreferredInetVersion());
 			bind(addr);
 		}
+		
 		DatagramSocketImpl(const InetAddress & bindAddr) : sock(INVALID_SOCKET) {
 			bind(bindAddr);
 		}
+		
         DatagramSocketImpl(DatagramSocketImpl * impl) {
         }
+		
 		virtual ~DatagramSocketImpl() {
 		}
+		
 		SOCK_HANDLE getSocket() {
 			return sock;
 		}
+
+		virtual void bind(const InetAddress & bindAddr) {
+			bind(bindAddr.resolvePassive(bindAddr.getFamilyCode(), SOCK_DGRAM));
+		}
+		
 		void bind(struct addrinfo * addrInfo) {
 
 			AddrInfoAutoRelease infoMem(addrInfo);
@@ -53,9 +67,7 @@ namespace OS {
 			infoMem.forget();
 			setAddrInfo(addrInfo);
 		}
-		virtual void bind(const InetAddress & bindAddr) {
-			bind(bindAddr.resolvePassive(bindAddr.getFamilyCode(), SOCK_DGRAM));
-		}
+		
 		virtual void connect(const InetAddress & addr) {
 
 			setAddrInfo(addr.resolve(SOCK_DGRAM));
@@ -115,6 +127,10 @@ namespace OS {
 			}
 			return InetAddress(sa.getAddr());
 		}
+		void setBroadcast(bool broadcast) {
+			int on = broadcast ? 1 : 0;
+			setOption(SOL_SOCKET, SO_BROADCAST, (const char*)&on, sizeof(on));
+		}
 		virtual void setMulticastInterface(const std::string & iface) {
 
 			if (!resolved()) {
@@ -151,6 +167,7 @@ namespace OS {
 	
 	DatagramSocket::DatagramSocket() : impl(NULL) {
 		System::getInstance();
+		/* WARNING: DO NOT CREATE IMPL HERE */
 	}
 	DatagramSocket::DatagramSocket(int port) : impl(NULL) {
 		System::getInstance();
@@ -164,36 +181,6 @@ namespace OS {
 		if (impl) {
 			delete impl;
 		}
-	}
-	SOCK_HANDLE DatagramSocket::getSocket() {
-		return getImpl().getSocket();
-	}
-	int DatagramSocket::getFd() {
-		return (int)getSocket();
-	}
-	void DatagramSocket::bind(const InetAddress & addr) {
-		getImpl().bind(addr);
-	}
-	void DatagramSocket::connect(const InetAddress & addr) {
-		getImpl().connect(addr);
-	}
-	void DatagramSocket::disconnect() {
-		getImpl().disconnect();
-	}
-	void DatagramSocket::close() {
-		getImpl().close();
-	}
-	bool DatagramSocket::isClosed() {
-		return getImpl().isClosed();
-	}
-	int DatagramSocket::recv(DatagramPacket & packet) {
-		return getImpl().recv(packet);
-	}
-	int DatagramSocket::send(DatagramPacket & packet) {
-		return getImpl().send(packet);
-	}
-	InetAddress DatagramSocket::getLocalInetAddress() {
-		return getImpl().getLocalInetAddress();
 	}
 	bool DatagramSocket::created() {
 		return impl != NULL;
@@ -230,7 +217,44 @@ namespace OS {
 		}
 		return *impl;
 	}
+	SOCK_HANDLE DatagramSocket::getSocket() {
+		return getImpl().getSocket();
+	}
+	int DatagramSocket::getFd() {
+		return (int)getSocket();
+	}
+	void DatagramSocket::bind(const InetAddress & addr) {
+		getImpl().bind(addr);
+	}
+	void DatagramSocket::connect(const InetAddress & addr) {
+		getImpl().connect(addr);
+	}
+	void DatagramSocket::disconnect() {
+		getImpl().disconnect();
+	}
+	void DatagramSocket::close() {
+		getImpl().close();
+	}
+	bool DatagramSocket::isClosed() {
+		return getImpl().isClosed();
+	}
+	int DatagramSocket::recv(DatagramPacket & packet) {
+		return getImpl().recv(packet);
+	}
+	int DatagramSocket::send(DatagramPacket & packet) {
+		return getImpl().send(packet);
+	}
+	InetAddress DatagramSocket::getLocalInetAddress() {
+		return getImpl().getLocalInetAddress();
+	}
+	void DatagramSocket::setBroadcast(bool broadcast) {
+		SocketOptions::setBroadcast(broadcast);
+		return getImpl().setBroadcast(broadcast);
+	}
 
+	/**
+	 * @brief multicast socket
+	 */
 
 #if defined(USE_BSD_SOCKET) || defined(USE_WINSOCK2)
 

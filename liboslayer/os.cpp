@@ -451,9 +451,15 @@ namespace OS {
         host = InetAddress::getIPAddress(addr);
 		port = InetAddress::getPort(addr);
 	}
+	
 	void InetAddress::setAddress(const InetAddress & addr) {
 		this->host = addr.host;
 		this->port = addr.port;
+	}
+	
+	void InetAddress::setAddress(const string & host, int port) {
+		this->host = host;
+		this->port = port;
 	}
 	
 	struct addrinfo * InetAddress::resolve(int socktype) const {
@@ -1029,8 +1035,9 @@ namespace OS {
 #if defined(USE_BSD_SOCKET)
         
         int err = errno;
-        char text[1024] = {0,};
-        if (strerror_r(err, text, sizeof(text))) {}
+        // char text[1024] = {0,};
+        // if (strerror_r(err, text, sizeof(text))) {}
+		char * text = strerror(err);
         throw IOException(message + " / " + string(text), err, 0);
         
 #elif defined(USE_WINSOCK2)
@@ -1055,7 +1062,8 @@ namespace OS {
 
     void SocketUtil::setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen) {
         if (setsockopt(sock, level, optname, optval, optlen) != 0) {
-            throw IOException("setsockopt() error", -1, 0);
+            // throw IOException("setsockopt() error", -1, 0);
+			throwSocketException("setsockopt() error");
         }
     }
 
@@ -1167,16 +1175,18 @@ namespace OS {
 	 * Datagram Packet
 	 */
 
-	DatagramPacket::DatagramPacket(char * data, size_t size) : data(data), size(size), length(0) {
+	DatagramPacket::DatagramPacket(char * data, size_t size)
+		: data(data), size(size), position(0), length(0) {
         System::getInstance();
 	}
 
 	DatagramPacket::DatagramPacket(char * data, size_t size, const InetAddress & remoteAddr)
-		: data(data), size(size), length(0), remoteAddr(remoteAddr) {
+		: data(data), size(size), position(0), length(0), remoteAddr(remoteAddr) {
 		System::getInstance();
 	}
+	
 	DatagramPacket::DatagramPacket(char * data, size_t size, const string & host, int port)
-		: data(data), size(size), length(0), remoteAddr(host, port) {
+		: data(data), size(size), position(0), length(0), remoteAddr(host, port) {
 		System::getInstance();
 	}
 
@@ -1185,6 +1195,8 @@ namespace OS {
 
 	void DatagramPacket::clear() {
 		memset(data, 0, size);
+		position = 0;
+		length = 0;
 	}
 
 	char * DatagramPacket::getData() {
@@ -1202,16 +1214,36 @@ namespace OS {
     size_t DatagramPacket::getSize() const {
         return size;
     }
+	
+	void DatagramPacket::write(const unsigned char i8) {
+		write((const char *)&i8, sizeof(unsigned char));
+	}
+	
+	void DatagramPacket::write(const unsigned short i16) {
+		write((const char *)&i16, sizeof(unsigned short));
+	}
+	
+	void DatagramPacket::write(const unsigned int i32) {
+		write((const char *)&i32, sizeof(unsigned int));
+	}
+	
+	void DatagramPacket::write(const unsigned long long i64) {
+		write((const char *)&i64, sizeof(unsigned long long));
+	}
+	
 	void DatagramPacket::write(const char * data, size_t size) {
-		if (this->size < size) {
+		if (this->size < position + size) {
 			throw BufferOverflowException("buffer overflowed", -1, 0);
 		}
-		memcpy(this->data, data, size);
-		setLength(size);
+		memcpy(this->data + position, data, size);
+		position += size;
+		setLength(position + size);
 	}
+	
 	void DatagramPacket::write(const string & data) {
 		write(data.c_str(), data.size());
 	}
+	
 	void DatagramPacket::setLength(size_t length) {
 		this->length = length;
 	}
@@ -1219,8 +1251,13 @@ namespace OS {
 	InetAddress & DatagramPacket::getRemoteAddr() {
 		return remoteAddr;
 	}
+	
 	void DatagramPacket::setRemoteAddr(const InetAddress & addr) {
 		this->remoteAddr.setAddress(addr);
+	}
+
+	void DatagramPacket::setRemoteAddr(const string & host, int port) {
+		this->remoteAddr.setAddress(host, port);
 	}
 	
 } /* OS */

@@ -17,21 +17,6 @@ namespace OS {
 		DatagramSocket(int port);
 		DatagramSocket(const InetAddress & bindAddr);
 		virtual ~DatagramSocket();
-
-		virtual SOCK_HANDLE getSocket();
-		virtual int getFd();
-
-		virtual void bind(const InetAddress & addr);
-		virtual void connect(const InetAddress & bindAddr);
-		virtual void disconnect();
-		virtual void close();
-		virtual bool isClosed();
-
-		virtual int recv(DatagramPacket & packet);
-		virtual int send(DatagramPacket & packet);
-
-		virtual InetAddress getLocalInetAddress();
-
 	protected:
 		bool created();
 		void setImpl(DatagramSocket * impl);
@@ -39,6 +24,20 @@ namespace OS {
 		virtual void createImpl(int port);
 		virtual void createImpl(const InetAddress & bindAddr);
 		virtual DatagramSocket & getImpl();
+	public:
+		virtual SOCK_HANDLE getSocket();
+		virtual int getFd();
+		virtual void bind(const InetAddress & addr);
+		virtual void connect(const InetAddress & bindAddr);
+		virtual void disconnect();
+		virtual void close();
+		virtual bool isClosed();
+		virtual int recv(DatagramPacket & packet);
+		virtual int send(DatagramPacket & packet);
+		virtual InetAddress getLocalInetAddress();
+		virtual void setBroadcast(bool broadcast);
+
+	
 	};
 
 

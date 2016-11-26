@@ -5,11 +5,20 @@ namespace UTIL {
 
 	using namespace OS;
 
-	ByteBuffer::ByteBuffer(size_t size) : _position(0), _limit(size), _size(size) {
+	ByteBuffer::ByteBuffer(size_t size)
+		: _delete_on_destruct(true), _position(0), _limit(size), _size(size)
+	{
 		_buffer = new char[size];
 	}
+	ByteBuffer::ByteBuffer(char * buffer, size_t size)
+		: _delete_on_destruct(false), _buffer(buffer), _position(0), _limit(size), _size(size)
+	{
+		/**/
+	}
 	ByteBuffer::~ByteBuffer() {
-		delete[] _buffer;
+		if (_delete_on_destruct) {
+			delete[] _buffer;
+		}
 		_buffer = NULL;
 	}
 	char * ByteBuffer::buffer() {

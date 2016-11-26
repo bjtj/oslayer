@@ -337,6 +337,7 @@ namespace OS {
         void setPort(int port);
 		void setAddressWithSockAddr(struct sockaddr * addr);
 		void setAddress(const InetAddress & addr);
+		void setAddress(const std::string & host, int port);
 		
 		struct addrinfo * resolve(int socktype) const;
 		struct addrinfo * resolveNumeric(int socktype) const;
@@ -612,8 +613,8 @@ namespace OS {
 	private:
 		char * data;
 		size_t size;
+		size_t position;
 		size_t length;
-
 		InetAddress remoteAddr;
         
 	public:
@@ -626,11 +627,16 @@ namespace OS {
         const char * getData() const;
         size_t getLength() const;
         size_t getSize() const;
+		void write(const unsigned char i8);
+		void write(const unsigned short i16);
+		void write(const unsigned int i32);
+		void write(const unsigned long long i64);
 		void write(const char * data, size_t size);
 		void write(const std::string & data);
 		void setLength(size_t length);
 		InetAddress & getRemoteAddr();
 		void setRemoteAddr(const InetAddress & addr);
+		void setRemoteAddr(const std::string & host, int port);
 	};
 	
 }

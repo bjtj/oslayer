@@ -29,6 +29,7 @@ check_PROGRAMS = \
 	test-property-map \
 	test-database-connection \
 	test-socket \
+	test-datagramsocket \
 	test-secure-socket \
 	test-observer-pattern \
 	test-register \
@@ -63,6 +64,7 @@ test_string_elements_SOURCES=test-string-elements.cpp
 test_property_map_SOURCES=test-property-map.cpp
 test_database_connection_SOURCES=test-database-connection.cpp
 test_socket_SOURCES=test-socket.cpp
+test_datagramsocket_SOURCES=test-datagramsocket.cpp
 test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
 test_register_SOURCES=test-register.cpp
