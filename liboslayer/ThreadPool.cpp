@@ -117,7 +117,7 @@ namespace UTIL {
                 StatefulThread * thread = *iter;
                 
                 thread->interrupt();
-                thread->join();
+                thread->wait();
                 
                 creator.releaseInstance(thread);
             }

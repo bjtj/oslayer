@@ -390,9 +390,10 @@ namespace OS {
 	}
 
 	void Thread::onInterrupt() {
+		/* virtual */
 	}
 
-	void Thread::join() {
+	void Thread::wait() {
 		while (running) { idle(10); }
 	}
     

@@ -283,7 +283,7 @@ namespace OS {
 
 		virtual void onInterrupt();
 
-		void join();
+		void wait();
 
 		virtual void run() = 0;
 	};

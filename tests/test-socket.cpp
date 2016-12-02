@@ -284,13 +284,13 @@ int main(int argc, char *args[]) {
 	test_multiplex();
 
 	st.interrupt();
-	st.join();
+	st.wait();
 
 	st2.interrupt();
-	st2.join();
+	st2.wait();
 	
 	st3.interrupt();
-	st3.join();
+	st3.wait();
     
 	return 0;
 }

@@ -42,7 +42,7 @@ public:
 	}
 	virtual void tearDown() {
 		server->interrupt();
-		server->join();
+		server->wait();
 		delete server;
 	}
 	virtual void test() {
