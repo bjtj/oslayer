@@ -211,6 +211,29 @@ namespace OS {
 			printf(" * %p : %d\n", *(iter->second), iter->second.ref_count() );
 		}
 	}
+
+	/**
+	 * @brief semaphore contained heap
+	 */
+	template<typename T>
+	class SharedHeap : public Heap<T> {
+	private:
+		Semaphore _sem;
+	public:
+		SharedHeap() : _sem(1) {
+		}
+		virtual ~SharedHeap() {
+		}
+		Semaphore & sem() {
+			return _sem;
+		}
+		void lock() {
+			_sem.wait();
+		}
+		void unlock() {
+			_sem.post();
+		}
+	};
 }
 
 #endif

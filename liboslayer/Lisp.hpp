@@ -240,7 +240,7 @@ namespace LISP {
 		Env * parent;
 		bool _quit;
 		std::map<std::string, OS::Obj<Var> > _vars;
-		OS::Heap<Var> _heap;
+		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
 		Env(Env * parent);
@@ -254,7 +254,7 @@ namespace LISP {
 		void quit(bool q);
 		bool quit();
 		std::string toString();
-		OS::Heap<Var> & heap();
+		OS::SharedHeap<Var> & heap();
 		OS::Obj<Var> alloc(Var * var);
 		void gc();
 	};

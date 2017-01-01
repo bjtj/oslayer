@@ -40,6 +40,7 @@ namespace LISP {
 	Env::Env(Env * parent) : parent(parent), _quit(false) {}
 	Env::~Env() {
 		_vars.clear();
+		AutoLock lock(_heap.sem());
 		_heap.clear();
 	}
 	bool Env::find (const string & name) {
@@ -92,16 +93,18 @@ namespace LISP {
 		}
 		return ret;
 	}
-	Heap<Var> & Env::heap() {
+	SharedHeap<Var> & Env::heap() {
 		if (parent) {
 			return parent->heap();
 		}
 		return _heap;
 	}
 	_VAR Env::alloc(Var * var) {
+		AutoLock lock(heap().sem());
 		return heap().alloc(var);
 	}
 	void Env::gc() {
+		AutoLock lock(_heap.sem());
 		_heap.gc();
 	}
 
