@@ -77,7 +77,7 @@ public:
 
 - (void)join
 {
-    wrapper->join();
+    wrapper->wait();
 }
 
 @end
