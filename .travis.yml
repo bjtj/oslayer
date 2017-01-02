@@ -5,3 +5,8 @@ language: cpp
 
 before_install:
   - autoreconf -i
+
+before_script:
+  - autoreconf -i
+
+script: "./configure && make && make check"
