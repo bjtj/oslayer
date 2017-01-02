@@ -2,3 +2,6 @@ os:
   - linux
 
 language: cpp
+
+before_install:
+  - autoreconf -i
