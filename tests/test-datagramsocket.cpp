@@ -39,6 +39,7 @@ public:
 	virtual void setUp(TestEnvironment & env) {
 		server = new DatagramServer(8080);
 		server->start();
+		idle(1000);
 	}
 	virtual void tearDown() {
 		server->interrupt();
