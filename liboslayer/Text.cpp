@@ -273,8 +273,9 @@ namespace UTIL {
 		vec.push_back(first);
 		va_list args;
         va_start(args, first);
-		for (const char * str = va_arg(args, const char *); str; str = va_arg(args, const char *)) {
-			vec.push_back(str);
+		const char * str = NULL;
+		while ((str = (const char*)va_arg(args, const char *)) != NULL) {
+			vec.push_back(string(str));
 		}
         va_end(args);
 		return vec;

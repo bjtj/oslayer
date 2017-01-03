@@ -30,7 +30,9 @@ public:
 		ASSERT((m.find("c") != m.end()), ==, true);
 		ASSERT(m["c"], ==, "");
 
-		vec = Text::toVector("a", "A", "b", "B", "c", "C", "d", NULL);
+		printf(" ** to vector\n");
+		vec = Text::toVector("a", "A", "b", "B", "c", "C", "d", (const char*)NULL);
+		printf(" ** vector to map\n");
 		m = Text::toMap(vec);
 		ASSERT(m["a"], ==, "A");
 		ASSERT(m["b"], ==, "B");
