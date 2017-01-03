@@ -30,11 +30,14 @@ check_PROGRAMS = \
 	test-database-connection \
 	test-socket \
 	test-datagramsocket \
-	test-secure-socket \
 	test-observer-pattern \
 	test-register \
 	test-heap \
 	test-lifetime
+
+if SUPPORT_OPENSSL
+check_PROGRAMS += test-secure-socket
+endif
 
 test_os_SOURCES=test-os.cpp
 test_date_SOURCES=test-date.cpp
@@ -65,11 +68,14 @@ test_property_map_SOURCES=test-property-map.cpp
 test_database_connection_SOURCES=test-database-connection.cpp
 test_socket_SOURCES=test-socket.cpp
 test_datagramsocket_SOURCES=test-datagramsocket.cpp
-test_secure_socket_SOURCES=test-secure-socket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
 test_register_SOURCES=test-register.cpp
 test_heap_SOURCES=test-heap.cpp
 test_lifetime_SOURCES=test-lifetime.cpp
+
+if SUPPORT_OPENSSL
+test_secure_socket_SOURCES=test-secure-socket.cpp
+endif
 
 AM_CPPFLAGS=-I$(top_srcdir)
 AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\""

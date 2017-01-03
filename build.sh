@@ -28,14 +28,14 @@ build() {
 	mkdir -p $DIR_BUILD
 	mkdir -p $DIR_WORLD
 	cd $DIR_BUILD
-	$BASE/configure --prefix="$DIR_WORLD" --enable-debug && make && make install
+	$BASE/configure --prefix="$DIR_WORLD" --enable-debug --enable-openssl && make && make install
 }
 
 build32() {
 	mkdir -p $DIR_BUILD
 	mkdir -p $DIR_WORLD
 	cd $DIR_BUILD
-	$BASE/configure --prefix="$DIR_WORLD" --enable-debug --build=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32" && make && make install
+	$BASE/configure --prefix="$DIR_WORLD" --enable-debug --enable-openssl --build=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32" && make && make install
 }
 
 install() {

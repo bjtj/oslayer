@@ -436,8 +436,11 @@ namespace OS {
 
 namespace OS {
 	// no ssl
-	SecureServerSocket::SecureServerSocket() {}
-	SecureServerSocket::~SecureServerSocket() {}
+	SecureServerSocket::SecureServerSocket() {
+		throw Exception("ssl not available");
+	}
+	SecureServerSocket::~SecureServerSocket() {
+	}
 }
 
 #endif

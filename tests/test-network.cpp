@@ -21,7 +21,7 @@ static void test_network_interface() {
 		cout << " - IP address(es)" << endl;
 		vector<InetAddress> addrs = iter->getInetAddresses();
 		for (vector<InetAddress>::iterator ai = addrs.begin(); ai != addrs.end(); ai++) {
-			cout << "  > " << ai->getHost() << endl;
+			cout << "  * [" << ai->getHost() << "]" << endl;
 		}
 	}
 }

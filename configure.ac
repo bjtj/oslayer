@@ -44,6 +44,7 @@ AC_FUNC_ERROR_AT_LINE
 AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK
 AC_CHECK_FUNCS([clock_gettime memset mkdir select socket SSL_library_init sqlite3_open dlopen])
 
+# clock_gettime
 if test $ac_cv_func_clock_gettime = no; then
     AC_CHECK_LIB(rt, clock_gettime,
 		[LIBS="-lrt $LIBS"
@@ -51,19 +52,30 @@ if test $ac_cv_func_clock_gettime = no; then
 				[Define to 1 if you have the 'clock_gettime' function.])])
 fi
 
-if test $ac_cv_func_SSL_library_init = no; then
-   AC_CHECK_LIB(ssl, SSL_library_init, [LIBS="-lssl -lcrypto $LIBS"
-   AC_DEFINE(HAVE_OPENSSL, 1, [Define to 1 if you have the 'SSL_library_init' function.])])
-fi
-
-if test $ac_cv_func_sqlite3_open = no; then
-   AC_CHECK_LIB(sqlite3, sqlite3_open, [LIBS="-lsqlite3 $LIBS"
-   AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the 'sqlite3_open' function.])])
-fi
-
+# dlopen
 if test $ac_cv_func_dlopen = no; then
    AC_CHECK_LIB(dl, dlopen, [LIBS="-ldl $LIBS"
    AC_DEFINE(HAVE_DLOPEN, 1, [Define to 1 if you have the 'dlopen' function.])])
+fi
+
+# openssl
+AC_ARG_ENABLE([openssl],
+	[AS_HELP_STRING([--enable-openssl], [enable openssl build @<:@default: no@:>@])],
+	[enable_openssl=${enableval}], [enable_openssl=no])
+
+if test "x$enable_openssl" = "xyes"; then
+  if test $ac_cv_func_SSL_library_init = no; then
+    AC_CHECK_LIB(ssl, SSL_library_init, [LIBS="-lssl -lcrypto $LIBS"
+    AC_DEFINE(HAVE_OPENSSL, 1, [Define to 1 if you have the 'SSL_library_init' function.])])
+  fi
+fi
+
+AM_CONDITIONAL(SUPPORT_OPENSSL, [test $enable_openssl = yes])
+
+# sqlite3
+if test $ac_cv_func_sqlite3_open = no; then
+   AC_CHECK_LIB(sqlite3, sqlite3_open, [LIBS="-lsqlite3 $LIBS"
+   AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the 'sqlite3_open' function.])])
 fi
 
 AC_CONFIG_FILES([Makefile
