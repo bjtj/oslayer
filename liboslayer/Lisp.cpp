@@ -108,7 +108,6 @@ namespace LISP {
 		_heap.gc();
 	}
 
-
 	/**
 	 * @brief 
 	 */

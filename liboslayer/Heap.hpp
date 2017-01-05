@@ -183,12 +183,10 @@ namespace OS {
 	template <typename T>
 	void Heap<T>::ref(void * mem) {
 		_mems[mem].ref();
-		// printf(" ++ %p / %d\n", mem, _mems[mem].ref_count());
 	}
 	template <typename T>
 	void Heap<T>::unref(void * mem) {
 		_mems[mem].unref();
-		// printf(" -- %p / %d\n", mem, _mems[mem].ref_count());
 	}
 	template <typename T>
 	void Heap<T>::gc() {
