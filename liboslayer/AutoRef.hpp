@@ -89,7 +89,7 @@ namespace UTIL {
 	template <typename T>
     T & AutoRef<T>::operator* () {
         if (!_t) {
-            throw OS::NullException("null exception (operator*)", -1, 0);
+            throw OS::NullException("null exception (operator*)");
         }
         return *_t;
     }
@@ -97,7 +97,7 @@ namespace UTIL {
 	template <typename T>
     T * AutoRef<T>::operator-> () const {
         if (!_t) {
-            throw OS::NullException("null exception (operator->)", -1, 0);
+            throw OS::NullException("null exception (operator->)");
         }
         return _t;
     }
