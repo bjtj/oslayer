@@ -70,7 +70,7 @@ if test "x$enable_openssl" = "xyes"; then
   fi
 fi
 
-AM_CONDITIONAL(SUPPORT_OPENSSL, [test $enable_openssl = yes])
+AM_CONDITIONAL([SUPPORT_OPENSSL], [test x$enable_openssl = xyes])
 
 # sqlite3
 if test $ac_cv_func_sqlite3_open = no; then
@@ -84,3 +84,6 @@ AC_CONFIG_FILES([Makefile
 				 tests/Makefile
 				 oslayer.pc])
 AC_OUTPUT
+
+echo \
+OpenSSL enabled : ${enable_openssl}
