@@ -42,7 +42,7 @@ install() {
 	clean
 	mkdir -p $DIR_BUILD
 	cd $DIR_BUILD
-	$BASE/configure && make && sudo make install
+	$BASE/configure --enable-openssl && make && sudo make install
 }
 
 check() {
