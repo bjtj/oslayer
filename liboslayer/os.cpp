@@ -1054,6 +1054,9 @@ namespace OS {
 	}
 
 	void SocketUtil::closeSocket(SOCK_HANDLE sock) {
+		if (isValidSocket(sock) == false) {
+			return;
+		}
 #if defined(USE_BSD_SOCKET)
 		close(sock);
 #elif defined(USE_WINSOCK2)
