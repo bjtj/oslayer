@@ -81,7 +81,6 @@ namespace OS {
 		std::vector<File> list() const;
 		virtual std::string toString() const;
 	};	
-	
 }
 
 #endif

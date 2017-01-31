@@ -83,7 +83,6 @@ namespace OS {
 		void setTime(const osl_time_t t, int gmtoffset);
 		static Date toDate(osl_time_t time);
 	};
-	
 }
 
 #endif

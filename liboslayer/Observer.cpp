@@ -32,7 +32,6 @@ namespace UTIL {
 		}
 	}
 
-
 	
 	Observer::Observer() {
 	}

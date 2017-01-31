@@ -19,6 +19,10 @@ namespace UTIL {
 		FileStream(OS::File file, const std::string & flags);
 		FileStream(const std::string & path, const std::string & flags);
 		virtual ~FileStream();
+	private:
+		void _init();
+		void testFileOpen();
+	public:
 		void testOpen();
 		void open(const std::string & path, const std::string & flags);
 		bool eof();
@@ -39,7 +43,8 @@ namespace UTIL {
 		void close();
 
 	private:
-		bool win32HandleMode();
+		bool isWin32Mode();
+		void testHandleOpen();
 
 #if defined(USE_MS_WIN)
 	private:
@@ -48,7 +53,6 @@ namespace UTIL {
 	public:
 		FileStream(HANDLE handle);
 #endif
-
 		bool eofWin32();
 		int readWin32();
 		size_t readWin32(char * buffer, size_t size);
@@ -61,7 +65,6 @@ namespace UTIL {
 		size_t positionWin32();
 		void closeWin32();
 	};
-
 }
 
 #endif
