@@ -12,15 +12,18 @@ namespace UTIL {
 	class LoggerFactory;
 	class LogSession;
 
+	/**
+	 * log level
+	 */
 	class LogLevel {
 	public:
-		static const int FATAL_LEVEL;
-		static const int ERROR_LEVEL;
-		static const int WARN_LEVEL;
-        static const int INFO_LEVEL;
-        static const int DEBUG_LEVEL;
-		static const int TRACE_LEVEL;
-		static const int VERBOSE_LEVEL;
+		static const int FATAL;
+		static const int ERROR;
+		static const int WARN;
+        static const int INFO;
+        static const int DEBUG;
+		static const int TRACE;
+		static const int VERBOSE;
 	private:
 		int level;
 	public:
@@ -36,6 +39,9 @@ namespace UTIL {
 		static std::vector<int> getLevels();
 	};
 
+	/**
+	 * log formatter
+	 */
 	class LogFormatter {
 	public:
 		LogFormatter();
@@ -43,6 +49,9 @@ namespace UTIL {
 		virtual std::string format(const LogSession & session, const std::string & msg);
 	};
 
+	/**
+	 * log printer
+	 */
 	class LogPrinter {
 	public:
 		LogPrinter();
@@ -50,7 +59,9 @@ namespace UTIL {
 		virtual void print(const LogSession & session, const std::string & msg);
 	};
 
-
+	/**
+	 * log session
+	 */
 	class LogSession {
 	private:
 		bool enabled;
@@ -71,8 +82,9 @@ namespace UTIL {
 		LogLevel getLevel() const;
 	};
 
-
-
+	/**
+	 * logger
+	 */
 	class Logger : public Observer {
 	private:
 		LoggerFactory * factory;
@@ -88,6 +100,9 @@ namespace UTIL {
 		Logger(LoggerFactory * factory, const std::string & name);
 		Logger(const std::string & name);
 		virtual ~Logger();
+	private:
+		void _init();
+	public:
 		virtual void logf(const std::string & msg) const;
 		virtual void loge(const std::string & msg) const;
 		virtual void logw(const std::string & msg) const;
@@ -96,10 +111,21 @@ namespace UTIL {
 		virtual void logt(const std::string & msg) const;
 		virtual void logv(const std::string & msg) const;
 		AutoRef<LogSession> & session(int level);
+		AutoRef<LogSession> & fatal();
+		AutoRef<LogSession> & error();
+		AutoRef<LogSession> & warn();
+		AutoRef<LogSession> & info();
+		AutoRef<LogSession> & debug();
+		AutoRef<LogSession> & trace();
+		AutoRef<LogSession> & verbose();
 		void observe(LoggerFactory * factory);
 		virtual void update(Observable * target);
+		void updateLogger(AutoRef<Logger> logger);
 	};
 
+	/**
+	 * logger descriptor
+	 */
 	class LoggerDescriptor {
 	private:
 		std::string pattern;
@@ -118,7 +144,9 @@ namespace UTIL {
 		void setAllPrinter(const std::string & name);
 	};
 
-
+	/**
+	 * logger factory
+	 */
 	class LoggerFactory : public Observable {
 	private:
 		std::map<std::string, AutoRef<LogFormatter> > formatters;
@@ -129,8 +157,8 @@ namespace UTIL {
 	public:
 		virtual ~LoggerFactory();
 		static LoggerFactory & getInstance();
+		AutoRef<Logger> getObservingLogger(const std::string & name);
 		AutoRef<Logger> getLogger(const std::string & name);
-		AutoRef<Logger> getLoggerWithoutObserve(const std::string & name);
 		void setLoggerDescriptorSimple(const std::string & pattern, const std::string & formatterName, const std::string & printerName);
 		void setLoggerDescriptor(const LoggerDescriptor & descriptor);
 		void setFormatter(const std::string & name, AutoRef<LogFormatter> formatter);

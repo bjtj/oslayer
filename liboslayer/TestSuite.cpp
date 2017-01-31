@@ -96,6 +96,9 @@ namespace UTIL {
 		} catch (AssertException & e) {
 			result.setResult(false);
 			result.setMessage(e.getMessage());
+		} catch (...) {
+			result.setResult(false);
+			result.setMessage("unknown exception");
 		}
 		testCase->tearDown();
 		return result;

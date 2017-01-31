@@ -9,7 +9,7 @@ namespace UTIL {
 	class Observer;
 	
 	/**
-	 *
+	 * observable
 	 */
 	class Observable {
 	private:
@@ -17,15 +17,18 @@ namespace UTIL {
 	public:
 		Observable();
 		virtual ~Observable();
-
 		void addObserver(Observer * observer);
 		void removeObserver(Observer * observer);
 		void notifyObservers();
 		void notifyObservers(Observable * target);
+		size_t observerCount();
+		virtual void onObserverAdded(Observer * observer);
+		virtual void onObserverRemoved(Observer * observer);
+		virtual void onNotify(Observer * observer);
 	};
 
 	/**
-	 *
+	 * observer
 	 */
 	class Observer {
 	public:

@@ -8,13 +8,16 @@ namespace UTIL {
 	using namespace std;
 	using namespace OS;
 
-	const int LogLevel::FATAL_LEVEL = 0;
-	const int LogLevel::ERROR_LEVEL = 1;
-	const int LogLevel::WARN_LEVEL = 2;
-	const int LogLevel::INFO_LEVEL = 3;
-	const int LogLevel::DEBUG_LEVEL = 4;
-	const int LogLevel::TRACE_LEVEL = 5;
-	const int LogLevel::VERBOSE_LEVEL = 6;
+	/**
+	 * log level
+	 */
+	const int LogLevel::FATAL = 0;
+	const int LogLevel::ERROR = 1;
+	const int LogLevel::WARN = 2;
+	const int LogLevel::INFO = 3;
+	const int LogLevel::DEBUG = 4;
+	const int LogLevel::TRACE = 5;
+	const int LogLevel::VERBOSE = 6;
 
 	LogLevel::LogLevel(int level) : level(level) {
 	}
@@ -33,19 +36,19 @@ namespace UTIL {
 	}
 	string LogLevel::getShortName(int level) {
 		switch (level) {
-		case FATAL_LEVEL:
+		case FATAL:
 			return "F";
-		case ERROR_LEVEL:
+		case ERROR:
 			return "E";
-		case WARN_LEVEL:
+		case WARN:
 			return "W";
-		case INFO_LEVEL:
+		case INFO:
 			return "I";
-		case DEBUG_LEVEL:
+		case DEBUG:
 			return "D";
-		case TRACE_LEVEL:
+		case TRACE:
 			return "T";
-		case VERBOSE_LEVEL:
+		case VERBOSE:
 			return "V";
 		default:
 			break;
@@ -54,19 +57,19 @@ namespace UTIL {
 	}
 	string LogLevel::getName(int level) {
 		switch (level) {
-		case FATAL_LEVEL:
+		case FATAL:
 			return "FATAL";
-		case ERROR_LEVEL:
+		case ERROR:
 			return "ERROR";
-		case WARN_LEVEL:
+		case WARN:
 			return "WARN";
-		case INFO_LEVEL:
+		case INFO:
 			return "INFO";
-		case DEBUG_LEVEL:
+		case DEBUG:
 			return "DEBUG";
-		case TRACE_LEVEL:
+		case TRACE:
 			return "TRACE";
-		case VERBOSE_LEVEL:
+		case VERBOSE:
 			return "VERBOSE";
 		default:
 			break;
@@ -75,13 +78,13 @@ namespace UTIL {
 	}
 	void LogLevel::testLevel(int level) {
 		switch (level) {
-		case FATAL_LEVEL:
-		case ERROR_LEVEL:
-		case WARN_LEVEL:
-		case INFO_LEVEL:
-		case DEBUG_LEVEL:
-		case TRACE_LEVEL:
-		case VERBOSE_LEVEL:
+		case FATAL:
+		case ERROR:
+		case WARN:
+		case INFO:
+		case DEBUG:
+		case TRACE:
+		case VERBOSE:
 			break;
 		default:
 			throw Exception("unknown level");
@@ -89,36 +92,42 @@ namespace UTIL {
 	}
 	vector<int> LogLevel::getLevels() {
 		vector<int> levels;
-		levels.push_back(FATAL_LEVEL);
-		levels.push_back(ERROR_LEVEL);
-		levels.push_back(WARN_LEVEL);
-		levels.push_back(INFO_LEVEL);
-		levels.push_back(DEBUG_LEVEL);
-		levels.push_back(TRACE_LEVEL);
-		levels.push_back(VERBOSE_LEVEL);
+		levels.push_back(FATAL);
+		levels.push_back(ERROR);
+		levels.push_back(WARN);
+		levels.push_back(INFO);
+		levels.push_back(DEBUG);
+		levels.push_back(TRACE);
+		levels.push_back(VERBOSE);
 		return levels;
 	}
 	
-
+	/**
+	 * log formatter
+	 */
 	LogFormatter::LogFormatter() {
 	}
 	LogFormatter::~LogFormatter() {
 	}
 	string LogFormatter::format(const LogSession & session, const string & msg) {
+		// default implementation
 		return "";
 	}
 
-
-	
+	/**
+	 * log printer
+	 */
 	LogPrinter::LogPrinter() {
 	}
 	LogPrinter::~LogPrinter() {
 	}
 	void LogPrinter::print(const LogSession & session, const string & msg) {
+		// default implementation
 	}
-	
 
-
+	/**
+	 * log session
+	 */
 	LogSession::LogSession(const LogLevel & level) : enabled(false), level(level) {
 	}
 	LogSession::LogSession(int level) : enabled(false), level(level) {
@@ -152,16 +161,28 @@ namespace UTIL {
 		return level;
 	}
 
-	
-
+	/**
+	 * logger
+	 */
 	Logger::Logger(LoggerFactory * factory, const string & name) : factory(factory), name(name) {
+		_init();
 	}
 	Logger::Logger(const string & name) : factory(NULL), name(name) {
+		_init();
 	}
 	Logger::~Logger() {
 		if (factory) {
 			factory->removeObserver(this);
 		}
+	}
+	void Logger::_init() {
+		_fatal = AutoRef<LogSession>(new LogSession(LogLevel::FATAL));
+		_error = AutoRef<LogSession>(new LogSession(LogLevel::ERROR));
+		_warn = AutoRef<LogSession>(new LogSession(LogLevel::WARN));
+		_info = AutoRef<LogSession>(new LogSession(LogLevel::INFO));
+		_debug = AutoRef<LogSession>(new LogSession(LogLevel::DEBUG));
+		_trace = AutoRef<LogSession>(new LogSession(LogLevel::TRACE));
+		_verbose = AutoRef<LogSession>(new LogSession(LogLevel::VERBOSE));
 	}
 	void Logger::logf(const string & msg) const {
 		_fatal->log(msg);
@@ -186,48 +207,71 @@ namespace UTIL {
 	}
 	AutoRef<LogSession> & Logger::session(int level) {
 		switch (level) {
-		case LogLevel::FATAL_LEVEL:
+		case LogLevel::FATAL:
 			return _fatal;
-		case LogLevel::ERROR_LEVEL:
+		case LogLevel::ERROR:
 			return _error;
-		case LogLevel::WARN_LEVEL:
+		case LogLevel::WARN:
 			return _warn;
-		case LogLevel::INFO_LEVEL:
+		case LogLevel::INFO:
 			return _info;
-		case LogLevel::DEBUG_LEVEL:
+		case LogLevel::DEBUG:
 			return _debug;
-		case LogLevel::TRACE_LEVEL:
+		case LogLevel::TRACE:
 			return _trace;
-		case LogLevel::VERBOSE_LEVEL:
+		case LogLevel::VERBOSE:
 			return _verbose;
 		default:
 			break;
 		}
 		throw Exception("unknown log level");
 	}
+	AutoRef<LogSession> & Logger::fatal() {
+		return _fatal;
+	}
+	AutoRef<LogSession> & Logger::error() {
+		return _error;
+	}
+	AutoRef<LogSession> & Logger::warn() {
+		return _warn;
+	}
+	AutoRef<LogSession> & Logger::info() {
+		return _info;
+	}
+	AutoRef<LogSession> & Logger::debug() {
+		return _debug;
+	}
+	AutoRef<LogSession> & Logger::trace() {
+		return _trace;
+	}
+	AutoRef<LogSession> & Logger::verbose() {
+		return _verbose;
+	}
 	void Logger::observe(LoggerFactory * factory) {
 		this->factory = factory;
 		factory->addObserver(this);
 	}
 	void Logger::update(Observable * target) {
-
-		if (!target) {
+		if (target == NULL) {
 			this->factory = NULL;
 			return;
 		}
-		
 		LoggerFactory * f = (LoggerFactory*)target;
-		AutoRef<Logger> logger = f->getLoggerWithoutObserve(name);
-		_fatal = logger->session(LogLevel::FATAL_LEVEL);
-		_error = logger->session(LogLevel::ERROR_LEVEL);
-		_warn = logger->session(LogLevel::WARN_LEVEL);
-		_info = logger->session(LogLevel::INFO_LEVEL);
-		_debug = logger->session(LogLevel::DEBUG_LEVEL);
-		_trace = logger->session(LogLevel::TRACE_LEVEL);
-		_verbose = logger->session(LogLevel::VERBOSE_LEVEL);
+		updateLogger(f->getLogger(name));
 	}
-	
+	void Logger::updateLogger(AutoRef<Logger> logger) {
+		_fatal = logger->fatal();
+		_error = logger->error();
+		_warn = logger->warn();;
+		_info = logger->info();
+		_debug = logger->debug();
+		_trace = logger->trace();
+		_verbose = logger->verbose();
+	}
 
+	/**
+	 * logger descriptor
+	 */
 	LoggerDescriptor::LoggerDescriptor() {
 	}
 	LoggerDescriptor::LoggerDescriptor(const string & pattern) : pattern(pattern) {
@@ -252,7 +296,6 @@ namespace UTIL {
 			session->setFormatter(AutoRef<LogFormatter>(new LogFormatter));
 		} else {
 			session->setFormatter(factory.getFormatter(formatters[level]));
-
 		}
 		if (factory.getPrinter(printers[level]).nil()) {
 			session->setPrinter(AutoRef<LogPrinter>(new LogPrinter));
@@ -282,11 +325,9 @@ namespace UTIL {
 		}
 	}
 
-
-
-
-
-
+	/**
+	 * plain formatter (built-in)
+	 */
 	class PlainFormatter : public LogFormatter {
 	public:
 		PlainFormatter() {}
@@ -297,23 +338,23 @@ namespace UTIL {
 	};
 
 	/**
-	 * @brief 
+	 * basic formatter (built-in)
 	 */
 	class BasicFormatter : public LogFormatter {
 	public:
 		BasicFormatter() {}
 		virtual ~BasicFormatter() {}
-
-		virtual string getDate() {
+		string getDate() {
 			return Date::format(Date::now(), "%Y-%c-%d %H:%i:%s.%f");
 		}
-
 		virtual string format(const LogSession & session, const string & msg) {
 			return "[" + getDate() + "] " + session.getLevel().getShortName() + " " + msg;
 		}
 	};
 
-
+	/**
+	 * console printer (built-in)
+	 */
 	class ConsolePrinter : public LogPrinter {
 	public:
 		ConsolePrinter() {}
@@ -323,15 +364,13 @@ namespace UTIL {
 		}
 	};
 
-
-	
-	
-	
+	/**
+	 * logger factory
+	 */
 	LoggerFactory::LoggerFactory() {
 		setFormatter("plain", AutoRef<LogFormatter>(new PlainFormatter));
 		setFormatter("basic", AutoRef<LogFormatter>(new BasicFormatter));
 		setPrinter("console", AutoRef<LogPrinter>(new ConsolePrinter));
-		
 	}
 	LoggerFactory::~LoggerFactory() {
 		notifyObservers(NULL);
@@ -340,29 +379,19 @@ namespace UTIL {
 		static LoggerFactory factory;
 		return factory;
 	}
-	AutoRef<Logger> LoggerFactory::getLogger(const string & name) {
-		for (vector<LoggerDescriptor>::iterator iter = descriptors.begin(); iter != descriptors.end(); iter++) {
-			if (iter->match(name)) {
-				AutoRef<Logger> logger = iter->makeLogger(*this, name);
-				logger->observe(this);
-				return logger;
-			}
-		}
-		LoggerDescriptor descriptor;
-		AutoRef<Logger> logger = descriptor.makeLogger(*this, name);
+	AutoRef<Logger> LoggerFactory::getObservingLogger(const string & name) {
+		AutoRef<Logger> logger = getLogger(name);
 		logger->observe(this);
 		return logger;
 	}
-	AutoRef<Logger> LoggerFactory::getLoggerWithoutObserve(const string & name) {
+	AutoRef<Logger> LoggerFactory::getLogger(const string & name) {
 		for (vector<LoggerDescriptor>::iterator iter = descriptors.begin(); iter != descriptors.end(); iter++) {
 			if (iter->match(name)) {
-				AutoRef<Logger> logger = iter->makeLogger(*this, name);
-				return logger;
+				return iter->makeLogger(*this, name);
 			}
 		}
 		LoggerDescriptor descriptor;
-		AutoRef<Logger> logger = descriptor.makeLogger(*this, name);
-		return logger;
+		return descriptor.makeLogger(*this, name);
 	}
 	void LoggerFactory::setLoggerDescriptorSimple(const string & pattern, const string & formatterName, const string & printerName) {
 		LoggerDescriptor descriptor(pattern);
