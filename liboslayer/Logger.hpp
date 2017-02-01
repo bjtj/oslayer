@@ -17,13 +17,13 @@ namespace UTIL {
 	 */
 	class LogLevel {
 	public:
-		static const int FATAL;
-		static const int ERROR;
-		static const int WARN;
-        static const int INFO;
-        static const int DEBUG;
-		static const int TRACE;
-		static const int VERBOSE;
+		static const int LEVEL_FATAL;
+		static const int LEVEL_ERROR;
+		static const int LEVEL_WARN;
+        static const int LEVEL_INFO;
+        static const int LEVEL_DEBUG;
+		static const int LEVEL_TRACE;
+		static const int LEVEL_VERBOSE;
 	private:
 		int level;
 	public:
