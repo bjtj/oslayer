@@ -3,6 +3,7 @@
 
 #include "os.hpp"
 #include "SocketApi.hpp"
+#include "Selector.hpp"
 
 namespace OS {
 

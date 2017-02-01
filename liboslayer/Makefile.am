@@ -32,6 +32,7 @@ liboslayerinc_HEADERS= \
 	Regex.hpp \
 	Register.hpp \
 	SecureSocket.hpp \
+	Selector.hpp \
 	Socket.hpp \
 	SocketApi.hpp \
 	StringElements.hpp \
@@ -99,6 +100,8 @@ liboslayer_la_SOURCES= \
 	Register.hpp \
 	SecureSocket.cpp \
 	SecureSocket.hpp \
+	Selector.cpp \
+	Selector.hpp \
 	Socket.cpp \
 	Socket.hpp \
 	SocketApi.cpp \
