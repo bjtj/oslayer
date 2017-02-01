@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <liboslayer/os.hpp>
+#include <liboslayer/Network.hpp>
 
 using namespace std;
 using namespace OS;

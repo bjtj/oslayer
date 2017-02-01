@@ -74,7 +74,6 @@ namespace UTIL {
 		size_t capacity();
 		virtual void update(Observable * target);
 	};
-
 }
 
 #endif

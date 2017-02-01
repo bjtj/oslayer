@@ -22,6 +22,7 @@ liboslayerinc_HEADERS= \
 	Lisp.hpp \
 	Logger.hpp \
 	MessageQueue.hpp \
+	Network.hpp \
 	Object.hpp \
 	Observer.hpp \
 	Process.hpp \
@@ -32,6 +33,7 @@ liboslayerinc_HEADERS= \
 	Register.hpp \
 	SecureSocket.hpp \
 	Socket.hpp \
+	SocketApi.hpp \
 	StringElements.hpp \
 	Task.hpp \
 	TaskThreadPool.hpp \
@@ -80,6 +82,8 @@ liboslayer_la_SOURCES= \
 	Logger.cpp \
 	Logger.hpp \
 	MessageQueue.hpp \
+	Network.cpp \
+	Network.hpp \
 	Object.hpp \
 	Observer.cpp \
 	Observer.hpp \
@@ -97,6 +101,8 @@ liboslayer_la_SOURCES= \
 	SecureSocket.hpp \
 	Socket.cpp \
 	Socket.hpp \
+	SocketApi.cpp \
+	SocketApi.hpp \
 	StringElements.cpp \
 	StringElements.hpp \
 	Task.hpp \

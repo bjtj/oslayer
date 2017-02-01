@@ -33,7 +33,6 @@ namespace UTIL {
 		void setTaskWaitIfFull(AutoRef<Task> task);
 		void setTaskWaitIfFullWithTimeout(AutoRef<Task> task, unsigned long timeout);
 	};
-	
 }
 
 #endif

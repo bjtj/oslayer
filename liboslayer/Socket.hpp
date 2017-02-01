@@ -2,6 +2,7 @@
 #define __SOCKET_HPP__
 
 #include "os.hpp"
+#include "SocketApi.hpp"
 
 namespace OS {
 

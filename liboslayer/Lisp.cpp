@@ -31,7 +31,6 @@ namespace LISP {
 	using namespace OS;
 	using namespace UTIL;
 
-
 	/**
 	 * @brief 
 	 */

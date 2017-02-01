@@ -2,7 +2,10 @@
 #define __TASK_HPP__
 
 namespace UTIL {
-	
+
+	/**
+	 * Task
+	 */
 	class Task {
 	private:
 	public:
@@ -10,8 +13,6 @@ namespace UTIL {
 		virtual ~Task() {}
 		virtual void doTask() = 0;
 	};
-
-	
 }
 
 #endif

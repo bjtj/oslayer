@@ -54,8 +54,6 @@ namespace UTIL {
 		uint16_t & clock_seq();
 		std::vector<uint8_t> & nodes();
 	};
-
-
 }
 
 #endif
