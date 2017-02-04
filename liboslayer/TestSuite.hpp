@@ -10,15 +10,15 @@
 
 #define ASSERT(A,CMP,B)													\
 	do {																\
-		std::cout << "* " << #A << "(" << #CMP << " " << B << ")";		\
-		if (!(A CMP B)) {												\
+		std::cout << "* " << (#A) << "(" << (#CMP) << " " << (B) << ")"; \
+		if (!((A) CMP (B))) {											\
 			std::cout << " - FAIL" << std::endl;						\
 			std::stringstream ss;										\
-			ss << #A << " should be [" << #CMP << " " <<  B << "] but [" << A << "]"; \
-			std::cerr << " [!] " << ss.str() << std::endl;						\
+			ss << (#A) << " should be [" << (#CMP) << " " << (B) << "] but [" << (A) << "]"; \
+			std::cerr << " [!] " << ss.str() << std::endl << std::endl;	\
 			throw UTIL::AssertException(ss.str());						\
 		} else {														\
-			std::cout << " - PASS" << std::endl;						\
+			std::cout << " - PASS" << std::endl << std::endl;			\
 		}																\
 	} while(0);
 

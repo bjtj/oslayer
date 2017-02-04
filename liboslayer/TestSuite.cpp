@@ -101,6 +101,7 @@ namespace UTIL {
 			result.setMessage("unknown exception");
 		}
 		testCase->tearDown();
+		cout << endl;
 		return result;
 	}
 
