@@ -35,25 +35,38 @@ namespace LISP {
 	 * @brief 
 	 */
 
-	Env::Env() : parent(NULL), _quit(false) {}
-	Env::Env(Env * parent) : parent(parent), _quit(false) {}
+	bool Env::_debug = false;
+
+	Env::Env() : _parent(NULL), _quit(false) {
+		_trace("init");
+	}
+	Env::Env(Env * parent) : _parent(parent), _quit(false) {
+		_trace("init with parent");
+	}
 	Env::~Env() {
-		_vars.clear();
-		AutoLock lock(_heap.sem());
-		_heap.clear();
+		clear();
+		_trace("deinit");
+	}
+	void Env::setDebug(bool debug) {
+		_debug = debug;
+	}
+	void Env::_trace(const string & msg) {
+		if (_debug) {
+			printf(" ## Env::trace / %p -- %s\n", this, msg.c_str());
+		}
 	}
 	bool Env::find (const string & name) {
 		if ((_vars.find(name) == _vars.end()) == false) {
 			return true;
 		}
-		if (parent && parent->find(name)) {
+		if (_parent && _parent->find(name)) {
 			return true;
 		}
 		return false;
 	}
 	OS::Obj<Var> & Env::get(const std::string & name) {
-		if (parent && _vars.find(name) == _vars.end()) {
-			return (*parent)[name];
+		if (_parent && _vars.find(name) == _vars.end()) {
+			return (*_parent)[name];
 		}
 		if (_vars.find(name) == _vars.end()) {
 			throw LispException("unbound - " + name);
@@ -62,14 +75,14 @@ namespace LISP {
 		
 	}
 	_VAR & Env::operator[] (const string & name) {
-		if (parent && _vars.find(name) == _vars.end()) {
-			return (*parent)[name];
+		if (_parent && _vars.find(name) == _vars.end()) {
+			return (*_parent)[name];
 		}
 		return _vars[name];
 	}
 	map<string, _VAR> & Env::root() {
-		if (parent) {
-			return parent->local();
+		if (_parent) {
+			return _parent->local();
 		}
 		return _vars;
 	}
@@ -78,8 +91,8 @@ namespace LISP {
 	}
 	void Env::quit(bool q) {
 		_quit = q;
-		if (parent) {
-			parent->quit(q);
+		if (_parent) {
+			_parent->quit(q);
 		}
 	}
 	bool Env::quit() {
@@ -93,8 +106,8 @@ namespace LISP {
 		return ret;
 	}
 	SharedHeap<Var> & Env::heap() {
-		if (parent) {
-			return parent->heap();
+		if (_parent) {
+			return _parent->heap();
 		}
 		return _heap;
 	}
@@ -104,7 +117,17 @@ namespace LISP {
 	}
 	void Env::gc() {
 		AutoLock lock(_heap.sem());
-		_heap.gc();
+		size_t size = _heap.size();
+		unsigned long elapsed = _heap.gc();
+		if (_debug) {
+			printf(" # GC / %d, dealloc: %d (%ld ms.) #\n", (int)_heap.size(), (int)(size - _heap.size()), elapsed);
+		}
+	}
+	void Env::clear() {
+		_vars.clear();
+		gc();
+		AutoLock lock(_heap.sem());
+		_heap.clear();
 	}
 
 	/**
@@ -140,36 +163,80 @@ namespace LISP {
 	 * @brief 
 	 */
 
-	Var::Var() : type(NIL) {}
+	bool Var::_debug = false;
+
+	Var::Var() : type(NIL) {
+		_trace("init - NIL");
+	}
 	Var::Var(const char * token) : type(NIL) {
 		init(string(token));
+		_trace("init - const char *");
 	}
 	Var::Var(const string & token) : type(NIL) {
 		init(token);
+		_trace("init - string");
 	}
-	Var::Var(vector<_VAR> lst) : type(LIST), lst(lst) {}
+	Var::Var(vector<_VAR> lst) : type(LIST), lst(lst) {
+		_trace("init - list");
+	}
 	Var::Var(bool bval) : type(BOOLEAN), bval(bval) {
 		if (!bval) {
 			type = NIL;
 		}
+		_trace("init - bool");
 	}
 	Var::Var(const Boolean & bval) : type(BOOLEAN), bval(bval) {
 		if (!bval.const_val()) {
 			type = NIL;
 		}
+		_trace("init - Boolean");
 	}
-	Var::Var(short inum) : type(INTEGER), inum(inum) {}
-	Var::Var(int inum) : type(INTEGER), inum(inum) {}
-	Var::Var(long inum) : type(INTEGER), inum(inum) {}
-	Var::Var(long long inum) : type(INTEGER), inum(inum) {}
-	Var::Var(const Integer & inum) : type(INTEGER), inum(inum) {}
-	Var::Var(float fnum) : type(FLOAT), fnum(fnum) {}
-	Var::Var(const Float & fnum) : type(FLOAT), fnum(fnum) {}
-	Var::Var(const Func & func) : type(FUNC), func(func) {}
-	Var::Var(AutoRef<Procedure> procedure) : type(FUNC), procedure(procedure) {}
-	Var::Var(OS::File & file) : type(FILE), file(file) {}
-	Var::Var(const FileDescriptor & fd) : type(FILE_DESCRIPTOR), fd(fd) {}
-	Var::~Var() {}
+	Var::Var(short inum) : type(INTEGER), inum(inum) {
+		_trace("init - short");
+	}
+	Var::Var(int inum) : type(INTEGER), inum(inum) {
+		_trace("init - int");
+	}
+	Var::Var(long inum) : type(INTEGER), inum(inum) {
+		_trace("init - long");
+	}
+	Var::Var(long long inum) : type(INTEGER), inum(inum) {
+		_trace("init - long long");
+	}
+	Var::Var(const Integer & inum) : type(INTEGER), inum(inum) {
+		_trace("init - Integer");
+	}
+	Var::Var(float fnum) : type(FLOAT), fnum(fnum) {
+		_trace("init - float");
+	}
+	Var::Var(const Float & fnum) : type(FLOAT), fnum(fnum) {
+		_trace("init - Float");
+	}
+	Var::Var(const Func & func) : type(FUNC), func(func) {
+		_trace("init - Func");
+	}
+	Var::Var(AutoRef<Procedure> procedure) : type(FUNC), procedure(procedure) {
+		_trace("init - Procedure");
+	}
+	Var::Var(OS::File & file) : type(FILE), file(file) {
+		_trace("init - File");
+	}
+	Var::Var(const FileDescriptor & fd) : type(FILE_DESCRIPTOR), fd(fd) {
+		_trace("init - FileDescriptor");
+	}
+	Var::~Var() {
+		_trace("deinit");
+	}
+
+	void Var::_trace(const string & msg) {
+		if (_debug) {
+			printf(" ## Var::trace / %p -- %s\n", this, msg.c_str());
+		}
+	}
+
+	void Var::setDebug(bool debug) {
+		_debug = debug;
+	}
 
 	void Var::init(const string & token) {
 		if (token.empty()) {

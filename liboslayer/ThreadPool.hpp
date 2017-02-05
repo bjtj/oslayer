@@ -72,7 +72,7 @@ namespace UTIL {
 		size_t freeCount();
 		size_t workingCount();
 		size_t capacity();
-		virtual void update(Observable * target);
+		virtual void onUpdate(Observable * target);
 	};
 }
 

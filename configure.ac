@@ -21,6 +21,8 @@ AC_PROG_CXX
 
 # Checks for libraries.
 ACX_PTHREAD
+AX_VALGRIND_DFLT([sgcheck], [off])
+AX_VALGRIND_CHECK
 
 # Checks for header files.
 AC_CHECK_HEADERS([arpa/inet.h netdb.h netinet/in.h sys/socket.h sys/time.h unistd.h])

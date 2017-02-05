@@ -87,7 +87,6 @@ namespace UTIL {
 	 */
 	class Logger : public Observer {
 	private:
-		LoggerFactory * factory;
 		std::string name;
 		AutoRef<LogSession> _fatal;
 		AutoRef<LogSession> _error;
@@ -97,7 +96,6 @@ namespace UTIL {
 		AutoRef<LogSession> _trace;
 		AutoRef<LogSession> _verbose;
 	public:
-		Logger(LoggerFactory * factory, const std::string & name);
 		Logger(const std::string & name);
 		virtual ~Logger();
 	private:
@@ -118,8 +116,7 @@ namespace UTIL {
 		AutoRef<LogSession> & debug();
 		AutoRef<LogSession> & trace();
 		AutoRef<LogSession> & verbose();
-		void observe(LoggerFactory * factory);
-		virtual void update(Observable * target);
+		virtual void onUpdate(Observable * target);
 		void updateLogger(AutoRef<Logger> logger);
 	};
 

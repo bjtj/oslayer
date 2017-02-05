@@ -164,16 +164,11 @@ namespace UTIL {
 	/**
 	 * logger
 	 */
-	Logger::Logger(LoggerFactory * factory, const string & name) : factory(factory), name(name) {
-		_init();
-	}
-	Logger::Logger(const string & name) : factory(NULL), name(name) {
+	Logger::Logger(const string & name) : name(name) {
 		_init();
 	}
 	Logger::~Logger() {
-		if (factory) {
-			factory->removeObserver(this);
-		}
+		stopObserve();
 	}
 	void Logger::_init() {
 		_fatal = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_FATAL));
@@ -247,15 +242,7 @@ namespace UTIL {
 	AutoRef<LogSession> & Logger::verbose() {
 		return _verbose;
 	}
-	void Logger::observe(LoggerFactory * factory) {
-		this->factory = factory;
-		factory->addObserver(this);
-	}
-	void Logger::update(Observable * target) {
-		if (target == NULL) {
-			this->factory = NULL;
-			return;
-		}
+	void Logger::onUpdate(Observable * target) {
 		LoggerFactory * f = (LoggerFactory*)target;
 		updateLogger(f->getLogger(name));
 	}
@@ -373,7 +360,6 @@ namespace UTIL {
 		setPrinter("console", AutoRef<LogPrinter>(new ConsolePrinter));
 	}
 	LoggerFactory::~LoggerFactory() {
-		notifyObservers(NULL);
 	}
 	LoggerFactory & LoggerFactory::getInstance() {
 		static LoggerFactory factory;
@@ -381,7 +367,7 @@ namespace UTIL {
 	}
 	AutoRef<Logger> LoggerFactory::getObservingLogger(const string & name) {
 		AutoRef<Logger> logger = getLogger(name);
-		logger->observe(this);
+		logger->startObserve(this);
 		return logger;
 	}
 	AutoRef<Logger> LoggerFactory::getLogger(const string & name) {

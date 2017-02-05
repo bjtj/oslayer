@@ -31,10 +31,16 @@ namespace UTIL {
 	 * observer
 	 */
 	class Observer {
+	private:
+		Observable * target;
 	public:
 		Observer();
+		Observer(Observable * target);
 		virtual ~Observer();
-		virtual void update(Observable * target);
+		void startObserve(Observable * target);
+		void stopObserve();
+		Observable * getObserveTarget();
+		virtual void onUpdate(Observable * target) = 0;
 	};
 }
 

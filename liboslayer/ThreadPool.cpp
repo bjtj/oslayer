@@ -204,7 +204,7 @@ namespace UTIL {
 		return poolSize;
 	}
 	
-	void ThreadPool::update(Observable * target) {
+	void ThreadPool::onUpdate(Observable * target) {
 		StatefulThread * t = (StatefulThread*)target;
 		collectThread(t);
 	}

@@ -59,7 +59,7 @@ namespace OS {
 		Obj<T> alloc(T * mem);
 		void ref(void * mem);
 		void unref(void * mem);
-		void gc();
+		unsigned long gc();
 		size_t size();
 		void print_usage();
 	};
@@ -170,10 +170,10 @@ namespace OS {
 	}
 	template <typename T>
 	void Heap<T>::clear() {
-		for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end();) {
+		for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end(); iter++) {
 			iter->second.dealloc();
-			_mems.erase(iter++);
 		}
+		_mems.clear();
 	}
 	template <typename T>
 	Obj<T> Heap<T>::alloc(T * mem) {
@@ -189,15 +189,22 @@ namespace OS {
 		_mems[mem].unref();
 	}
 	template <typename T>
-	void Heap<T>::gc() {
-		for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end();) {
-			if (iter->second.ref_count() <= 0) {
-				iter->second.dealloc();
-				_mems.erase(iter++);
-			} else {
-				iter++;
+	unsigned long Heap<T>::gc() {
+		bool cont;
+		unsigned long tick = OS::tick_milli();
+		do {
+			cont = false;
+			for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end();) {
+				if (iter->second.ref_count() <= 0) {
+					iter->second.dealloc();
+					cont = true;
+					_mems.erase(iter++);
+				} else {
+					iter++;
+				}
 			}
-		}
+		} while (cont);
+		return OS::tick_milli() - tick;
 	}
 	template <typename T>
 	size_t Heap<T>::size() {

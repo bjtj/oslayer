@@ -25,7 +25,7 @@ static void test_xml_parse2() {
 	XmlDocument doc = DomParser::parse(xml);
 	cout << " ** parsing time: " << tick_milli() - tick << " ms." << endl;
 	
-	ASSERT(doc.getRootNode()->getElementByTagName("Body") != NULL, ==, true);
+	ASSERT(doc.getRootNode()->getElementByTagName("Body").nil(), ==, false);
 }
 
 static void test_xml_decode() {

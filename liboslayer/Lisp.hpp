@@ -237,7 +237,8 @@ namespace LISP {
 	 */
 	class Env {
 	private:
-		Env * parent;
+		static bool _debug;
+		Env * _parent;
 		bool _quit;
 		std::map<std::string, OS::Obj<Var> > _vars;
 		OS::SharedHeap<Var> _heap;
@@ -245,6 +246,8 @@ namespace LISP {
 		Env();
 		Env(Env * parent);
 		virtual ~Env();
+		static void setDebug(bool debug);
+		void _trace(const std::string & msg);
 		bool find (const std::string & name);
 		OS::Obj<Var> & get(const std::string & name);
 		OS::Obj<Var> & operator[] (const std::string & name);
@@ -257,6 +260,7 @@ namespace LISP {
 		OS::SharedHeap<Var> & heap();
 		OS::Obj<Var> alloc(Var * var);
 		void gc();
+		void clear();
 	};
 
 	/**
@@ -294,6 +298,7 @@ namespace LISP {
 		const static int FILE_DESCRIPTOR = 9;
 		
 	private:
+		static bool _debug;
 		int type;
 		std::string symbol;
 		std::string str;
@@ -325,6 +330,9 @@ namespace LISP {
 		explicit Var(OS::File & file);
 		explicit Var(const FileDescriptor & fd);
 		virtual ~Var();
+
+		static void setDebug(bool debug);
+		void _trace(const std::string & msg);
 
 		void init(const std::string & token);
 		int getType();

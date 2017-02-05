@@ -17,7 +17,7 @@ public:
     LoggerFactoryObserver() : _updated(false) {}
     virtual ~LoggerFactoryObserver() {}
 
-	virtual void update(Observable * target) {
+	virtual void onUpdate(Observable * target) {
 		_updated = true;
 	}
 

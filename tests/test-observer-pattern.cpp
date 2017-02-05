@@ -26,7 +26,7 @@ class ValueMonitor : public Observer {
 public:
 	ValueMonitor() {}
 	virtual ~ValueMonitor() {}
-	virtual void update(Observable * target) {
+	virtual void onUpdate(Observable * target) {
 		Subject * sub = (Subject*)target;
 		s_monitored_value = sub->getValue();
 		ASSERT(sub->getValue(), ==, s_value);

@@ -30,7 +30,7 @@ namespace UTIL {
 	void Observable::notifyObservers(Observable * target) {
 		for (vector<Observer*>::iterator iter = observers.begin(); iter != observers.end(); iter++) {
 			onNotify(*iter);
-			(*iter)->update(target);
+			(*iter)->onUpdate(target);
 		}
 	}
 	size_t Observable::observerCount() {
@@ -47,13 +47,28 @@ namespace UTIL {
 	}
 	
 	
-	Observer::Observer() {
+	Observer::Observer() : target(NULL) {
 		/**/
 	}
+
+	Observer::Observer(Observable * target) : target(target) {
+		/**/
+	}
+	
 	Observer::~Observer() {
 		/**/
 	}
-	void Observer::update(Observable * target) {
-		/**/
+	
+	void Observer::startObserve(Observable * target) {
+		this->target = target;
+		target->addObserver(this);
+	}
+	
+	void Observer::stopObserve() {
+		target = NULL;
+	}
+
+	Observable * Observer::getObserveTarget() {
+		return target;
 	}
 }

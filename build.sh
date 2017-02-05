@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 BASE=$PWD
 DIR_BUILD=$PWD/build
 DIR_WORLD=$PWD/world
@@ -50,6 +52,10 @@ check() {
 	make check
 }
 
+check_valgrind() {
+	make -C $DIR_BUILD/tests check-valgrind-memcheck
+}
+
 case $OPT in
 	reconf)
 		reconf
@@ -74,7 +80,12 @@ case $OPT in
 		install
 		;;
 	check)
+		build
 		check
+		;;
+	check-valgrind)
+		build
+		check_valgrind
 		;;
 	dist)
 		cd $DIR_BUILD && make dist

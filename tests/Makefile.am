@@ -1,3 +1,5 @@
+@VALGRIND_CHECK_RULES@
+
 TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
@@ -14,6 +16,7 @@ check_PROGRAMS = \
 	test-library \
 	test-count-down-latch \
 	test-test-suite \
+	test-heap \
 	test-lisp \
 	test-properties \
 	test-network \
@@ -32,7 +35,6 @@ check_PROGRAMS = \
 	test-datagramsocket \
 	test-observer-pattern \
 	test-register \
-	test-heap \
 	test-lifetime
 
 if SUPPORT_OPENSSL

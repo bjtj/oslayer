@@ -77,7 +77,7 @@ private:
 public:
 	WorkerThreadObserver() : count(0) {}
 	virtual ~WorkerThreadObserver() {}
-	virtual void update(Observable * target) {
+	virtual void onUpdate(Observable * target) {
 		count--;
 	}
 	int getCount() {

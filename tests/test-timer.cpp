@@ -54,6 +54,7 @@ static void test_timer() {
 	cout << pin.elapsed() << endl;
 
 	tt.br();
+	tt.wait();
 }
 
 int main(int argc, char *args[]) {

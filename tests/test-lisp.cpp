@@ -102,142 +102,160 @@ static void test_setf() {
 
 static void test_func() {
 
-	Env env;
-	native(env);
+	{
+		Env env;
+		native(env);
 
-	//
-	_VAR proto = parse(env, "(a b c)");
-	Arguments args(proto->getList());
-	_VAR input = parse(env, "(1 2 3)");
+		_VAR proto = parse(env, "(a b c)");
+		Arguments args(proto->getList());
+		_VAR input = parse(env, "(1 2 3)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional x)");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3)");
+		env.clear();
+
+		env = Env();
+		native(env);
+		proto = parse(env, "(a b c &optional x)");
+		args = Arguments(proto->getList());
+		input = parse(env, "(1 2 3)");
 	
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(env["x"]->isNil(), ==, true);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(env["x"]->isNil(), ==, true);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional x)");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3 4)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(a b c &optional x)");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3 4)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(*env["x"]->getInteger(), ==, 4);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(*env["x"]->getInteger(), ==, 4);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional (x 1))");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(a b c &optional (x 1))");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(*env["x"]->getInteger(), ==, 1);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(*env["x"]->getInteger(), ==, 1);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional (x 1))");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3 4)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(a b c &optional (x 1))");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3 4)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(*env["x"]->getInteger(), ==, 4);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(*env["x"]->getInteger(), ==, 4);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional x &rest y)");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3 4)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(a b c &optional x &rest y)");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3 4)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(*env["x"]->getInteger(), ==, 4);
-	ASSERT(env["y"]->getList().size(), ==, 0);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(*env["x"]->getInteger(), ==, 4);
+		ASSERT(env["y"]->getList().size(), ==, 0);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(a b c &optional x &rest y)");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3 4 5 6 7)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(a b c &optional x &rest y)");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*env["b"]->getInteger(), ==, 2);
-	ASSERT(*env["c"]->getInteger(), ==, 3);
-	ASSERT(*env["x"]->getInteger(), ==, 4);
-	ASSERT(env["y"]->getList().size(), ==, 3);
-	ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 5);
-	ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 6);
-	ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 7);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["a"]->getInteger(), ==, 1);
+		ASSERT(*env["b"]->getInteger(), ==, 2);
+		ASSERT(*env["c"]->getInteger(), ==, 3);
+		ASSERT(*env["x"]->getInteger(), ==, 4);
+		ASSERT(env["y"]->getList().size(), ==, 3);
+		ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 5);
+		ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 6);
+		ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 7);
+	}
 
-	//
-	env = Env();
-	native(env);
-	proto = parse(env, "(&optional x &rest y)");
-	args = Arguments(proto->getList());
-	input = parse(env, "(1 2 3 4 5 6 7)");
+	{
+		//
+		Env env;
+		native(env);
+		_VAR proto = parse(env, "(&optional x &rest y)");
+		Arguments args = Arguments(proto->getList());
+		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-	args.mapArguments(env, env.local(), input->getList());
-	ASSERT(*env["x"]->getInteger(), ==, 1);
-	ASSERT(env["y"]->getList().size(), ==, 6);
-	ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 2);
-	ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 3);
-	ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 4);
-	ASSERT(*env["y"]->getList()[3]->getInteger(), ==, 5);
-	ASSERT(*env["y"]->getList()[4]->getInteger(), ==, 6);
-	ASSERT(*env["y"]->getList()[5]->getInteger(), ==, 7);
+		args.mapArguments(env, env.local(), input->getList());
+		ASSERT(*env["x"]->getInteger(), ==, 1);
+		ASSERT(env["y"]->getList().size(), ==, 6);
+		ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 2);
+		ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 3);
+		ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 4);
+		ASSERT(*env["y"]->getList()[3]->getInteger(), ==, 5);
+		ASSERT(*env["y"]->getList()[4]->getInteger(), ==, 6);
+		ASSERT(*env["y"]->getList()[5]->getInteger(), ==, 7);
+	}
 
-	//
-	env = Env();
-	native(env);
-	compile("(defun hello (a b c) (+ a 0))", env);
-	ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 1);
-	compile("(defun hello (a b c) (+ b 0))", env);
-	ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 2);
-	compile("(defun hello (a b c) (+ c 0))", env);
-	ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 3);
-	compile("(defun hello (a b c) (+ a b c))", env);
-	ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 6);
-	compile("(defun hello (a b c &optional x) (if x (+ a b c) (+ a b)))", env);
-	ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 3);
-	ASSERT(*compile("(hello 1 2 3 t)", env)->getInteger(), ==, 6);
-	compile("(defun hello (a &optional b &rest c) (list a b c))", env);
-	ASSERT(compile("(hello 1 2 3 4 5)", env)->getList().size(), ==, 3);
+	{
+		//
+		Env env;
+		native(env);
+		compile("(defun hello (a b c) (+ a 0))", env);
+		ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 1);
+		compile("(defun hello (a b c) (+ b 0))", env);
+		ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 2);
+		compile("(defun hello (a b c) (+ c 0))", env);
+		ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 3);
+		compile("(defun hello (a b c) (+ a b c))", env);
+		ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 6);
+		compile("(defun hello (a b c &optional x) (if x (+ a b c) (+ a b)))", env);
+		ASSERT(*compile("(hello 1 2 3)", env)->getInteger(), ==, 3);
+		ASSERT(*compile("(hello 1 2 3 t)", env)->getInteger(), ==, 6);
+		compile("(defun hello (a &optional b &rest c) (list a b c))", env);
+		ASSERT(compile("(hello 1 2 3 4 5)", env)->getList().size(), ==, 3);
+	}
 
-	//
-	env = Env();
-	native(env);
-	compile("(setq str \"\")", env);
-	compile("(defun wr (x) (setq str x))", env);
-	compile("(dolist (x (list 1 2 3)) (wr x))", env);
+	{
+		//
+		Env env;
+		native(env);
+		compile("(setq str \"\")", env);
+		compile("(defun wr (x) (setq str x))", env);
+		compile("(dolist (x (list 1 2 3)) (wr x))", env);
+	}
 }
 
 static void test_func_more() {
@@ -608,6 +626,9 @@ static void test_error_handling() {
 }
 
 int main(int argc, char *args[]) {
+
+	Env::setDebug(true);
+	Var::setDebug(true);
 
 	try {
 		cout << " *** test_comment()" << endl;
