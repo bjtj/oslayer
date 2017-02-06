@@ -426,7 +426,7 @@ namespace UTIL {
 		
 			string token = tokens_iter.get();
 
-			if (contains(token, Text::toVector("?", "*", "+", "{", NULL))) {
+			if (contains(token, Text::toVector("?", "*", "+", "{", (const char *)NULL))) {
 				Quantity quantity = makeQuantity(tokens_iter);
 				if (parent->elements().size() == 0) {
 					throw Exception("invalid syntax - 'no matcher exists'");
@@ -515,7 +515,7 @@ namespace UTIL {
 				AutoRef<Matcher> matcher(new Matcher);
 				matcher->position().end_of_line() = true;
 				parent->addChild(matcher);
-			} else if (contains(token, Text::toVector("?", "*", "{", "}", "|", NULL))){
+			} else if (contains(token, Text::toVector("?", "*", "{", "}", "|", (const char*)NULL))){
 				throw Exception("unexpected symbol");
 			} else {
 				AutoRef<Matcher> matcher(new Matcher);
