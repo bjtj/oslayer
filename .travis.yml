@@ -4,6 +4,7 @@ os:
 language: cpp
 
 before_install:
+  - sudo apt-get install -y libssl-dev
   - autoreconf -i
 
 before_script:
