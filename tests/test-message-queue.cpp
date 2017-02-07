@@ -7,7 +7,10 @@ using namespace UTIL;
 
 static int s_refcount = 0;
 
-class MyObj : public Object {
+/**
+ * custom object
+ */
+class MyObj {
 private:
 	string _str;
 public:
@@ -20,22 +23,29 @@ public:
 	string & str() {return _str;}
 };
 
+typedef Message<AutoRef<MyObj> > MyObjMessage; // convenient typedef
 
+/**
+ * test basic
+ */
 static void test_basic() {
-	MessageQueue mq;
-	mq.enqueue(Message(0));
-	mq.enqueue(Message(1, 2, 3));
-	mq.enqueue(Message(2, 0, 1, AutoRef<Object>(new MyObj("hello"))));
+	MessageQueue<AutoRef<MyObj> > mq;
+	mq.enqueue(MyObjMessage(0));
+	mq.enqueue(MyObjMessage(1, 2, 3));
+	mq.enqueue(MyObjMessage(2, 0, 1, AutoRef<MyObj>(new MyObj("hello"))));
 
 	ASSERT(mq.dequeue().what(), ==, 0);
 	ASSERT(mq.dequeue().what(), ==, 1);
-	Message msg = mq.dequeue();
+	MyObjMessage msg = mq.dequeue();
 	ASSERT(msg.what(), ==, 2);
 	ASSERT(msg.arg1(), ==, 0);
 	ASSERT(msg.arg2(), ==, 1);
-	ASSERT(((MyObj*)(&msg.obj()))->str(), ==, "hello");
+	ASSERT(msg.obj()->str(), ==, "hello");
 }
 
+/**
+ * main
+ */
 int main(int argc, char *args[]) {
 
 	test_basic();
