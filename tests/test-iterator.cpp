@@ -67,7 +67,7 @@ public:
 		
 		Iterator<Object> iter(objs);
 
-		for (;iter.hasNext();iter++) {
+		for (;iter.has();iter++) {
 			cout << "[" << iter.idx() << "] " << iter->name() << " / " << iter->detail() << endl;
 		}
 	}

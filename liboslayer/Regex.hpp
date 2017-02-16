@@ -131,11 +131,13 @@ namespace UTIL {
 	 */
 	class Regex {
 	private:
+		static bool _debug;
 		std::string _regex;
 	public:
 		Regex();
 		Regex(const std::string & regex);
 		virtual ~Regex();
+		static bool & debug();
 		std::string & regex();
 		AutoRef<Matcher> makeMatcher();
 		static AutoRef<Matcher> makeMatcher(const std::string & regex);

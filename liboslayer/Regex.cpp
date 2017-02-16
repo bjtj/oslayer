@@ -349,7 +349,7 @@ namespace UTIL {
 			string s;
 			string e;
 			bool comma = false;
-			while (tokens_iter.hasNext() && tokens_iter.next() != "}") {
+			while (tokens_iter.has() && tokens_iter.next() != "}") {
 				string t = tokens_iter.get();
 				if (numberp(t)) {
 					switch (i) {
@@ -394,12 +394,17 @@ namespace UTIL {
 	/**
 	 * @brief regex
 	 */
+
+	bool Regex::_debug = false;
 	
 	Regex::Regex() {
 	}
 	Regex::Regex(const string & regex) : _regex(regex) {
 	}
 	Regex::~Regex() {
+	}
+	bool & Regex::debug() {
+		return _debug;
 	}
 	std::string & Regex::regex() {
 		return _regex;
@@ -422,7 +427,7 @@ namespace UTIL {
 		// ?*+{}()[]|-^$.
 		// ?*+{
 	
-		for (;tokens_iter.hasNext(); tokens_iter++) {
+		for (;tokens_iter.has(); tokens_iter++) {
 		
 			string token = tokens_iter.get();
 
@@ -440,7 +445,7 @@ namespace UTIL {
 				string charset;
 				size_t i = 0;
 				tokens_iter++;
-				while (tokens_iter.hasNext() && tokens_iter.get() != "]") {
+				while (tokens_iter.has() && tokens_iter.get() != "]") {
 					string t = tokens_iter.next();
 					if (i == 0 && t == "^") {
 						matcher->reverse() = true;
@@ -502,19 +507,21 @@ namespace UTIL {
 				matcher->any() = true;
 				parent->addChild(matcher);
 			} else if (token == "^") {
-				if (parent->elements().size() != 0) {
-					throw Exception("unexpected ^ occurence");
+				if (tokens_iter.idx() > 0) {
+					AutoRef<Matcher> matcher(new Matcher);
+					matcher->charset() = token;
+					parent->addChild(matcher);
+				} else {
+					parent->position().start_of_line() = true;
 				}
-				AutoRef<Matcher> matcher(new Matcher);
-				matcher->position().start_of_line() = true;
-				parent->addChild(matcher);
 			} else if (token == "$") {
 				if (tokens_iter.hasNext()) {
-					throw Exception("invalid syntax - $ must be last");
+					AutoRef<Matcher> matcher(new Matcher);
+					matcher->charset() = token;
+					parent->addChild(matcher);
+				} else {
+					parent->position().end_of_line() = true;
 				}
-				AutoRef<Matcher> matcher(new Matcher);
-				matcher->position().end_of_line() = true;
-				parent->addChild(matcher);
 			} else if (contains(token, Text::toVector("?", "*", "{", "}", "|", (const char*)NULL))){
 				throw Exception("unexpected symbol");
 			} else {

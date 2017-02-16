@@ -24,8 +24,11 @@ namespace UTIL {
 			_idx = 0;
 			_iter = _vec.begin();
 		}
-		bool hasNext() {
+		bool has() {
 			return _iter != _vec.end();
+		}
+		bool hasNext() {
+			return (_iter + 1) != _vec.end();
 		}
 		size_t idx() {
 			return _idx;
@@ -33,11 +36,20 @@ namespace UTIL {
 		typename std::vector<T>::iterator iter() {
 			return _iter;
 		}
+		typename std::vector<T>::iterator end() {
+			return _vec.end();
+		}
 		T & get() {
 			return *_iter;
 		}
-		T & next() {
+		T & getNext() {
 			if (!hasNext()) {
+				throw OS::Exception("out of bound");
+			}
+			return *(_iter + 1);
+		}
+		T & next() {
+			if (!has()) {
 				throw OS::Exception("out of bound");
 			}
 			_idx++;

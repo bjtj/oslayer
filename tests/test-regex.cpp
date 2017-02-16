@@ -9,6 +9,7 @@ using namespace UTIL;
  */
 static MatchType s_test(const string & regex, const string & text) {
 	try {
+		Regex::debug() = true;
 		Matcher::debug() = true;
 		Regex r(regex);
 		AutoRef<Matcher> matcher = r.makeMatcher();
@@ -108,6 +109,12 @@ public:
 		ASSERT(s_test("[^b][^a][^0]", "abc"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("[a-cA-C]+", "abcABC"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("[a-cA-C]+", "abcABCD"), ==, MatchType::PARTIAL_MATCHED);
+		ASSERT(s_test(".^.", "a^b"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test(".^.", "b^a"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test("^^HELLO", "^HELLO"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test(".$.", "a$b"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test(".$.", "b$a"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test("HELLO$$", "HELLO$"), ==, MatchType::FULL_MATCHED);
 	}
 };
 
