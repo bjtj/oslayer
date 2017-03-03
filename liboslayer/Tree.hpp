@@ -1,6 +1,7 @@
 #ifndef __TREE_HPP__
 #define __TREE_HPP__
 
+#include <vector>
 #include "AutoRef.hpp"
 
 namespace UTIL {
@@ -13,7 +14,7 @@ namespace UTIL {
 	/**
 	 *
 	 */
-	typedef int (*fn_compare_treenode)(TreeNode * a, TreeNode * b);
+	typedef bool (*fn_treenode_equals)(TreeNode * a, TreeNode * b);
 
 	/**
 	 * 
@@ -27,9 +28,12 @@ namespace UTIL {
 		virtual ~TreeNode();
 		TreeNode * parent();
 		std::vector< AutoRef<TreeNode> > & children();
-		AutoRef<TreeNode> & childAt (size_t idx);
+		void addChild(AutoRef<TreeNode> child);
+		void removeChild(AutoRef<TreeNode> child);
+		AutoRef<TreeNode> & childAt(size_t idx);
 		size_t childCount();
-		AutoRef<TreeNode> & find(fn_compare_treenode * fn);
+		AutoRef<TreeNode> find(fn_treenode_equals fn, TreeNode * left);
+		std::vector< AutoRef<TreeNode> > findAll(fn_treenode_equals fn, TreeNode * left);
 	};
 
 	/**

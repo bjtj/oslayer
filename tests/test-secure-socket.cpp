@@ -89,7 +89,7 @@ public:
 	}
 	virtual void test() {
 		char buffer[1024] = {0,};
-		SecureSocket client(InetAddress("localhost", port));
+		SecureSocket client(InetAddress("127.0.0.1", port));
 		client.setVerifier(AutoRef<CertificateVerifier>(new KindVerifier));
 		client.connect();
 		client.recv(buffer, sizeof(buffer));
@@ -116,7 +116,7 @@ public:
 	virtual void test() {
 		string err;
 		char buffer[1024] = {0,};
-		SecureSocket client(InetAddress("localhost", getPort()));
+		SecureSocket client(InetAddress("127.0.0.1", getPort()));
 		client.setVerifier(AutoRef<CertificateVerifier>(new TransparentVerifier));
 		try {
 			client.connect();

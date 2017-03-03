@@ -8,6 +8,7 @@ check_PROGRAMS = \
 	test-base64 \
 	test-bytebuffer \
 	test-random \
+	test-tree \
 	test-regex \
 	test-argument-parser \
 	test-text \
@@ -46,6 +47,7 @@ test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
 test_bytebuffer_SOURCES=test-bytebuffer.cpp
 test_random_SOURCES=test-random.cpp
+test_tree_SOURCES=test-tree.cpp
 test_regex_SOURCES=test-regex.cpp
 test_argument_parser_SOURCES=test-argument-parser.cpp
 test_text_SOURCES=test-text.cpp

@@ -42,6 +42,7 @@ liboslayerinc_HEADERS= \
 	Text.hpp \
 	ThreadPool.hpp \
 	Timer.hpp \
+	Tree.hpp \
 	Utils.hpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
@@ -119,6 +120,8 @@ liboslayer_la_SOURCES= \
 	ThreadPool.hpp \
 	Timer.cpp \
 	Timer.hpp \
+	Tree.cpp \
+	Tree.hpp \
 	Utils.hpp \
 	Uuid.cpp \
 	Uuid.hpp \
