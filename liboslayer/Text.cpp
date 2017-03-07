@@ -33,52 +33,51 @@ namespace UTIL {
 	 * @breif trim
 	 */
 	string Text::trim(const string & str) {
-		
+		return trim(str, spaces);
+	}
+	string Text::ltrim(const string & str) {
+		return ltrim(str, spaces);
+	}
+	string Text::rtrim(const string & str) {
+		return rtrim(str, spaces);
+	}
+	string Text::trim(const string & str, const string & spaces) {
 		size_t f = 0;
 		size_t e = 0;
-
 		if (str.empty()) {
 			return "";
 		}
-
 		f = str.find_first_not_of(spaces);
 		if (f == string::npos) {
 			return "";
 		}
-
 		e = str.find_last_not_of(spaces);
 		if (e == string::npos) {
 			return str.substr(f);
 		}
-
 		return str.substr(f, e - f + 1);
 	}
 
-	string Text::ltrim(const string & str) {
-
+	string Text::ltrim(const string & str, const string & spaces) {
 		if (str.empty()) {
 			return "";
 		}
-
 		size_t f = str.find_first_not_of(spaces);
 		if (f == string::npos) {
 			return "";
 		}
-
 		return str.substr(f);
-
 	}
-	string Text::rtrim(const string & str) {
+	string Text::rtrim(const string & str, const string & spaces) {
 		if (str.empty()) {
 			return "";
 		}
-
-		size_t f = str.find_last_not_of(spaces);
-		if (f == string::npos) {
-			return "";
+		for (size_t i = 0; i < str.size(); i++) {
+			if (spaces.find(str[str.size() - i - 1]) == string::npos) {
+				return str.substr(0, str.size() - i);
+			}
 		}
-
-		return str.substr(0, f);
+		return "";
 	}
 
 	/**
@@ -361,6 +360,10 @@ namespace UTIL {
 	float Text::toFloat(const string & str) {
 		return (float)atof(str.c_str());
 	}
+	
+	double toDouble(const std::string & str) {
+		return (double)atof(str.c_str());
+	}
 
 	/**
 	 * @brief to string
@@ -394,6 +397,16 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llu", i);
         return string(num);
     }
+	string Text::toString(float f) {
+		char num[512] = {0,};
+        snprintf(num, sizeof(num), "%f", f);
+        return string(num);
+	}
+	string Text::toString(double d) {
+		char num[512] = {0,};
+        snprintf(num, sizeof(num), "%lf", d);
+        return string(num);
+	}
     string Text::toHexString(short i) {
         return toHexString((long long)i);
     }
@@ -451,12 +464,6 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llX", i);
         return string(num);
     }
-	string Text::toString(float f) {
-		char num[512] = {0,};
-		snprintf(num, sizeof(num), "%f", f);
-		return string(num);
-	}
-    
     string Text::toString(const NameValueList & lst, const string & item_sep, const string & line_sep) {
         string ret;
         bool first = true;

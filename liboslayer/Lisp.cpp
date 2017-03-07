@@ -206,11 +206,14 @@ namespace LISP {
 	Var::Var(const Integer & inum) : type(INTEGER), inum(inum) {
 		_trace("init - Integer");
 	}
-	Var::Var(float fnum) : type(FLOAT), fnum(fnum) {
+	Var::Var(float dnum) : type(DOUBLE), dnum(dnum) {
+		_trace("init - double(float)");
+	}
+	Var::Var(double dnum) : type(DOUBLE), dnum(dnum) {
 		_trace("init - float");
 	}
-	Var::Var(const Float & fnum) : type(FLOAT), fnum(fnum) {
-		_trace("init - Float");
+	Var::Var(const Double & dnum) : type(DOUBLE), dnum(dnum) {
+		_trace("init - Double");
 	}
 	Var::Var(const Func & func) : type(FUNC), func(func) {
 		_trace("init - Func");
@@ -253,9 +256,9 @@ namespace LISP {
 		} else if (Integer::isIntegerString(token)) {
 			type = INTEGER;
 			inum = Integer::toInteger(token);
-		} else if (Float::isFloatString(token)) {
-			type = FLOAT;
-			fnum = Float::toFloat(token);
+		} else if (Double::isDoubleString(token)) {
+			type = DOUBLE;
+			dnum = Double::toDouble(token);
 		} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
 			type = FILE;
 			file = OS::File(token.substr(3, token.length() - 4));
@@ -280,8 +283,8 @@ namespace LISP {
 			return "BOOLEAN";
 		case INTEGER:
 			return "INTEGER";
-		case FLOAT:
-			return "FLOAT";
+		case DOUBLE:
+			return "DOUBLE";
 		case STRING:
 			return "STRING";
 		case FUNC:
@@ -306,7 +309,7 @@ namespace LISP {
 	bool Var::isSymbol() const {return type == SYMBOL;}
 	bool Var::isBoolean() const {return type == BOOLEAN;}
 	bool Var::isInteger() const {return type == INTEGER;}
-	bool Var::isFloat() const {return type == FLOAT;}
+	bool Var::isDouble() const {return type == DOUBLE;}
 	bool Var::isString() const {return type == STRING;}
 	bool Var::isFunction() const {return type == FUNC;}
 	bool Var::isFile() const {return type == FILE;}
@@ -316,7 +319,7 @@ namespace LISP {
 	vector<_VAR> & Var::getList() {checkTypeThrow(LIST); return lst;}
 	Boolean Var::getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
 	Integer Var::getInteger() {checkTypeThrow(INTEGER); return inum;}
-	Float Var::getFloat() {checkTypeThrow(FLOAT); return fnum;}
+	Double Var::getDouble() {checkTypeThrow(DOUBLE); return dnum;}
 	OS::File & Var::getFile() {checkTypeThrow(FILE); return file;}
 	Func Var::getFunc() {checkTypeThrow(FUNC); return func;}
 	AutoRef<Procedure> Var::getProcedure() {checkTypeThrow(FUNC); return procedure;}
@@ -368,15 +371,11 @@ namespace LISP {
 			return bval.toString();
 		case INTEGER:
 			{
-				char buffer[1024] = {0,};
-				snprintf(buffer, sizeof(buffer), "%lld", inum.raw());
-				return buffer;
+				return Text::toString(inum.raw());
 			}
-		case FLOAT:
+		case DOUBLE:
 			{
-				char buffer[1024] = {0,};
-				snprintf(buffer, sizeof(buffer), "%f", fnum.raw());
-				return buffer;
+				return Text::rtrim(Text::toString(dnum.raw()), "0");
 			}
 		case STRING:
 			return untext(str);
@@ -550,15 +549,15 @@ namespace LISP {
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == ':' && fmt[f + 2] == 'd') {
 				string num = eval(iter.next(), env)->toString();
-				size_t len = num.length();
-				size_t cnt = (len - 1) / 3;
-				if (cnt > 0) {
-					size_t i = 3;
-					for (size_t pos = (len - i); i < len; i += 3, pos = (len - i)) {
-						num.insert(pos, ",");
-					}
-				}
-				ret.append(num);
+				// size_t len = num.length();
+				// size_t cnt = (len - 1) / 3;
+				// if (cnt > 0) {
+				// 	size_t i = 3;
+				// 	for (size_t pos = (len - i); i < len; i += 3, pos = (len - i)) {
+				// 		num.insert(pos, ",");
+				// 	}
+				// }
+				ret.append(Text::toCommaNumber(num));
 				s = f = (f + 3);
 			} else {
 				s = f = (f + 1);
@@ -571,7 +570,7 @@ namespace LISP {
 	}
 
 	bool isNumber(_VAR var) {
-		return var->isInteger() || var->isFloat();
+		return var->isInteger() || var->isDouble();
 	}
 
 	_VAR pathname(Env & env, _VAR path) {
@@ -599,90 +598,90 @@ namespace LISP {
 		return ret;
 	}
 
-	_VAR toFloat(Env & env, _VAR v) {
+	_VAR toDouble(Env & env, _VAR v) {
 		if (v->isInteger()) {
-			return HEAP_ALLOC(env, (float)(*v->getInteger()));
+			return HEAP_ALLOC(env, (double)(*v->getInteger()));
 		}
 		return v;
 	}
 
 	bool eq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return v1->getFloat() == v2->getFloat();
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return v1->getDouble() == v2->getDouble();
 		}
 		return v1->getInteger() == v2->getInteger();
 	}
 
 	bool gt(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return v1->getFloat() > v2->getFloat();
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return v1->getDouble() > v2->getDouble();
 		}
 		return v1->getInteger() > v2->getInteger();
 	}
 
 	bool lt(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return v1->getFloat() < v2->getFloat();
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return v1->getDouble() < v2->getDouble();
 		}
 		return v1->getInteger() < v2->getInteger();
 	}
 
 	bool gteq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return v1->getFloat() >= v2->getFloat();
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return v1->getDouble() >= v2->getDouble();
 		}
 		return v1->getInteger() >= v2->getInteger();
 	}
 
 	bool lteq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return v1->getFloat() <= v2->getFloat();
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return v1->getDouble() <= v2->getDouble();
 		}
 		return v1->getInteger() <= v2->getInteger();
 	}
 
 	_VAR plus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return HEAP_ALLOC(env, v1->getFloat() + v2->getFloat());
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return HEAP_ALLOC(env, v1->getDouble() + v2->getDouble());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() + v2->getInteger());
 	}
 
 	_VAR minus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return HEAP_ALLOC(env, v1->getFloat() - v2->getFloat());
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return HEAP_ALLOC(env, v1->getDouble() - v2->getDouble());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() - v2->getInteger());
 	}
 
 	_VAR multiply(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return HEAP_ALLOC(env, v1->getFloat() * v2->getFloat());
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return HEAP_ALLOC(env, v1->getDouble() * v2->getDouble());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() * v2->getInteger());
 	}
 
 	_VAR divide(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			return HEAP_ALLOC(env, v1->getFloat() / v2->getFloat());
+		if (v1->isDouble() || v2->isDouble()) {
+			v1 = toDouble(env, v1);
+			v2 = toDouble(env, v2);
+			return HEAP_ALLOC(env, v1->getDouble() / v2->getDouble());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() / v2->getInteger());
 	}
@@ -1112,9 +1111,9 @@ namespace LISP {
 				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(args[0], env)->isInteger());
 			});
-		DECL_NATIVE("floatp", Floatp, {
+		DECL_NATIVE("doublep", Doublep, {
 				validateArgumentCountMin(args, 1);
-				return HEAP_ALLOC(env, eval(args[0], env)->isFloat());
+				return HEAP_ALLOC(env, eval(args[0], env)->isDouble());
 			});
 		DECL_NATIVE("stringp", Stringp, {
 				validateArgumentCountMin(args, 1);

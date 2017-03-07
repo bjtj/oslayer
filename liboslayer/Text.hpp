@@ -21,6 +21,9 @@ namespace UTIL {
 		static std::string trim(const std::string & str);
 		static std::string ltrim(const std::string & str);
 		static std::string rtrim(const std::string & str);
+		static std::string trim(const std::string & str, const std::string & spaces);
+		static std::string ltrim(const std::string & str, const std::string & spaces);
+		static std::string rtrim(const std::string & str, const std::string & spaces);
 		static bool match(const std::string & f, const std::string & s);
 		static std::vector<std::string> split(const std::string & target, const std::string & sep);
 		static std::string join(const std::vector<std::string> & vec, const std::string & glue);
@@ -39,6 +42,7 @@ namespace UTIL {
 		static int toInt(const std::string & str, int radix = 10);
 		static long toLong(const std::string & str, int radix = 10);
 		static float toFloat(const std::string & str);
+		static double toDouble(const std::string & str);
         static std::string toString(short i);
         static std::string toString(int i);
         static std::string toString(long i);
@@ -47,6 +51,8 @@ namespace UTIL {
         static std::string toString(unsigned int i);
         static std::string toString(unsigned long i);
 		static std::string toString(unsigned long long i);
+		static std::string toString(float f);
+		static std::string toString(double d);
         static std::string toHexString(short i);
         static std::string toHexString(int i);
 		static std::string toHexString(long i);
@@ -64,8 +70,6 @@ namespace UTIL {
         static std::string toUpperHexString(unsigned long i);
         static std::string toUpperHexString(unsigned long long i);
 
-		static std::string toString(float f);
-        
         static std::string toString(const NameValueList & lst, const std::string & item_sep = ": ", const std::string & line_sep = ", ");
         
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);

@@ -18,6 +18,10 @@ public:
 		ASSERT(Text::toString(0.5f).substr(0, 3), ==, "0.5");
 		ASSERT(Text::toString(1.2f).substr(0, 3), ==, "1.2");
 
+		ASSERT(Text::rtrim(Text::toString(1.0f), "0"), ==, "1.");
+		ASSERT(Text::rtrim(Text::toString(0.5f), "0"), ==, "0.5");
+		ASSERT(Text::rtrim(Text::toString(1.2f), "0"), ==, "1.2");
+
 		vector<string> vec;
 		vec.push_back("a");
 		vec.push_back("A");
