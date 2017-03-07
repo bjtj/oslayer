@@ -364,7 +364,7 @@ namespace OS {
 					ret.append(s_to_format_string("%02d", date.getSecond()));
 					break;
 				case 'f':
-					ret.append(s_to_string(date.getMillisecond()));
+					ret.append(s_to_format_string("%03d", date.getMillisecond()));
 					break;
 				case 'p':
 					ret.append(date.getHour() >= 12 ? "PM" : "AM");

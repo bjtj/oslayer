@@ -76,6 +76,7 @@ namespace UTIL {
 		static bool equalsIgnoreCase(std::string a, std::string b);
         
         static std::string format(const char * fmt, ...);
+		static std::string toCommaNumber(const std::string & number);
 	};
 }
 

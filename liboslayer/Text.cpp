@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdarg>
+#include "os.hpp"
 
 /**
  * @namespace UTIL
@@ -12,6 +13,7 @@
 namespace UTIL {
 
 	using namespace std;
+	using namespace OS;
 
 	/**
 	 * @brief constructor
@@ -557,4 +559,58 @@ namespace UTIL {
         va_end(args);
         return buffer;
     }
+
+	/**
+	 * to comma number
+	 */
+	string Text::toCommaNumber(const string & number) {
+		if (number.empty()) {
+			number;
+		}
+		char sign = '\0';
+		string integer;
+		string decimal;
+		if (number[0] == '-' || number[0] == '+') {
+			sign = number[0];
+		}
+		size_t f = number.find(".");
+		if (f == string::npos) {
+			integer = number.substr((sign ? 1 : 0));
+		} else {
+			integer = number.substr((sign ? 1 : 0), f - (sign ? 1 : 0));
+			decimal = number.substr(f + 1);
+		}
+		string iret;
+		for (size_t i = 0; i < integer.size(); i++) {
+			char ch = integer[integer.size() - i - 1];
+			if (!isdigit(ch)) {
+				throw Exception("wrong number format");
+			}
+			if (i != 0 && i % 3 == 0) {
+				iret.insert(0, 1, ',');
+			}
+			iret.insert(0, 1, ch);
+		}
+		string dret;
+		for (size_t i = 0; i < decimal.size(); i++) {
+			char ch = decimal[i];
+			if (!isdigit(ch)) {
+				throw Exception("wrong number format");
+			}
+			if (i != 0 && i % 3 == 0) {
+				dret.append(1, ',');
+			}
+			dret.append(1, ch);
+		}
+		string ret;
+		if (sign) {
+			ret.append(1, sign);
+		}
+		ret.append(iret);
+		if (dret.empty() == false) {
+			ret.append(".");
+			ret.append(dret);
+		}
+		return ret;
+	}
 }

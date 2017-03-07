@@ -85,12 +85,127 @@ public:
 	}
 };
 
+class CommaNumberTest : public TestCase
+{
+public:
+    CommaNumberTest() : TestCase("comma-number-test") {}
+    virtual ~CommaNumberTest() {}
+	virtual void test() {
+		ASSERT(Text::toCommaNumber("0"), ==, "0");
+		ASSERT(Text::toCommaNumber("12"), ==, "12");
+		ASSERT(Text::toCommaNumber("123"), ==, "123");
+		ASSERT(Text::toCommaNumber("1234"), ==, "1,234");
+		ASSERT(Text::toCommaNumber("12345"), ==, "12,345");
+		ASSERT(Text::toCommaNumber("123456"), ==, "123,456");
+		ASSERT(Text::toCommaNumber("1234567"), ==, "1,234,567");
+		ASSERT(Text::toCommaNumber("12345678"), ==, "12,345,678");
+		ASSERT(Text::toCommaNumber("123456789"), ==, "123,456,789");
+		ASSERT(Text::toCommaNumber("1234567890"), ==, "1,234,567,890");
+		ASSERT(Text::toCommaNumber("12345678901"), ==, "12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("0."), ==, "0");
+		ASSERT(Text::toCommaNumber("12."), ==, "12");
+		ASSERT(Text::toCommaNumber("123."), ==, "123");
+		ASSERT(Text::toCommaNumber("1234."), ==, "1,234");
+		ASSERT(Text::toCommaNumber("12345."), ==, "12,345");
+		ASSERT(Text::toCommaNumber("123456."), ==, "123,456");
+		ASSERT(Text::toCommaNumber("1234567."), ==, "1,234,567");
+		ASSERT(Text::toCommaNumber("12345678."), ==, "12,345,678");
+		ASSERT(Text::toCommaNumber("123456789."), ==, "123,456,789");
+		ASSERT(Text::toCommaNumber("1234567890."), ==, "1,234,567,890");
+		ASSERT(Text::toCommaNumber("12345678901."), ==, "12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("0.0"), ==, "0.0");
+		ASSERT(Text::toCommaNumber("0.12"), ==, "0.12");
+		ASSERT(Text::toCommaNumber("0.123"), ==, "0.123");
+		ASSERT(Text::toCommaNumber("0.1234"), ==, "0.123,4");
+		ASSERT(Text::toCommaNumber("0.12345"), ==, "0.123,45");
+		ASSERT(Text::toCommaNumber("0.123456"), ==, "0.123,456");
+		ASSERT(Text::toCommaNumber("0.1234567"), ==, "0.123,456,7");
+		ASSERT(Text::toCommaNumber("0.12345678"), ==, "0.123,456,78");
+		ASSERT(Text::toCommaNumber("0.123456789"), ==, "0.123,456,789");
+
+
+
+		ASSERT(Text::toCommaNumber("-0"), ==, "-0");
+		ASSERT(Text::toCommaNumber("-12"), ==, "-12");
+		ASSERT(Text::toCommaNumber("-123"), ==, "-123");
+		ASSERT(Text::toCommaNumber("-1234"), ==, "-1,234");
+		ASSERT(Text::toCommaNumber("-12345"), ==, "-12,345");
+		ASSERT(Text::toCommaNumber("-123456"), ==, "-123,456");
+		ASSERT(Text::toCommaNumber("-1234567"), ==, "-1,234,567");
+		ASSERT(Text::toCommaNumber("-12345678"), ==, "-12,345,678");
+		ASSERT(Text::toCommaNumber("-123456789"), ==, "-123,456,789");
+		ASSERT(Text::toCommaNumber("-1234567890"), ==, "-1,234,567,890");
+		ASSERT(Text::toCommaNumber("-12345678901"), ==, "-12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("-0."), ==, "-0");
+		ASSERT(Text::toCommaNumber("-12."), ==, "-12");
+		ASSERT(Text::toCommaNumber("-123."), ==, "-123");
+		ASSERT(Text::toCommaNumber("-1234."), ==, "-1,234");
+		ASSERT(Text::toCommaNumber("-12345."), ==, "-12,345");
+		ASSERT(Text::toCommaNumber("-123456."), ==, "-123,456");
+		ASSERT(Text::toCommaNumber("-1234567."), ==, "-1,234,567");
+		ASSERT(Text::toCommaNumber("-12345678."), ==, "-12,345,678");
+		ASSERT(Text::toCommaNumber("-123456789."), ==, "-123,456,789");
+		ASSERT(Text::toCommaNumber("-1234567890."), ==, "-1,234,567,890");
+		ASSERT(Text::toCommaNumber("-12345678901."), ==, "-12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("-0.0"), ==, "-0.0");
+		ASSERT(Text::toCommaNumber("-0.12"), ==, "-0.12");
+		ASSERT(Text::toCommaNumber("-0.123"), ==, "-0.123");
+		ASSERT(Text::toCommaNumber("-0.1234"), ==, "-0.123,4");
+		ASSERT(Text::toCommaNumber("-0.12345"), ==, "-0.123,45");
+		ASSERT(Text::toCommaNumber("-0.123456"), ==, "-0.123,456");
+		ASSERT(Text::toCommaNumber("-0.1234567"), ==, "-0.123,456,7");
+		ASSERT(Text::toCommaNumber("-0.12345678"), ==, "-0.123,456,78");
+		ASSERT(Text::toCommaNumber("-0.123456789"), ==, "-0.123,456,789");
+
+		
+
+		ASSERT(Text::toCommaNumber("+0"), ==, "+0");
+		ASSERT(Text::toCommaNumber("+12"), ==, "+12");
+		ASSERT(Text::toCommaNumber("+123"), ==, "+123");
+		ASSERT(Text::toCommaNumber("+1234"), ==, "+1,234");
+		ASSERT(Text::toCommaNumber("+12345"), ==, "+12,345");
+		ASSERT(Text::toCommaNumber("+123456"), ==, "+123,456");
+		ASSERT(Text::toCommaNumber("+1234567"), ==, "+1,234,567");
+		ASSERT(Text::toCommaNumber("+12345678"), ==, "+12,345,678");
+		ASSERT(Text::toCommaNumber("+123456789"), ==, "+123,456,789");
+		ASSERT(Text::toCommaNumber("+1234567890"), ==, "+1,234,567,890");
+		ASSERT(Text::toCommaNumber("+12345678901"), ==, "+12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("+0."), ==, "+0");
+		ASSERT(Text::toCommaNumber("+12."), ==, "+12");
+		ASSERT(Text::toCommaNumber("+123."), ==, "+123");
+		ASSERT(Text::toCommaNumber("+1234."), ==, "+1,234");
+		ASSERT(Text::toCommaNumber("+12345."), ==, "+12,345");
+		ASSERT(Text::toCommaNumber("+123456."), ==, "+123,456");
+		ASSERT(Text::toCommaNumber("+1234567."), ==, "+1,234,567");
+		ASSERT(Text::toCommaNumber("+12345678."), ==, "+12,345,678");
+		ASSERT(Text::toCommaNumber("+123456789."), ==, "+123,456,789");
+		ASSERT(Text::toCommaNumber("+1234567890."), ==, "+1,234,567,890");
+		ASSERT(Text::toCommaNumber("+12345678901."), ==, "+12,345,678,901");
+
+		ASSERT(Text::toCommaNumber("+0.0"), ==, "+0.0");
+		ASSERT(Text::toCommaNumber("+0.12"), ==, "+0.12");
+		ASSERT(Text::toCommaNumber("+0.123"), ==, "+0.123");
+		ASSERT(Text::toCommaNumber("+0.1234"), ==, "+0.123,4");
+		ASSERT(Text::toCommaNumber("+0.12345"), ==, "+0.123,45");
+		ASSERT(Text::toCommaNumber("+0.123456"), ==, "+0.123,456");
+		ASSERT(Text::toCommaNumber("+0.1234567"), ==, "+0.123,456,7");
+		ASSERT(Text::toCommaNumber("+0.12345678"), ==, "+0.123,456,78");
+		ASSERT(Text::toCommaNumber("+0.123456789"), ==, "+0.123,456,789");
+	}
+};
+
 
 int main(int argc, char *args[]) {
 
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new TextTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new SplitTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new CommaNumberTest));
 
 	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);
