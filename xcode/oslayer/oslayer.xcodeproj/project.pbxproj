@@ -47,6 +47,8 @@
 		E882FEAA1BD692C700E1C8C7 /* OSSocket.mm in Sources */ = {isa = PBXBuildFile; fileRef = E882FEA91BD692C700E1C8C7 /* OSSocket.mm */; };
 		E8848EAD1E55F14A00FFA522 /* Selector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8848EAB1E55F14A00FFA522 /* Selector.cpp */; };
 		E8848EAE1E55F14A00FFA522 /* Selector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8848EAB1E55F14A00FFA522 /* Selector.cpp */; };
+		E8848EFD1E6F739B00FFA522 /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8848EFB1E6F739B00FFA522 /* Tree.cpp */; };
+		E8848F021E6F741400FFA522 /* Tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8848EFB1E6F739B00FFA522 /* Tree.cpp */; };
 		E88A80021CB4453F00241D44 /* FileStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FF91CB4453F00241D44 /* FileStream.cpp */; };
 		E88A80031CB4453F00241D44 /* FileStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FF91CB4453F00241D44 /* FileStream.cpp */; };
 		E88A80041CB4453F00241D44 /* TaskThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E88A7FFE1CB4453F00241D44 /* TaskThreadPool.cpp */; };
@@ -154,6 +156,8 @@
 		E882FEA91BD692C700E1C8C7 /* OSSocket.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSSocket.mm; sourceTree = "<group>"; };
 		E8848EAB1E55F14A00FFA522 /* Selector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Selector.cpp; path = ../../liboslayer/Selector.cpp; sourceTree = "<group>"; };
 		E8848EAC1E55F14A00FFA522 /* Selector.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Selector.hpp; path = ../../liboslayer/Selector.hpp; sourceTree = "<group>"; };
+		E8848EFB1E6F739B00FFA522 /* Tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Tree.cpp; path = ../../liboslayer/Tree.cpp; sourceTree = "<group>"; };
+		E8848EFC1E6F739B00FFA522 /* Tree.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Tree.hpp; path = ../../liboslayer/Tree.hpp; sourceTree = "<group>"; };
 		E88A7FF91CB4453F00241D44 /* FileStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = FileStream.cpp; path = ../../liboslayer/FileStream.cpp; sourceTree = "<group>"; };
 		E88A7FFA1CB4453F00241D44 /* FileStream.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = FileStream.hpp; path = ../../liboslayer/FileStream.hpp; sourceTree = "<group>"; };
 		E88A7FFB1CB4453F00241D44 /* MessageQueue.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = MessageQueue.hpp; path = ../../liboslayer/MessageQueue.hpp; sourceTree = "<group>"; };
@@ -238,6 +242,8 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E8848EFB1E6F739B00FFA522 /* Tree.cpp */,
+				E8848EFC1E6F739B00FFA522 /* Tree.hpp */,
 				E8848EAB1E55F14A00FFA522 /* Selector.cpp */,
 				E8848EAC1E55F14A00FFA522 /* Selector.hpp */,
 				E8DCAB6A1E4202E7005A1372 /* Network.cpp */,
@@ -417,6 +423,7 @@
 				E8DCAB6F1E4202E7005A1372 /* SocketApi.cpp in Sources */,
 				E824CD7A1DB6CEFE00EA2518 /* ByteBuffer.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
+				E8848EFD1E6F739B00FFA522 /* Tree.cpp in Sources */,
 				E86940631D2A66B900192CBB /* Uuid.cpp in Sources */,
 				E824CD7B1DB6CEFE00EA2518 /* Date.cpp in Sources */,
 				E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */,
@@ -434,6 +441,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E8848F021E6F741400FFA522 /* Tree.cpp in Sources */,
 				E8DCAB701E420356005A1372 /* Network.cpp in Sources */,
 				E8DCAB711E420356005A1372 /* SocketApi.cpp in Sources */,
 				E824CD7E1DB6CF5600EA2518 /* ByteBuffer.cpp in Sources */,

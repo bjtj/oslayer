@@ -12,6 +12,7 @@ namespace UTIL {
 	TreeNode::~TreeNode() {
 	}
 	TreeNode * TreeNode::parent() {
+        return _parent;
 	}
 	vector< AutoRef<TreeNode> > & TreeNode::children() {
 		return _children;

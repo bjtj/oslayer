@@ -572,7 +572,7 @@ namespace UTIL {
 	 */
 	string Text::toCommaNumber(const string & number) {
 		if (number.empty()) {
-			number;
+			return number;
 		}
 		char sign = '\0';
 		string integer;
