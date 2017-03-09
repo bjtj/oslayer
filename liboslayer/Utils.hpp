@@ -5,7 +5,6 @@
 #include "AutoRef.hpp"
 #include "AutoRelease.hpp"
 #include "Base64.hpp"
-#include "ByteBuffer.hpp"
 #include "Condition.hpp"
 #include "CountDownLatch.hpp"
 #include "DatabaseConnection.hpp"

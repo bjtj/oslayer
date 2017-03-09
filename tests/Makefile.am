@@ -6,7 +6,6 @@ check_PROGRAMS = \
 	test-os \
 	test-date \
 	test-base64 \
-	test-bytebuffer \
 	test-random \
 	test-tree \
 	test-regex \
@@ -45,7 +44,6 @@ endif
 test_os_SOURCES=test-os.cpp
 test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
-test_bytebuffer_SOURCES=test-bytebuffer.cpp
 test_random_SOURCES=test-random.cpp
 test_tree_SOURCES=test-tree.cpp
 test_regex_SOURCES=test-regex.cpp
