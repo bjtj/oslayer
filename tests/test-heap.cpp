@@ -35,15 +35,15 @@ public:
  */
 class Device {
 private:
-	Obj<Device> _parent;
+	GCRef<Device> _parent;
 public:
 	Device() {
 	}
-	Device(Obj<Device> parent) : _parent(parent) {
+	Device(GCRef<Device> parent) : _parent(parent) {
 	}
 	virtual ~Device() {
 	}
-	Obj<Device> parent() {
+	GCRef<Device> parent() {
 		return _parent;
 	}
 };
@@ -69,9 +69,9 @@ public:
 		Heap<Device> heap;
 		cout << " -- test " << __LINE__ << endl;
 		{
-			Obj<Device> root = heap.alloc(new Device);
+			GCRef<Device> root = heap.alloc(new Device);
 			print_heap("1-IN", heap);
-			Obj<Device> child = heap.alloc(new Device(root));
+			GCRef<Device> child = heap.alloc(new Device(root));
 			print_heap("2-IN", heap);
 		}
 		print_heap("OUT", heap);
@@ -102,9 +102,9 @@ public:
 		Heap<Device> heap;
 		cout << " -- test " << __LINE__ << endl;
 		{
-			Obj<Device> root = heap.alloc(new Device);
+			GCRef<Device> root = heap.alloc(new Device);
 			print_heap("1-IN", heap);
-			Obj<Device> child = heap.alloc(new Device(root));
+			GCRef<Device> child = heap.alloc(new Device(root));
 			print_heap("2-IN", heap);
 		}
 		print_heap("OUT", heap);
@@ -135,10 +135,10 @@ public:
 		Heap<Object> heap;
 		cout << " -- test " << __LINE__ << endl;
 		{
-			Obj<Object> obj = heap.alloc(new Object);
+			GCRef<Object> obj = heap.alloc(new Object);
 			obj = heap.alloc(new Object);
 
-			map<string, Obj<Object> > objs;
+			map<string, GCRef<Object> > objs;
 			objs["obj"] = heap.alloc(new Object(1000));
 			objs["obj"] = heap.alloc(new Object(10));
 

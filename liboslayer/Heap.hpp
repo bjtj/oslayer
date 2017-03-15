@@ -14,16 +14,16 @@ namespace OS {
 	 * @brief 
 	 */
 	template <typename T>
-	class Obj {
+	class GCRef {
 	private:
 		Heap<T> * _heap;
 		T * _mem;
 	public:
-		Obj();
-		Obj(Heap<T> * heap, T * mem);
-		virtual ~Obj();
-		Obj(const Obj<T> & other);
-		Obj & operator= (const Obj<T> & other);
+		GCRef();
+		GCRef(Heap<T> * heap, T * mem);
+		virtual ~GCRef();
+		GCRef(const GCRef<T> & other);
+		GCRef & operator= (const GCRef<T> & other);
 		T & operator* ();
 		T * operator-> () const;
 		T * operator& () const;
@@ -56,7 +56,7 @@ namespace OS {
 		Heap();
 		virtual ~Heap();
 		void clear();
-		Obj<T> alloc(T * mem);
+		GCRef<T> alloc(T * mem);
 		void ref(void * mem);
 		void unref(void * mem);
 		unsigned long gc();
@@ -65,21 +65,21 @@ namespace OS {
 	};
 
 	template<typename T>
-	Obj<T>::Obj() : _heap(NULL), _mem(NULL) {
+	GCRef<T>::GCRef() : _heap(NULL), _mem(NULL) {
 	}
 	template<typename T>
-	Obj<T>::Obj(Heap<T> * heap, T * mem) : _heap(heap), _mem(mem) {
+	GCRef<T>::GCRef(Heap<T> * heap, T * mem) : _heap(heap), _mem(mem) {
 		_heap->ref(_mem);
 	}
 	template<typename T>
-	Obj<T>::~Obj() {
+	GCRef<T>::~GCRef() {
 		if (nil()) {
 			return;
 		}
 		_heap->unref(_mem);
 	}
 	template<typename T>
-	Obj<T>::Obj(const Obj<T> & other) : _heap(NULL), _mem(NULL) {
+	GCRef<T>::GCRef(const GCRef<T> & other) : _heap(NULL), _mem(NULL) {
 		if (!nil()) {
 			_heap->unref(_mem);
 		}
@@ -91,7 +91,7 @@ namespace OS {
 		_heap->ref(_mem);
 	}
 	template<typename T>
-	Obj<T> & Obj<T>::operator= (const Obj<T> & other) {
+	GCRef<T> & GCRef<T>::operator= (const GCRef<T> & other) {
 		if (!nil()) {
 			_heap->unref(_mem);
 		}
@@ -104,28 +104,28 @@ namespace OS {
 		return *this;
 	}
 	template<typename T>
-	T & Obj<T>::operator* () {
+	T & GCRef<T>::operator* () {
 		if (nil()) {
 			throw Exception("access nil");
 		}
 		return (T&)*_mem;
 	}
 	template<typename T>
-	T * Obj<T>::operator-> () const {
+	T * GCRef<T>::operator-> () const {
 		if (nil()) {
 			throw Exception("access nil");
 		}
 		return (T*)_mem;
 	}
 	template<typename T>
-	T * Obj<T>::operator& () const {
+	T * GCRef<T>::operator& () const {
 		if (nil()) {
 			throw Exception("access nil");
 		}
 		return (T*)_mem;
 	}
 	template<typename T>
-	bool Obj<T>::nil() const {
+	bool GCRef<T>::nil() const {
 		return _mem == NULL;
 	}
 
@@ -176,9 +176,9 @@ namespace OS {
 		_mems.clear();
 	}
 	template <typename T>
-	Obj<T> Heap<T>::alloc(T * mem) {
+	GCRef<T> Heap<T>::alloc(T * mem) {
 		_mems[(void *)mem] = Ref(mem);
-		return Obj<T>(this, mem);
+		return GCRef<T>(this, mem);
 	}
 	template <typename T>
 	void Heap<T>::ref(void * mem) {

@@ -36,7 +36,7 @@ namespace LISP {
 	};
 
 
-	typedef OS::Obj<Var> (*fn_proc)(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env);
+	typedef OS::GCRef<Var> (*fn_proc)(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env);
 	extern std::string text(const std::string & txt);
 	extern std::string untext(const std::string & txt);
 
@@ -49,7 +49,7 @@ namespace LISP {
 	public:
 		Procedure(const std::string & name) : name(name) {}
 		virtual ~Procedure() {}
-		virtual OS::Obj<Var> proc(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env) = 0;
+		virtual OS::GCRef<Var> proc(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env) = 0;
 		std::string getName() const {return name;}
 	};
 
@@ -241,7 +241,7 @@ namespace LISP {
 		static bool _debug;
 		Env * _parent;
 		bool _quit;
-		std::map<std::string, OS::Obj<Var> > _vars;
+		std::map<std::string, OS::GCRef<Var> > _vars;
 		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
@@ -250,16 +250,16 @@ namespace LISP {
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
 		bool find (const std::string & name);
-		OS::Obj<Var> & get(const std::string & name);
-		OS::Obj<Var> & operator[] (const std::string & name);
-		std::map<std::string, OS::Obj<Var> > & root();
-		std::map<std::string, OS::Obj<Var> > & local();
-		void push(OS::Obj<Var> var);
+		OS::GCRef<Var> & get(const std::string & name);
+		OS::GCRef<Var> & operator[] (const std::string & name);
+		std::map<std::string, OS::GCRef<Var> > & root();
+		std::map<std::string, OS::GCRef<Var> > & local();
+		void push(OS::GCRef<Var> var);
 		void quit(bool q);
 		bool quit();
 		std::string toString();
 		OS::SharedHeap<Var> & heap();
-		OS::Obj<Var> alloc(Var * var);
+		OS::GCRef<Var> alloc(Var * var);
 		void gc();
 		void clear();
 	};
@@ -269,15 +269,15 @@ namespace LISP {
 	 */
 	class Func {
 	private:
-		std::vector<OS::Obj<Var> > _vars;
+		std::vector<OS::GCRef<Var> > _vars;
 	public:
 		Func();
-		Func(const OS::Obj<Var> & params, const OS::Obj<Var> & body);
+		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
 		virtual ~Func();
-		OS::Obj<Var> & params();
-		OS::Obj<Var> & body();
-		OS::Obj<Var> const_params() const;
-		OS::Obj<Var> const_body() const;
+		OS::GCRef<Var> & params();
+		OS::GCRef<Var> & body();
+		OS::GCRef<Var> const_params() const;
+		OS::GCRef<Var> const_body() const;
 		bool empty();
 	};
 
@@ -303,7 +303,7 @@ namespace LISP {
 		int type;
 		std::string symbol;
 		std::string str;
-		std::vector<OS::Obj<Var> > lst;
+		std::vector<OS::GCRef<Var> > lst;
 		Boolean bval;
         Integer inum;
 		Double dnum;
@@ -316,7 +316,7 @@ namespace LISP {
 		explicit Var();
 		explicit Var(const char * token);
 		explicit Var(const std::string & token);
-		explicit Var(std::vector<OS::Obj<Var> > lst);
+		explicit Var(std::vector<OS::GCRef<Var> > lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);
 		explicit Var(short inum);
@@ -353,7 +353,7 @@ namespace LISP {
 		bool isFileDescriptor() const;
 		std::string getSymbol() const;
 		std::string getString() const;
-		std::vector<OS::Obj<Var> > & getList();
+		std::vector<OS::GCRef<Var> > & getList();
 		Boolean getBoolean();
 		Integer getInteger();
 		Double getDouble();
@@ -361,8 +361,8 @@ namespace LISP {
 		Func getFunc();
 		UTIL::AutoRef<Procedure> getProcedure();
 		FileDescriptor & getFileDescriptor();
-		OS::Obj<Var> proc(std::vector<OS::Obj<Var> > & args, Env & env);
-		OS::Obj<Var> proc(OS::Obj<Var> name, std::vector<OS::Obj<Var> > & args, Env & env);
+		OS::GCRef<Var> proc(std::vector<OS::GCRef<Var> > & args, Env & env);
+		OS::GCRef<Var> proc(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env);
 		std::string toString() const;
 	};
 
@@ -392,39 +392,39 @@ namespace LISP {
 	 */
 	class Arguments {
 	private:
-		std::vector<OS::Obj<Var> > proto;
-		std::map<std::string, OS::Obj<Var> > _keywords;
+		std::vector<OS::GCRef<Var> > proto;
+		std::map<std::string, OS::GCRef<Var> > _keywords;
 	public:
 		Arguments();
-		Arguments(std::vector<OS::Obj<Var> > & proto);
+		Arguments(std::vector<OS::GCRef<Var> > & proto);
 		virtual ~Arguments();
 
-		size_t countPartArguments(std::vector<OS::Obj<Var> > & arr, size_t start);
-		void mapArguments(Env & env, std::map<std::string, OS::Obj<Var> > & scope,
-						  std::vector<OS::Obj<Var> > & args);
-		size_t mapOptionals(Env & env, std::map<std::string, OS::Obj<Var> > & scope,
-							std::vector<OS::Obj<Var> > & proto,
+		size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
+		void mapArguments(Env & env, std::map<std::string, OS::GCRef<Var> > & scope,
+						  std::vector<OS::GCRef<Var> > & args);
+		size_t mapOptionals(Env & env, std::map<std::string, OS::GCRef<Var> > & scope,
+							std::vector<OS::GCRef<Var> > & proto,
 							size_t pstart,
-							std::vector<OS::Obj<Var> > & args,
+							std::vector<OS::GCRef<Var> > & args,
 							size_t astart);
-		static std::vector<OS::Obj<Var> > extractRest(Env & env,
-													  std::vector<OS::Obj<Var> > & args,
+		static std::vector<OS::GCRef<Var> > extractRest(Env & env,
+													  std::vector<OS::GCRef<Var> > & args,
 													  size_t start);
-		static std::map<std::string, OS::Obj<Var> > extractKeywords(std::vector<OS::Obj<Var> > & args);
-		std::map<std::string, OS::Obj<Var> > & keywords();
+		static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
+		std::map<std::string, OS::GCRef<Var> > & keywords();
 	};
 
 	/**
 	 * @brief lisp utility
 	 */
 
-	extern OS::Obj<Var> pathname(Env & env, OS::Obj<Var> path);
+	extern OS::GCRef<Var> pathname(Env & env, OS::GCRef<Var> path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
-	extern OS::Obj<Var> parse(Env & env, const std::string & cmd);
-	extern OS::Obj<Var> eval(OS::Obj<Var> var, Env & env);
-	extern OS::Obj<Var> compile(const std::string & cmd, Env & env);
+	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
+	extern OS::GCRef<Var> eval(OS::GCRef<Var> var, Env & env);
+	extern OS::GCRef<Var> compile(const std::string & cmd, Env & env);
 }
 
 #endif

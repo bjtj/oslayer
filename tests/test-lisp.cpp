@@ -6,7 +6,7 @@ using namespace std;
 using namespace OS;
 using namespace LISP;
 
-#define _VAR Obj<Var> 
+#define _VAR GCRef<Var> 
 
 static void test_comment() {
 	string text = "hello ; comment";

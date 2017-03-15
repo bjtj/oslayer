@@ -6,7 +6,7 @@
 
 #define HAS(M,E) (M.find(E) != M.end())
 #define HEAP_ALLOC(E,V) E.alloc(new Var(V))
-#define _VAR Obj<Var> 
+#define _VAR GCRef<Var> 
 
 #define DECL_NATIVE_BEGIN(NAME,CLS) \
 	class CLS : public Procedure { \
@@ -64,7 +64,7 @@ namespace LISP {
 		}
 		return false;
 	}
-	OS::Obj<Var> & Env::get(const std::string & name) {
+	OS::GCRef<Var> & Env::get(const std::string & name) {
 		if (_parent && _vars.find(name) == _vars.end()) {
 			return (*_parent)[name];
 		}
