@@ -35,6 +35,20 @@ namespace LISP {
 		virtual ~LispException() throw() {}
 	};
 
+	/**
+	 * @brief ignore lisp exception
+	 */
+	class IgnoreLispException : public LispException {
+	private:
+	public:
+		explicit IgnoreLispException() {}
+		explicit IgnoreLispException(const std::string & message) : LispException(message) {}
+		explicit IgnoreLispException(const char * message) : LispException(message) {}
+		explicit IgnoreLispException(const std::string & message, int errorCode, int subErrorCode) : LispException(message, errorCode, subErrorCode) {}
+		explicit IgnoreLispException(const char * message, int errorCode, int subErrorCode) : LispException(message, errorCode, subErrorCode) {}
+		virtual ~IgnoreLispException() throw() {}
+	};
+
 
 	typedef OS::GCRef<Var> (*fn_proc)(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env);
 	extern std::string text(const std::string & txt);

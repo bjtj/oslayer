@@ -780,7 +780,7 @@ namespace LISP {
 					str.append(1, ch);
 				}
 				tokens.push_back("\"" + str + "\"");
-			} else if (*iter == '(' || *iter == ')') {
+			} else if (*iter == '(' || *iter == ')' || *iter == '\'' || *iter == ',' || *iter == '`') {
 				tokens.push_back(string(1, *iter));
 			} else if (!isSpace(*iter)) {
 				string tok;
@@ -803,12 +803,19 @@ namespace LISP {
 			vector<_VAR> lst;
 			iter++;
 			for (;*iter != ")"; iter++) {
-				_VAR var = read_from_tokens(env, iter, end);
-				lst.push_back(var);
+				try {
+					_VAR var = read_from_tokens(env, iter, end);
+					lst.push_back(var);
+				} catch (IgnoreLispException e) {
+					// skip it
+				}
 			}
 			return HEAP_ALLOC(env, lst);
 		} else if (*iter == ")") {
-			throw LispException("syntax error - unexpected )");
+			throw LispException("syntax error - unexpected ')'");
+		} else if (*iter == "'" || *iter == "," || *iter == "`") {
+			// TODO: implement quasiquote or something more
+			throw IgnoreLispException("Ignore this for now");
 		} else {
 			return HEAP_ALLOC(env, *iter);
 		}
