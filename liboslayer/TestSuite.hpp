@@ -24,7 +24,7 @@
 
 namespace UTIL {
 
-	DECL_NAMED_ONLY_EXCEPTION(AssertException);
+	DECL_NAMED_EXCEPTION(AssertException);
 
 	/**
 	 *

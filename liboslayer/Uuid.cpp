@@ -8,7 +8,7 @@ namespace UTIL {
     using namespace std;
     using namespace OS;
     
-    DECL_NAMED_ONLY_EXCEPTION(WrongFormatException);
+    DECL_NAMED_EXCEPTION(WrongFormatException);
     
     Uuid::Uuid(const string & uuid) {
         parse(uuid);

@@ -6,7 +6,7 @@ using namespace std;
 using namespace OS;
 
 
-DECL_NAMED_ONLY_EXCEPTION(MyException);
+DECL_NAMED_EXCEPTION(MyException);
 
 static void test_exception() {
 

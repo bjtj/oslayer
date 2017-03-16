@@ -21,36 +21,11 @@ namespace LISP {
 	class Func;
 	class Var;
 
-	/**
-	 * @brief lisp exception
-	 */
-	class LispException : public OS::Exception{
-	private:
-	public:
-		explicit LispException() {}
-		explicit LispException(const std::string & message) : OS::Exception(message) {}
-		explicit LispException(const char * message) : OS::Exception(message) {}
-		explicit LispException(const std::string & message, int errorCode, int subErrorCode) : OS::Exception(message, errorCode, subErrorCode) {}
-		explicit LispException(const char * message, int errorCode, int subErrorCode) : OS::Exception(message, errorCode, subErrorCode) {}
-		virtual ~LispException() throw() {}
-	};
+	DECL_NAMED_EXCEPTION(LispException);
+	DECL_EXCEPTION(ParseLispException, LispException);
+	DECL_EXCEPTION(EvalLispException, LispException);
 
-	/**
-	 * @brief ignore lisp exception
-	 */
-	class IgnoreLispException : public LispException {
-	private:
-	public:
-		explicit IgnoreLispException() {}
-		explicit IgnoreLispException(const std::string & message) : LispException(message) {}
-		explicit IgnoreLispException(const char * message) : LispException(message) {}
-		explicit IgnoreLispException(const std::string & message, int errorCode, int subErrorCode) : LispException(message, errorCode, subErrorCode) {}
-		explicit IgnoreLispException(const char * message, int errorCode, int subErrorCode) : LispException(message, errorCode, subErrorCode) {}
-		virtual ~IgnoreLispException() throw() {}
-	};
-
-
-	typedef OS::GCRef<Var> (*fn_proc)(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env);
+	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 	extern std::string text(const std::string & txt);
 	extern std::string untext(const std::string & txt);
 
@@ -63,7 +38,7 @@ namespace LISP {
 	public:
 		Procedure(const std::string & name) : name(name) {}
 		virtual ~Procedure() {}
-		virtual OS::GCRef<Var> proc(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env) = 0;
+		virtual OS::GCRef<Var> proc(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
 		std::string getName() const {return name;}
 	};
 
@@ -295,7 +270,6 @@ namespace LISP {
 		bool empty();
 	};
 
-
 	/**
 	 * @brief Var
 	 */
@@ -375,8 +349,8 @@ namespace LISP {
 		Func getFunc();
 		UTIL::AutoRef<Procedure> getProcedure();
 		FileDescriptor & getFileDescriptor();
-		OS::GCRef<Var> proc(std::vector<OS::GCRef<Var> > & args, Env & env);
-		OS::GCRef<Var> proc(OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args, Env & env);
+		OS::GCRef<Var> proc(Env & env, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
 	};
 
@@ -437,8 +411,8 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(OS::GCRef<Var> var, Env & env);
-	extern OS::GCRef<Var> compile(const std::string & cmd, Env & env);
+	extern OS::GCRef<Var> eval(Env & env, OS::GCRef<Var> var);
+	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 
 #endif

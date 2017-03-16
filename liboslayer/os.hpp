@@ -113,18 +113,20 @@ typedef SOCKET SOCK_HANDLE;
 
 namespace OS {
 
-#define DECL_NAMED_ONLY_EXCEPTION(NAME) \
-	class NAME : public OS::Exception { \
+#define DECL_EXCEPTION(NAME, BASE)	\
+	class NAME : public BASE { \
 	public:										   \
 		explicit NAME() {/**/}												\
-		explicit NAME(const std::string & message) : OS::Exception(message) {/**/} \
-		explicit NAME(const char * message) : OS::Exception(message) {/**/} \
+		explicit NAME(const std::string & message) : BASE(message) {/**/} \
+		explicit NAME(const char * message) : BASE(message) {/**/} \
 		explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
-		: OS::Exception(message, errorCode, subErrorCode) {/**/} \
+		: BASE(message, errorCode, subErrorCode) {/**/} \
 		explicit NAME(const char * message, int errorCode, int subErrorCode) \
-		: OS::Exception(message, errorCode, subErrorCode) {/**/} \
+		: BASE(message, errorCode, subErrorCode) {/**/} \
 		virtual ~NAME() throw() {/**/} \
 	};
+
+#define DECL_NAMED_EXCEPTION(NAME) DECL_EXCEPTION(NAME, OS::Exception)
 
 	/**
 	 * @brief Exception
@@ -180,11 +182,11 @@ namespace OS {
 		}
 	};
     
-    DECL_NAMED_ONLY_EXCEPTION(NullException);
-    DECL_NAMED_ONLY_EXCEPTION(IOException);
-    DECL_NAMED_ONLY_EXCEPTION(NotImplementedException);
-    DECL_NAMED_ONLY_EXCEPTION(IllegalArgumentException);
-	DECL_NAMED_ONLY_EXCEPTION(BufferOverflowException);
+    DECL_NAMED_EXCEPTION(NullException);
+    DECL_NAMED_EXCEPTION(IOException);
+    DECL_NAMED_EXCEPTION(NotImplementedException);
+    DECL_NAMED_EXCEPTION(IllegalArgumentException);
+	DECL_NAMED_EXCEPTION(BufferOverflowException);
 
 	/**
 	 * @brief no meaningful version string to distinguish
