@@ -524,10 +524,6 @@ namespace LISP {
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
-
-	static bool isNumber(_VAR var) {
-		return var->isInteger() || var->isFloat();
-	}
 	
 	static string format(Env & env, const string & fmt, vector<_VAR> & args) {
 		string ret;

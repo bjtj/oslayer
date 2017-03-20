@@ -78,12 +78,15 @@ namespace UTIL {
 	}
 	StringList & StringList::operator+= (const string & value) {
 		push_back(value);
+        return *this;
 	}
 	StringList & StringList::operator+= (const char * value) {
 		push_back(value);
+        return *this;
 	}
 	StringList & StringList::operator+= (const vector<string> & values) {
 		insert(end(), values.begin(), values.end());
+        return *this;
 	}
 	void StringList::operator= (const vector<string> & values) {
 		clear();
