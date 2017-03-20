@@ -206,14 +206,14 @@ namespace LISP {
 	Var::Var(const Integer & inum) : type(INTEGER), inum(inum) {
 		_trace("init - Integer");
 	}
-	Var::Var(float dnum) : type(DOUBLE), dnum(dnum) {
-		_trace("init - double(float)");
-	}
-	Var::Var(double dnum) : type(DOUBLE), dnum(dnum) {
+	Var::Var(float dnum) : type(FLOAT), dnum(dnum) {
 		_trace("init - float");
 	}
-	Var::Var(const Double & dnum) : type(DOUBLE), dnum(dnum) {
-		_trace("init - Double");
+	Var::Var(double dnum) : type(FLOAT), dnum(dnum) {
+		_trace("init - double");
+	}
+	Var::Var(const Float & dnum) : type(FLOAT), dnum(dnum) {
+		_trace("init - Float");
 	}
 	Var::Var(const Func & func) : type(FUNC), func(func) {
 		_trace("init - Func");
@@ -256,9 +256,9 @@ namespace LISP {
 		} else if (Integer::isIntegerString(token)) {
 			type = INTEGER;
 			inum = Integer::toInteger(token);
-		} else if (Double::isDoubleString(token)) {
-			type = DOUBLE;
-			dnum = Double::toDouble(token);
+		} else if (Float::isFloatString(token)) {
+			type = FLOAT;
+			dnum = Float::toFloat(token);
 		} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
 			type = FILE;
 			file = OS::File(token.substr(3, token.length() - 4));
@@ -283,8 +283,8 @@ namespace LISP {
 			return "BOOLEAN";
 		case INTEGER:
 			return "INTEGER";
-		case DOUBLE:
-			return "DOUBLE";
+		case FLOAT:
+			return "FLOAT";
 		case STRING:
 			return "STRING";
 		case FUNC:
@@ -309,7 +309,7 @@ namespace LISP {
 	bool Var::isSymbol() const {return type == SYMBOL;}
 	bool Var::isBoolean() const {return type == BOOLEAN;}
 	bool Var::isInteger() const {return type == INTEGER;}
-	bool Var::isDouble() const {return type == DOUBLE;}
+	bool Var::isFloat() const {return type == FLOAT;}
 	bool Var::isString() const {return type == STRING;}
 	bool Var::isFunction() const {return type == FUNC;}
 	bool Var::isFile() const {return type == FILE;}
@@ -319,7 +319,7 @@ namespace LISP {
 	vector<_VAR> & Var::getList() {checkTypeThrow(LIST); return lst;}
 	Boolean Var::getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
 	Integer Var::getInteger() {checkTypeThrow(INTEGER); return inum;}
-	Double Var::getDouble() {checkTypeThrow(DOUBLE); return dnum;}
+	Float Var::getFloat() {checkTypeThrow(FLOAT); return dnum;}
 	OS::File & Var::getFile() {checkTypeThrow(FILE); return file;}
 	Func Var::getFunc() {checkTypeThrow(FUNC); return func;}
 	AutoRef<Procedure> Var::getProcedure() {checkTypeThrow(FUNC); return procedure;}
@@ -376,7 +376,7 @@ namespace LISP {
 			{
 				return Text::toString(inum.raw());
 			}
-		case DOUBLE:
+		case FLOAT:
 			{
 				return Text::rtrim(Text::toString(dnum.raw()), "0");
 			}
@@ -524,6 +524,10 @@ namespace LISP {
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
+
+	static bool isNumber(_VAR var) {
+		return var->isInteger() || var->isFloat();
+	}
 	
 	static string format(Env & env, const string & fmt, vector<_VAR> & args) {
 		string ret;
@@ -548,6 +552,18 @@ namespace LISP {
 				string num = eval(env, iter.next())->toString();
 				ret.append(Text::toCommaNumber(num));
 				s = f = (f + 3);
+			} else if (fmt[f + 1] == '$') {
+				_VAR var = eval(env, iter.next());
+				string num;
+				if (var->isInteger()) {
+					num = var->toString();
+				} else if (var->isFloat()) {
+					num = Text::format("%.2lf", *var->getFloat());
+				} else {
+					throw LispException("wrong format '~$' - '" + var->toString() + "'");
+				}
+				ret.append(num);
+				s = f = (f + 2);
 			} else {
 				s = f = (f + 1);
 			}
@@ -556,10 +572,6 @@ namespace LISP {
 			ret.append(fmt.substr(s));
 		}
 		return ret;
-	}
-
-	bool isNumber(_VAR var) {
-		return var->isInteger() || var->isDouble();
 	}
 
 	_VAR pathname(Env & env, _VAR path) {
@@ -587,7 +599,7 @@ namespace LISP {
 		return ret;
 	}
 
-	_VAR toDouble(Env & env, _VAR v) {
+	_VAR toFloat(Env & env, _VAR v) {
 		if (v->isInteger()) {
 			return HEAP_ALLOC(env, (double)(*v->getInteger()));
 		}
@@ -595,82 +607,82 @@ namespace LISP {
 	}
 
 	bool eq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return v1->getDouble() == v2->getDouble();
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return v1->getFloat() == v2->getFloat();
 		}
 		return v1->getInteger() == v2->getInteger();
 	}
 
 	bool gt(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return v1->getDouble() > v2->getDouble();
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return v1->getFloat() > v2->getFloat();
 		}
 		return v1->getInteger() > v2->getInteger();
 	}
 
 	bool lt(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return v1->getDouble() < v2->getDouble();
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return v1->getFloat() < v2->getFloat();
 		}
 		return v1->getInteger() < v2->getInteger();
 	}
 
 	bool gteq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return v1->getDouble() >= v2->getDouble();
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return v1->getFloat() >= v2->getFloat();
 		}
 		return v1->getInteger() >= v2->getInteger();
 	}
 
 	bool lteq(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return v1->getDouble() <= v2->getDouble();
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return v1->getFloat() <= v2->getFloat();
 		}
 		return v1->getInteger() <= v2->getInteger();
 	}
 
 	_VAR plus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return HEAP_ALLOC(env, v1->getDouble() + v2->getDouble());
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return HEAP_ALLOC(env, v1->getFloat() + v2->getFloat());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() + v2->getInteger());
 	}
 
 	_VAR minus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return HEAP_ALLOC(env, v1->getDouble() - v2->getDouble());
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return HEAP_ALLOC(env, v1->getFloat() - v2->getFloat());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() - v2->getInteger());
 	}
 
 	_VAR multiply(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return HEAP_ALLOC(env, v1->getDouble() * v2->getDouble());
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return HEAP_ALLOC(env, v1->getFloat() * v2->getFloat());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() * v2->getInteger());
 	}
 
 	_VAR divide(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isDouble() || v2->isDouble()) {
-			v1 = toDouble(env, v1);
-			v2 = toDouble(env, v2);
-			return HEAP_ALLOC(env, v1->getDouble() / v2->getDouble());
+		if (v1->isFloat() || v2->isFloat()) {
+			v1 = toFloat(env, v1);
+			v2 = toFloat(env, v2);
+			return HEAP_ALLOC(env, v1->getFloat() / v2->getFloat());
 		}
 		return HEAP_ALLOC(env, v1->getInteger() / v2->getInteger());
 	}
@@ -1147,9 +1159,9 @@ namespace LISP {
 				validateArgumentCountMin(args, 1);
 				return HEAP_ALLOC(env, eval(env, args[0])->isInteger());
 			});
-		DECL_NATIVE("doublep", Doublep, {
+		DECL_NATIVE("floatp", Floatp, {
 				validateArgumentCountMin(args, 1);
-				return HEAP_ALLOC(env, eval(env, args[0])->isDouble());
+				return HEAP_ALLOC(env, eval(env, args[0])->isFloat());
 			});
 		DECL_NATIVE("stringp", Stringp, {
 				validateArgumentCountMin(args, 1);

@@ -319,7 +319,7 @@ static void test_type() {
 	ASSERT(compile(env, "(listp (list 1 2 3))")->isNil(), ==, false);
 	ASSERT(compile(env, "(booleanp t)")->isNil(), ==, false);
 	ASSERT(compile(env, "(integerp 1)")->isNil(), ==, false);
-	ASSERT(compile(env, "(doublep 1.0)")->isNil(), ==, false);
+	ASSERT(compile(env, "(floatp 1.0)")->isNil(), ==, false);
 	ASSERT(compile(env, "(stringp \"hello\")")->isNil(), ==, false);
 	compile(env, "(system \"touch xxx\")");
 	compile(env, "(setq *f* (open \"xxx\"))");
@@ -458,7 +458,7 @@ static void test_arithmetic() {
 	ASSERT(!compile(env, "(>= 1 4.0)")->isNil(), ==, false);
 	ASSERT(!compile(env, "(>= 4 1.0)")->isNil(), ==, true);
 
-	ASSERT(*compile(env, "(* 4 1.2)")->getDouble(), ==, 4.8);
+	ASSERT(*compile(env, "(* 4 1.2)")->getFloat(), ==, 4.8);
 }
 
 static void test_list() {

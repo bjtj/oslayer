@@ -117,20 +117,20 @@ namespace LISP {
     };
 
 	/**
-	 * @brief lisp double
+	 * @brief lisp float
 	 */
-	class Double {
+	class Float {
 	private:
 		double num;
 	public:
-		Double() : num(0.f) {}
-		Double(float num) : num((double)num) {}
-		Double(double num) : num(num) {}
-		virtual ~Double() {}
+		Float() : num(0.f) {}
+		Float(float num) : num((double)num) {}
+		Float(double num) : num(num) {}
+		virtual ~Float() {}
 
 		double raw() const {return num;}
 
-		static bool isDoubleString(const std::string & istr) {
+		static bool isFloatString(const std::string & istr) {
 			std::string n = istr;
 			if (*istr.begin() == '-' || *istr.begin() == '+') {
 				n = n.substr(1);
@@ -147,27 +147,27 @@ namespace LISP {
 			return true;
 		}
 
-		static double toDouble(const std::string & istr) {
+		static double toFloat(const std::string & istr) {
 			return (double)atof(istr.c_str());
 		}
 
 		double & operator* () {return num;}
-        Double & operator+=(const Double & other) {num += other.num; return *this;}
-        Double & operator-=(const Double & other) {num -= other.num; return *this;}
-        Double & operator*=(const Double & other) {num *= other.num; return *this;}
-        Double & operator/=(const Double & other) {num /= other.num; return *this;}
+        Float & operator+=(const Float & other) {num += other.num; return *this;}
+        Float & operator-=(const Float & other) {num -= other.num; return *this;}
+        Float & operator*=(const Float & other) {num *= other.num; return *this;}
+        Float & operator/=(const Float & other) {num /= other.num; return *this;}
         
-        Double operator+ (const Double & other) const {return Double(num + other.num);}
-        Double operator- (const Double & other) const {return Double(num - other.num);}
-        Double operator* (const Double & other) const {return Double(num * other.num);}
-        Double operator/ (const Double & other) const {return Double(num / other.num);}
+        Float operator+ (const Float & other) const {return Float(num + other.num);}
+        Float operator- (const Float & other) const {return Float(num - other.num);}
+        Float operator* (const Float & other) const {return Float(num * other.num);}
+        Float operator/ (const Float & other) const {return Float(num / other.num);}
 
-		bool operator> (const Double & other) const {return num > other.num;}
-		bool operator< (const Double & other) const {return num < other.num;}
-		bool operator>= (const Double & other) const {return num >= other.num;}
-		bool operator<= (const Double & other) const {return num <= other.num;}
-        bool operator== (const Double & other) const {return num == other.num;}
-        bool operator!= (const Double & other) const {return num != other.num;}
+		bool operator> (const Float & other) const {return num > other.num;}
+		bool operator< (const Float & other) const {return num < other.num;}
+		bool operator>= (const Float & other) const {return num >= other.num;}
+		bool operator<= (const Float & other) const {return num <= other.num;}
+        bool operator== (const Float & other) const {return num == other.num;}
+        bool operator!= (const Float & other) const {return num != other.num;}
 	};
 
 	/**
@@ -280,7 +280,7 @@ namespace LISP {
 		const static int LIST = 2;
 		const static int BOOLEAN = 3;
 		const static int INTEGER = 4;
-		const static int DOUBLE = 5;
+		const static int FLOAT = 5;
 		const static int STRING = 6;
 		const static int FUNC = 7;
 		const static int FILE = 8;
@@ -294,7 +294,7 @@ namespace LISP {
 		std::vector<OS::GCRef<Var> > lst;
 		Boolean bval;
         Integer inum;
-		Double dnum;
+		Float dnum;
 		Func func;
 		UTIL::AutoRef<Procedure> procedure;
 		OS::File file;
@@ -314,7 +314,7 @@ namespace LISP {
 		explicit Var(const Integer & inum);
 		explicit Var(float dnum);
 		explicit Var(double dnum);
-		explicit Var(const Double & dnum);
+		explicit Var(const Float & dnum);
 		explicit Var(const Func & func);
 		explicit Var(UTIL::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
@@ -334,7 +334,7 @@ namespace LISP {
 		bool isSymbol() const;
 		bool isBoolean() const;
 		bool isInteger() const;
-		bool isDouble() const;
+		bool isFloat() const;
 		bool isString() const;
 		bool isFunction() const;
 		bool isFile() const;
@@ -344,7 +344,7 @@ namespace LISP {
 		std::vector<OS::GCRef<Var> > & getList();
 		Boolean getBoolean();
 		Integer getInteger();
-		Double getDouble();
+		Float getFloat();
 		OS::File & getFile();
 		Func getFunc();
 		UTIL::AutoRef<Procedure> getProcedure();
