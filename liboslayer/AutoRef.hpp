@@ -39,7 +39,6 @@ namespace UTIL {
         T * operator& ();
 		bool operator== (const AutoRef<T> & other) const;
         int count();
-        bool empty() const;
 		bool nil() const;
 
     private:
@@ -115,11 +114,6 @@ namespace UTIL {
 	template <typename T>
     int AutoRef<T>::count() {
         return counter ? counter->count() : -1;
-    }
-        
-	template <typename T>
-    bool AutoRef<T>::empty() const {
-        return _t == NULL;
     }
 
 	template <typename T>

@@ -23,7 +23,7 @@ static void test_string_element() {
 
 	m["d"] = "D";
 	m["e"] = "E";
-	sm.append(m);
+	sm.put(m);
 	ASSERT(sm.contains("b"), ==, true);
 	ASSERT(sm.contains("c"), ==, true);
 	ASSERT(sm.contains("d"), ==, true);
@@ -37,7 +37,7 @@ static void test_string_element() {
 	sm2["x"] = "X";
 	sm2["y"] = "Y";
 
-	sm.append(sm2);
+	sm.put(sm2);
 
 	ASSERT(sm.contains("b"), ==, true);
 	ASSERT(sm.contains("c"), ==, true);
@@ -56,7 +56,7 @@ static void test_string_element() {
 
 	ASSERT(sm.contains("b"), ==, false);
 
-	map<string, string> stdm = sm.toStdMap();
+	map<string, string> stdm = sm.to_map();
 	size_t cnt = 0;
 	for (map<string, string>::iterator iter = stdm.begin(); iter != stdm.end(); iter++) {
 		cnt++;
@@ -77,39 +77,39 @@ public:
 	}
 
 	virtual void test() {
-		NamedStringList nsl("named");
+		Named<StringList> nsl("named");
 		ASSERT(nsl.name(), ==, "named");
 
-		ASSERT(nsl.size(), ==, 0);
+		ASSERT(nsl.obj().size(), ==, 0);
 
-		nsl = "hello";
-		ASSERT(nsl.size(), ==, 1);
-		ASSERT(nsl.first(), ==, "hello");
+		nsl.obj().push_back("hello");
+		ASSERT(nsl.obj().size(), ==, 1);
+		ASSERT(nsl.obj().first(), ==, "hello");
 
-		nsl += "world";
-		ASSERT(nsl.size(), ==, 2);
-		ASSERT(nsl.first(), ==, "hello");
-		ASSERT(nsl.last(), ==, "world");
+		nsl.obj() += "world";
+		ASSERT(nsl.obj().size(), ==, 2);
+		ASSERT(nsl.obj().first(), ==, "hello");
+		ASSERT(nsl.obj().last(), ==, "world");
 
 		vector<string> strs;
 		strs.push_back("a");
 		strs.push_back("b");
 		strs.push_back("c");
 
-		nsl = strs;
-		ASSERT(nsl.size(), ==, 3);
-		ASSERT(nsl.first(), ==, "a");
-		ASSERT(nsl.last(), ==, "c");
+		nsl.obj() = strs;
+		ASSERT(nsl.obj().size(), ==, 3);
+		ASSERT(nsl.obj().first(), ==, "a");
+		ASSERT(nsl.obj().last(), ==, "c");
 
 		vector<string> strs2;
 		strs2.push_back("d");
 		strs2.push_back("e");
 		strs2.push_back("f");
 
-		nsl += strs2;
-		ASSERT(nsl.size(), ==, 6);
-		ASSERT(nsl.first(), ==, "a");
-		ASSERT(nsl.last(), ==, "f");
+		nsl.obj() += strs2;
+		ASSERT(nsl.obj().size(), ==, 6);
+		ASSERT(nsl.obj().first(), ==, "a");
+		ASSERT(nsl.obj().last(), ==, "f");
 	}
 };
 
@@ -161,12 +161,29 @@ public:
 	}
 };
 
+class LinkedStringListMap2TestCase : public TestCase {
+public:
+	LinkedStringListMap2TestCase() : TestCase("linked-string-list-map2") {}
+	virtual ~LinkedStringListMap2TestCase() {}
+
+	virtual void test() {
+		LinkedStringListMap m;
+		m["Host"].clearSet("123");
+		ASSERT(m["Host"].first(), ==, "123");
+		ASSERT(m["Host"].first(""), ==, "123");
+		m["Host"].first() = "456";
+		ASSERT(m["Host"].first(), ==, "456");
+		ASSERT(m[0].obj().first(), ==, "456");
+		ASSERT(m[0].obj().first(""), ==, "456");
+	}
+};
 
 int main(int argc, char *args[]) {
 
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new NamedStringListTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new LinkedStringListMapTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new LinkedStringListMap2TestCase));
 
 	test_string_element();
 

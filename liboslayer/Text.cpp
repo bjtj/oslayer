@@ -464,21 +464,34 @@ namespace UTIL {
         snprintf(num, sizeof(num), "%llX", i);
         return string(num);
     }
-    string Text::toString(const NameValueList & lst, const string & item_sep, const string & line_sep) {
-        string ret;
+	string Text::toString(const map<string, string> & m, const string & item_sep, const string & line_sep) {
+		string ret;
         bool first = true;
-        for (NameValueList::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
-            
+        for (map<string, string>::const_iterator iter = m.begin(); iter != m.end(); iter++) {
             if (first) {
                 first = false;
             } else {
                 ret.append(line_sep);
             }
-            
-            const NameValue & nv = *iter;
-            ret.append(nv.const_name());
+            ret.append(iter->first);
             ret.append(item_sep);
-            ret.append(nv.const_value());
+            ret.append(iter->second);
+        }
+        return ret;
+	}
+    string Text::toString(const vector<KeyValue> & lst, const string & item_sep, const string & line_sep) {
+        string ret;
+        bool first = true;
+        for (vector<KeyValue>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
+            if (first) {
+                first = false;
+            } else {
+                ret.append(line_sep);
+            }
+            const KeyValue & kv = *iter;
+            ret.append(kv.key());
+            ret.append(item_sep);
+            ret.append(kv.value());
         }
         return ret;
     }

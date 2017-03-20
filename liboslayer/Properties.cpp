@@ -14,7 +14,7 @@ namespace UTIL {
 	}
 
 	void Properties::clear() {
-		properties.clear();
+		_props.clear();
 	}
 
 	void Properties::loadFromFile(const string & filepath) {
@@ -50,22 +50,22 @@ namespace UTIL {
 		for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
 			string & line = *iter;
 			if (isMeaningfulLine(line)) {
-				NameValue nv = parseLine(line);
-				setProperty(nv.name(), nv.value());
+				KeyValue kv = parseLine(line);
+				setProperty(kv.key(), kv.value());
 			}
 		}
 	}
 
-	NameValue Properties::parseLine(const std::string & line) {
-		NameValue nv;
+	KeyValue Properties::parseLine(const std::string & line) {
+		KeyValue kv;
 		size_t sep = line.find("=");
 		if (sep == string::npos) {
-			nv.name() = Text::trim(line);
+			kv.key() = Text::trim(line);
 		} else {
-			nv.name() = Text::trim(line.substr(0, sep));
-			nv.value() = Text::trim(line.substr(sep + 1));
+			kv.key() = Text::trim(line.substr(0, sep));
+			kv.value() = Text::trim(line.substr(sep + 1));
 		}
-		return nv;
+		return kv;
 	}
 
 	bool Properties::isMeaningfulLine(const std::string & line) {
@@ -84,28 +84,28 @@ namespace UTIL {
 
 	string Properties::convertToPropertiesString() {
 		string ret;
-		for (size_t i = 0; i < properties.size(); i++) {
-			NameProperty prop = properties[i];
-			ret.append(prop.getName());
+		for (size_t i = 0; i < _props.size(); i++) {
+			KeyValue prop = _props[i];
+			ret.append(prop.key());
 			ret.append("=");
-			ret.append(prop.getValue());
+			ret.append(prop.value());
 			ret.append("\n");
 		}
 		return ret;
 	}
 
 	bool Properties::hasProperty(const string & name) const {
-		return properties.contains(name);
+		return _props.contains(name);
 	}
 
 	string Properties::getProperty(const string & name) {
-		return properties.obtain(name).getValue();
+		return _props[name];
 	}
 	string Properties::getProperty(const string & name, const string & def) {
-		if (!properties.contains(name)) {
+		if (!_props.contains(name)) {
 			return def;
 		}
-		return properties.obtain(name).getValue();
+		return _props[name];
 	}
 
 	int Properties::getIntegerProperty(const std::string & name, int def) {
@@ -116,7 +116,7 @@ namespace UTIL {
 	}
 
 	void Properties::setProperty(const string & name, const string & value) {
-		properties.obtain(name).setValue(value);
+		_props[name] = value;
 	}
 	
 	void Properties::setProperty(const string & name, int value) {
@@ -125,24 +125,24 @@ namespace UTIL {
 
 	vector<string> Properties::getPropertyNames() {
 		vector<string> names;
-		for (size_t i = 0; i < properties.size(); i++) {
-			names.push_back(properties[i].getName());
+		for (size_t i = 0; i < _props.size(); i++) {
+			names.push_back(_props[i].key());
 		}
 		return names;
 	}
 
 	string & Properties::operator[] (const string & name) {
-		return properties.obtain(name).getValue();
+		return _props[name];
 	}
 
 	const string Properties::operator[] (const string & name) const {
-		return properties.const_get(name).getValue();
+		return _props.const_element(name).value();
 	}
 
 	map<string, string> Properties::toStandardMap() {
 		map<string, string> ret;
-		for (size_t i = 0; i < properties.size(); i++) {
-			ret[properties[i].name()] = properties[i].value();
+		for (size_t i = 0; i < _props.size(); i++) {
+			ret[_props[i].key()] = _props[i].value();
 		}
 		return ret;
 	}

@@ -8,31 +8,16 @@
 
 namespace UTIL {
 
-	class NameValueAttributes : public NameValue {
-	private:
-		LinkedStringMap _attributes;
-	public:
-		NameValueAttributes() {}
-		NameValueAttributes(const std::string & name) : NameValue(name) {}
-		virtual ~NameValueAttributes() {}
-		LinkedStringMap & attributes() {
-			return _attributes;
-		}
-		std::string & attr(const std::string & name) {
-			return _attributes[name];
-		}
-	};
-
 	/**
 	 * @brief
 	 */
 	class PropertyMap {
 	private:
-		std::vector<NameValueAttributes> _elements;
+		std::vector<KeyValueAttr> _elements;
 	public:
 		PropertyMap() {}
 		virtual ~PropertyMap() {}
-		std::vector<NameValueAttributes> & elements() {
+		std::vector<KeyValueAttr> & elements() {
 			return _elements;
 		}
 		size_t size() const {
@@ -42,44 +27,43 @@ namespace UTIL {
             _elements.clear();
         }
 		void erase(const std::string & name) {
-			for (std::vector<NameValueAttributes>::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->name() == name) {
+			for (std::vector<KeyValueAttr>::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->key() == name) {
 					_elements.erase(iter);
 					return;
 				}
 			}
 		}
 		bool has(const std::string & name) const {
-			for (std::vector<NameValueAttributes>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->const_name() == name) {
+			for (std::vector<KeyValueAttr>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->key() == name) {
 					return true;
 				}
 			}
 			return false;
 		}
-		NameValueAttributes & get(const std::string & name) {
-
-			for (std::vector<NameValueAttributes>::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->name() == name) {
+		KeyValueAttr & get(const std::string & name) {
+			for (std::vector<KeyValueAttr>::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->key() == name) {
 					return *iter;
 				}
 			}
-			_elements.push_back(NameValueAttributes(name));
+			_elements.push_back(KeyValueAttr(name));
 			return get(name);
 		}
-		NameValueAttributes get_const(const std::string & name) const {
-			for (std::vector<NameValueAttributes>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-				if (iter->const_name() == name) {
+		KeyValueAttr get_const(const std::string & name) const {
+			for (std::vector<KeyValueAttr>::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
+				if (iter->key() == name) {
 					return *iter;
 				}
 			}
 			throw OS::Exception("no item found");
 		}
-		void set(const NameValue & nv) {
-			get(nv.const_name()).value() = nv.const_value();
+		void set(const KeyValue & kv) {
+			get(kv.key()).value() = kv.value();
 		}
-		void set(const NameValueAttributes & nv) {
-			get(nv.const_name()).value() = nv.const_value();
+		void set(const KeyValueAttr & kva) {
+			get(kva.key()).value() = kva.value();
 		}
 		void append(const PropertyMap & m) {
 			for (size_t i = 0; i < m.size(); i++) {
@@ -94,14 +78,14 @@ namespace UTIL {
 		std::map<std::string, std::string> toStdMap() {
 			std::map<std::string, std::string> ret;
 			for (size_t i = 0; i < _elements.size(); i++) {
-				ret[_elements[i].name()] = _elements[i].value();
+				ret[_elements[i].key()] = _elements[i].value();
 			}
 			return ret;
 		}
-		NameValueAttributes & operator[] (size_t index) {
+		KeyValueAttr & operator[] (size_t index) {
 			return _elements[index];
 		}
-		NameValueAttributes operator[] (size_t index) const {
+		KeyValueAttr operator[] (size_t index) const {
 			return _elements[index];
 		}
 		std::string & operator[] (const std::string & name) {
@@ -112,7 +96,6 @@ namespace UTIL {
 			append(m);
 		}
 	};
-
 }
 
 #endif

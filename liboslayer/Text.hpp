@@ -70,7 +70,12 @@ namespace UTIL {
         static std::string toUpperHexString(unsigned long i);
         static std::string toUpperHexString(unsigned long long i);
 
-        static std::string toString(const NameValueList & lst, const std::string & item_sep = ": ", const std::string & line_sep = ", ");
+		static std::string toString(const std::map<std::string, std::string> & m,
+									const std::string & item_sep = ": ",
+									const std::string & line_sep = ", ");
+        static std::string toString(const std::vector<KeyValue> & lst,
+									const std::string & item_sep = ": ",
+									const std::string & line_sep = ", ");
         
 		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
 		static bool startsWithIgnoreCase(std::string a, std::string b);

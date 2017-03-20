@@ -14,7 +14,7 @@ namespace UTIL {
 	 */
 	class Properties {
 	private:
-		LinkedStringProperties properties;
+		LinkedStringMap _props;
 		
 	public:
 		Properties();
@@ -29,7 +29,7 @@ namespace UTIL {
 	private:
 
 		void parsePropertiesString(const std::string & text);
-		NameValue parseLine(const std::string & line);
+		KeyValue parseLine(const std::string & line);
 		bool isMeaningfulLine(const std::string & line);
 		std::string convertToPropertiesString();
 

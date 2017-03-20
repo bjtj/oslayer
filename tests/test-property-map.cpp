@@ -14,8 +14,8 @@ static void test_property_map() {
 	ASSERT(pm["a"], ==, "A");
 	ASSERT(pm["b"], ==, "B");
 	
-	ASSERT(pm[0].name(), ==, "a");
-	ASSERT(pm[1].name(), ==, "b");
+	ASSERT(pm[0].key(), ==, "a");
+	ASSERT(pm[1].key(), ==, "b");
 	ASSERT(pm[0].value(), ==, "A");
 	ASSERT(pm[1].value(), ==, "B");
 

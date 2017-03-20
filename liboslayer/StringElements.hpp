@@ -8,199 +8,179 @@
 namespace UTIL {
 
 	/**
-	 * @brief name value
+	 * named
 	 */
-	class NameValue {
+	template <typename T>
+	class Named {
 	private:
 		std::string _name;
+		T _t;
+	public:
+		Named();
+		Named(const std::string & name);
+		Named(const std::string & name, const T & t);
+		virtual ~Named();
+		std::string & name();
+		const std::string name() const;
+		T & obj();
+		const T obj() const;
+	};
+
+	template <typename T>
+	Named<T>::Named() {}
+	template <typename T>
+	Named<T>::Named(const std::string & name) : _name(name) {}
+	template <typename T>
+	Named<T>::Named(const std::string & name, const T & t) : _name(name), _t(t) {}
+	template <typename T>
+	Named<T>::~Named() {}
+	template <typename T>
+	std::string & Named<T>::name() {return _name;}
+	template <typename T>
+	const std::string Named<T>::name() const {return _name;}
+	template <typename T>
+	T & Named<T>::obj() {return _t;}
+	template <typename T>
+	const T Named<T>::obj() const {return _t;}
+
+	/**
+	 * key value
+	 */
+	class KeyValue {
+	private:
+		std::string _key;
 		std::string _value;
-
 	public:
-		NameValue();
-		NameValue(const std::string & name);
-		NameValue(const std::string & name, const std::string & value);
-		virtual ~NameValue();
-		std::string & name();
+		KeyValue();
+		KeyValue(const std::string & key);
+		KeyValue(const std::string & key, const std::string & value);
+		virtual ~KeyValue();
+		std::string & key();
 		std::string & value();
-		const std::string const_name() const;
-		const std::string const_value() const;
-		bool operator==(const std::string & name) const;
+		const std::string key() const;
+		const std::string value() const;
+		bool operator==(const std::string & key) const;
 	};
-    
-    /**
-     * @brief name value list
-     */
-    class NameValueList : public std::vector<NameValue> {
-    private:
-    public:
-        NameValueList();
-		NameValueList(const std::vector<NameValue> & lst);
-        virtual ~NameValueList();
-    };
 
 	/**
-	 * @brief 
+	 * string list
 	 */
-	class NamedStringList {
-	private:
-		std::string _name;
-		std::vector<std::string> _strs;
+	class StringList : public std::vector<std::string> {
 	public:
-		NamedStringList();
-		NamedStringList(const std::string & name);
-		NamedStringList(const std::string & name, const std::string & str);
-		NamedStringList(const std::string & name, const std::vector<std::string> & strs);
-		virtual ~NamedStringList();
-		const std::string const_name() const;
-		std::string & name();
-		std::vector<std::string> vec_strs();
+		StringList();
+		StringList(size_t n, const std::string & val);
+		virtual ~StringList();
 		std::string & first();
-		const std::string const_first() const;
+		const std::string first() const;
+		const std::string first(const std::string & def) const;
 		std::string & last();
-		const std::string const_last() const;
-		const std::string first_safe(const std::string & def) const;
-		const std::string last_safe(const std::string & def) const;
-		size_t size();
-		void clear();
-		std::string & operator[] (size_t idx);
-		void operator= (const std::string & str);
-		void operator= (const char * str);
-		void operator= (const std::vector<std::string> & strs);
-		NamedStringList & operator+= (const std::string & str);
-		NamedStringList & operator+= (const char * str);
-		NamedStringList & operator+= (const std::vector<std::string> & strs);
+		const std::string last() const;
+		const std::string last(const std::string & def) const;
+		void clearSet(const std::string & value);
+		StringList & operator+= (const std::string & value);
+		StringList & operator+= (const char * value);
+		StringList & operator+= (const std::vector<std::string> & values);
+		void operator= (const std::vector<std::string> & values);
 	};
 
-
 	/**
-	 * @brief string map
+	 * string map
 	 */
 	class StringMap : public std::map<std::string, std::string> {
     private:
 	public:
 		StringMap();
 		virtual ~StringMap();
-        std::string & operator[] (const std::string & name);
-        std::string get(const std::string & name) const;
+        const std::string const_get(const std::string & key, const std::string & def) const;
 	};
 
 	/**
-	 * @brief linked string map
+	 * linked string map
 	 */
 	class LinkedStringMap {
 	private:
-		std::vector<NameValue> _elements;
+		std::vector<KeyValue> _elements;
 	public:
 		LinkedStringMap();
 		virtual ~LinkedStringMap();
-		std::vector<NameValue> elements();
-		std::vector<NameValue> toNameValueList() const;
+		std::vector<KeyValue> & elements();
+		const std::vector<KeyValue> const_elements() const;
 		size_t size() const;
         void clear();
-		void erase(const std::string & name);
-		bool contains(const std::string & name) const;
-		NameValue & get(const std::string & name);
-		NameValue const_get(const std::string & name) const;
-		void set(const NameValue & nv);
-		void append(const LinkedStringMap & m);
-		void append(const std::map<std::string, std::string> & m);
-		std::map<std::string, std::string> toStdMap();
-		NameValue & operator[] (size_t index);
-		NameValue operator[] (size_t index) const;
-		std::string & operator[] (const std::string & name);
+		void erase(const std::string & key);
+		bool contains(const std::string & key) const;
+		bool containsIgnoreCase(const std::string & key) const;
+		KeyValue & element(const std::string & key);
+		KeyValue const_element(const std::string & key) const;
+		KeyValue & obtain(const std::string & key);
+		void put(const KeyValue & kv);
+		void put(const LinkedStringMap & m);
+		void put(const std::map<std::string, std::string> & m);
+		std::map<std::string, std::string> to_map() const;
+		KeyValue & operator[] (size_t index);
+		KeyValue operator[] (size_t index) const;
+		std::string & operator[] (const std::string & key);
 		void operator= (const std::map<std::string, std::string> & m);
 	};
 
-
-	/**
-	 * @brief NameProperty
-	 */
-	class NameProperty {
-	private:
-		std::string _name;
-		std::string _value;
-		LinkedStringMap properties;
-	public:
-		NameProperty();
-		NameProperty(const std::string & name);
-		NameProperty(const std::string & name, const std::string & value);
-		virtual ~NameProperty();
-		void setName(const std::string & name);
-		void setValue(const std::string & value);
-		std::string & name();
-		std::string & value();
-		std::string & getName();
-		std::string & getValue();
-		const std::string & getName() const;
-		const std::string & getValue() const;
-		LinkedStringMap & getProperties();
-		const LinkedStringMap & getProperties() const;
-		std::string & getProperty(const std::string & name);
-		std::string getProperty(const std::string & name) const;
-		void setProperty(const std::string & name, const std::string & value);
-		std::string & operator[] (const std::string & name);
-		bool operator==(const std::string & name) const;
-		void operator=(const std::string & value);
-	};
-
-
-	/**
-	 * @brief linked string map
-	 */
-	class LinkedStringProperties {
-	private:
-		std::vector<NameProperty> elements;
-	public:
-		LinkedStringProperties();
-		virtual ~LinkedStringProperties();
-		size_t size() const;
-        void clear();
-		NameProperty & obtain(const std::string & name);
-		const NameProperty & const_get(const std::string & name) const;
-		bool contains(const std::string & name) const;
-		NameProperty & operator[] (const std::string & name);
-		const NameProperty & operator[] (size_t index) const;
-		NameProperty & operator[] (size_t index);
-	};
-    
     /**
-     * @brief string list map
+     * string list map
      */
-    class StringListMap : public std::map<std::string, std::vector<std::string> > {
+    class StringListMap : public std::map<std::string, StringList > {
     private:
     public:
         StringListMap();
         virtual ~StringListMap();
-        void append(const std::string & name, const std::string & value);
-        std::string getFirstValue(const std::string & name);
-        NameValueList toNameValueList() const;
     };
 
 	/**
-	 * @brief 
+	 * linked string-list map
 	 */
 	class LinkedStringListMap {
 	private:
-		std::vector<NamedStringList> _elems;
+		std::vector< Named<StringList> > _elements;
 	public:
 		LinkedStringListMap();
 		virtual ~LinkedStringListMap();
 		void clear();
-		NamedStringList & get(const std::string & name);
-		bool contains(const std::string & name) const;
-		bool containsIgnoreCase(const std::string & name) const;
+		bool contains(const std::string & key) const;
+		bool containsIgnoreCase(const std::string & key) const;
 		size_t size() const;
+		Named<StringList> & element(const std::string & key);
+		Named<StringList> const_element(const std::string & key) const;
+		Named<StringList> & obtain(const std::string & key);
+		void put(const LinkedStringMap & m);
+		void put(const std::map<std::string, std::string> & m);
 		void append(const LinkedStringMap & m);
 		void append(const std::map<std::string, std::string> & m);
-		void erase(const std::string & name);
-		std::map<std::string, std::string> toStdMap();
-		NamedStringList & operator[] (const std::string & name);
-		NamedStringList & operator[] (size_t idx);
-		NamedStringList operator[] (size_t idx) const;
+		void erase(const std::string & key);
+		std::map<std::string, std::string> to_first_map(const std::string & def) const;
+		std::map<std::string, std::string> to_join_map(const std::string & glue) const;
+		StringList & operator[] (const std::string & key);
+		Named<StringList> & operator[] (size_t idx);
+		const Named<StringList> operator[] (size_t idx) const;
 		LinkedStringListMap & operator+= (const LinkedStringMap & m);
 		LinkedStringListMap operator+= (const std::map<std::string, std::string> & m);
 		void operator= (const LinkedStringMap & m);
 		void operator= (const std::map<std::string, std::string> & m);
+	};
+
+	/**
+	 * key value +attributes
+	 */
+	class KeyValueAttr : public KeyValue {
+	private:
+		LinkedStringMap _attrs;
+	public:
+		KeyValueAttr();
+		KeyValueAttr(const std::string & key);
+		KeyValueAttr(const std::string & key, const std::string & value);
+		KeyValueAttr(const std::string & key, const std::string & value, const LinkedStringMap & attrs);
+		virtual ~KeyValueAttr();
+		LinkedStringMap & attrs();
+		std::string & attr(const std::string & name);
+		const std::string attr(const std::string & name) const;
+		const LinkedStringMap attrs() const;
 	};
 }
 

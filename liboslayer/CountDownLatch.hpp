@@ -17,8 +17,6 @@ namespace UTIL {
 		void countDown();
 		size_t getCount();
 	};
-
-	
 }
 
 #endif

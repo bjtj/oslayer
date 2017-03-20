@@ -14,8 +14,6 @@ namespace UTIL {
 		static std::string encode(const std::string & plain);
 		static std::string decode(const std::string & encoded);
 	};
-
-	
 }
 
 #endif
