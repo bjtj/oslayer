@@ -35,7 +35,8 @@ check_PROGRAMS = \
 	test-datagramsocket \
 	test-observer-pattern \
 	test-register \
-	test-lifetime
+	test-lifetime \
+	test-uuid
 
 if SUPPORT_OPENSSL
 check_PROGRAMS += test-secure-socket
@@ -74,6 +75,7 @@ test_observer_pattern_SOURCES=test-observer-pattern.cpp
 test_register_SOURCES=test-register.cpp
 test_heap_SOURCES=test-heap.cpp
 test_lifetime_SOURCES=test-lifetime.cpp
+test_uuid_SOURCES=test-uuid.cpp
 
 if SUPPORT_OPENSSL
 test_secure_socket_SOURCES=test-secure-socket.cpp
