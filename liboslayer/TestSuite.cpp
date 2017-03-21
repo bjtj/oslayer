@@ -4,6 +4,7 @@
 namespace UTIL {
 
 	using namespace std;
+	using namespace OS;
 
 	/**
 	 *
@@ -88,15 +89,21 @@ namespace UTIL {
 
 	TestResult TestSuite::test(AutoRef<TestCase> testCase) {
 		TestResult result(testCase->getName());
-		cout << "TEST : " << testCase->getName() << endl;
+		cout << "[TEST]: " << testCase->getName() << endl;
 		testCase->setUp(env);
 		try {
 			testCase->test();
 			result.setResult(true);
 		} catch (AssertException & e) {
+			cerr << " [Assert]: " << e.getMessage() << endl;
+			result.setResult(false);
+			result.setMessage(e.getMessage());
+		} catch (Exception & e) {
+			cerr << " [Exception]: " << e.getMessage() << endl;
 			result.setResult(false);
 			result.setMessage(e.getMessage());
 		} catch (...) {
+			cerr << " [unknown exception]" << endl;
 			result.setResult(false);
 			result.setMessage("unknown exception");
 		}
