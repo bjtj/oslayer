@@ -6,6 +6,7 @@ liboslayerinc_HEADERS= \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
+	ByteArray.hpp \
 	Condition.hpp \
 	CountDownLatch.hpp \
 	DatabaseConnection.hpp \
@@ -57,6 +58,8 @@ liboslayer_la_SOURCES= \
 	AutoRelease.hpp \
 	Base64.cpp \
 	Base64.hpp \
+	ByteArray.cpp \
+	ByteArray.hpp \
 	Condition.hpp \
 	CountDownLatch.cpp \
 	CountDownLatch.hpp \
