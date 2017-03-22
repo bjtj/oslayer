@@ -62,6 +62,20 @@ public:
 			cout << " * offset: " << date.getGmtOffset() << " (" << ((double)date.getGmtOffset() / 60.0) << ")" << endl;
 			cout << " * time: " << date.getTime().sec << endl;
 		}
+
+		{
+			Date d;
+			d.setYear(2017);
+			d.setMonth(3 - 1);
+			d.setDay(22);
+			d.setHour(23);
+			d.setMinute(33);
+			d.setSecond(52);
+			d.setGmtOffset(9 * 60);
+
+			ASSERT(Date::formatRfc1123(d), ==, "Wed, 22 Mar 2017 14:33:52 GMT");
+			ASSERT(Date::formatRfc1036(d), ==, "Wednesday, 22-Mar-17 14:33:52 GMT");
+		}
 	}
 };
 

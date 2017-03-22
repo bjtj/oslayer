@@ -151,6 +151,8 @@ namespace UTIL {
 		Named<StringList> & obtain(const std::string & key);
 		void put(const LinkedStringMap & m);
 		void put(const std::map<std::string, std::string> & m);
+		void append(const std::string & key, const std::string & value);
+		void append(const KeyValue & kv);
 		void append(const LinkedStringMap & m);
 		void append(const std::map<std::string, std::string> & m);
 		void erase(const std::string & key);

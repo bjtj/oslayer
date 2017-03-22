@@ -309,22 +309,24 @@ namespace UTIL {
 			}
 		}
 	}
+	void LinkedStringListMap::append(const string & key, const string & value) {
+		if (contains(key)) {
+			element(key).obj().push_back(value);
+		} else {
+			_elements.push_back(Named<StringList>(key, StringList(1, value)));
+		}
+	}
+	void LinkedStringListMap::append(const KeyValue & kv) {
+		append(kv.key(), kv.value());
+	}
 	void LinkedStringListMap::append(const LinkedStringMap & m) {
 		for (size_t i = 0; i < m.size(); i++) {
-			if (contains(m[i].key())) {
-				element(m[i].key()).obj().push_back(m[i].value());
-			} else {
-				_elements.push_back(Named<StringList>(m[i].key(), StringList(1, m[i].value())));
-			}
+			append(m[i]);
 		}
 	}
 	void LinkedStringListMap::append(const map<string, string> & m) {
 		for (map<string, string>::const_iterator iter = m.begin(); iter != m.end(); iter++) {
-			if (contains(iter->first)) {
-				element(iter->first).obj().push_back(iter->second);
-			} else {
-				_elements.push_back(Named<StringList>(iter->first, StringList(1, iter->second)));
-			}
+			append(iter->first, iter->second);
 		}
 	}
 	void LinkedStringListMap::erase(const string & key) {

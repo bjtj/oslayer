@@ -380,6 +380,7 @@ namespace OS {
 		return ret;
     }
 	
+	// Wed, 09 Jun 2021 10:18:14 GMT
 	string Date::formatRfc1123(const Date & date) {
 		static const char * wkday[] = {"Sun", "Mon", "Tue",
 									   "Wed", "Thu", "Fri", "Sat"};
@@ -400,8 +401,33 @@ namespace OS {
 		return string(buffer);
 	}
 
-	
+	Date Date::parseRfc1123(const string & date) {
+		// TODO: implement
+		throw NotImplementedException("Not implemented");
+	}
+
+	// Sunday, 06-Nov-94 08:49:37 GMT
 	string Date::formatRfc1036(const Date & date) {
+		static const char * wkday[] = {"Sunday", "Monday", "Tuesday",
+									   "Wednesday", "Thursday", "Friday", "Saturday"};
+		static const char * month[] = {"Jan", "Feb", "Mar",
+									   "Apr", "May", "Jun",
+									   "Jul", "Aug", "Sep",
+									   "Oct", "Nov", "Dec"};
+		Date gmt = date.toGmt();
+		char buffer[64] = {0,};
+		snprintf(buffer, sizeof(buffer), "%s, %02d-%s-%02d %02d:%02d:%02d GMT",
+				 wkday[gmt.getDayOfWeek()],
+				 gmt.getDay(),
+				 month[gmt.getMonth()],
+				 gmt.getYear() % 100,
+				 gmt.getHour(),
+				 gmt.getMinute(),
+				 gmt.getSecond());
+		return string(buffer);
+	}
+
+	Date Date::parseRfc1036(const string & date) {
 		// TODO: implement
 		throw NotImplementedException("Not implemented");
 	}
