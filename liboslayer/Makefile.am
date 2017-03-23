@@ -29,6 +29,7 @@ liboslayerinc_HEADERS= \
 	Properties.hpp \
 	PropertyMap.hpp \
 	Random.hpp \
+	Ref.hpp \
 	Regex.hpp \
 	Register.hpp \
 	SecureSocket.hpp \
@@ -96,6 +97,7 @@ liboslayer_la_SOURCES= \
 	PropertyMap.hpp \
 	Random.cpp \
 	Random.hpp \
+	Ref.hpp \
 	Regex.cpp \
 	Regex.hpp \
 	Register.hpp \

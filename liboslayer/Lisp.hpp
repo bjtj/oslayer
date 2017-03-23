@@ -331,7 +331,7 @@ namespace LISP {
 		int getType();
 		std::string getTypeString() const;
 		std::string getTypeString(int type) const;
-		void checkTypeThrow(int t) const;
+		void typeCheck(int t) const;
 		bool isNil() const;
 		bool isList() const;
 		bool isSymbol() const;

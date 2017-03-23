@@ -298,10 +298,10 @@ namespace LISP {
 		}
 		throw LispException("unknown variable type / " + Text::toString(type));
 	}
-	void Var::checkTypeThrow(int t) const {
+	void Var::typeCheck(int t) const {
 		if (type != t) {
-			throw LispException(toString() + " / type not match (type: " + getTypeString() +
-								", but required: " + getTypeString(t) + ")");
+			throw LispException("Type check failed (required: " + getTypeString(t) +
+								", but: " + getTypeString() + ")");
 		}
 	}
 	bool Var::isNil() const {return type == NIL;}
@@ -314,16 +314,16 @@ namespace LISP {
 	bool Var::isFunction() const {return type == FUNC;}
 	bool Var::isFile() const {return type == FILE;}
 	bool Var::isFileDescriptor() const {return type == FILE_DESCRIPTOR;}
-	string Var::getSymbol() const {checkTypeThrow(SYMBOL); return symbol;}
-	string Var::getString() const {checkTypeThrow(STRING); return str;}
-	vector<_VAR> & Var::getList() {checkTypeThrow(LIST); return lst;}
-	Boolean Var::getBoolean() {checkTypeThrow(BOOLEAN); return bval;}
-	Integer Var::getInteger() {checkTypeThrow(INTEGER); return inum;}
-	Float Var::getFloat() {checkTypeThrow(FLOAT); return dnum;}
-	OS::File & Var::getFile() {checkTypeThrow(FILE); return file;}
-	Func Var::getFunc() {checkTypeThrow(FUNC); return func;}
-	AutoRef<Procedure> Var::getProcedure() {checkTypeThrow(FUNC); return procedure;}
-	FileDescriptor & Var::getFileDescriptor() {checkTypeThrow(FILE_DESCRIPTOR); return fd;}
+	string Var::getSymbol() const {typeCheck(SYMBOL); return symbol;}
+	string Var::getString() const {typeCheck(STRING); return str;}
+	vector<_VAR> & Var::getList() {typeCheck(LIST); return lst;}
+	Boolean Var::getBoolean() {typeCheck(BOOLEAN); return bval;}
+	Integer Var::getInteger() {typeCheck(INTEGER); return inum;}
+	Float Var::getFloat() {typeCheck(FLOAT); return dnum;}
+	OS::File & Var::getFile() {typeCheck(FILE); return file;}
+	Func Var::getFunc() {typeCheck(FUNC); return func;}
+	AutoRef<Procedure> Var::getProcedure() {typeCheck(FUNC); return procedure;}
+	FileDescriptor & Var::getFileDescriptor() {typeCheck(FILE_DESCRIPTOR); return fd;}
 	_VAR Var::proc(Env & env, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
 			throw LispException("not function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
@@ -888,11 +888,11 @@ namespace LISP {
                 return _NIL(env);
 			} else if (silentsymboleq(lv[0], "lambda")) {
 				validateArgumentCountMin(lv, 3);
-				lv[1]->checkTypeThrow(Var::LIST);
+				lv[1]->typeCheck(Var::LIST);
 				return HEAP_ALLOC(env, Func(lv[1], lv[2]));
 			} else if (silentsymboleq(lv[0], "defun")) {
 				validateArgumentCountMin(lv, 4);
-				lv[2]->checkTypeThrow(Var::LIST);
+				lv[2]->typeCheck(Var::LIST);
 				env[lv[1]->getSymbol()] = HEAP_ALLOC(env, Func(lv[2], lv[3]));
 				return HEAP_ALLOC(env, lv[1]->getSymbol());
 			} else if (silentsymboleq(lv[0], "setf")) {
