@@ -113,17 +113,17 @@ typedef SOCKET SOCK_HANDLE;
 
 namespace OS {
 
-#define DECL_EXCEPTION(NAME, BASE)	\
-	class NAME : public BASE { \
-	public:										   \
-		explicit NAME() {/**/}												\
-		explicit NAME(const std::string & message) : BASE(message) {/**/} \
-		explicit NAME(const char * message) : BASE(message) {/**/} \
-		explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
-		: BASE(message, errorCode, subErrorCode) {/**/} \
-		explicit NAME(const char * message, int errorCode, int subErrorCode) \
-		: BASE(message, errorCode, subErrorCode) {/**/} \
-		virtual ~NAME() throw() {/**/} \
+#define DECL_EXCEPTION(NAME, BASE)										\
+	class NAME : public BASE {											\
+	public:																\
+	explicit NAME() {/**/}												\
+	explicit NAME(const std::string & message) : BASE(message) {/**/}	\
+	explicit NAME(const char * message) : BASE(message) {/**/}			\
+	explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
+		: BASE(message, errorCode, subErrorCode) {/**/}					\
+	explicit NAME(const char * message, int errorCode, int subErrorCode) \
+		: BASE(message, errorCode, subErrorCode) {/**/}					\
+	virtual ~NAME() throw() {/**/}										\
 	};
 
 #define DECL_NAMED_EXCEPTION(NAME) DECL_EXCEPTION(NAME, OS::Exception)

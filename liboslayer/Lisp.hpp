@@ -26,6 +26,16 @@ namespace LISP {
 	DECL_NAMED_EXCEPTION(LispException);
 	DECL_EXCEPTION(ParseLispException, LispException);
 	DECL_EXCEPTION(EvalLispException, LispException);
+	class ReturnLispException : public LispException {
+	private:
+		OS::GCRef<Var> _tag;
+		OS::GCRef<Var> _var;
+	public:
+		explicit ReturnLispException(OS::GCRef<Var> tag, OS::GCRef<Var> var);
+		virtual ~ReturnLispException() throw();
+		OS::GCRef<Var> tag();
+		OS::GCRef<Var> var();
+	};
 
 	/**/
 	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);

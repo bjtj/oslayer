@@ -33,6 +33,22 @@ namespace LISP {
 	using namespace UTIL;
 
 	/**
+	 * @brief return lisp exception
+	 */
+	
+	ReturnLispException::ReturnLispException(GCRef<Var> tag, GCRef<Var> var)
+		: _tag(tag), _var(var) {
+	}
+	ReturnLispException::~ReturnLispException() throw() {
+	}
+	GCRef<Var> ReturnLispException::tag() {
+		return _tag;
+	}
+	GCRef<Var> ReturnLispException::var() {
+		return _var;
+	}
+
+	/**
 	 * @brief Env
 	 */
 
