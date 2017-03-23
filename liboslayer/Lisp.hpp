@@ -17,14 +17,17 @@
 
 namespace LISP {
 
+	/**/
 	class Env;
 	class Func;
 	class Var;
 
+	/**/
 	DECL_NAMED_EXCEPTION(LispException);
 	DECL_EXCEPTION(ParseLispException, LispException);
 	DECL_EXCEPTION(EvalLispException, LispException);
 
+	/**/
 	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 	extern std::string text(const std::string & txt);
 	extern std::string untext(const std::string & txt);
@@ -403,9 +406,8 @@ namespace LISP {
 	};
 
 	/**
-	 * @brief lisp utility
+	 * @brief lisp extern
 	 */
-
 	extern OS::GCRef<Var> pathname(Env & env, OS::GCRef<Var> path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
