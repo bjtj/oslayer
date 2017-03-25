@@ -26,6 +26,23 @@ namespace LISP {
 	DECL_NAMED_EXCEPTION(LispException);
 	DECL_EXCEPTION(ParseLispException, LispException);
 	DECL_EXCEPTION(EvalLispException, LispException);
+
+	/**
+	 * 
+	 */
+	class ExitLispException : public LispException {
+	private:
+		int _code;
+	public:
+		explicit ExitLispException();
+		explicit ExitLispException(int code);
+		virtual ~ExitLispException() throw();
+		int & code();
+	};
+
+	/**
+	 * 
+	 */
 	class ReturnLispException : public LispException {
 	private:
 		OS::GCRef<Var> _tag;
@@ -35,6 +52,20 @@ namespace LISP {
 		virtual ~ReturnLispException() throw();
 		OS::GCRef<Var> tag();
 		OS::GCRef<Var> var();
+	};
+
+	/**
+	 * 
+	 */
+	class ThrowLispException : public LispException {
+	private:
+		OS::GCRef<Var> _except;
+		OS::GCRef<Var> _ret;
+	public:
+		explicit ThrowLispException(OS::GCRef<Var> except, OS::GCRef<Var> ret);
+		virtual ~ThrowLispException() throw();
+		OS::GCRef<Var> except();
+		OS::GCRef<Var> ret();
 	};
 
 	/**/
@@ -242,7 +273,6 @@ namespace LISP {
 	private:
 		static bool _debug;
 		Env * _parent;
-		bool _quit;
 		std::map<std::string, OS::GCRef<Var> > _vars;
 		OS::SharedHeap<Var> _heap;
 	public:
@@ -257,8 +287,6 @@ namespace LISP {
 		std::map<std::string, OS::GCRef<Var> > & root();
 		std::map<std::string, OS::GCRef<Var> > & local();
 		void push(OS::GCRef<Var> var);
-		void quit(bool q);
-		bool quit();
 		std::string toString();
 		OS::SharedHeap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
@@ -380,7 +408,7 @@ namespace LISP {
 
 		void clearCommands();
 		void clearBuffer();
-		static std::string trimComment(const std::string & text);
+		static std::string eliminateComment(const std::string & text);
 		static size_t testComplete(const std::string & text);
 		size_t read(const std::string & text);
 		size_t size();

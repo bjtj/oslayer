@@ -10,18 +10,18 @@ using namespace LISP;
 
 static void test_comment() {
 	string text = "hello ; comment";
-	ASSERT(BufferedCommandReader::trimComment(text), ==, "hello ");
+	ASSERT(BufferedCommandReader::eliminateComment(text), ==, "hello ");
 	text = "(defun hello () ;sample hello program\n"
 		"(print \"hello world\")) ; print greeting";
-	ASSERT(BufferedCommandReader::trimComment(text), ==, "(defun hello () \n"
+	ASSERT(BufferedCommandReader::eliminateComment(text), ==, "(defun hello () \n"
 		   "(print \"hello world\")) ");
 	text = "\" ; \"";
-	ASSERT(BufferedCommandReader::trimComment(text), ==, "\" ; \"");
+	ASSERT(BufferedCommandReader::eliminateComment(text), ==, "\" ; \"");
 
 	Env env;
 	native(env);
 	ASSERT(compile(env, "(format nil \"hello\") ; comment")->toString(), ==, "hello");
-	ASSERT(BufferedCommandReader::trimComment("(format nil ;comment\n"
+	ASSERT(BufferedCommandReader::eliminateComment("(format nil ;comment\n"
 											  "\"hello\")"), ==, "(format nil \n"
 		   "\"hello\")");
 	ASSERT(compile(env, "(format nil\n"
@@ -634,9 +634,34 @@ static void test_error_handling() {
 
 	try {
 		compile(env, "(quote)");
+		throw "This should not be thrown!";
 	} catch (LispException e) {
-		ASSERT(e.getMessage(), ==, "Wrong argument count");
+		// OK
 	}
+}
+
+static void test_block() {
+	Env env;
+	native(env);
+	ASSERT(compile(env, "(block a (block nil (print 'a) (return-from nil)) (print 'b) (return-from a) (print 'c))")->isNil(), ==, true);
+}
+
+static void test_throw() {
+	Env env;
+	native(env);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1))")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print 'b))")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print b))")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(catch 'a (catch 'b (unwind-protect (throw 'a 1) (throw 'b 2))))")->getInteger(), ==, 2);
+
+	string cmd = "(catch 'foo"
+		"(format t \"The inner catch returns ~a.~%\""
+		"(catch 'foo"
+		"(unwind-protect (throw 'foo 'second-throw)"
+		"(throw 'foo 'second-throw))))"
+		"'outer-catch)";
+
+	ASSERT(compile(env, cmd)->getSymbol(), ==, "outer-catch");
 }
 
 int main(int argc, char *args[]) {
@@ -689,6 +714,10 @@ int main(int argc, char *args[]) {
 		test_load();
 		cout << " *** test_error_handling()" << endl;
 		test_error_handling();
+		cout << " *** test_block()" << endl;
+		test_block();
+		cout << " *** test_throw()" << endl;
+		test_throw();
 	} catch (LispException & e) {
 		cout << e.getMessage() << endl;
 		exit(1);
