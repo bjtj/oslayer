@@ -76,6 +76,51 @@ public:
 			ASSERT(Date::formatRfc1123(d), ==, "Wed, 22 Mar 2017 14:33:52 GMT");
 			ASSERT(Date::formatRfc1036(d), ==, "Wednesday, 22-Mar-17 14:33:52 GMT");
 		}
+
+		{
+			Date a = Date::now();
+			Date _a = a;
+			idle(5000);
+			Date b = Date::now();
+			ASSERT(a > b, ==, false);
+			ASSERT(a >= b, ==, false);
+			ASSERT(a < b, ==, true);
+			ASSERT(a <= b, ==, true);
+			ASSERT(a == b, ==, false);
+			ASSERT(a != b, ==, true);
+
+			ASSERT(a > _a, ==, false);
+			ASSERT(a >= _a, ==, true);
+			ASSERT(a < _a, ==, false);
+			ASSERT(a <= _a, ==, true);
+			ASSERT(a == _a, ==, true);
+			ASSERT(a != _a, ==, false);
+
+			ASSERT((b - a).getTime().sec, ==, 5);
+			ASSERT((a - b).getTime().sec, ==, 0);
+			ASSERT((a - b).getTime().nano, ==, 0);
+
+			Date c;
+			c.setSecond(5);
+
+			ASSERT(c.getTime().sec, ==, 5);
+
+			ASSERT((a + c).getTime().sec, ==, b.getTime().sec);
+			ASSERT((b - c).getTime().sec, ==, a.getTime().sec);
+		}
+
+		{
+			Date z;
+			ASSERT(z.getTime().sec, ==, 0);
+			ASSERT(z.getTime().nano, ==, 0);
+			Date a;
+			a.setMillisecond(900);
+			ASSERT(a.getTime().nano, ==, 900000000);
+			Date b;
+			b.setMillisecond(900);
+			ASSERT((a + b).getTime().sec, ==, 1);
+			ASSERT((a + b).getTime().nano, ==, 800000000);
+		}
 	}
 };
 

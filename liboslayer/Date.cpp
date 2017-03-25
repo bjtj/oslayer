@@ -3,6 +3,93 @@
 namespace OS {
 
 	using namespace std;
+
+	const static uint64_t _NSEC_PER_SEC = 1000000000ULL;
+
+	bool osl_time_t::operator< (const struct _osl_time_t & other) const {
+		if (sec < other.sec) {
+			return true;
+		} else if (sec == other.sec && nano < other.nano) {
+			return true;
+		}
+		return false;
+	}
+	bool osl_time_t::operator<= (const struct _osl_time_t & other) const {
+		if (sec < other.sec) {
+			return true;
+		} else if (sec == other.sec && nano < other.nano) {
+			return true;
+		} else if (sec == other.sec && nano == other.nano) {
+			return true;
+		}
+		return false;
+	}
+	bool osl_time_t::operator> (const struct _osl_time_t & other) const {
+		if (sec > other.sec) {
+			return true;
+		} else if (sec == other.sec && nano > other.nano) {
+			return true;
+		}
+		return false;
+	}
+	bool osl_time_t::operator>= (const struct _osl_time_t & other) const {
+		if (sec > other.sec) {
+			return true;
+		} else if (sec == other.sec && nano > other.nano) {
+			return true;
+		} else if (sec == other.sec && nano == other.nano) {
+			return true;
+		}
+		return false;
+	}
+	bool osl_time_t::operator== (const struct _osl_time_t & other) const {
+		if (sec == other.sec && nano == other.nano) {
+			return true;
+		}
+		return false;
+	}
+	bool osl_time_t::operator!= (const struct _osl_time_t & other) const {
+		if (sec != other.sec || nano != other.nano) {
+			return true;
+		}
+		return false;
+	}
+	struct _osl_time_t osl_time_t::operator+ (const struct _osl_time_t & other) const {
+		osl_time_t ret = {
+			.sec = sec + other.sec,
+			.nano = nano + other.nano
+		};
+		ret.sec += (ret.nano / _NSEC_PER_SEC);
+		ret.nano = (ret.nano % _NSEC_PER_SEC);
+		return ret;
+		
+	}
+	struct _osl_time_t osl_time_t::operator- (const struct _osl_time_t & other) const {
+		osl_time_t ret = {0,0};
+		if (sec < other.sec) {
+			ret.sec = 0;
+		} else {
+			ret.sec = sec - other.sec;
+		}
+		if (nano < other.nano) {
+			if (ret.sec > 0) {
+				ret.nano = _NSEC_PER_SEC - (other.nano - nano);
+				ret.sec--;
+			}
+		} else {
+			ret.nano = nano - other.nano;
+		}
+		return ret;
+	}
+	struct _osl_time_t & osl_time_t::operator+= (const struct _osl_time_t & other) {
+		*this = *this + other;
+		return *this;
+	}
+	struct _osl_time_t & osl_time_t::operator-= (const struct _osl_time_t & other) {
+		*this = *this - other;
+		return *this;
+	}
+
 	
 #if defined(USE_MS_WIN)
 
@@ -255,13 +342,14 @@ namespace OS {
 	Date::Date()
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0) {
+		osl_time_t _t = {.sec = 0, .nano = 0};
+		setTime(_t);
 	}
 
 	Date::Date(struct tm & info)
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0)
 	{
-
 		setYear(1900 + info.tm_year);
         setMonth(info.tm_mon);
         setDay(info.tm_mday);
@@ -522,12 +610,9 @@ namespace OS {
 		return millisecond;
 	}
 	osl_time_t Date::getTime() const {
-
 #if defined(USE_MS_WIN)
-
 		SYSTEMTIME st = {0,};
 		FILETIME ft = {0,};
-		
 		st.wYear = year;
 		st.wMonth = month + 1;
 		st.wDay = day;
@@ -535,12 +620,10 @@ namespace OS {
 		st.wMinute = minute;
 		st.wSecond = second;
 		st.wMilliseconds = millisecond;
-
 		SystemTimeToFileTime(&st, &ft);
 		osl_time_t ret = s_filetime_to_osl_time(&ft);
 		ret.sec -= (this->gmtoffset * 60);
 		return ret;
-
 #else
 		struct tm info = {0,};
 		info.tm_year = year - 1900;
@@ -582,9 +665,39 @@ namespace OS {
 		setGmtOffset(gmtoffset);
 #endif
 	}
-
 	Date Date::toDate(osl_time_t time) {
 		return Date(time);
 	}
-	
+	bool Date::operator< (const Date & other) const {
+		return getTime() < other.getTime();
+	}
+	bool Date::operator<= (const Date & other) const {
+		return getTime() <= other.getTime();
+	}
+	bool Date::operator> (const Date & other) const {
+		return getTime() > other.getTime();
+	}
+	bool Date::operator>= (const Date & other) const {
+		return getTime() >= other.getTime();
+	}
+	bool Date::operator== (const Date & other) const {
+		return getTime() == other.getTime();
+	}
+	bool Date::operator!= (const Date & other) const {
+		return getTime() != other.getTime();
+	}
+	Date Date::operator+ (const Date & other) const {
+		return Date(getTime() + other.getTime());
+	}
+	Date Date::operator- (const Date & other) const {
+		return Date(getTime() - other.getTime());
+	}
+	Date & Date::operator+= (const Date & other) {
+		*this = *this + other;
+		return *this;
+	}
+	Date & Date::operator-= (const Date & other) {
+		*this = *this - other;
+		return *this;
+	}
 }

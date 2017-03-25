@@ -10,7 +10,19 @@ namespace OS {
 	 */
 	typedef struct _osl_time_t {
 		uint64_t sec;
-		unsigned long nano;
+		uint64_t nano;
+
+		bool operator< (const struct _osl_time_t & other) const;
+		bool operator<= (const struct _osl_time_t & other) const;
+		bool operator> (const struct _osl_time_t & other) const;
+		bool operator>= (const struct _osl_time_t & other) const;
+		bool operator== (const struct _osl_time_t & other) const;
+		bool operator!= (const struct _osl_time_t & other) const;
+		struct _osl_time_t operator+ (const struct _osl_time_t & other) const;
+		struct _osl_time_t operator- (const struct _osl_time_t & other) const;
+		struct _osl_time_t & operator+= (const struct _osl_time_t & other);
+		struct _osl_time_t & operator-= (const struct _osl_time_t & other);
+		
 	} osl_time_t;
 
 	/**
@@ -86,6 +98,16 @@ namespace OS {
 		void setTime(const osl_time_t t);
 		void setTime(const osl_time_t t, int gmtoffset);
 		static Date toDate(osl_time_t time);
+		bool operator< (const Date & other) const;
+		bool operator<= (const Date & other) const;
+		bool operator> (const Date & other) const;
+		bool operator>= (const Date & other) const;
+		bool operator== (const Date & other) const;
+		bool operator!= (const Date & other) const;
+		Date operator+ (const Date & other) const;
+		Date operator- (const Date & other) const;
+		Date & operator+= (const Date & other);
+		Date & operator-= (const Date & other);
 	};
 }
 
