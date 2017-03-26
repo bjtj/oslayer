@@ -15,22 +15,21 @@
 #define _OPT_EVAL(E,L,N,D) (N < L.size() ? eval(E, L[N]) : D)
 #define _FORI(L,I,F) for (size_t I = F; I < L.size(); I++)
 
-#define DECL_NATIVE_BEGIN(NAME,CLS) \
-	class CLS : public Procedure { \
-	private: \
-	public: \
-	CLS(const string & name) : Procedure(name) {} \
-	virtual ~CLS() {} \
+#define DECL_NATIVE_BEGIN(ENV,NAME)								\
+	do {														\
+	Env & _e = ENV;												\
+	string _n = NAME;											\
+	class _cls : public Procedure {								\
+	private:														\
+	public:															\
+	_cls(const string & name) : Procedure(name) {}					\
+	virtual ~_cls() {}												\
 	virtual _VAR proc(Env & env, _VAR name, vector<_VAR> & args) {
-#define DECL_NATIVE_END(NAME,CLS) \
-	} \
-	}; \
-	env[NAME] = env.alloc(new Var(AutoRef<Procedure>(new CLS(NAME))));
-
-#define DECL_NATIVE(NAME,CLS,CODE) \
-	DECL_NATIVE_BEGIN(NAME,CLS); \
-	CODE; \
-	DECL_NATIVE_END(NAME,CLS);
+#define DECL_NATIVE_END()											\
+	}																\
+	};																\
+	_e[_n] = _e.alloc(new Var(AutoRef<Procedure>(new _cls(_n))));	\
+	} while (0);
 
 namespace LISP {
 
@@ -389,46 +388,46 @@ namespace LISP {
 		case SYMBOL:
 			return symbol;
 		case LIST:
-			{
-				if (lst[0]->isSymbol() && lst[0]->getSymbol() == "quote") {
-					return "'" + lst[1]->toString();
-				}
-				if (lst[0]->isSymbol() && lst[0]->getSymbol() == "`") {
-					return "`" + lst[1]->toString();
-				}
-				if (lst[0]->isSymbol() && lst[0]->getSymbol() == ",") {
-					return "," + lst[1]->toString();
-				}
-				string ret = "(";
-				for (vector<_VAR>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
-					if (iter != lst.begin()) {
-						ret += " ";
-					}
-					ret += (*iter)->toString();
-				}
-				ret += ")";
-				return ret;
+		{
+			if (lst[0]->isSymbol() && lst[0]->getSymbol() == "quote") {
+				return "'" + lst[1]->toString();
 			}
+			if (lst[0]->isSymbol() && lst[0]->getSymbol() == "`") {
+				return "`" + lst[1]->toString();
+			}
+			if (lst[0]->isSymbol() && lst[0]->getSymbol() == ",") {
+				return "," + lst[1]->toString();
+			}
+			string ret = "(";
+			for (vector<_VAR>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
+				if (iter != lst.begin()) {
+					ret += " ";
+				}
+				ret += (*iter)->toString();
+			}
+			ret += ")";
+			return ret;
+		}
 		case BOOLEAN:
 			return bval.toString();
 		case INTEGER:
-			{
-				return Text::toString(inum.raw());
-			}
+		{
+			return Text::toString(inum.raw());
+		}
 		case FLOAT:
-			{
-				return Text::rtrim(Text::toString(dnum.raw()), "0");
-			}
+		{
+			return Text::rtrim(Text::toString(dnum.raw()), "0");
+		}
 		case STRING:
 			return untext(str);
 		case FUNC:
-			{
-				if (!procedure.nil()) {
-					return "#<COMPILED FUNCTION " + procedure->getName() + ">";
-				}
-				return "#<FUNCTION (PARAMS:" + func.const_params()->toString() +
-					", BODY:" + func.const_body()->toString() + ")>";
+		{
+			if (!procedure.nil()) {
+				return "#<COMPILED FUNCTION " + procedure->getName() + ">";
 			}
+			return "#<FUNCTION (PARAMS:" + func.const_params()->toString() +
+				", BODY:" + func.const_body()->toString() + ")>";
+		}
 		case FILE:
 			return "#p\"" + file.getPath() + "\"";
 		case FILE_DESCRIPTOR:
@@ -466,7 +465,7 @@ namespace LISP {
 	void Arguments::mapArguments(Env & env, map<string, _VAR> & scope, vector<_VAR> & args) {
 
 		size_t ec = countPartArguments(proto, 0);
-		validateArgumentCountMin(args, ec);
+		_CHECK_MIN_ARGS(args, ec);
 
 		size_t ai = 0;
 		size_t i = 0;
@@ -513,7 +512,7 @@ namespace LISP {
 				sym = proto[i]->getSymbol();
 				scope[sym] = _NIL(env);
 			} else if (proto[i]->isList()) {
-				validateArgumentCountMin(proto[i]->getList(), 2);
+				_CHECK_MIN_ARGS(proto[i]->getList(), 2);
 				sym = proto[i]->getList()[0]->getSymbol();
 				scope[sym] = proto[i]->getList()[1];
 			}
@@ -1212,42 +1211,60 @@ namespace LISP {
 	}
 
 	void builtin_type(Env & env) {
-		DECL_NATIVE("symbolp", Symbolp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isSymbol());
-			});
-		DECL_NATIVE("listp", Listp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isList());
-			});
-		DECL_NATIVE("booleanp", Booleanp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isBoolean());
-			});
-		DECL_NATIVE("integerp", Integerp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isInteger());
-			});
-		DECL_NATIVE("floatp", Floatp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isFloat());
-			});
-		DECL_NATIVE("stringp", Stringp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isString());
-			});
-		DECL_NATIVE("funcp", Funcp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isFunction());
-			});
-		DECL_NATIVE("pathnamep", Pathnamep, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isFile());
-			});
-		DECL_NATIVE("streamp", Streamp, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isFileDescriptor());
-			});
+		DECL_NATIVE_BEGIN(env, "symbolp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isSymbol());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "listp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isList());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "booleanp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isBoolean());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "integerp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isInteger());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "floatp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isFloat());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "stringp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isString());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "funcp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isFunction());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "pathnamep");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isFile());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "streamp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isFileDescriptor());
+		}
+		DECL_NATIVE_END();
 	}
 
 	void builtin_algorithm(Env & env) {
@@ -1255,115 +1272,116 @@ namespace LISP {
 		// remove
 
 		// TODO: refer - [http://www.lispworks.com/documentation/lw60/CLHS/Body/f_map.htm]
-		DECL_NATIVE("map", Map, {
-				validateArgumentCountMin(args, 3);
-				_VAR sym = eval(env, args[0]); /* TODO: use it */
-				_VAR func = eval(env, args[1]);
-				func = function(env, func);
-				_VAR seq = eval(env, args[2]); /* TODO: use it */
+		DECL_NATIVE_BEGIN(env, "map");
+		{
+			_CHECK_MIN_ARGS(args, 3);
+			_VAR sym = eval(env, args[0]); /* TODO: use it */
+			_VAR func = eval(env, args[1]);
+			func = function(env, func);
+			_VAR seq = eval(env, args[2]); /* TODO: use it */
 
-				vector<_VAR> ret;
+			vector<_VAR> ret;
 
-				vector<vector<_VAR> > lists;
-				size_t size = 0;
-				for (size_t i = 2; i < args.size(); i++) {
-					vector<_VAR> lst = eval(env, args[i])->getList();
-					if (lst.size() > size) {
-						size = lst.size();
-					}
-					lists.push_back(lst);
+			vector<vector<_VAR> > lists;
+			size_t size = 0;
+			for (size_t i = 2; i < args.size(); i++) {
+				vector<_VAR> lst = eval(env, args[i])->getList();
+				if (lst.size() > size) {
+					size = lst.size();
 				}
+				lists.push_back(lst);
+			}
 
-				for (size_t i = 0; i < size; i++) {
-					vector<_VAR> fargs;
-					for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
-						vector<_VAR> & lst = (*iter);
-						fargs.push_back((i < lst.size() ? lst[i] : _NIL(env)));
-					}
-					ret.push_back(func->proc(env, fargs));
+			for (size_t i = 0; i < size; i++) {
+				vector<_VAR> fargs;
+				for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
+					vector<_VAR> & lst = (*iter);
+					fargs.push_back((i < lst.size() ? lst[i] : _NIL(env)));
 				}
+				ret.push_back(func->proc(env, fargs));
+			}
 
-				return _HEAP_ALLOC(env, ret);
-			});
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "sort");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			vector<_VAR> lst = eval(env, args[0])->getList();
+			_VAR func = eval(env, args[1]);
+			func = function(env, func);
 
-		DECL_NATIVE("sort", Sort, {
-				validateArgumentCountMin(args, 2);
-				vector<_VAR> lst = eval(env, args[0])->getList();
-				_VAR func = eval(env, args[1]);
-				func = function(env, func);
-
-				if (lst.size() <= 1) {
-					return _HEAP_ALLOC(env, lst);
-				}
-
-				for (size_t loop = 0; loop < lst.size() - 1; loop++) {
-					for (size_t i = 0; i < lst.size() - 1; i++) {
-						vector<_VAR> fargs;
-						fargs.push_back(lst[i]);
-						fargs.push_back(lst[i + 1]);
-						if (!func->proc(env, _HEAP_ALLOC(env, "#sort"), fargs)->isNil()) {
-							iter_swap(lst.begin() + i, lst.begin() + (i + 1));
-						}
-					}
-				}
+			if (lst.size() <= 1) {
 				return _HEAP_ALLOC(env, lst);
-			});
+			}
+
+			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
+				for (size_t i = 0; i < lst.size() - 1; i++) {
+					vector<_VAR> fargs;
+					fargs.push_back(lst[i]);
+					fargs.push_back(lst[i + 1]);
+					if (!func->proc(env, _HEAP_ALLOC(env, "#sort"), fargs)->isNil()) {
+						iter_swap(lst.begin() + i, lst.begin() + (i + 1));
+					}
+				}
+			}
+			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
 	}
 
 	void builtin_list(Env & env) {
-		DECL_NATIVE("length", Length, {
-				validateArgumentCountMin(args, 1);
-				vector<_VAR> lst = eval(env, args[0])->getList();
-				return _HEAP_ALLOC(env, Integer((long long)lst.size()));
-			});
-		
-		DECL_NATIVE("append", Append, {
-				validateArgumentCountMin(args, 0);
-				vector<_VAR> ret;
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					vector<_VAR> lst = eval(env, *iter)->getList();
-					ret.insert(ret.end(), lst.begin(), lst.end());
+		DECL_NATIVE_BEGIN(env, "length");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			vector<_VAR> lst = eval(env, args[0])->getList();
+			return _HEAP_ALLOC(env, Integer((long long)lst.size()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "append");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			vector<_VAR> ret;
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				vector<_VAR> lst = eval(env, *iter)->getList();
+				ret.insert(ret.end(), lst.begin(), lst.end());
+			}
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "remove");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			_VAR val = eval(env, args[0]);
+			vector<_VAR> lst = eval(env, args[1])->getList();
+			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
+				if (val->toString() == (*iter)->toString()) {
+					iter = lst.erase(iter);
+				} else {
+					iter++;
 				}
-				return _HEAP_ALLOC(env, ret);
-			});
-		
-		DECL_NATIVE("remove", Remove, {
-				validateArgumentCountMin(args, 2);
-				_VAR val = eval(env, args[0]);
-				vector<_VAR> lst = eval(env, args[1])->getList();
-				for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
-					if (val->toString() == (*iter)->toString()) {
-						iter = lst.erase(iter);
-					} else {
-						iter++;
-					}
+			}
+			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "remove-if");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			_VAR func = eval(env, args[0]);
+			func = function(env, func);
+			vector<_VAR> lst = eval(env, args[1])->getList();
+			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
+				vector<_VAR> fargs;
+				fargs.push_back(*iter);
+				if (!func->proc(env, fargs)->isNil()) {
+					iter = lst.erase(iter);
+				} else {
+					iter++;
 				}
-				return _HEAP_ALLOC(env, lst);
-			});
-        
-        class RemoveIf : public Procedure {
-        private:
-        public:
-            RemoveIf(const string & name) : Procedure(name) {}
-            virtual ~RemoveIf() {}
-            virtual _VAR proc(Env & env, _VAR name, vector<_VAR> & args) {
-                validateArgumentCountMin(args, 2);
-                _VAR func = eval(env, args[0]);
-				func = function(env, func);
-                vector<_VAR> lst = eval(env, args[1])->getList();
-                for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
-                    vector<_VAR> fargs;
-                    fargs.push_back(*iter);
-                    if (!func->proc(env, fargs)->isNil()) {
-                        iter = lst.erase(iter);
-                    } else {
-                        iter++;
-                    }
-                }
-                return _HEAP_ALLOC(env, lst);
-            }
-        };
-        env["remove-if"] = _HEAP_ALLOC(env, AutoRef<Procedure>(new RemoveIf("remove-if")));
+			}
+			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
 
 		// TODO: implement
 		// [https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node144.html]
@@ -1374,174 +1392,201 @@ namespace LISP {
 	}
 
 	void builtin_logic(Env & env) {
-		DECL_NATIVE("not", Not, {
-				validateArgumentCountMin(args, 1);
-				return _HEAP_ALLOC(env, eval(env, args[0])->isNil());
-			});
-
-		DECL_NATIVE("or", Or, {
-				validateArgumentCountMin(args, 0);
-				_VAR var = _NIL(env);
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					var = eval(env, *iter);
-					if (!var->isNil()) {
-						break;
-					}
+		DECL_NATIVE_BEGIN(env, "not");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			return _HEAP_ALLOC(env, eval(env, args[0])->isNil());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "or");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			_VAR var = _NIL(env);
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				var = eval(env, *iter);
+				if (!var->isNil()) {
+					break;
 				}
-				return var;
-			});
-
-		DECL_NATIVE("and", And, {
-				validateArgumentCountMin(args, 0);
-				_VAR var = _HEAP_ALLOC(env, "t");
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					var = eval(env, *iter);
-					if (var->isNil()) {
-						break;
-					}
+			}
+			return var;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "and");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			_VAR var = _HEAP_ALLOC(env, "t");
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				var = eval(env, *iter);
+				if (var->isNil()) {
+					break;
 				}
-				return var;
-			});
+			}
+			return var;
+		}
+		DECL_NATIVE_END();
 	}
 
 	void builtin_string(Env & env) {
-
-		DECL_NATIVE("string=", LiteralEqual, {
-				validateArgumentCountMin(args, 1);
-				string val = eval(env, args[0])->toString();
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					if (val != eval(env, *iter)->toString()) {
-						return _NIL(env);
-					}
-				}
-				return _HEAP_ALLOC(env, true);
-			});
-
-		DECL_NATIVE("string-prefix-p", StringPrefixP, {
-				validateArgumentCountMin(args, 2);
-				string str = eval(env, args[0])->toString();
-				string dst = eval(env, args[1])->toString();
-				return _HEAP_ALLOC(env, Text::startsWith(str, dst));
-			});
-
-		DECL_NATIVE("string-suffix-p", StringSuffixP, {
-				validateArgumentCountMin(args, 2);
-				string str = eval(env, args[0])->toString();
-				string dst = eval(env, args[1])->toString();
-				return _HEAP_ALLOC(env, Text::endsWith(str, dst));
-			});
-
-		DECL_NATIVE("string-length", StringLength, {
-				validateArgumentCountMin(args, 1);
-				Integer len((long long)eval(env, args[0])->toString().length());
-				return _HEAP_ALLOC(env, len);
-			});
-
-		DECL_NATIVE("string-append", StringAppend, {
-				validateArgumentCountMin(args, 0);
-				string ret;
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					ret.append(eval(env, *iter)->toString());
-				}
-				return _HEAP_ALLOC(env, text(ret));
-			});
-
-		DECL_NATIVE("format", Format, {
-				validateArgumentCountMin(args, 2);
-				_VAR test = eval(env, args[0]);
-				vector<_VAR> fargs(args.begin() + 2, args.end());
-				string str = format(env, args[1]->toString(), fargs);
-				if (!test->isNil()) {
-					fputs(str.c_str(), stdout);
-					fputs("\n", stdout);
+		DECL_NATIVE_BEGIN(env, "string=");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			string val = eval(env, args[0])->toString();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if (val != eval(env, *iter)->toString()) {
 					return _NIL(env);
 				}
-				return _HEAP_ALLOC(env, text(str));
-			});
-		
-		DECL_NATIVE("enough-namestring", EnoughNamestring, {
-				validateArgumentCountMin(args, 2);
-				string org = eval(env, args[0])->toString();
-				string prefix = eval(env, args[1])->toString();
-				if (Text::startsWith(org, prefix)) {
-					return _HEAP_ALLOC(env, text(org.substr(prefix.length())));
-				}
-				return _HEAP_ALLOC(env, text(org));
-			});
+			}
+			return _HEAP_ALLOC(env, true);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "string-prefix-p");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			string str = eval(env, args[0])->toString();
+			string dst = eval(env, args[1])->toString();
+			return _HEAP_ALLOC(env, Text::startsWith(str, dst));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "string-suffix-p");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			string str = eval(env, args[0])->toString();
+			string dst = eval(env, args[1])->toString();
+			return _HEAP_ALLOC(env, Text::endsWith(str, dst));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "string-length");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			Integer len((long long)eval(env, args[0])->toString().length());
+			return _HEAP_ALLOC(env, len);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "string-append");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			string ret;
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				ret.append(eval(env, *iter)->toString());
+			}
+			return _HEAP_ALLOC(env, text(ret));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "format");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			_VAR test = eval(env, args[0]);
+			vector<_VAR> fargs(args.begin() + 2, args.end());
+			string str = format(env, args[1]->toString(), fargs);
+			if (!test->isNil()) {
+				fputs(str.c_str(), stdout);
+				fputs("\n", stdout);
+				return _NIL(env);
+			}
+			return _HEAP_ALLOC(env, text(str));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "enough-namestring");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			string org = eval(env, args[0])->toString();
+			string prefix = eval(env, args[1])->toString();
+			if (Text::startsWith(org, prefix)) {
+				return _HEAP_ALLOC(env, text(org.substr(prefix.length())));
+			}
+			return _HEAP_ALLOC(env, text(org));
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_artithmetic(Env & env) {
-		DECL_NATIVE("=", ArithmeticEqual, {
-				validateArgumentCountMin(args, 1);
-				_VAR v = eval(env, args[0]);
-				Integer val = v->getInteger();
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					if (!eq(env, v, eval(env, *iter))) {
-						return _NIL(env);
-					}
+		DECL_NATIVE_BEGIN(env, "=");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			_VAR v = eval(env, args[0]);
+			Integer val = v->getInteger();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if (!eq(env, v, eval(env, *iter))) {
+					return _NIL(env);
 				}
-				return _HEAP_ALLOC(env, true);
-			});
-		DECL_NATIVE("+", Plus, {
-				_VAR v = _HEAP_ALLOC(env, 0);
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					v = plus(env, v, eval(env, *iter));
-				}
-				return v;
-			});
-		DECL_NATIVE("-", Minus, {
-				validateArgumentCountMin(args, 1);				
-				if (args.size() == 1) {
-					return minus(env, _HEAP_ALLOC(env, 0), eval(env, args[0]));
-				}
-				_VAR v = eval(env, args[0]);
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					v = minus(env, v, eval(env, *iter));
-				}
-				return v;
-			});
-		DECL_NATIVE("*", Multitude, {
-				_VAR v = _HEAP_ALLOC(env, 1);
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					v = multiply(env, v, eval(env, *iter));
-				}
-				return v;
-			});
-		DECL_NATIVE("/", Divide, {
-				validateArgumentCountMin(args, 1);
-				_VAR v = eval(env, args[0]);
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					v = divide(env, v, eval(env, *iter));
-				}
-				return v;
-			});
-		DECL_NATIVE("%", Rest, {
-				validateArgumentCountMin(args, 1);
-				Integer sum = eval(env, args[0])->getInteger();
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					sum %= eval(env, *iter)->getInteger();
-				}
-				return _HEAP_ALLOC(env, sum);
-			});
-
-		DECL_NATIVE(">", Greater, {
-				validateArgumentCountMin(args, 2);
-				return _HEAP_ALLOC(env, gt(env, eval(env, args[0]), eval(env, args[1])));
-			});
-
-		DECL_NATIVE("<", Less, {
-				validateArgumentCountMin(args, 2);
-				return _HEAP_ALLOC(env, lt(env, eval(env, args[0]), eval(env, args[1])));
-			});
-
-		DECL_NATIVE(">=", GreaterEq, {
-				validateArgumentCountMin(args, 2);
-				return _HEAP_ALLOC(env, gteq(env, eval(env, args[0]), eval(env, args[1])));
-			});
-
-		DECL_NATIVE("<=", LessEq, {
-				validateArgumentCountMin(args, 2);
-				return _HEAP_ALLOC(env, lteq(env, eval(env, args[0]), eval(env, args[1])));
-			});
+			}
+			return _HEAP_ALLOC(env, true);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "+");
+		{
+			_VAR v = _HEAP_ALLOC(env, 0);
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				v = plus(env, v, eval(env, *iter));
+			}
+			return v;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "-");
+		{
+			_CHECK_MIN_ARGS(args, 1);				
+			if (args.size() == 1) {
+				return minus(env, _HEAP_ALLOC(env, 0), eval(env, args[0]));
+			}
+			_VAR v = eval(env, args[0]);
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				v = minus(env, v, eval(env, *iter));
+			}
+			return v;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "*");
+		{
+			_VAR v = _HEAP_ALLOC(env, 1);
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				v = multiply(env, v, eval(env, *iter));
+			}
+			return v;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "/");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			_VAR v = eval(env, args[0]);
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				v = divide(env, v, eval(env, *iter));
+			}
+			return v;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "%");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			Integer sum = eval(env, args[0])->getInteger();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				sum %= eval(env, *iter)->getInteger();
+			}
+			return _HEAP_ALLOC(env, sum);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, ">");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			return _HEAP_ALLOC(env, gt(env, eval(env, args[0]), eval(env, args[1])));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "<");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			return _HEAP_ALLOC(env, lt(env, eval(env, args[0]), eval(env, args[1])));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, ">=");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			return _HEAP_ALLOC(env, gteq(env, eval(env, args[0]), eval(env, args[1])));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "<=");
+		{
+			_CHECK_MIN_ARGS(args, 2);
+			return _HEAP_ALLOC(env, lteq(env, eval(env, args[0]), eval(env, args[1])));
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_io(Env & env) {
 
@@ -1553,7 +1598,7 @@ namespace LISP {
             Read(const string & name) : Procedure(name) {}
             virtual ~Read() {}
             virtual _VAR proc(Env & env, _VAR name, vector<_VAR> & args) {
-                validateArgumentCountMin(args, 1);
+                _CHECK_MIN_ARGS(args, 1);
                 _VAR ret = _NIL(env);
                 FileDescriptor fd = eval(env, args[0])->getFileDescriptor();
                 if (fd.eof()) {
@@ -1572,148 +1617,184 @@ namespace LISP {
         };
         env["read"] = _HEAP_ALLOC(env, AutoRef<Procedure>(new Read("read")));
 
-		DECL_NATIVE("read-line", ReadLine, {
-				validateArgumentCountMin(args, 1);
-				FileDescriptor fd = eval(env, args[0])->getFileDescriptor();
-				if (fd.eof()) {
-					return _HEAP_ALLOC(env, true);
-				}
-				string line = fd.readline();
-				return _HEAP_ALLOC(env, text(line));
-			});
-		DECL_NATIVE("print", Print, {
-				validateArgumentCountMin(args, 1);
-				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
-				if (args.size() == 2) {
-					fd = eval(env, args[1])->getFileDescriptor();
-				}
-				string msg = eval(env, args[0])->toString();
-				fd.write(msg);
-				fd.write("\n");
-				return _HEAP_ALLOC(env, text(msg));
-			});
-
-		DECL_NATIVE("write-string", WriteString, {
-				validateArgumentCountMin(args, 1);
-				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
-				if (args.size() == 2) {
-					fd = eval(env, args[1])->getFileDescriptor();
-				}
-				string msg = eval(env, args[0])->toString();
-				fd.write(msg);
-				return _HEAP_ALLOC(env, text(msg));
-			});
-
-		DECL_NATIVE("write-line", WriteLine, {
-				validateArgumentCountMin(args, 1);
-				FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
-				if (args.size() == 2) {
-					fd = eval(env, args[1])->getFileDescriptor();
-				}
-				string msg = eval(env, args[0])->toString();
-				fd.write(msg);
-				fd.write("\n");
-				return _HEAP_ALLOC(env, text(msg));
-			});
+		DECL_NATIVE_BEGIN(env, "read-line");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			FileDescriptor fd = eval(env, args[0])->getFileDescriptor();
+			if (fd.eof()) {
+				return _HEAP_ALLOC(env, true);
+			}
+			string line = fd.readline();
+			return _HEAP_ALLOC(env, text(line));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "print");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
+			if (args.size() == 2) {
+				fd = eval(env, args[1])->getFileDescriptor();
+			}
+			string msg = eval(env, args[0])->toString();
+			fd.write(msg);
+			fd.write("\n");
+			return _HEAP_ALLOC(env, text(msg));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "write-string");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
+			if (args.size() == 2) {
+				fd = eval(env, args[1])->getFileDescriptor();
+			}
+			string msg = eval(env, args[0])->toString();
+			fd.write(msg);
+			return _HEAP_ALLOC(env, text(msg));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "write-line");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			FileDescriptor fd = env.get("*standard-output*")->getFileDescriptor();
+			if (args.size() == 2) {
+				fd = eval(env, args[1])->getFileDescriptor();
+			}
+			string msg = eval(env, args[0])->toString();
+			fd.write(msg);
+			fd.write("\n");
+			return _HEAP_ALLOC(env, text(msg));
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_pathname(Env & env) {
-		DECL_NATIVE("pathname", Pathname, {
-				validateArgumentCountMin(args, 1);
-				_VAR path = pathname(env, eval(env, args[0]));
-				return path;
-			});
-		DECL_NATIVE("pathname-name", PathnameName, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, text(file.getFileNameWithoutExtension()));
-			});
-		DECL_NATIVE("pathname-type", PathnameType, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, text(file.getExtension()));
-			});
-		DECL_NATIVE("namestring", Namestring, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, text(file.getPath()));
-			});
-		DECL_NATIVE("directory-namestring", DirectoryNamestring, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, text(file.getDirectory()));
-			});
-		DECL_NATIVE("file-namestring", FileNamestring, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, text(file.getFileName()));
-			});
+		DECL_NATIVE_BEGIN(env, "pathname");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			_VAR path = pathname(env, eval(env, args[0]));
+			return path;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "pathname-name");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, text(file.getFileNameWithoutExtension()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "pathname-type");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, text(file.getExtension()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "namestring");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, text(file.getPath()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "directory-namestring");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, text(file.getDirectory()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "file-namestring");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, text(file.getFileName()));
+		}
+		DECL_NATIVE_END();
 		
 		// https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Names.html
 		
-		DECL_NATIVE("directory-file-name", DirectoryFileName, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				string path = file.getPath();
-				if (path.empty()) {
-					return _NIL(env);
-				}
-				if (File::getSeparators().find(*path.rbegin()) != string::npos) {
-					return _HEAP_ALLOC(env, text(path.substr(0, path.size() - 1)));
-				}
-				return _HEAP_ALLOC(env, text(path));
-			});
-		DECL_NATIVE("file-name-directory", FileNameDirectory, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				string path = file.getPath();
-				size_t f = path.find_last_of(File::getSeparators());
-				if (f == string::npos) {
-					return _NIL(env);
-				}
-				return _HEAP_ALLOC(env, text(path.substr(0, f+1)));
-			});
+		DECL_NATIVE_BEGIN(env, "directory-file-name");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			string path = file.getPath();
+			if (path.empty()) {
+				return _NIL(env);
+			}
+			if (File::getSeparators().find(*path.rbegin()) != string::npos) {
+				return _HEAP_ALLOC(env, text(path.substr(0, path.size() - 1)));
+			}
+			return _HEAP_ALLOC(env, text(path));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "file-name-directory");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			string path = file.getPath();
+			size_t f = path.find_last_of(File::getSeparators());
+			if (f == string::npos) {
+				return _NIL(env);
+			}
+			return _HEAP_ALLOC(env, text(path.substr(0, f+1)));
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_file(Env & env) {
-		DECL_NATIVE("dir", Dir, {
-				validateArgumentCountMin(args, 0);
-				_VAR path = ((args.size() > 0) ? pathname(env, eval(env, args[0])) : _HEAP_ALLOC(env, "#p\".\""));
-				vector<File> files = File::list(path->getFile().getPath());
-				vector<_VAR> lst;
-				for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
-					lst.push_back(_HEAP_ALLOC(env, *iter));
-				}
-				return _HEAP_ALLOC(env, lst);
-			});
-		DECL_NATIVE("probe-file", ProbeFile, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return file.exists() ? _HEAP_ALLOC(env, file) : _NIL(env);
-			});
-		DECL_NATIVE("dirp", Dirp, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, file.isDirectory());
-			});
-		DECL_NATIVE("filep", Filep, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, file.isFile());
-			});
-		DECL_NATIVE("file-length", FileLength, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, Integer((long long)file.getSize()));
-			});
-		DECL_NATIVE("file-attribute-creation", FileAttributeCreation, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.creationTime()).sec));
-			});
-		DECL_NATIVE("file-attribute-lastmodified", FileAttributeLastModified, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.lastModifiedTime()).sec));
-			});
+		DECL_NATIVE_BEGIN(env, "dir");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			_VAR path = ((args.size() > 0) ? pathname(env, eval(env, args[0])) : _HEAP_ALLOC(env, "#p\".\""));
+			vector<File> files = File::list(path->getFile().getPath());
+			vector<_VAR> lst;
+			for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
+				lst.push_back(_HEAP_ALLOC(env, *iter));
+			}
+			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "probe-file");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return file.exists() ? _HEAP_ALLOC(env, file) : _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "dirp");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, file.isDirectory());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "filep");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, file.isFile());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "file-length");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, Integer((long long)file.getSize()));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "file-attribute-creation");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.creationTime()).sec));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "file-attribute-lastmodified");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.lastModifiedTime()).sec));
+		}
+		DECL_NATIVE_END();
 
 		class Open : public Procedure {
 		public:
@@ -1763,72 +1844,83 @@ namespace LISP {
 		};
 		env["open"] = _HEAP_ALLOC(env, AutoRef<Procedure>(new Open("open")));
 
-		DECL_NATIVE("file-position", FilePosition, {
-				validateArgumentCountMin(args, 1);
-				FileDescriptor fd = eval(env, args[0])->getFileDescriptor();
-				if (args.size() > 1) {
-					fd.position((size_t)*eval(env, args[1])->getInteger());
-				}
-				return _HEAP_ALLOC(env, Integer((long long)fd.position()));
+		DECL_NATIVE_BEGIN(env, "file-position");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			FileDescriptor fd = eval(env, args[0])->getFileDescriptor();
+			if (args.size() > 1) {
+				fd.position((size_t)*eval(env, args[1])->getInteger());
+			}
+			return _HEAP_ALLOC(env, Integer((long long)fd.position()));
 				
-			});
-		
-		DECL_NATIVE("close", Close, {
-				validateArgumentCountMin(args, 1);
-				eval(env, args[0])->getFileDescriptor().close();
-				return _NIL(env);
-			});
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "close");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			eval(env, args[0])->getFileDescriptor().close();
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_socket(Env & env) {
 		// TODO: implement
 	}
 	void builtin_system(Env & env) {
-		DECL_NATIVE("system", System, {
-				validateArgumentCountMin(args, 1);
-				Integer ret(system(eval(env, args[0])->toString().c_str()));
-				return _HEAP_ALLOC(env, ret);
-			});
-		DECL_NATIVE("load", Load, {
-				validateArgumentCountMin(args, 1);
-				File file = pathname(env, eval(env, args[0]))->getFile();
-				FileStream stream(file, "rb");
-				string dump = stream.readFullAsString();
-				stream.close();
-				vector<string> lines = Text::split(dump, "\n");
-				BufferedCommandReader reader;
-				for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
-					if (reader.read(*iter + "\n") > 0) {
-						vector<string> commands = reader.getCommands();
-						for (vector<string>::iterator cmd = commands.begin(); cmd != commands.end(); cmd++) {
-							compile(env, *cmd);
-							env.gc();
-						}
+		DECL_NATIVE_BEGIN(env, "system");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			Integer ret(system(eval(env, args[0])->toString().c_str()));
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "load");
+		{
+			_CHECK_MIN_ARGS(args, 1);
+			File file = pathname(env, eval(env, args[0]))->getFile();
+			FileStream stream(file, "rb");
+			string dump = stream.readFullAsString();
+			stream.close();
+			vector<string> lines = Text::split(dump, "\n");
+			BufferedCommandReader reader;
+			for (vector<string>::iterator iter = lines.begin(); iter != lines.end(); iter++) {
+				if (reader.read(*iter + "\n") > 0) {
+					vector<string> commands = reader.getCommands();
+					for (vector<string>::iterator cmd = commands.begin(); cmd != commands.end(); cmd++) {
+						compile(env, *cmd);
+						env.gc();
 					}
 				}
-				return _HEAP_ALLOC(env, true);
-			});
+			}
+			return _HEAP_ALLOC(env, true);
+		}
+		DECL_NATIVE_END();
 	}
 	
 	void builtin_date(Env & env) {
 		env["internal-time-units-per-second"] = _HEAP_ALLOC(env, 1000);
-		DECL_NATIVE("now", Now, {
-				validateArgumentCountMin(args, 0);
-				char buffer[512];
-				memset(buffer, 0, sizeof(buffer));
-				Date date = Date::now();
-				snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d.%d",
-						 date.getYear(), date.getMonth() + 1, date.getDay(),
-						 date.getHour(), date.getMinute(), date.getSecond(),
-						 date.getMillisecond());
-				return _HEAP_ALLOC(env, text(buffer));
-			});
-		DECL_NATIVE("get-universal-time", GetUniversalTime, {
-				validateArgumentCountMin(args, 0);
-				return _HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
-			});
-		DECL_NATIVE_BEGIN("decode-universal-time", DecodeUniversalTime);
+		DECL_NATIVE_BEGIN(env, "now");
 		{
-			validateArgumentCountMin(args, 1);
+			_CHECK_MIN_ARGS(args, 0);
+			char buffer[512];
+			memset(buffer, 0, sizeof(buffer));
+			Date date = Date::now();
+			snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d.%d",
+					 date.getYear(), date.getMonth() + 1, date.getDay(),
+					 date.getHour(), date.getMinute(), date.getSecond(),
+					 date.getMillisecond());
+			return _HEAP_ALLOC(env, text(buffer));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "get-universal-time");
+		{
+			_CHECK_MIN_ARGS(args, 0);
+			return _HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "decode-universal-time");
+		{
+			_CHECK_MIN_ARGS(args, 1);
 			// TODO: apply specific zone
 			osl_time_t time = {0,};
 			time.sec = (unsigned long)*eval(env, args[0])->getInteger();
@@ -1846,11 +1938,10 @@ namespace LISP {
 			// zone
 			return _HEAP_ALLOC(env, ret);
 		}
-		DECL_NATIVE_END("decode-universal-time", DecodeUniversalTime);
-
-		DECL_NATIVE_BEGIN("encode-universal-time", EncodeUniversalTime);
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "encode-universal-time");
 		{
-			validateArgumentCountMin(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
+			_CHECK_MIN_ARGS(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
 			Date date = Date::now();
 			date.setSecond((int)*args[0]->getInteger());
 			date.setMinute((int)*args[1]->getInteger());
@@ -1863,7 +1954,7 @@ namespace LISP {
 			}
 			return _HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
 		}
-		DECL_NATIVE_END("encode-universal-time", EncodeUniversalTime);
+		DECL_NATIVE_END();
 	}
 
 	/**
