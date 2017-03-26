@@ -176,25 +176,25 @@ namespace LISP {
 	Func::Func() {
 	}
 	Func::Func(const _VAR & params, const _VAR & body) {
-		_vars.push_back(params);
-		_vars.push_back(body);
+		_params = params;
+		_body = body;
 	}
 	Func::~Func() {
 	}
 	_VAR & Func::params() {
-		return _vars[0];
+		return _params;
 	}
 	_VAR & Func::body() {
-		return _vars[1];
+		return _body;
 	}
-	_VAR Func::const_params() const {
-		return _vars[0];
+	const _VAR Func::const_params() const {
+		return _params;
 	}
-	_VAR Func::const_body() const {
-		return _vars[1];
+	const _VAR Func::const_body() const {
+		return _body;
 	}
 	bool Func::empty() {
-		return _vars.size() < 2 || params()->isNil() || body()->isNil();
+		return _params.nil() || _body.nil() || _params->isNil() || _body->isNil();
 	}
 
 	/**
@@ -389,14 +389,14 @@ namespace LISP {
 			return symbol;
 		case LIST:
 		{
-			if (lst[0]->isSymbol() && lst[0]->getSymbol() == "quote") {
-				return "'" + lst[1]->toString();
-			}
-			if (lst[0]->isSymbol() && lst[0]->getSymbol() == "`") {
-				return "`" + lst[1]->toString();
-			}
-			if (lst[0]->isSymbol() && lst[0]->getSymbol() == ",") {
-				return "," + lst[1]->toString();
+			if ((lst.size() > 1) && lst[0]->isSymbol()) {
+				if (lst[0]->getSymbol() == "quote") {
+					return "'" + lst[1]->toString();
+				} else if (lst[0]->getSymbol() == "`") {
+					return "`" + lst[1]->toString();
+				} else if (lst[0]->getSymbol() == ",") {
+					return "," + lst[1]->toString();
+				}
 			}
 			string ret = "(";
 			for (vector<_VAR>::const_iterator iter = lst.begin(); iter != lst.end(); iter++) {
@@ -883,6 +883,9 @@ namespace LISP {
 	static _VAR quote(Env & env, _VAR var) {
 		if (var->isList()) {
 			vector<_VAR> lst = var->getList();
+			if (lst.empty()) {
+				return _NIL(env);
+			}
 			if (lst[0]->isSymbol() && lst[0]->getSymbol() == ",") {
 				throw EvalLispException("unexpected ','");
 			}
@@ -898,6 +901,9 @@ namespace LISP {
 	static _VAR quasi(Env & env, _VAR var) {
 		if (var->isList()) {
 			vector<_VAR> lst = var->getList();
+			if (lst.empty()) {
+				return _NIL(env);
+			}
 			if (lst[0]->isSymbol() && lst[0]->getSymbol() == ",") {
 				return eval(env, lst[1]);
 			}
@@ -934,7 +940,7 @@ namespace LISP {
 				_CHECK_MIN_ARGS(args, 3);
 				args[1]->typeCheck(Var::LIST);
 				env[args[0]->getSymbol()] = _HEAP_ALLOC(env, Func(args[1], args[2]));
-				return _HEAP_ALLOC(env, args[0]->getSymbol());
+				return env[args[0]->getSymbol()];
 			} else if (silentsymboleq(cmd, "setf")) {
 				_CHECK_MIN_ARGS(args, 2);
 				_VAR var = eval(env, args[0]);

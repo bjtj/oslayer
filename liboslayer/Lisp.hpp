@@ -299,15 +299,16 @@ namespace LISP {
 	 */
 	class Func {
 	private:
-		std::vector<OS::GCRef<Var> > _vars;
+		OS::GCRef<Var> _params;
+		OS::GCRef<Var> _body;
 	public:
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
 		virtual ~Func();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & body();
-		OS::GCRef<Var> const_params() const;
-		OS::GCRef<Var> const_body() const;
+		const OS::GCRef<Var> const_params() const;
+		const OS::GCRef<Var> const_body() const;
 		bool empty();
 	};
 
