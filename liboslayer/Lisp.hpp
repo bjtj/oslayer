@@ -70,8 +70,8 @@ namespace LISP {
 
 	/**/
 	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
-	extern std::string text(const std::string & txt);
-	extern std::string untext(const std::string & txt);
+	extern std::string wrap_text(const std::string & txt);
+	extern std::string unwrap_text(const std::string & txt);
 
 	/**
 	 * @brief procedure (built-in function)

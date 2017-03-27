@@ -419,7 +419,7 @@ namespace LISP {
 			return Text::rtrim(Text::toString(dnum.raw()), "0");
 		}
 		case STRING:
-			return untext(str);
+			return unwrap_text(str);
 		case FUNC:
 		{
 			if (!procedure.nil()) {
@@ -617,11 +617,11 @@ namespace LISP {
 		return _HEAP_ALLOC(env, file);
 	}
 
-	string text(const string & txt) {
+	string wrap_text(const string & txt) {
 		return "\"" + txt + "\"";
 	}
 	
-	string untext(const string & txt) {
+	string unwrap_text(const string & txt) {
 		return txt.substr(1, txt.length() - 2);
 	}
 
@@ -722,7 +722,7 @@ namespace LISP {
 		return _HEAP_ALLOC(env, v1->getInteger() / v2->getInteger());
 	}
 
-	_VAR function(Env & env, _VAR & var) {
+	_VAR function(Env & env, const _VAR & var) {
 		if (var->isFunction()) {
 			return var;
 		}
@@ -1281,9 +1281,9 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "map");
 		{
 			_CHECK_MIN_ARGS(args, 3);
-			_VAR sym = eval(env, args[0]); /* TODO: use it */
-			_VAR func = eval(env, args[1]);
-			func = function(env, func);
+			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
+			_VAR result_type = eval(env, args[0]); /* TODO: use it */
+			_VAR func = function(env, eval(env, args[1]));
 			_VAR seq = eval(env, args[2]); /* TODO: use it */
 
 			vector<_VAR> ret;
@@ -1475,7 +1475,7 @@ namespace LISP {
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 				ret.append(eval(env, *iter)->toString());
 			}
-			return _HEAP_ALLOC(env, text(ret));
+			return _HEAP_ALLOC(env, wrap_text(ret));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "format");
@@ -1489,7 +1489,7 @@ namespace LISP {
 				fputs("\n", stdout);
 				return _NIL(env);
 			}
-			return _HEAP_ALLOC(env, text(str));
+			return _HEAP_ALLOC(env, wrap_text(str));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "enough-namestring");
@@ -1498,9 +1498,9 @@ namespace LISP {
 			string org = eval(env, args[0])->toString();
 			string prefix = eval(env, args[1])->toString();
 			if (Text::startsWith(org, prefix)) {
-				return _HEAP_ALLOC(env, text(org.substr(prefix.length())));
+				return _HEAP_ALLOC(env, wrap_text(org.substr(prefix.length())));
 			}
-			return _HEAP_ALLOC(env, text(org));
+			return _HEAP_ALLOC(env, wrap_text(org));
 		}
 		DECL_NATIVE_END();
 	}
@@ -1631,7 +1631,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, true);
 			}
 			string line = fd.readline();
-			return _HEAP_ALLOC(env, text(line));
+			return _HEAP_ALLOC(env, wrap_text(line));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "print");
@@ -1644,7 +1644,7 @@ namespace LISP {
 			string msg = eval(env, args[0])->toString();
 			fd.write(msg);
 			fd.write("\n");
-			return _HEAP_ALLOC(env, text(msg));
+			return _HEAP_ALLOC(env, wrap_text(msg));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-string");
@@ -1656,7 +1656,7 @@ namespace LISP {
 			}
 			string msg = eval(env, args[0])->toString();
 			fd.write(msg);
-			return _HEAP_ALLOC(env, text(msg));
+			return _HEAP_ALLOC(env, wrap_text(msg));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-line");
@@ -1669,7 +1669,7 @@ namespace LISP {
 			string msg = eval(env, args[0])->toString();
 			fd.write(msg);
 			fd.write("\n");
-			return _HEAP_ALLOC(env, text(msg));
+			return _HEAP_ALLOC(env, wrap_text(msg));
 		}
 		DECL_NATIVE_END();
 	}
@@ -1685,35 +1685,35 @@ namespace LISP {
 		{
 			_CHECK_MIN_ARGS(args, 1);
 			File file = pathname(env, eval(env, args[0]))->getFile();
-			return _HEAP_ALLOC(env, text(file.getFileNameWithoutExtension()));
+			return _HEAP_ALLOC(env, wrap_text(file.getFileNameWithoutExtension()));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "pathname-type");
 		{
 			_CHECK_MIN_ARGS(args, 1);
 			File file = pathname(env, eval(env, args[0]))->getFile();
-			return _HEAP_ALLOC(env, text(file.getExtension()));
+			return _HEAP_ALLOC(env, wrap_text(file.getExtension()));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "namestring");
 		{
 			_CHECK_MIN_ARGS(args, 1);
 			File file = pathname(env, eval(env, args[0]))->getFile();
-			return _HEAP_ALLOC(env, text(file.getPath()));
+			return _HEAP_ALLOC(env, wrap_text(file.getPath()));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "directory-namestring");
 		{
 			_CHECK_MIN_ARGS(args, 1);
 			File file = pathname(env, eval(env, args[0]))->getFile();
-			return _HEAP_ALLOC(env, text(file.getDirectory()));
+			return _HEAP_ALLOC(env, wrap_text(file.getDirectory()));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-namestring");
 		{
 			_CHECK_MIN_ARGS(args, 1);
 			File file = pathname(env, eval(env, args[0]))->getFile();
-			return _HEAP_ALLOC(env, text(file.getFileName()));
+			return _HEAP_ALLOC(env, wrap_text(file.getFileName()));
 		}
 		DECL_NATIVE_END();
 		
@@ -1728,9 +1728,9 @@ namespace LISP {
 				return _NIL(env);
 			}
 			if (File::getSeparators().find(*path.rbegin()) != string::npos) {
-				return _HEAP_ALLOC(env, text(path.substr(0, path.size() - 1)));
+				return _HEAP_ALLOC(env, wrap_text(path.substr(0, path.size() - 1)));
 			}
-			return _HEAP_ALLOC(env, text(path));
+			return _HEAP_ALLOC(env, wrap_text(path));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-name-directory");
@@ -1742,7 +1742,7 @@ namespace LISP {
 			if (f == string::npos) {
 				return _NIL(env);
 			}
-			return _HEAP_ALLOC(env, text(path.substr(0, f+1)));
+			return _HEAP_ALLOC(env, wrap_text(path.substr(0, f+1)));
 		}
 		DECL_NATIVE_END();
 	}
@@ -1915,7 +1915,7 @@ namespace LISP {
 					 date.getYear(), date.getMonth() + 1, date.getDay(),
 					 date.getHour(), date.getMinute(), date.getSecond(),
 					 date.getMillisecond());
-			return _HEAP_ALLOC(env, text(buffer));
+			return _HEAP_ALLOC(env, wrap_text(buffer));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "get-universal-time");
