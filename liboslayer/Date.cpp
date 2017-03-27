@@ -341,7 +341,7 @@ namespace OS {
 	Date::Date()
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0) {
-		osl_time_t _t = {.sec = 0, .nano = 0};
+		osl_time_t _t = {0, };
 		setTime(_t);
 	}
 
