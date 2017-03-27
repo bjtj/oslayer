@@ -55,10 +55,9 @@ namespace OS {
 		return false;
 	}
 	struct _osl_time_t osl_time_t::operator+ (const struct _osl_time_t & other) const {
-		osl_time_t ret = {
-			.sec = sec + other.sec,
-			.nano = nano + other.nano
-		};
+		osl_time_t ret;
+		ret.sec = sec + other.sec;
+		ret.nano = nano + other.nano;
 		ret.sec += (ret.nano / _NSEC_PER_SEC);
 		ret.nano = (ret.nano % _NSEC_PER_SEC);
 		return ret;
