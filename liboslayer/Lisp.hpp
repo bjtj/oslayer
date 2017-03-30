@@ -12,6 +12,7 @@
 #include "File.hpp"
 #include "Date.hpp"
 #include "AutoRef.hpp"
+#include "Ref.hpp"
 #include "Text.hpp"
 #include "Heap.hpp"
 
@@ -74,16 +75,41 @@ namespace LISP {
 	extern std::string unwrap_text(const std::string & txt);
 
 	/**
+	 * @brief scope
+	 */
+	class Scope {
+	private:
+		UTIL::Ref<Scope> _parent;
+		std::map<std::string, OS::GCRef<Var> > _registry;
+	public:
+		Scope();
+		virtual ~Scope();
+		UTIL::Ref<Scope> & parent();
+		void clear();
+		OS::GCRef<Var> rsearch(const std::string & name);
+		OS::GCRef<Var> & rget(const std::string & name);
+		std::map<std::string, OS::GCRef<Var> > & registry();
+		OS::GCRef<Var> get(const std::string & name);
+	    void put(const std::string & name, const OS::GCRef<Var> & var);
+		int depth();
+		std::string toString() const;
+	};
+
+	/**
 	 * @brief procedure (built-in function)
 	 */
 	class Procedure {
 	private:
-		std::string name;
+		Scope _scope;
+		std::string _name;
+		OS::GCRef<Var> _doc;
 	public:
-		Procedure(const std::string & name) : name(name) {}
-		virtual ~Procedure() {}
-		virtual OS::GCRef<Var> proc(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
-		std::string getName() const {return name;}
+		Procedure(const std::string & name);
+		virtual ~Procedure();
+		Scope & scope();
+		std::string & name();
+		OS::GCRef<Var> & doc();
+		virtual OS::GCRef<Var> proc(Env & env, Scope & scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
 	};
 
 	/**
@@ -97,7 +123,7 @@ namespace LISP {
 		Boolean(bool val) : _val(val) {}
 		virtual ~Boolean() {}
 		bool & val() { return _val; }
-		bool const_val() const { return _val; }
+		bool val() const { return _val; }
 		Boolean & operator= (bool val) { _val = val;  return *this; }
 		std::string toString() const { return (_val ? "T" : "NIL"); }
 	};
@@ -272,22 +298,17 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		Env * _parent;
-		std::map<std::string, OS::GCRef<Var> > _vars;
+		// Env * _parent;
+		// std::map<std::string, OS::GCRef<Var> > _vars;
+		Scope _scope;
 		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
-		Env(Env * parent);
+		// Env(Env * parent);
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		bool find (const std::string & name);
-		OS::GCRef<Var> & get(const std::string & name);
-		OS::GCRef<Var> & operator[] (const std::string & name);
-		std::map<std::string, OS::GCRef<Var> > & root();
-		std::map<std::string, OS::GCRef<Var> > & local();
-		void push(OS::GCRef<Var> var);
-		std::string toString();
+		Scope & scope();
 		OS::SharedHeap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
@@ -299,16 +320,21 @@ namespace LISP {
 	 */
 	class Func {
 	private:
+		Scope _scope;
+		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
 		OS::GCRef<Var> _body;
 	public:
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
 		virtual ~Func();
+		Scope & scope();
+		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & body();
-		const OS::GCRef<Var> const_params() const;
-		const OS::GCRef<Var> const_body() const;
+		const OS::GCRef<Var> doc() const;
+		const OS::GCRef<Var> params() const;
+		const OS::GCRef<Var> body() const;
 		bool empty();
 	};
 
@@ -330,17 +356,17 @@ namespace LISP {
 		
 	private:
 		static bool _debug;
-		int type;
-		std::string symbol;
-		std::string str;
-		std::vector<OS::GCRef<Var> > lst;
-		Boolean bval;
-        Integer inum;
-		Float dnum;
-		Func func;
-		UTIL::AutoRef<Procedure> procedure;
-		OS::File file;
-		FileDescriptor fd;
+		int _type;
+		std::string _symbol;
+		std::string _str;
+		std::vector<OS::GCRef<Var> > _lst;
+		Boolean _bval;
+        Integer _inum;
+		Float _fnum;
+		Func _func;
+		UTIL::AutoRef<Procedure> _procedure;
+		OS::File _file;
+		FileDescriptor _fd;
 		
 	public:
 		explicit Var();
@@ -356,7 +382,7 @@ namespace LISP {
 		explicit Var(const Integer & inum);
 		explicit Var(float dnum);
 		explicit Var(double dnum);
-		explicit Var(const Float & dnum);
+		explicit Var(const Float & fnum);
 		explicit Var(const Func & func);
 		explicit Var(UTIL::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
@@ -381,18 +407,18 @@ namespace LISP {
 		bool isFunction() const;
 		bool isFile() const;
 		bool isFileDescriptor() const;
-		std::string getSymbol() const;
-		std::string getString() const;
-		std::vector<OS::GCRef<Var> > & getList();
-		Boolean getBoolean();
-		Integer getInteger();
-		Float getFloat();
-		OS::File & getFile();
-		Func getFunc();
-		UTIL::AutoRef<Procedure> getProcedure();
-		FileDescriptor & getFileDescriptor();
-		OS::GCRef<Var> proc(Env & env, std::vector<OS::GCRef<Var> > & args);
-		OS::GCRef<Var> proc(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+		std::string & r_symbol();
+		std::string & r_string();
+		std::vector<OS::GCRef<Var> > & r_list();
+		Boolean & r_boolean();
+		Integer & r_integer();
+		Float & r_float();
+		OS::File & r_file();
+		Func & r_func();
+		UTIL::AutoRef<Procedure> & r_procedure();
+		FileDescriptor & r_fileDescriptor();
+		OS::GCRef<Var> proc(Env & env, Scope & scope, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, Scope & scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
 	};
 
@@ -430,16 +456,21 @@ namespace LISP {
 		virtual ~Arguments();
 
 		size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
-		void mapArguments(Env & env, std::map<std::string, OS::GCRef<Var> > & scope,
+		void mapArguments(Env & env,
+						  Scope & sub_scope,
+						  Scope & scope,
 						  std::vector<OS::GCRef<Var> > & args);
-		size_t mapOptionals(Env & env, std::map<std::string, OS::GCRef<Var> > & scope,
+		size_t mapOptionals(Env & env,
+							Scope & sub_scope,
+							Scope & scope,
 							std::vector<OS::GCRef<Var> > & proto,
 							size_t pstart,
 							std::vector<OS::GCRef<Var> > & args,
 							size_t astart);
 		static std::vector<OS::GCRef<Var> > extractRest(Env & env,
-													  std::vector<OS::GCRef<Var> > & args,
-													  size_t start);
+														Scope & scope,
+														std::vector<OS::GCRef<Var> > & args,
+														size_t start);
 		static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
 		std::map<std::string, OS::GCRef<Var> > & keywords();
 	};
@@ -452,7 +483,7 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, OS::GCRef<Var> var);
+	extern OS::GCRef<Var> eval(Env & env, Scope & scope, const OS::GCRef<Var> & var);
 	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 

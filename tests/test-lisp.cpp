@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace OS;
+using namespace UTIL;
 using namespace LISP;
 
 #define _VAR GCRef<Var> 
@@ -33,48 +34,91 @@ static void test_comment() {
 static void test_subseq() {
 	Env env;
 	native(env);
-	ASSERT(compile(env, "(subseq (list 1 2 3) 0 2)")->getList().size(), ==, 2);
+	ASSERT(compile(env, "(subseq (list 1 2 3) 0 2)")->r_list().size(), ==, 2);
 }
 
 static void test_ref() {
 	Env env;
 	native(env);
 
-	ASSERT(*compile(env, "(setq a (car (list 1 2 3)))")->getInteger(), ==, 1);
-	ASSERT(*env["a"]->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(setq b (cdr (list 1 2 3)))")->getList()[0]->getInteger(), ==, 2);
-	ASSERT(*env["b"]->getList()[1]->getInteger(), ==, 3);
+	ASSERT(*compile(env, "(setq a (car (list 1 2 3)))")->r_integer(), ==, 1);
+	ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(setq b (cdr (list 1 2 3)))")->r_list()[0]->r_integer(), ==, 2);
+	ASSERT(*env.scope().get("b")->r_list()[1]->r_integer(), ==, 3);
 
 	compile(env, "(setq lst (list (list 1 2) (list 3 4)))");
-	ASSERT(*compile(env, "(car (car lst))")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(car (cdr (car lst)))")->getInteger(), ==, 2);
+	ASSERT(*compile(env, "(car (car lst))")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(car (cdr (car lst)))")->r_integer(), ==, 2);
 
-	ASSERT(compile(env, "(car (cdr lst))")->getList().size(), ==, 2);
-	ASSERT(*compile(env, "(car (cdr lst))")->getList()[0]->getInteger(), ==, 3);
-	ASSERT(*compile(env, "(car (cdr lst))")->getList()[1]->getInteger(), ==, 4);
+	ASSERT(compile(env, "(car (cdr lst))")->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(car (cdr lst))")->r_list()[0]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(car (cdr lst))")->r_list()[1]->r_integer(), ==, 4);
 	
-	ASSERT(*compile(env, "(car (car (cdr lst)))")->getInteger(), ==, 3);
-	ASSERT(*compile(env, "(car (cdr (car (cdr lst))))")->getInteger(), ==, 4);
+	ASSERT(*compile(env, "(car (car (cdr lst)))")->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(car (cdr (car (cdr lst))))")->r_integer(), ==, 4);
+}
+
+static void test_scope() {
+	Env env;
+	native(env);
+
+	Scope global_scope;
+	Scope local_scope;
+	Scope leaf_scope;
+
+	global_scope.put("a", env.alloc(new Var("A")));
+	local_scope.put("b", env.alloc(new Var("B")));
+
+	ASSERT(global_scope.get("a").nil(), ==, false);
+	ASSERT(global_scope.get("a")->r_symbol(), ==, "A");
+	ASSERT(local_scope.rsearch("b").nil(), ==, false);
+	ASSERT(local_scope.get("b")->r_symbol(), ==, "B");
+	ASSERT(local_scope.rsearch("a").nil(), ==, true);
+
+	local_scope.parent() = Ref<Scope>(&global_scope);
+	ASSERT(local_scope.rsearch("a").nil(), ==, false);
+	ASSERT(local_scope.rsearch("a")->r_symbol(), ==, "A");
+
+	local_scope.rget("c") = env.alloc(new Var("C"));
+	ASSERT(global_scope.get("c").nil(), ==, false);
+	ASSERT(global_scope.get("c")->r_symbol(), ==, "C");
+	try {
+		ASSERT(local_scope.get("c")->isNil(), ==, true);
+		throw "This should not be thrown!";
+	} catch (LispException & e) {
+		//
+		cout << " -- expected exception : " << e.what() << endl;
+	}
+	ASSERT(local_scope.rsearch("c").nil(), ==, false);
+	ASSERT(local_scope.rsearch("c")->r_symbol(), ==, "C");
+
+	leaf_scope.parent() = Ref<Scope>(&local_scope);
+	ASSERT(leaf_scope.rsearch("a").nil(), ==, false);
+	ASSERT(leaf_scope.rsearch("a")->r_symbol(), ==, "A");
+	ASSERT(leaf_scope.rsearch("b").nil(), ==, false);
+	ASSERT(leaf_scope.rsearch("b")->r_symbol(), ==, "B");
+	ASSERT(leaf_scope.rsearch("c").nil(), ==, false);
+	ASSERT(leaf_scope.rsearch("c")->r_symbol(), ==, "C");
 }
 
 static void test_quote() {
 	Env env;
 	native(env);
 
-	ASSERT(compile(env, "'(1 2 3)")->getList().size(), ==, 3);
-	ASSERT(*compile(env, "'(1 2 3)")->getList()[0]->getInteger(), ==, 1);
-	ASSERT(*compile(env, "'(1 2 3)")->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "'(1 2 3)")->getList()[2]->getInteger(), ==, 3);
+	ASSERT(compile(env, "'(1 2 3)")->r_list().size(), ==, 3);
+	ASSERT(*compile(env, "'(1 2 3)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "'(1 2 3)")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "'(1 2 3)")->r_list()[2]->r_integer(), ==, 3);
 
-	ASSERT(compile(env, "`(1 2 3)")->getList().size(), ==, 3);
-	ASSERT(*compile(env, "`(1 2 3)")->getList()[0]->getInteger(), ==, 1);
-	ASSERT(*compile(env, "`(1 2 3)")->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "`(1 2 3)")->getList()[2]->getInteger(), ==, 3);
+	ASSERT(compile(env, "`(1 2 3)")->r_list().size(), ==, 3);
+	ASSERT(*compile(env, "`(1 2 3)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "`(1 2 3)")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "`(1 2 3)")->r_list()[2]->r_integer(), ==, 3);
 
-	ASSERT(compile(env, "`(1 2 ,(+ 2 3))")->getList().size(), ==, 3);
-	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->getList()[0]->getInteger(), ==, 1);
-	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->getList()[2]->getInteger(), ==, 5);
+	ASSERT(compile(env, "`(1 2 ,(+ 2 3))")->r_list().size(), ==, 3);
+	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[2]->r_integer(), ==, 5);
 }
 
 static void test_setf() {
@@ -82,40 +126,40 @@ static void test_setf() {
 	native(env);
 
 	compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))");
-	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList().size(), ==, 2);
+	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list().size(), ==, 2);
 
 	compile(env, "(setq n 2)");
-	ASSERT(*env["n"]->getInteger(), ==, 2);
+	ASSERT(*env.scope().get("n")->r_integer(), ==, 2);
 	compile(env, "(setf n 7)");
-	ASSERT(*env["n"]->getInteger(), ==, 7);
+	ASSERT(*env.scope().get("n")->r_integer(), ==, 7);
 
 	compile(env, "(setq lst (list 1 2 3))");
 	compile(env, "(setf (car lst) 7)");
 	
-	ASSERT(env["lst"]->getList().size(), ==, 3);
-	ASSERT(*env["lst"]->getList()[0]->getInteger(), ==, 7);
-	ASSERT(*env["lst"]->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*env["lst"]->getList()[2]->getInteger(), ==, 3);
+	ASSERT(env.scope().get("lst")->r_list().size(), ==, 3);
+	ASSERT(*env.scope().get("lst")->r_list()[0]->r_integer(), ==, 7);
+	ASSERT(*env.scope().get("lst")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope().get("lst")->r_list()[2]->r_integer(), ==, 3);
 
 	compile(env, "(setf (subseq lst 0 1) (list 9))");
-	ASSERT(*env["lst"]->getList()[0]->getInteger(), ==, 9);
-	ASSERT(*env["lst"]->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*env["lst"]->getList()[2]->getInteger(), ==, 3);
+	ASSERT(*env.scope().get("lst")->r_list()[0]->r_integer(), ==, 9);
+	ASSERT(*env.scope().get("lst")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope().get("lst")->r_list()[2]->r_integer(), ==, 3);
 
-	ASSERT(compile(env, "(setf (list 1 2) (list 4 5))")->getList().size(), ==, 2);
-	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->getList()[0]->getInteger(), ==, 4);
-	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->getList()[1]->getInteger(), ==, 5);
-	ASSERT(*compile(env, "(car (setf (list 1 2) (list 4 5)))")->getInteger(), ==, 4);
-	ASSERT(*compile(env, "(car (cdr (setf (list 1 2) (list 4 5))))")->getInteger(), ==, 5);
+	ASSERT(compile(env, "(setf (list 1 2) (list 4 5))")->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->r_list()[0]->r_integer(), ==, 4);
+	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->r_list()[1]->r_integer(), ==, 5);
+	ASSERT(*compile(env, "(car (setf (list 1 2) (list 4 5)))")->r_integer(), ==, 4);
+	ASSERT(*compile(env, "(car (cdr (setf (list 1 2) (list 4 5))))")->r_integer(), ==, 5);
 
-	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList().size(), ==, 2);
-	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList()[0]->getType(),
+	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list().size(), ==, 2);
+	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list()[0]->getType(),
 		   ==, Var::INTEGER);
-	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList()[1]->getType(),
+	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list()[1]->getType(),
 		   ==, Var::INTEGER);
-	ASSERT(*compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list()[0]->r_integer(),
 		   ==, 4);
-	ASSERT(*compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list()[1]->r_integer(),
 		   ==, 5);
 	
 }
@@ -127,27 +171,27 @@ static void test_func() {
 		native(env);
 
 		_VAR proto = parse(env, "(a b c)");
-		Arguments args(proto->getList());
+		Arguments args(proto->r_list());
 		_VAR input = parse(env, "(1 2 3)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
 
 		env.clear();
 
 		env = Env();
 		native(env);
 		proto = parse(env, "(a b c &optional x)");
-		args = Arguments(proto->getList());
+		args = Arguments(proto->r_list());
 		input = parse(env, "(1 2 3)");
 	
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(env["x"]->isNil(), ==, true);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(env.scope().get("x")->isNil(), ==, true);
 	}
 
 	{
@@ -155,14 +199,14 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x)");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(*env["x"]->getInteger(), ==, 4);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
 	}
 
 	{
@@ -170,14 +214,14 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(*env["x"]->getInteger(), ==, 1);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 1);
 	}
 
 	{
@@ -185,14 +229,14 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(*env["x"]->getInteger(), ==, 4);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
 	}
 
 	{
@@ -200,15 +244,15 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(*env["x"]->getInteger(), ==, 4);
-		ASSERT(env["y"]->getList().size(), ==, 0);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
+		ASSERT(env.scope().get("y")->r_list().size(), ==, 0);
 	}
 
 	{
@@ -216,18 +260,18 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["a"]->getInteger(), ==, 1);
-		ASSERT(*env["b"]->getInteger(), ==, 2);
-		ASSERT(*env["c"]->getInteger(), ==, 3);
-		ASSERT(*env["x"]->getInteger(), ==, 4);
-		ASSERT(env["y"]->getList().size(), ==, 3);
-		ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 5);
-		ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 6);
-		ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 7);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
+		ASSERT(env.scope().get("y")->r_list().size(), ==, 3);
+		ASSERT(*env.scope().get("y")->r_list()[0]->r_integer(), ==, 5);
+		ASSERT(*env.scope().get("y")->r_list()[1]->r_integer(), ==, 6);
+		ASSERT(*env.scope().get("y")->r_list()[2]->r_integer(), ==, 7);
 	}
 
 	{
@@ -235,18 +279,18 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(&optional x &rest y)");
-		Arguments args = Arguments(proto->getList());
+		Arguments args = Arguments(proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-		args.mapArguments(env, env.local(), input->getList());
-		ASSERT(*env["x"]->getInteger(), ==, 1);
-		ASSERT(env["y"]->getList().size(), ==, 6);
-		ASSERT(*env["y"]->getList()[0]->getInteger(), ==, 2);
-		ASSERT(*env["y"]->getList()[1]->getInteger(), ==, 3);
-		ASSERT(*env["y"]->getList()[2]->getInteger(), ==, 4);
-		ASSERT(*env["y"]->getList()[3]->getInteger(), ==, 5);
-		ASSERT(*env["y"]->getList()[4]->getInteger(), ==, 6);
-		ASSERT(*env["y"]->getList()[5]->getInteger(), ==, 7);
+		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		ASSERT(*env.scope().get("x")->r_integer(), ==, 1);
+		ASSERT(env.scope().get("y")->r_list().size(), ==, 6);
+		ASSERT(*env.scope().get("y")->r_list()[0]->r_integer(), ==, 2);
+		ASSERT(*env.scope().get("y")->r_list()[1]->r_integer(), ==, 3);
+		ASSERT(*env.scope().get("y")->r_list()[2]->r_integer(), ==, 4);
+		ASSERT(*env.scope().get("y")->r_list()[3]->r_integer(), ==, 5);
+		ASSERT(*env.scope().get("y")->r_list()[4]->r_integer(), ==, 6);
+		ASSERT(*env.scope().get("y")->r_list()[5]->r_integer(), ==, 7);
 	}
 
 	{
@@ -254,27 +298,32 @@ static void test_func() {
 		Env env;
 		native(env);
 		compile(env, "(defun hello (a b c) (+ a 0))");
-		ASSERT(*compile(env, "(hello 1 2 3)")->getInteger(), ==, 1);
+		ASSERT(*compile(env, "(hello 1 2 3)")->r_integer(), ==, 1);
 		compile(env, "(defun hello (a b c) (+ b 0))");
-		ASSERT(*compile(env, "(hello 1 2 3)")->getInteger(), ==, 2);
+		ASSERT(*compile(env, "(hello 1 2 3)")->r_integer(), ==, 2);
 		compile(env, "(defun hello (a b c) (+ c 0))");
-		ASSERT(*compile(env, "(hello 1 2 3)")->getInteger(), ==, 3);
+		ASSERT(*compile(env, "(hello 1 2 3)")->r_integer(), ==, 3);
 		compile(env, "(defun hello (a b c) (+ a b c))");
-		ASSERT(*compile(env, "(hello 1 2 3)")->getInteger(), ==, 6);
+		ASSERT(*compile(env, "(hello 1 2 3)")->r_integer(), ==, 6);
 		compile(env, "(defun hello (a b c &optional x) (if x (+ a b c) (+ a b)))");
-		ASSERT(*compile(env, "(hello 1 2 3)")->getInteger(), ==, 3);
-		ASSERT(*compile(env, "(hello 1 2 3 t)")->getInteger(), ==, 6);
+		ASSERT(*compile(env, "(hello 1 2 3)")->r_integer(), ==, 3);
+		ASSERT(*compile(env, "(hello 1 2 3 t)")->r_integer(), ==, 6);
 		compile(env, "(defun hello (a &optional b &rest c) (list a b c))");
-		ASSERT(compile(env, "(hello 1 2 3 4 5)")->getList().size(), ==, 3);
+		ASSERT(compile(env, "(hello 1 2 3 4 5)")->r_list().size(), ==, 3);
 	}
 
 	{
 		//
 		Env env;
 		native(env);
-		compile(env, "(setq str \"\")");
-		compile(env, "(defun wr (x) (setq str x))");
+		compile(env, "(setq *str* \"\")");
+		compile(env, "(defun wr (x) (setq *str* (string-append *str* x)))");
 		compile(env, "(dolist (x (list 1 2 3)) (wr x))");
+		ASSERT(env.scope().get("*str*")->toString(), ==, "123");
+
+		compile(env, "(system \"touch .temp\")");
+		compile(env, "(defun foo (x) (filep x))");
+		ASSERT(compile(env, "(foo \".temp\")")->r_boolean().val(), ==, true);
 	}
 }
 
@@ -293,6 +342,23 @@ static void test_func_more() {
 	ASSERT(err.empty(), ==, false);
 	ASSERT(compile(env, "(funcall (quote hello))")->toString(), ==, "hello");
 	ASSERT(compile(env, "(funcall (function hello))")->toString(), ==, "hello");
+}
+
+static void test_procedure() {
+	Env env;
+	native(env);
+
+	class MyProc : public Procedure {
+	public:
+		MyProc(const string & name) : Procedure(name) {}
+		virtual ~MyProc() {}
+		virtual GCRef<Var> proc(Env & env, Scope & scope, GCRef<Var> name, vector< GCRef<Var> > & args) {
+			return env.alloc(new Var((int)args.size()));
+		}
+	};
+	env.scope().put("my-proc", env.alloc(new Var(AutoRef<Procedure>(new MyProc("my-proc")))));
+	ASSERT(*compile(env, "(my-proc 1)")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(my-proc 1 2)")->r_integer(), ==, 2);
 }
 
 static void test_logic() {
@@ -326,7 +392,7 @@ static void test_type() {
 	ASSERT(compile(env, "(streamp *f*)")->isNil(), ==, false);
 }
 
-static void test_scope() {
+static void test_let() {
 	Env env;
 	native(env);
 
@@ -338,14 +404,14 @@ static void test_cond() {
 	Env env;
 	native(env);
 
-	ASSERT(*compile(env, "(if nil 1 0)")->getInteger(), ==, 0);
-	ASSERT(*compile(env, "(if t 1 0)")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(when t 1)")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(if nil 1 0)")->r_integer(), ==, 0);
+	ASSERT(*compile(env, "(if t 1 0)")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(when t 1)")->r_integer(), ==, 1);
 	ASSERT(compile(env, "(when nil 1)")->isNil(), ==, true);
 	ASSERT(compile(env, "(unless t 1)")->isNil(), ==, true);
-	ASSERT(*compile(env, "(unless nil 1)")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(unless nil 1)")->r_integer(), ==, 1);
 	compile(env, "(setq a 5)");
-	ASSERT(*compile(env, "(cond ((= a 5) 1) (t \"default\"))")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(cond ((= a 5) 1) (t \"default\"))")->r_integer(), ==, 1);
 	ASSERT(compile(env, "(cond ((string= a \"hack\") \"foo\") (t \"default\"))")->toString(), ==, "default");
 }
 
@@ -387,7 +453,7 @@ static void test_read() {
 			vector<string> & commands = reader.getCommands();
 			for (vector<string>::iterator cmd = commands.begin(); cmd != commands.end(); cmd++) {
 				_VAR ret = compile(env, *cmd);
-				ASSERT(*ret->getInteger(), ==, 3);
+				ASSERT(*ret->r_integer(), ==, 3);
 			}
 			reader.clearCommands();
 		}
@@ -400,19 +466,19 @@ static void test_string() {
 	_VAR ret = compile(env, "(setq hello \"Hello World\")");
 
 	ASSERT(ret->toString(), ==, "Hello World");
-	ASSERT(env["hello"]->toString(), ==, "Hello World");
+	ASSERT(env.scope().get("hello")->toString(), ==, "Hello World");
 
 	ret = compile(env, "(enough-namestring \"/www/html/foo/bar/baz.html\" \"/www/\")");
 	ASSERT(ret->toString(), ==, "html/foo/bar/baz.html");
 
-	ASSERT(*compile(env, "1")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "1")->r_integer(), ==, 1);
 
 	ASSERT(compile(env, "(string-prefix-p \".bashrc\" \".\")")->isNil(), ==, false);
 	ASSERT(compile(env, "(string-prefix-p \"bashrc\" \".\")")->isNil(), ==, true);
 
 	ASSERT(compile(env, "(string-append \"hello\" \" world\")")->toString(), ==, "hello world");
 
-	ASSERT(*compile(env, "(string-length \"hello world\")")->getInteger(), ==, strlen("hello world"));
+	ASSERT(*compile(env, "(string-length \"hello world\")")->r_integer(), ==, strlen("hello world"));
 }
 
 static void test_format() {
@@ -458,37 +524,37 @@ static void test_arithmetic() {
 	ASSERT(!compile(env, "(>= 1 4.0)")->isNil(), ==, false);
 	ASSERT(!compile(env, "(>= 4 1.0)")->isNil(), ==, true);
 
-	ASSERT(*compile(env, "(* 4 1.2)")->getFloat(), ==, 4.8);
+	ASSERT(*compile(env, "(* 4 1.2)")->r_float(), ==, 4.8);
 }
 
 static void test_list() {
 
 	Env env;
 	native(env);
-	ASSERT(compile(env, "(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))")->getList().size(), ==, 2);
+	ASSERT(compile(env, "(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))")->r_list().size(), ==, 2);
 	compile(env, "(setq *lst* (list 1 2 3))");
-	ASSERT(*compile(env, "(car *lst*)")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(car (list 1 2 3))")->getInteger(), ==, 1);
-	ASSERT((compile(env, "(cdr (list 1 2 3))"))->getList().size(), ==, 2);
-	ASSERT(*compile(env, "(cdr (list 1 2 3))")->getList()[0]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "(cdr (list 1 2 3))")->getList()[1]->getInteger(), ==, 3);
-	ASSERT(*compile(env, "(nth 0 (list 1 2 3))")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(nth 1 (list 1 2 3))")->getInteger(), ==, 2);
-	ASSERT(*compile(env, "(nth 2 (list 1 2 3))")->getInteger(), ==, 3);
+	ASSERT(*compile(env, "(car *lst*)")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(car (list 1 2 3))")->r_integer(), ==, 1);
+	ASSERT((compile(env, "(cdr (list 1 2 3))"))->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(cdr (list 1 2 3))")->r_list()[0]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(cdr (list 1 2 3))")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(nth 0 (list 1 2 3))")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(nth 1 (list 1 2 3))")->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(nth 2 (list 1 2 3))")->r_integer(), ==, 3);
 	ASSERT(compile(env, "(nth 10 (list 1 2 3))")->isNil(), ==, true);
-	ASSERT(compile(env, "(nthcdr 0 (list 1 2 3))")->getList().size(), ==, 3);
-	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->getList()[0]->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->getList()[1]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->getList()[2]->getInteger(), ==, 3);
-	ASSERT(compile(env, "(nthcdr 1 (list 1 2 3))")->getList().size(), ==, 2);
-	ASSERT(*compile(env, "(nthcdr 1 (list 1 2 3))")->getList()[0]->getInteger(), ==, 2);
-	ASSERT(*compile(env, "(nthcdr 1 (list 1 2 3))")->getList()[1]->getInteger(), ==, 3);
-	ASSERT(compile(env, "(nthcdr 2 (list 1 2 3))")->getList().size(), ==, 1);
-	ASSERT(*compile(env, "(nthcdr 2 (list 1 2 3))")->getList()[0]->getInteger(), ==, 3);
+	ASSERT(compile(env, "(nthcdr 0 (list 1 2 3))")->r_list().size(), ==, 3);
+	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(nthcdr 0 (list 1 2 3))")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(compile(env, "(nthcdr 1 (list 1 2 3))")->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(nthcdr 1 (list 1 2 3))")->r_list()[0]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(nthcdr 1 (list 1 2 3))")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(compile(env, "(nthcdr 2 (list 1 2 3))")->r_list().size(), ==, 1);
+	ASSERT(*compile(env, "(nthcdr 2 (list 1 2 3))")->r_list()[0]->r_integer(), ==, 3);
 	ASSERT(compile(env, "(nthcdr 10 (list 1 2 3))")->isNil(), ==, true);
 
 	compile(env, "(setq *lst* (list (list \"name\" \"steve\") (list \"age\" \"23\")))");
-	ASSERT((compile(env, "(car *lst*)"))->getList().size(), ==, 2);
+	ASSERT((compile(env, "(car *lst*)"))->r_list().size(), ==, 2);
 	ASSERT((compile(env, "(car (car *lst*))"))->toString(), ==, "name");
 	ASSERT((compile(env, "(car (cdr (car *lst*)))"))->toString(), ==, "steve");
 }
@@ -503,62 +569,62 @@ static void test_cons() {
 	ASSERT(compile(env, "(cons 1 (cons 2 (cons 3 4))))")->toString(), ==, "(1 2 3 4)");
 
 	ASSERT(compile(env, "(car (cons 1 2))")->getType(), ==, Var::INTEGER);
-	ASSERT(*compile(env, "(car (cons 1 2))")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "(car (cons 1 2))")->r_integer(), ==, 1);
 	ASSERT(compile(env, "(cdr (cons 1 2))")->getType(), ==, Var::LIST);
-	ASSERT(*compile(env, "(cdr (cons 1 2))")->getList()[0]->getInteger(), ==, 2);
+	ASSERT(*compile(env, "(cdr (cons 1 2))")->r_list()[0]->r_integer(), ==, 2);
 }
 
 static void test_algorithm() {
 	Env env;
 	native(env);
-	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->r_list()[0]->r_integer(),
 		   ==, 2);
-	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->r_list()[1]->r_integer(),
 		   ==, 3);
-	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->getList()[2]->getInteger(),
+	ASSERT(*compile(env, "(map (quote list) (lambda (x) (+ x 1)) (list 1 2 3))")->r_list()[2]->r_integer(),
 		   ==, 4);
-	ASSERT(compile(env, "(sort (list 1 2 3 4) (lambda (a b) (> a b)))")->getList().size(), ==, 4);
+	ASSERT(compile(env, "(sort (list 1 2 3 4) (lambda (a b) (> a b)))")->r_list().size(), ==, 4);
 
 	string lst = "1 2 3 4";
 	string cmp = "(lambda (a b) (> a b))";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
 		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
 		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[2]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
 		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[3]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
 		   ==, 4);
 
 	lst = "4 3 2 1";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
 		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
 		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[2]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
 		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[3]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
 		   ==, 4);
 
 	lst = "2 4 1 3";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
 		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
 		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[2]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
 		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[3]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
 		   ==, 4);
 
 	lst = "2 4 1 3";
 	cmp = "(lambda (a b) (< a b))";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[0]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
 		   ==, 4);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[1]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
 		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[2]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
 		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->getList()[3]->getInteger(),
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
 		   ==, 1);
 }
 
@@ -570,10 +636,11 @@ static void test_file() {
 	//ASSERT(compile(env, "(open \"hello.txt\")")->isNil(), ==, true);
 	ASSERT(compile(env, "(open \"hello.txt\" :if-does-not-exist nil)")->isNil(), ==, true);
 	ASSERT(!compile(env, "(open \"hello.txt\" :if-does-not-exist :create)")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
+	ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
 				   "(write-line \"hello world\" out) (close out))")->isNil(), ==, true);
+	ASSERT(compile(env, "(filep \"hello.txt\")")->r_boolean().val(), ==, true);
 	ASSERT(compile(env, "(let ((in (open \"hello.txt\"))) (read-line in))")->toString(), ==, "hello world");
-	ASSERT(compile(env, "(let ((out(open \"hello.txt\" :if-does-not-exist :create))) "
+	ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
 				   "(write-string \"hello world\" out) (close out))")->isNil(), ==, true);
 	ASSERT(compile(env, "(let ((ret \"\") (in (open \"hello.txt\"))) "
 				   "(setq ret (read-line in)) (close in) ret)")->toString(), ==, "hello world");
@@ -595,8 +662,8 @@ static void test_file() {
 
 	// file-position
 	compile(env, "(setq *f* (open \"message.txt\"))");
-	ASSERT(*compile(env, "(file-position *f*)")->getInteger(), ==, 0);
-	ASSERT(*compile(env, "(file-position *f* 2)")->getInteger(), ==, 2);
+	ASSERT(*compile(env, "(file-position *f*)")->r_integer(), ==, 0);
+	ASSERT(*compile(env, "(file-position *f* 2)")->r_integer(), ==, 2);
 	ASSERT(compile(env, "(read-line *f*)")->toString(), ==, "rld");
 	compile(env, "(close *f*)");
 }
@@ -609,28 +676,28 @@ static void test_load() {
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *temp* 1)\" out) (close out))");
 	compile(env, "(let ((in (open \"code.lsp\"))) (read in) (close in))");
-	ASSERT(*compile(env, "*temp*")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "*temp*")->r_integer(), ==, 1);
 
 	//
 	compile(env, "(system \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *a* \" out) (write-line \"1)\" out) (close out))");
 	compile(env, "(let ((in (open \"code.lsp\"))) (read in) (close in))");
-	ASSERT(*compile(env, "*a*")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "*a*")->r_integer(), ==, 1);
 
 	//
 	compile(env, "(system \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *b* \" out) (write-line \"1)\" out) (close out))");
 	compile(env, "(load \"code.lsp\")");
-	ASSERT(*compile(env, "*b*")->getInteger(), ==, 1);
+	ASSERT(*compile(env, "*b*")->r_integer(), ==, 1);
 }
 
 static void test_error_handling() {
 	Env env;
 	native(env);
 
-	ASSERT(compile(env, "(quote abc)")->getSymbol(), ==, "abc");
+	ASSERT(compile(env, "(quote abc)")->r_symbol(), ==, "abc");
 
 	try {
 		compile(env, "(quote)");
@@ -649,10 +716,10 @@ static void test_block() {
 static void test_throw() {
 	Env env;
 	native(env);
-	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1))")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print 'b))")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print b))")->getInteger(), ==, 1);
-	ASSERT(*compile(env, "(catch 'a (catch 'b (unwind-protect (throw 'a 1) (throw 'b 2))))")->getInteger(), ==, 2);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1))")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print 'b))")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(catch nil (print 'a) (throw nil 1) (print b))")->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(catch 'a (catch 'b (unwind-protect (throw 'a 1) (throw 'b 2))))")->r_integer(), ==, 2);
 
 	string cmd = "(catch 'foo"
 		"(format t \"The inner catch returns ~a.~%\""
@@ -661,7 +728,7 @@ static void test_throw() {
 		"(throw 'foo 'second-throw))))"
 		"'outer-catch)";
 
-	ASSERT(compile(env, cmd)->getSymbol(), ==, "outer-catch");
+	ASSERT(compile(env, cmd)->r_symbol(), ==, "outer-catch");
 }
 
 int main(int argc, char *args[]) {
@@ -676,6 +743,8 @@ int main(int argc, char *args[]) {
 		test_subseq();
 		cout << " *** test_ref()" << endl;
 		test_ref();
+		cout << " *** test_scope()" << endl;
+		test_scope();
 		cout << " *** test_quote()" << endl;
 		test_quote();
 		cout << " *** test_setf()" << endl;
@@ -684,10 +753,12 @@ int main(int argc, char *args[]) {
 		test_func();
 		cout << " *** test_func_more()" << endl;
 		test_func_more();
+		cout << " *** test_procedure()" << endl;
+		test_procedure();
 		cout << " *** test_type()" << endl;
 		test_type();
-		cout << " *** test_scope()" << endl;
-		test_scope();
+		cout << " *** test_let()" << endl;
+		test_let();
 		cout << " *** test_logic()" << endl;
 		test_logic();
 		cout << " *** test_cond()" << endl;

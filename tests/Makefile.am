@@ -4,6 +4,7 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-ref \
 	test-date \
 	test-base64 \
 	test-bytearray \
@@ -44,6 +45,7 @@ check_PROGRAMS += test-secure-socket
 endif
 
 test_os_SOURCES=test-os.cpp
+test_ref_SOURCES=test-ref.cpp
 test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
 test_bytearray_SOURCES=test-bytearray.cpp

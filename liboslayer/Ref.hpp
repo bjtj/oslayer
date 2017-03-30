@@ -8,8 +8,9 @@ namespace UTIL {
 	private:
 		T * _t;
 	public:
-		Ref();
+		explicit Ref();
 		explicit Ref(T * t);
+		Ref(const Ref<T> & other);
 		virtual ~Ref();
 		Ref<T> & operator= (T * t);
 		Ref<T> & operator= (const Ref<T> & other);
@@ -26,6 +27,10 @@ namespace UTIL {
 	}
 	template <typename T>
 	Ref<T>::Ref(T * t) : _t(t) {
+	}
+	template <typename T>
+	Ref<T>::Ref(const Ref<T> & other) : _t(NULL) {
+		_t = other._t;
 	}
 	template <typename T>
 	Ref<T>::~Ref() {

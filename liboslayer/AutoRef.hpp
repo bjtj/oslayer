@@ -22,13 +22,10 @@ namespace UTIL {
     template <typename T>
     class AutoRef {
     private:
-        
         SharedCounter * counter;
         T * _t;
-        
     public:
-        
-        AutoRef();
+        explicit AutoRef();
 		explicit AutoRef(T * _t);
         AutoRef(const AutoRef<T> & other);
         virtual ~AutoRef();        
@@ -40,14 +37,11 @@ namespace UTIL {
 		bool operator== (const AutoRef<T> & other) const;
         int count();
 		bool nil() const;
-
     private:
-
-        void retain();
-        void release();
-        void destroy();
-        void copy(const AutoRef<T> & other);
-        
+        void _retain();
+        void _release();
+        void _destroy();
+        void _copy(const AutoRef<T> & other);
     };
 
 
@@ -57,31 +51,31 @@ namespace UTIL {
         
 	template <typename T>
     AutoRef<T>::AutoRef(T * _t) : counter(NULL), _t(_t) {
-        retain();
+        _retain();
     }
         
 	template <typename T>
     AutoRef<T>::AutoRef(const AutoRef<T> & other) : counter(NULL), _t(NULL) {
-        copy(other);
+        _copy(other);
     }
         
 	template <typename T>
     AutoRef<T>::~AutoRef() {
-        release();
+        _release();
     }
     
 	template <typename T>
     AutoRef<T> & AutoRef<T>::operator= (T * _t) {
-        release();
+        _release();
         counter = NULL;
         this->_t = _t;
-        retain();
+        _retain();
         return *this;
     }
 	
 	template <typename T>
     AutoRef<T> & AutoRef<T>::operator= (const AutoRef<T> & other) {
-        copy(other);
+        _copy(other);
         return *this;
     }
 	
@@ -122,7 +116,7 @@ namespace UTIL {
     }
         
 	template <typename T>
-    void AutoRef<T>::retain() {
+    void AutoRef<T>::_retain() {
         if (_t) {
             if (!counter) {
                 counter = new SharedCounter;
@@ -132,14 +126,14 @@ namespace UTIL {
     }
         
 	template <typename T>
-    void AutoRef<T>::release() {
+    void AutoRef<T>::_release() {
         if (counter && counter->countDownAndCheckZero()) {
-            destroy();
+            _destroy();
         }
     }
         
 	template <typename T>
-    void AutoRef<T>::destroy() {
+    void AutoRef<T>::_destroy() {
         if (counter) {
             delete counter;
             counter = NULL;
@@ -151,12 +145,12 @@ namespace UTIL {
     }
         
 	template <typename T>
-    void AutoRef<T>::copy(const AutoRef<T> & other) {
+    void AutoRef<T>::_copy(const AutoRef<T> & other) {
         if (_t != other._t) {
-            release();
+            _release();
             counter = other.counter;
             _t = other._t;
-            retain();
+            _retain();
         }
     }
     
