@@ -152,7 +152,7 @@ static string readonly(InetAddress remoteAddr, unsigned long connectionTimeout, 
 			LOG << " ** receive - done" << endl;
 		}
 	} catch (IOException e) {
-		if (e.getErrorCode() != 0) {
+		if (e.error_code() != 0) {
 			throw e;
 		}
 	}
@@ -232,7 +232,7 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 				try {
 					sock.recv(buffer, sizeof(buffer));
 				} catch (IOException e) {
-					ASSERT(e.getErrorCode(), ==, 0);
+					ASSERT(e.error_code(), ==, 0);
 					break;
 				}
 				LOG << " >> " << buffer << endl;

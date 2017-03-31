@@ -79,7 +79,7 @@ static void test_scope() {
 	ASSERT(local_scope.rsearch("a").nil(), ==, false);
 	ASSERT(local_scope.rsearch("a")->r_symbol(), ==, "A");
 
-	local_scope.rget("c") = env.alloc(new Var("C"));
+	local_scope.rput("c", env.alloc(new Var("C")));
 	ASSERT(global_scope.get("c").nil(), ==, false);
 	ASSERT(global_scope.get("c")->r_symbol(), ==, "C");
 	try {
@@ -337,7 +337,7 @@ static void test_func_more() {
 	try {
 		compile(env, "(funcall hello)");
 	} catch (LispException & e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 	ASSERT(err.empty(), ==, false);
 	ASSERT(compile(env, "(funcall (quote hello))")->toString(), ==, "hello");
@@ -492,7 +492,7 @@ static void test_format() {
 	try {
 		compile(env, "(format nil \"hello ~a\")");
 	} catch (Exception & e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 	ASSERT(err, ==, "out of bound");
 }
@@ -790,7 +790,7 @@ int main(int argc, char *args[]) {
 		cout << " *** test_throw()" << endl;
 		test_throw();
 	} catch (LispException & e) {
-		cout << e.getMessage() << endl;
+		cout << e.toString() << endl;
 		exit(1);
 	}
 	

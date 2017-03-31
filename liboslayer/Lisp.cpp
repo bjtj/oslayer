@@ -88,6 +88,21 @@ namespace LISP {
 	}
 
 	/**
+	 * unbound 
+	 */
+	
+	UnboundLispException::UnboundLispException(const string & name) : _name(name) {
+	}
+	UnboundLispException::~UnboundLispException() throw() {
+	}
+	string UnboundLispException::toString() const {
+		return "unbound variable - '" + _name + "'";
+	}
+	std::string & UnboundLispException::name() {
+		return _name;
+	}
+	
+	/**
 	 * @brief scope
 	 */
 
@@ -110,24 +125,36 @@ namespace LISP {
 		}
 		return _VAR();
 	}
-	_VAR & Scope::rget(const std::string & name) {
+	_VAR Scope::rget(const std::string & name) {
 		if (_registry.find(name) != _registry.end()) {
 			return _registry[name];
 		}
 		if (_parent.nil() == false) {
 			return _parent->rget(name);
 		}
-		return _registry[name];
+		throw UnboundLispException(name);
+	}
+	void Scope::rput(const string & name, const _VAR & var) {
+		if (_registry.find(name) != _registry.end()) {
+			_registry[name] = var;
+			return;
+		}
+		if (_parent.nil() == false) {
+			_parent->rput(name, var);
+			return;
+		}
+		_registry[name] = var;
 	}
 	map<string, _VAR > & Scope::registry() {
 		return _registry;
 	}
 	_VAR Scope::get(const string & name) {
 		if (_registry.find(name) == _registry.end()) {
-			throw LispException("unbound variable - '" + name + "'");
+			throw UnboundLispException(name);
 		}
 		return _registry[name];
 	}
+	
 	void Scope::put(const string & name, const _VAR & var) {
 		_registry[name] = var;
 	}
@@ -803,7 +830,7 @@ namespace LISP {
 			return var;
 		}
 		if (var->isSymbol()) {
-			_VAR v = scope.rsearch(var->r_symbol());
+			_VAR v = scope.rget(var->r_symbol());
 			if (v->isFunction() == false) {
 				throw LispException("invalid function - '" + v->toString() + "' / type: " + v->getTypeString());
 			}
@@ -993,15 +1020,11 @@ namespace LISP {
 		return var;
 	}
 
-	_VAR eval(Env & env, const _VAR & var) {
-		return eval(env, env.scope(), var);
-	}
-
 	_VAR eval(Env & env, Scope & scope, const _VAR & var) {
 		if (var->isSymbol()) {
-			_VAR v = scope.rsearch(var->r_symbol());
-			if (v.nil() == true || v->isFunction()) {
-				throw LispException("unbound variable - '" + var->r_symbol() + "'");
+			_VAR v = scope.rget(var->r_symbol());
+			if (v->isFunction()) {
+				throw UnboundLispException(var->r_symbol());
 			}
 			return v;
 		} else if (var->isList() == false) {
@@ -1021,7 +1044,7 @@ namespace LISP {
 			} else if (silentsymboleq(cmd, "defun")) {
 				_CHECK_ARGS_MIN_COUNT(args, 3);
 				args[1]->typeCheck(Var::LIST);
-				scope.rget(args[0]->r_symbol()) = _HEAP_ALLOC(env, Func(args[1], args[2]));
+				scope.rput(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
 				return scope.rget(args[0]->r_symbol());
 			} else if (silentsymboleq(cmd, "setf")) {
 				_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1038,7 +1061,7 @@ namespace LISP {
 			} else if (silentsymboleq(cmd, "setq")) {
 				_CHECK_ARGS_MIN_COUNT(args, 2);
 				_VAR v = eval(env, scope, args[1]);
-				scope.rget(args[0]->r_symbol()) = v;
+				scope.rput(args[0]->r_symbol(), v);
 				return v;
 			} else if (silentsymboleq(cmd, "quote")) {
 				_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1719,7 +1742,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope.rsearch("*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope.rget("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
@@ -1732,7 +1755,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope.rsearch("*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope.rget("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
@@ -1744,7 +1767,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope.rsearch("*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope.rget("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}

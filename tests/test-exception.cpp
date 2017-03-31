@@ -15,7 +15,7 @@ static void test_exception() {
 	try {
 		throw MyException("Error occurred");
 	} catch (Exception & e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 
 	ASSERT(err, ==, "Error occurred");

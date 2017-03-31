@@ -133,52 +133,40 @@ namespace OS {
 	 */
 	class Exception : public std::exception {
 	private:
-		std::string message;
-		int errorCode;
-		int subErrorCode;
+		std::string _message;
+		int _error_code;
+		int _sub_error_code;
 	public:
-		explicit Exception() : errorCode(-1), subErrorCode(-1) {
+		explicit Exception() : _error_code(-1), _sub_error_code(-1) {
 		}
 		explicit Exception(const std::string & message) :
-			message(message), errorCode(-1), subErrorCode(-1) {
+			_message(message), _error_code(-1), _sub_error_code(-1) {
 		}
 		explicit Exception(const char * message) :
-			message(message), errorCode(-1), subErrorCode(-1) {
+			_message(message), _error_code(-1), _sub_error_code(-1) {
 		}
-		explicit Exception(const std::string & message, int errorCode, int subErrorCode) :
-			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {
+		explicit Exception(const std::string & message, int _error_code, int _sub_error_code) :
+			_message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
 		}
-		explicit Exception(const char * message, int errorCode, int subErrorCode) :
-			message(message), errorCode(errorCode), subErrorCode(subErrorCode) {
+		explicit Exception(const char * message, int _error_code, int _sub_error_code) :
+			_message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
 		}
 		virtual ~Exception() throw() {
 		}
-		int getErrorCode() {
-			return errorCode;
+		int & error_code() {
+			return _error_code;
 		}
-		void setErrorCode(int errorCode) {
-			this->errorCode = errorCode;
+		int & sub_error_code() {
+			return _sub_error_code;
 		}
-		int getSubErrorCode() {
-			return subErrorCode;
+		std::string & message() {
+			return _message;
 		}
-		void setSubErrorCode(int subErrorCode) {
-			this->subErrorCode = subErrorCode;
-		}
-		std::string & getMessage() {
-			return message;
-		}
-		void setMessage(const std::string & message) {
-			this->message = message;
-		}
-		void setMessage(const char * message) {
-			this->message = message;
-		}
-		virtual std::string toString() {
-			return message;
+		virtual std::string toString() const {
+			return _message;
 		}
 		virtual const char * what() const throw () {
-			return message.c_str();
+			return toString().c_str();
 		}
 	};
     

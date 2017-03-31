@@ -73,8 +73,8 @@ public:
 		try {
 			signal.await(1000);
 		} catch (Exception & e) {
-			cout << e.getMessage() << endl;
-			err = e.getMessage();
+			cout << e.toString() << endl;
+			err = e.toString();
 		}
 		ASSERT(tick_milli() - tick, >=, 1000);
 		ASSERT(err.empty(), ==, false);
