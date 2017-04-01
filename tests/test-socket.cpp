@@ -172,7 +172,6 @@ static void test_socket_timeout() {
 		ASSERT(ret, ==, "hello");
 	}
 	
-
 	LOG << " ** @@@ timeout test" << endl;
 	string err;
 	try {
@@ -269,26 +268,36 @@ static void test_multiplex() {
 
 int main(int argc, char *args[]) {
 
+	cout << "server thread" << endl;
 	ServerThread st(9999, AutoRef<ClientHandler>(new SimpleHandler));
 	st.start();
 
+	cout << "server thread2" << endl;
 	ServerThread st2(9998, AutoRef<ClientHandler>(new TimeoutHandler(2000)));
 	st2.start();
 
+	cout << "server thread3" << endl;
 	ServerThread st3(9997, AutoRef<ClientHandler>(new SlowHandler(2000)));
 	st3.start();
 
+	cout << "[idle 100]" << endl;
 	idle(100);
 
+	cout << "[test socket timeout]" << endl;
 	test_socket_timeout();
+	
+	cout << "[test multiplex]" << endl;
 	test_multiplex();
 
+	cout << "[server thread / interrupt & wait]" << endl;
 	st.interrupt();
 	st.wait();
 
+	cout << "[server thread2 / interrupt & wait]" << endl;
 	st2.interrupt();
 	st2.wait();
 	
+	cout << "[server thread3 / interrupt & wait]" << endl;
 	st3.interrupt();
 	st3.wait();
     

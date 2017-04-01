@@ -166,7 +166,7 @@ namespace OS {
 			return _message;
 		}
 		virtual const char * what() const throw () {
-			return toString().c_str();
+			return _message.c_str();
 		}
 	};
     
