@@ -124,8 +124,8 @@ public:
 			ASSERT(string(buffer), ==, "hello");
 			
 		} catch (Exception & e) {
-			cerr << e.getMessage() << endl;
-			err = e.getMessage();
+			cerr << e.toString() << endl;
+			err = e.toString();
 		}
 
 		ASSERT(err, >, "Peer");

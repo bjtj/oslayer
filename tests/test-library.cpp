@@ -18,7 +18,7 @@ public:
 			Library lib(DATA_PATH, "hello");
 			((void (*)(void))*lib.getSymbol("hello"))();
 		} catch (Exception e) {
-			cerr << e.getMessage() << endl;
+			cerr << e.toString() << endl;
 		}
 	}
 };

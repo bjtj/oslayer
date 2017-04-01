@@ -18,7 +18,7 @@ int main(int argc, char *args[]) {
 		} catch (ReturnLispException e) {
 			cout << " ** ERROR : block '" << e.tag()->toString() << "' not found" << endl;
 		} catch (LispException & e) {
-			cout << " ** ERROR : " << e.getMessage() << endl;
+			cout << " ** ERROR : " << e.toString() << endl;
 		}
 	}
 	

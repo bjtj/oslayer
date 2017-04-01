@@ -69,6 +69,19 @@ namespace LISP {
 		OS::GCRef<Var> ret();
 	};
 
+	/**
+	 * 
+	 */
+	class UnboundLispException : public LispException {
+	private:
+		std::string _name;
+	public:
+		explicit UnboundLispException(const std::string & name);
+		virtual ~UnboundLispException() throw();
+		virtual std::string toString() const;
+		std::string & name();
+	};
+
 	/**/
 	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 	extern std::string wrap_text(const std::string & txt);
@@ -87,7 +100,8 @@ namespace LISP {
 		UTIL::Ref<Scope> & parent();
 		void clear();
 		OS::GCRef<Var> rsearch(const std::string & name);
-		OS::GCRef<Var> & rget(const std::string & name);
+		OS::GCRef<Var> rget(const std::string & name);
+		void rput(const std::string & name, const OS::GCRef<Var> & var);
 		std::map<std::string, OS::GCRef<Var> > & registry();
 		OS::GCRef<Var> get(const std::string & name);
 	    void put(const std::string & name, const OS::GCRef<Var> & var);

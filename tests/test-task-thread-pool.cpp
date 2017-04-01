@@ -77,7 +77,7 @@ static void test_full() {
 	try {
 		pool.setTask(AutoRef<Task>(new InfiniteTask));
 	} catch (Exception e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 	dur = tick_milli() - tick;
 	ASSERT(err.empty(), ==, false);
@@ -89,7 +89,7 @@ static void test_full() {
 	try {
 		pool.setTaskWaitIfFullWithTimeout(AutoRef<Task>(new InfiniteTask), timeout);
 	} catch (Exception e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 	dur = tick_milli() - tick;
 	ASSERT(err.empty(), ==, false);

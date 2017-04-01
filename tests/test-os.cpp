@@ -168,7 +168,7 @@ int main(int argc, char *args[]) {
 		test_date();
 		test_c_date();
 	} catch (Exception e) {
-		cerr << e.getMessage() << endl;
+		cerr << e.toString() << endl;
 		return 1;
 	}
     

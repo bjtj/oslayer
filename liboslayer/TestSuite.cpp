@@ -95,13 +95,13 @@ namespace UTIL {
 			testCase->test();
 			result.setResult(true);
 		} catch (AssertException & e) {
-			cerr << " [Assert]: " << e.getMessage() << endl;
+			cerr << " [Assert]: " << e.toString() << endl;
 			result.setResult(false);
-			result.setMessage(e.getMessage());
+			result.setMessage(e.toString());
 		} catch (Exception & e) {
-			cerr << " [Exception]: " << e.getMessage() << endl;
+			cerr << " [Exception]: " << e.toString() << endl;
 			result.setResult(false);
-			result.setMessage(e.getMessage());
+			result.setMessage(e.toString());
 		} catch (...) {
 			cerr << " [unknown exception]" << endl;
 			result.setResult(false);

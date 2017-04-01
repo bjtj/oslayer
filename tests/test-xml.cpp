@@ -13,7 +13,7 @@ static void test_xml_parse() {
 	try {
 		XmlDocument doc = DomParser::parse(xml);
 	} catch (OS::Exception & e) {
-		err = e.getMessage();
+		err = e.toString();
 	}
 	ASSERT(err, ==, "Wrong xml format");
 }
