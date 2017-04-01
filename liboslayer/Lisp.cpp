@@ -1013,7 +1013,7 @@ namespace LISP {
 			_VAR & cmd = lv[0];
 			vector<_VAR> args(lv.begin() + 1, lv.end());
 			if (silentsymboleq(cmd, "quit")) {
-				throw ExitLispException((args.size() > 0 ? *eval(env, scope, args[0])->r_integer() : 0));
+				throw ExitLispException((args.size() > 0 ? (int)*eval(env, scope, args[0])->r_integer() : 0));
 			} else if (silentsymboleq(cmd, "lambda")) {
 				_CHECK_ARGS_MIN_COUNT(args, 2);
 				args[0]->typeCheck(Var::LIST);

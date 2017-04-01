@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
 		6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
+		E81F60A51E8DCF260082D294 /* ByteArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81F60A21E8DCF260082D294 /* ByteArray.cpp */; };
+		E81F60A61E8DCF260082D294 /* ByteArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81F60A21E8DCF260082D294 /* ByteArray.cpp */; };
 		E81FE39E1CC78532003D3F15 /* CountDownLatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */; };
 		E81FE39F1CC78532003D3F15 /* CountDownLatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */; };
 		E81FE3A01CC78532003D3F15 /* Observer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3991CC78532003D3F15 /* Observer.cpp */; };
@@ -107,6 +109,9 @@
 		6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlParser.hpp; path = ../../liboslayer/XmlParser.hpp; sourceTree = "<group>"; };
 		6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatagramSocket.cpp; path = ../../liboslayer/DatagramSocket.cpp; sourceTree = "<group>"; };
 		6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatagramSocket.hpp; path = ../../liboslayer/DatagramSocket.hpp; sourceTree = "<group>"; };
+		E81F60A21E8DCF260082D294 /* ByteArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ByteArray.cpp; path = ../../liboslayer/ByteArray.cpp; sourceTree = "<group>"; };
+		E81F60A31E8DCF260082D294 /* ByteArray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ByteArray.hpp; path = ../../liboslayer/ByteArray.hpp; sourceTree = "<group>"; };
+		E81F60A41E8DCF260082D294 /* Ref.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ref.hpp; path = ../../liboslayer/Ref.hpp; sourceTree = "<group>"; };
 		E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CountDownLatch.cpp; path = ../../liboslayer/CountDownLatch.cpp; sourceTree = "<group>"; };
 		E81FE3981CC78532003D3F15 /* CountDownLatch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = CountDownLatch.hpp; path = ../../liboslayer/CountDownLatch.hpp; sourceTree = "<group>"; };
 		E81FE3991CC78532003D3F15 /* Observer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Observer.cpp; path = ../../liboslayer/Observer.cpp; sourceTree = "<group>"; };
@@ -238,6 +243,9 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E81F60A21E8DCF260082D294 /* ByteArray.cpp */,
+				E81F60A31E8DCF260082D294 /* ByteArray.hpp */,
+				E81F60A41E8DCF260082D294 /* Ref.hpp */,
 				E8848EFB1E6F739B00FFA522 /* Tree.cpp */,
 				E8848EFC1E6F739B00FFA522 /* Tree.hpp */,
 				E8848EAB1E55F14A00FFA522 /* Selector.cpp */,
@@ -417,6 +425,7 @@
 				E8DCAB6F1E4202E7005A1372 /* SocketApi.cpp in Sources */,
 				E882FE8E1BD5315300E1C8C7 /* os.cpp in Sources */,
 				E8848EFD1E6F739B00FFA522 /* Tree.cpp in Sources */,
+				E81F60A51E8DCF260082D294 /* ByteArray.cpp in Sources */,
 				E86940631D2A66B900192CBB /* Uuid.cpp in Sources */,
 				E824CD7B1DB6CEFE00EA2518 /* Date.cpp in Sources */,
 				E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */,
@@ -458,6 +467,7 @@
 				E895013D1C1101C1009434B1 /* Properties.cpp in Sources */,
 				E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */,
 				E88A80071CB4453F00241D44 /* Timer.cpp in Sources */,
+				E81F60A61E8DCF260082D294 /* ByteArray.cpp in Sources */,
 				E81FE39F1CC78532003D3F15 /* CountDownLatch.cpp in Sources */,
 				E8FAB2131BD7C36200E89DC5 /* OSSocket.mm in Sources */,
 				E8FAB2141BD7C36200E89DC5 /* Text.cpp in Sources */,

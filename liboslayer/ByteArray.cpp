@@ -65,16 +65,16 @@ namespace UTIL {
 		return s;
 	}
 	size_t ByteArray::copy(const ByteArray & other) {
-		copy(other, other.size());
+		return copy(other, other.size());
 	}
 	size_t ByteArray::copy(const ByteArray & other, size_t count) {
-		copy(0, other, count);
+		return copy(0, other, count);
 	}
 	size_t ByteArray::copy(size_t from, const ByteArray & other) {
-		copy(from, other, other.size());
+		return copy(from, other, other.size());
 	}
 	size_t ByteArray::copy(size_t from, const ByteArray & other, size_t count) {
-		copy(from, other.const_array(), count);
+		return copy(from, other.const_array(), count);
 	}
 	size_t ByteArray::size() const {
 		return _size;
