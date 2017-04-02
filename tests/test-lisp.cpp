@@ -42,9 +42,9 @@ static void test_ref() {
 	native(env);
 
 	ASSERT(*compile(env, "(setq a (car (list 1 2 3)))")->r_integer(), ==, 1);
-	ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
+	ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(setq b (cdr (list 1 2 3)))")->r_list()[0]->r_integer(), ==, 2);
-	ASSERT(*env.scope().get("b")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(*env.scope()->get("b")->r_list()[1]->r_integer(), ==, 3);
 
 	compile(env, "(setq lst (list (list 1 2) (list 3 4)))");
 	ASSERT(*compile(env, "(car (car lst))")->r_integer(), ==, 1);
@@ -62,43 +62,43 @@ static void test_scope() {
 	Env env;
 	native(env);
 
-	Scope global_scope;
-	Scope local_scope;
-	Scope leaf_scope;
+	AutoRef<Scope> global_scope(new Scope);
+	AutoRef<Scope> local_scope(new Scope);
+	AutoRef<Scope> leaf_scope(new Scope);
 
-	global_scope.put("a", env.alloc(new Var("A")));
-	local_scope.put("b", env.alloc(new Var("B")));
+	global_scope->put("a", env.alloc(new Var("A")));
+	local_scope->put("b", env.alloc(new Var("B")));
 
-	ASSERT(global_scope.get("a").nil(), ==, false);
-	ASSERT(global_scope.get("a")->r_symbol(), ==, "A");
-	ASSERT(local_scope.rsearch("b").nil(), ==, false);
-	ASSERT(local_scope.get("b")->r_symbol(), ==, "B");
-	ASSERT(local_scope.rsearch("a").nil(), ==, true);
+	ASSERT(global_scope->get("a").nil(), ==, false);
+	ASSERT(global_scope->get("a")->r_symbol(), ==, "A");
+	ASSERT(local_scope->rsearch("b").nil(), ==, false);
+	ASSERT(local_scope->get("b")->r_symbol(), ==, "B");
+	ASSERT(local_scope->rsearch("a").nil(), ==, true);
 
-	local_scope.parent() = Ref<Scope>(&global_scope);
-	ASSERT(local_scope.rsearch("a").nil(), ==, false);
-	ASSERT(local_scope.rsearch("a")->r_symbol(), ==, "A");
+	local_scope->parent() = global_scope;
+	ASSERT(local_scope->rsearch("a").nil(), ==, false);
+	ASSERT(local_scope->rsearch("a")->r_symbol(), ==, "A");
 
-	local_scope.rput("c", env.alloc(new Var("C")));
-	ASSERT(global_scope.get("c").nil(), ==, false);
-	ASSERT(global_scope.get("c")->r_symbol(), ==, "C");
+	local_scope->rput("c", env.alloc(new Var("C")));
+	ASSERT(global_scope->get("c").nil(), ==, false);
+	ASSERT(global_scope->get("c")->r_symbol(), ==, "C");
 	try {
-		ASSERT(local_scope.get("c")->isNil(), ==, true);
+		ASSERT(local_scope->get("c")->isNil(), ==, true);
 		throw "This should not be thrown!";
 	} catch (LispException & e) {
 		//
 		cout << " -- expected exception : " << e.what() << endl;
 	}
-	ASSERT(local_scope.rsearch("c").nil(), ==, false);
-	ASSERT(local_scope.rsearch("c")->r_symbol(), ==, "C");
+	ASSERT(local_scope->rsearch("c").nil(), ==, false);
+	ASSERT(local_scope->rsearch("c")->r_symbol(), ==, "C");
 
-	leaf_scope.parent() = Ref<Scope>(&local_scope);
-	ASSERT(leaf_scope.rsearch("a").nil(), ==, false);
-	ASSERT(leaf_scope.rsearch("a")->r_symbol(), ==, "A");
-	ASSERT(leaf_scope.rsearch("b").nil(), ==, false);
-	ASSERT(leaf_scope.rsearch("b")->r_symbol(), ==, "B");
-	ASSERT(leaf_scope.rsearch("c").nil(), ==, false);
-	ASSERT(leaf_scope.rsearch("c")->r_symbol(), ==, "C");
+	leaf_scope->parent() = local_scope;
+	ASSERT(leaf_scope->rsearch("a").nil(), ==, false);
+	ASSERT(leaf_scope->rsearch("a")->r_symbol(), ==, "A");
+	ASSERT(leaf_scope->rsearch("b").nil(), ==, false);
+	ASSERT(leaf_scope->rsearch("b")->r_symbol(), ==, "B");
+	ASSERT(leaf_scope->rsearch("c").nil(), ==, false);
+	ASSERT(leaf_scope->rsearch("c")->r_symbol(), ==, "C");
 }
 
 static void test_quote() {
@@ -129,22 +129,22 @@ static void test_setf() {
 	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list().size(), ==, 2);
 
 	compile(env, "(setq n 2)");
-	ASSERT(*env.scope().get("n")->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get("n")->r_integer(), ==, 2);
 	compile(env, "(setf n 7)");
-	ASSERT(*env.scope().get("n")->r_integer(), ==, 7);
+	ASSERT(*env.scope()->get("n")->r_integer(), ==, 7);
 
 	compile(env, "(setq lst (list 1 2 3))");
 	compile(env, "(setf (car lst) 7)");
 	
-	ASSERT(env.scope().get("lst")->r_list().size(), ==, 3);
-	ASSERT(*env.scope().get("lst")->r_list()[0]->r_integer(), ==, 7);
-	ASSERT(*env.scope().get("lst")->r_list()[1]->r_integer(), ==, 2);
-	ASSERT(*env.scope().get("lst")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(env.scope()->get("lst")->r_list().size(), ==, 3);
+	ASSERT(*env.scope()->get("lst")->r_list()[0]->r_integer(), ==, 7);
+	ASSERT(*env.scope()->get("lst")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get("lst")->r_list()[2]->r_integer(), ==, 3);
 
 	compile(env, "(setf (subseq lst 0 1) (list 9))");
-	ASSERT(*env.scope().get("lst")->r_list()[0]->r_integer(), ==, 9);
-	ASSERT(*env.scope().get("lst")->r_list()[1]->r_integer(), ==, 2);
-	ASSERT(*env.scope().get("lst")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*env.scope()->get("lst")->r_list()[0]->r_integer(), ==, 9);
+	ASSERT(*env.scope()->get("lst")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get("lst")->r_list()[2]->r_integer(), ==, 3);
 
 	ASSERT(compile(env, "(setf (list 1 2) (list 4 5))")->r_list().size(), ==, 2);
 	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->r_list()[0]->r_integer(), ==, 4);
@@ -175,9 +175,9 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
 
 		env.clear();
 
@@ -188,10 +188,10 @@ static void test_func() {
 		input = parse(env, "(1 2 3)");
 	
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(env.scope().get("x")->isNil(), ==, true);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(env.scope()->get("x")->isNil(), ==, true);
 	}
 
 	{
@@ -203,10 +203,10 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 4);
 	}
 
 	{
@@ -218,10 +218,10 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 1);
 	}
 
 	{
@@ -233,10 +233,10 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 4);
 	}
 
 	{
@@ -248,11 +248,11 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
-		ASSERT(env.scope().get("y")->r_list().size(), ==, 0);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 4);
+		ASSERT(env.scope()->get("y")->r_list().size(), ==, 0);
 	}
 
 	{
@@ -264,14 +264,14 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope().get("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 4);
-		ASSERT(env.scope().get("y")->r_list().size(), ==, 3);
-		ASSERT(*env.scope().get("y")->r_list()[0]->r_integer(), ==, 5);
-		ASSERT(*env.scope().get("y")->r_list()[1]->r_integer(), ==, 6);
-		ASSERT(*env.scope().get("y")->r_list()[2]->r_integer(), ==, 7);
+		ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get("b")->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 4);
+		ASSERT(env.scope()->get("y")->r_list().size(), ==, 3);
+		ASSERT(*env.scope()->get("y")->r_list()[0]->r_integer(), ==, 5);
+		ASSERT(*env.scope()->get("y")->r_list()[1]->r_integer(), ==, 6);
+		ASSERT(*env.scope()->get("y")->r_list()[2]->r_integer(), ==, 7);
 	}
 
 	{
@@ -283,14 +283,14 @@ static void test_func() {
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
 		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope().get("x")->r_integer(), ==, 1);
-		ASSERT(env.scope().get("y")->r_list().size(), ==, 6);
-		ASSERT(*env.scope().get("y")->r_list()[0]->r_integer(), ==, 2);
-		ASSERT(*env.scope().get("y")->r_list()[1]->r_integer(), ==, 3);
-		ASSERT(*env.scope().get("y")->r_list()[2]->r_integer(), ==, 4);
-		ASSERT(*env.scope().get("y")->r_list()[3]->r_integer(), ==, 5);
-		ASSERT(*env.scope().get("y")->r_list()[4]->r_integer(), ==, 6);
-		ASSERT(*env.scope().get("y")->r_list()[5]->r_integer(), ==, 7);
+		ASSERT(*env.scope()->get("x")->r_integer(), ==, 1);
+		ASSERT(env.scope()->get("y")->r_list().size(), ==, 6);
+		ASSERT(*env.scope()->get("y")->r_list()[0]->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get("y")->r_list()[1]->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get("y")->r_list()[2]->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get("y")->r_list()[3]->r_integer(), ==, 5);
+		ASSERT(*env.scope()->get("y")->r_list()[4]->r_integer(), ==, 6);
+		ASSERT(*env.scope()->get("y")->r_list()[5]->r_integer(), ==, 7);
 	}
 
 	{
@@ -319,7 +319,7 @@ static void test_func() {
 		compile(env, "(setq *str* \"\")");
 		compile(env, "(defun wr (x) (setq *str* (string-append *str* x)))");
 		compile(env, "(dolist (x (list 1 2 3)) (wr x))");
-		ASSERT(env.scope().get("*str*")->toString(), ==, "123");
+		ASSERT(env.scope()->get("*str*")->toString(), ==, "123");
 
 		compile(env, "(system \"touch .temp\")");
 		compile(env, "(defun foo (x) (filep x))");
@@ -352,11 +352,11 @@ static void test_procedure() {
 	public:
 		MyProc(const string & name) : Procedure(name) {}
 		virtual ~MyProc() {}
-		virtual GCRef<Var> proc(Env & env, Scope & scope, GCRef<Var> name, vector< GCRef<Var> > & args) {
+		virtual GCRef<Var> proc(Env & env, AutoRef<Scope> scope, GCRef<Var> name, vector< GCRef<Var> > & args) {
 			return env.alloc(new Var((int)args.size()));
 		}
 	};
-	env.scope().put("my-proc", env.alloc(new Var(AutoRef<Procedure>(new MyProc("my-proc")))));
+	env.scope()->put("my-proc", env.alloc(new Var(AutoRef<Procedure>(new MyProc("my-proc")))));
 	ASSERT(*compile(env, "(my-proc 1)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(my-proc 1 2)")->r_integer(), ==, 2);
 }
@@ -466,7 +466,7 @@ static void test_string() {
 	_VAR ret = compile(env, "(setq hello \"Hello World\")");
 
 	ASSERT(ret->toString(), ==, "Hello World");
-	ASSERT(env.scope().get("hello")->toString(), ==, "Hello World");
+	ASSERT(env.scope()->get("hello")->toString(), ==, "Hello World");
 
 	ret = compile(env, "(enough-namestring \"/www/html/foo/bar/baz.html\" \"/www/\")");
 	ASSERT(ret->toString(), ==, "html/foo/bar/baz.html");

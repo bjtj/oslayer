@@ -12,7 +12,6 @@
 #include "File.hpp"
 #include "Date.hpp"
 #include "AutoRef.hpp"
-#include "Ref.hpp"
 #include "Text.hpp"
 #include "Heap.hpp"
 
@@ -92,12 +91,12 @@ namespace LISP {
 	 */
 	class Scope {
 	private:
-		UTIL::Ref<Scope> _parent;
+		UTIL::AutoRef<Scope> _parent;
 		std::map<std::string, OS::GCRef<Var> > _registry;
 	public:
 		Scope();
 		virtual ~Scope();
-		UTIL::Ref<Scope> & parent();
+		UTIL::AutoRef<Scope> & parent();
 		void clear();
 		OS::GCRef<Var> rsearch(const std::string & name);
 		OS::GCRef<Var> rget(const std::string & name);
@@ -114,16 +113,14 @@ namespace LISP {
 	 */
 	class Procedure {
 	private:
-		Scope _scope;
 		std::string _name;
 		OS::GCRef<Var> _doc;
 	public:
 		Procedure(const std::string & name);
 		virtual ~Procedure();
-		Scope & scope();
 		std::string & name();
 		OS::GCRef<Var> & doc();
-		virtual OS::GCRef<Var> proc(Env & env, Scope & scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
+		virtual OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
 	};
 
 	/**
@@ -312,17 +309,14 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		// Env * _parent;
-		// std::map<std::string, OS::GCRef<Var> > _vars;
-		Scope _scope;
+		UTIL::AutoRef<Scope> _scope;
 		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
-		// Env(Env * parent);
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		Scope & scope();
+		UTIL::AutoRef<Scope> & scope();
 		OS::SharedHeap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
@@ -334,7 +328,7 @@ namespace LISP {
 	 */
 	class Func {
 	private:
-		Scope _scope;
+		UTIL::AutoRef<Scope> _scope;
 		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
 		OS::GCRef<Var> _body;
@@ -342,7 +336,7 @@ namespace LISP {
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
 		virtual ~Func();
-		Scope & scope();
+		UTIL::AutoRef<Scope> & scope();
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & body();
@@ -431,8 +425,8 @@ namespace LISP {
 		Func & r_func();
 		UTIL::AutoRef<Procedure> & r_procedure();
 		FileDescriptor & r_fileDescriptor();
-		OS::GCRef<Var> proc(Env & env, Scope & scope, std::vector<OS::GCRef<Var> > & args);
-		OS::GCRef<Var> proc(Env & env, Scope & scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
 	};
 
@@ -471,18 +465,18 @@ namespace LISP {
 
 		size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
 		void mapArguments(Env & env,
-						  Scope & sub_scope,
-						  Scope & scope,
+						  UTIL::AutoRef<Scope> sub_scope,
+						  UTIL::AutoRef<Scope> scope,
 						  std::vector<OS::GCRef<Var> > & args);
 		size_t mapOptionals(Env & env,
-							Scope & sub_scope,
-							Scope & scope,
+							UTIL::AutoRef<Scope> sub_scope,
+							UTIL::AutoRef<Scope> scope,
 							std::vector<OS::GCRef<Var> > & proto,
 							size_t pstart,
 							std::vector<OS::GCRef<Var> > & args,
 							size_t astart);
 		static std::vector<OS::GCRef<Var> > extractRest(Env & env,
-														Scope & scope,
+														UTIL::AutoRef<Scope> scope,
 														std::vector<OS::GCRef<Var> > & args,
 														size_t start);
 		static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
@@ -497,7 +491,7 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, Scope & scope, const OS::GCRef<Var> & var);
+	extern OS::GCRef<Var> eval(Env & env, UTIL::AutoRef<Scope> scope, const OS::GCRef<Var> & var);
 	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 
