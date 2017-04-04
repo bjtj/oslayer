@@ -651,6 +651,7 @@ namespace LISP {
 	}
 
 	// built-in
+	static void builtin_essential(Env & env);
 	static void builtin_type(Env & env);
 	static void builtin_algorithm(Env & env);
 	static void builtin_list(Env & env);
@@ -921,6 +922,18 @@ namespace LISP {
 				tokens.push_back(string(1, *iter));
 			} else if (*iter == '\'' || *iter == ',' || *iter == '`') {
 				tokens.push_back(string(1, *iter));
+			} else if (*iter == '#') {
+				iter++;
+				if (iter == s.end()) {
+					throw LispException("unexpected end of string");
+				}
+				switch (*iter) {
+				case '\'':
+					tokens.push_back("#'");
+					break;
+				default:
+					throw LispException("unexpected token '" + string(1, *iter) + "' after #");
+				}
 			} else if (!isSpace(*iter)) {
 				string tok;
 				for (; iter != s.end() && !isSpace(*iter) && *iter != '(' && *iter != ')'; iter++) {
@@ -962,6 +975,11 @@ namespace LISP {
 			lst.push_back(_HEAP_ALLOC(env, ","));
 			lst.push_back(read_from_tokens(env, ++iter, end));
 			return _HEAP_ALLOC(env, lst);
+		} else if (*iter == "#'") {
+			vector<_VAR> lst;
+			lst.push_back(_HEAP_ALLOC(env, "function"));
+			lst.push_back(read_from_tokens(env, ++iter, end));
+			return _HEAP_ALLOC(env, lst);
 		} else {
 			return _HEAP_ALLOC(env, *iter);
 		}
@@ -979,6 +997,13 @@ namespace LISP {
 			return var->r_symbol() == sym;
 		}
 		return false;
+	}
+
+	static _VAR quoty(Env & env, _VAR var) {
+		vector<_VAR> qa;
+		qa.push_back(_HEAP_ALLOC(env, "quote"));
+		qa.push_back(var);
+		return _HEAP_ALLOC(env, qa);
 	}
 
 	static _VAR quote(Env & env, AutoRef<Scope> scope, _VAR var) {
@@ -1034,268 +1059,6 @@ namespace LISP {
 			vector<_VAR> args(lv.begin() + 1, lv.end());
 			if (silentsymboleq(cmd, "quit")) {
 				throw ExitLispException((args.size() > 0 ? (int)*eval(env, scope, args[0])->r_integer() : 0));
-			} else if (silentsymboleq(cmd, "lambda")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				args[0]->typeCheck(Var::LIST);
-				Func func(args[0], args[1]);
-				func.scope()->registry() = scope->registry();
-				return _HEAP_ALLOC(env, func);
-			} else if (silentsymboleq(cmd, "defun")) {
-				_CHECK_ARGS_MIN_COUNT(args, 3);
-				args[1]->typeCheck(Var::LIST);
-				scope->rput(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
-				return scope->rget(args[0]->r_symbol());
-			} else if (silentsymboleq(cmd, "setf")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR var = eval(env, scope, args[0]);
-				_VAR other = eval(env, scope, args[1]);
-				if (var->isList() && other->isList()) {
-					for (size_t i = 0; i < var->r_list().size() && i < other->r_list().size(); i++) {
-						(*var->r_list()[i]) = (*other->r_list()[i]);
-					}
-				} else {
-					*var = *other;
-				}
-				return var;
-			} else if (silentsymboleq(cmd, "setq")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR v = eval(env, scope, args[1]);
-				scope->rput(args[0]->r_symbol(), v);
-				return v;
-			} else if (silentsymboleq(cmd, "quote")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				return quote(env, scope, args[0]);
-			} else if (silentsymboleq(cmd, "`")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				return quasi(env, scope, args[0]);
-			} else if (silentsymboleq(cmd, "function")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				return function(env, scope, args[0]);
-			} else if (silentsymboleq(cmd, "funcall")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				_VAR funcsym = eval(env, scope, args[0]);
-				_VAR func = function(env, scope, funcsym);
-				vector<_VAR> fargs(args.begin() + 1, args.end());
-				return func->proc(env, scope, fargs);
-			} else if (silentsymboleq(cmd, "let")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				_VAR ret = _NIL(env);
-				vector<_VAR> & lets = args[0]->r_list();
-				AutoRef<Scope> local_scope(new Scope);
-				local_scope->parent() = scope;
-				for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
-					vector<_VAR> decl = (*iter)->r_list();
-					string sym = decl[0]->r_symbol();
-					local_scope->put(sym, eval(env, scope, decl[1]));
-				}
-				for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-					ret = eval(env, local_scope, *iter);
-				}
-				return ret;
-			} else if (silentsymboleq(cmd, "if")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR val = eval(env, scope, args[0]);
-				if (!val->isNil()) {
-					return eval(env, scope, args[1]);
-				} else if (args.size() > 2) {
-					return eval(env, scope, args[2]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "when")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR test = eval(env, scope, args[0]);
-				if (!test->isNil()) {
-					return eval(env, scope, args[1]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "unless")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR test = eval(env, scope, args[0]);
-				if (test->isNil()) {
-					return eval(env, scope, args[1]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "cond")) {
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					vector<_VAR> lst = (*iter)->r_list();
-					if (!eval(env, scope, lst[0])->isNil()) {
-						return eval(env, scope, lst[1]);
-					}
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "progn")) {
-				_VAR ret = _NIL(env);
-				_FORI(args, i, 0) {
-					ret = eval(env, scope, args[i]);
-				}
-				return ret;
-			} else if (silentsymboleq(cmd, "while")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR pre_test = args[0];
-				while (!eval(env, scope, pre_test)->isNil()) {
-					eval(env, scope, args[1]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "dolist")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				vector<_VAR> decl = args[0]->r_list();
-				string param = decl[0]->r_symbol();
-				vector<_VAR> lst = eval(env, scope, decl[1])->r_list();
-				AutoRef<Scope> local_scope(new Scope);
-				local_scope->parent() = scope;
-				for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-					local_scope->put(param, *iter);
-					eval(env, local_scope, args[1]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "dotimes")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				vector<_VAR> steps = args[0]->r_list();
-				string sym = steps[0]->r_symbol();
-				Integer limit = eval(env, scope, steps[1])->r_integer();
-				AutoRef<Scope> local_scope(new Scope);
-				local_scope->parent() = scope;
-				local_scope->put(sym, _HEAP_ALLOC(env, Integer(0)));
-				for (; local_scope->get(sym)->r_integer() < limit;
-					 local_scope->put(sym, _HEAP_ALLOC(env, local_scope->get(sym)->r_integer() + 1))) {
-					eval(env, local_scope, args[1]);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "loop")) {
-				// TODO: implement
-				// [http://www.ai.sri.com/pkarp/loop.html]
-				// code:
-				//  (loop for x in '(a b c d e) do (print x))
-				//
-				// result:
-				//  A
-				//  B
-				//  C
-				//  D
-				//  E
-				//  NIL
-				throw LispException("not implemeneted");
-			} else if (silentsymboleq(cmd, "list")) {
-				vector<_VAR> elts;
-				for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-					elts.push_back(eval(env, scope, *iter));
-				}
-				return _HEAP_ALLOC(env, elts);
-			} else if (silentsymboleq(cmd, "cons")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				vector<_VAR> ret;
-				_VAR cons = eval(env, scope, args[0]);
-				_VAR cell = eval(env, scope, args[1]);
-				ret.push_back(cons);
-				if (cell->isList()) {
-					vector<_VAR> lst = cell->r_list();
-					ret.insert(ret.end(), lst.begin(), lst.end());
-				} else {
-					ret.push_back(cell);
-				}
-				return _HEAP_ALLOC(env, ret);
-			} else if (silentsymboleq(cmd, "car")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
-				if (lst.size() > 0) {
-					return lst[0];
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "cdr")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
-				if (lst.size() > 1) {
-					vector<_VAR> rest;
-					for (vector<_VAR>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
-						rest.push_back(*iter);
-					}
-					return _HEAP_ALLOC(env, rest);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "nth")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				size_t idx = (size_t)(*(eval(env, scope, args[0])->r_integer()));
-				vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
-				if (idx < lst.size()) {
-					return lst[idx];
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "nthcdr")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				size_t idx = (size_t)(*eval(env, scope, args[0])->r_integer());
-				vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
-				if (idx < lst.size()) {
-					vector<_VAR> rest;
-					for (vector<_VAR>::iterator iter = lst.begin() + idx; iter != lst.end(); iter++) {
-						rest.push_back(*iter);
-					}
-					return _HEAP_ALLOC(env, rest);
-				}
-				return _NIL(env);
-			} else if (silentsymboleq(cmd, "subseq")) {
-				_CHECK_ARGS_MIN_COUNT(args, 3);
-				vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
-				Integer start = eval(env, scope, args[1])->r_integer();
-				Integer end = eval(env, scope, args[2])->r_integer();
-				vector<_VAR> ret;
-				for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
-					ret.push_back(lst[i]);
-				}
-				return _HEAP_ALLOC(env, ret);
-			} else if (silentsymboleq(cmd, "unwind-protect")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				_VAR ret = _NIL(env);
-				try {
-					ret = eval(env, scope, args[0]);
-				} catch (LispException e) {
-					eval(env, scope, args[1]);
-					throw e;
-				}
-				eval(env, scope, args[1]);
-				return ret;
-			} else if (silentsymboleq(cmd, "catch")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				try {
-					_VAR ret = _NIL(env);
-					_FORI(args, i, 1) {
-						ret = eval(env, scope, args[i]);
-					}
-					return ret;
-				} catch (ThrowLispException e) {
-					_VAR exp = eval(env, scope, args[0]);
-					if (_EQ_NIL_OR_SYMBOL(e.except(), exp)) {
-						return e.ret();
-					}
-					throw e;
-				}
-			} else if (silentsymboleq(cmd, "throw")) {
-				_CHECK_ARGS_MIN_COUNT(args, 2);
-				throw ThrowLispException(eval(env, scope, args[0]), eval(env, scope, args[1]));
-			} else if (silentsymboleq(cmd, "block")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				try {
-					_VAR ret = _NIL(env);
-					_FORI(args, i, 1) {
-						ret = eval(env, scope, args[i]);
-					}
-					return ret;
-				} catch (ReturnLispException e) {
-					if (_EQ_NIL_OR_SYMBOL(e.tag(), args[0])) {
-						return e.var();
-					}
-					throw e;
-				}
-			} else if (silentsymboleq(cmd, "return-from")) {
-				_CHECK_ARGS_MIN_COUNT(args, 1);
-				_VAR ret = _OPT_EVAL(env, scope, args, 1, _NIL(env));
-				throw ReturnLispException(args[0], ret);
-			} else if (silentsymboleq(cmd, "defmacro")) {
-				// TODO: implement
-				// refer [http://clhs.lisp.se/Body/m_defmac.htm]
-				throw LispException("not implemeneted");
-			} else if (silentsymboleq(cmd, "macroexpand")) {
-				// TODO: implement
-				throw LispException("not implemeneted");
 			} else {
 				_VAR func = function(env, scope, cmd);
 				return func->proc(env, scope, cmd, args);
@@ -1309,6 +1072,7 @@ namespace LISP {
 	}
 
 	void native(Env & env) {
+		builtin_essential(env);
 		builtin_type(env);
 		builtin_algorithm(env);
 		builtin_list(env);
@@ -1321,6 +1085,373 @@ namespace LISP {
 		builtin_socket(env);
 		builtin_system(env);
 		builtin_date(env);
+	}
+
+	void builtin_essential(Env & env) {
+		DECL_NATIVE_BEGIN(env, "symbolp");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isSymbol());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "lambda");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			args[0]->typeCheck(Var::LIST);
+			Func func(args[0], args[1]);
+			func.scope()->registry() = scope->registry();
+			return _HEAP_ALLOC(env, func);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "defun");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 3);
+			args[1]->typeCheck(Var::LIST);
+			scope->rput(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
+			return scope->rget(args[0]->r_symbol());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "setf");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR var = eval(env, scope, args[0]);
+			_VAR other = eval(env, scope, args[1]);
+			if (var->isList() && other->isList()) {
+				for (size_t i = 0; i < var->r_list().size() && i < other->r_list().size(); i++) {
+					(*var->r_list()[i]) = (*other->r_list()[i]);
+				}
+			} else {
+				*var = *other;
+			}
+			return var;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "setq");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR v = eval(env, scope, args[1]);
+			scope->rput(args[0]->r_symbol(), v);
+			return v;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "quote");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return quote(env, scope, args[0]);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "`");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return quasi(env, scope, args[0]);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "function");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return function(env, scope, args[0]);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "funcall");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR funcsym = eval(env, scope, args[0]);
+			_VAR func = function(env, scope, funcsym);
+			vector<_VAR> fargs(args.begin() + 1, args.end());
+			return func->proc(env, scope, fargs);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "let");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR ret = _NIL(env);
+			vector<_VAR> & lets = args[0]->r_list();
+			AutoRef<Scope> local_scope(new Scope);
+			local_scope->parent() = scope;
+			for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
+				vector<_VAR> decl = (*iter)->r_list();
+				string sym = decl[0]->r_symbol();
+				local_scope->put(sym, eval(env, scope, decl[1]));
+			}
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				ret = eval(env, local_scope, *iter);
+			}
+			return ret;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "if");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR val = eval(env, scope, args[0]);
+			if (!val->isNil()) {
+				return eval(env, scope, args[1]);
+			} else if (args.size() > 2) {
+				return eval(env, scope, args[2]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "when");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR test = eval(env, scope, args[0]);
+			if (!test->isNil()) {
+				return eval(env, scope, args[1]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "unless");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR test = eval(env, scope, args[0]);
+			if (test->isNil()) {
+				return eval(env, scope, args[1]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "cond");
+		{
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				vector<_VAR> lst = (*iter)->r_list();
+				if (!eval(env, scope, lst[0])->isNil()) {
+					return eval(env, scope, lst[1]);
+				}
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "progn");
+		{
+			_VAR ret = _NIL(env);
+			_FORI(args, i, 0) {
+				ret = eval(env, scope, args[i]);
+			}
+			return ret;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "while");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR pre_test = args[0];
+			while (!eval(env, scope, pre_test)->isNil()) {
+				eval(env, scope, args[1]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "dolist");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			vector<_VAR> decl = args[0]->r_list();
+			string param = decl[0]->r_symbol();
+			vector<_VAR> lst = eval(env, scope, decl[1])->r_list();
+			AutoRef<Scope> local_scope(new Scope);
+			local_scope->parent() = scope;
+			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
+				local_scope->put(param, *iter);
+				eval(env, local_scope, args[1]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "dotimes");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			vector<_VAR> steps = args[0]->r_list();
+			string sym = steps[0]->r_symbol();
+			Integer limit = eval(env, scope, steps[1])->r_integer();
+			AutoRef<Scope> local_scope(new Scope);
+			local_scope->parent() = scope;
+			local_scope->put(sym, _HEAP_ALLOC(env, Integer(0)));
+			for (; local_scope->get(sym)->r_integer() < limit;
+				 local_scope->put(sym, _HEAP_ALLOC(env, local_scope->get(sym)->r_integer() + 1))) {
+				eval(env, local_scope, args[1]);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "loop");
+		{
+			// TODO: implement
+			// [http://www.ai.sri.com/pkarp/loop.html]
+			// code:
+			//  (loop for x in '(a b c d e) do (print x))
+			//
+			// result:
+			//  A
+			//  B
+			//  C
+			//  D
+			//  E
+			//  NIL
+			throw LispException("not implemeneted");
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "list");
+		{
+			vector<_VAR> elts;
+			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
+				elts.push_back(eval(env, scope, *iter));
+			}
+			return _HEAP_ALLOC(env, elts);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "cons");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			vector<_VAR> ret;
+			_VAR cons = eval(env, scope, args[0]);
+			_VAR cell = eval(env, scope, args[1]);
+			ret.push_back(cons);
+			if (cell->isList()) {
+				vector<_VAR> lst = cell->r_list();
+				ret.insert(ret.end(), lst.begin(), lst.end());
+			} else {
+				ret.push_back(cell);
+			}
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "car");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			if (lst.size() > 0) {
+				return lst[0];
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "cdr");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			if (lst.size() > 1) {
+				vector<_VAR> rest;
+				for (vector<_VAR>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
+					rest.push_back(*iter);
+				}
+				return _HEAP_ALLOC(env, rest);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "nth");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			size_t idx = (size_t)(*(eval(env, scope, args[0])->r_integer()));
+			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
+			if (idx < lst.size()) {
+				return lst[idx];
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "nthcdr");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			size_t idx = (size_t)(*eval(env, scope, args[0])->r_integer());
+			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
+			if (idx < lst.size()) {
+				vector<_VAR> rest;
+				for (vector<_VAR>::iterator iter = lst.begin() + idx; iter != lst.end(); iter++) {
+					rest.push_back(*iter);
+				}
+				return _HEAP_ALLOC(env, rest);
+			}
+			return _NIL(env);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "subseq");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 3);
+			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			Integer start = eval(env, scope, args[1])->r_integer();
+			Integer end = eval(env, scope, args[2])->r_integer();
+			vector<_VAR> ret;
+			for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
+				ret.push_back(lst[i]);
+			}
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "unwind-protect");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR ret = _NIL(env);
+			try {
+				ret = eval(env, scope, args[0]);
+			} catch (LispException e) {
+				eval(env, scope, args[1]);
+				throw e;
+			}
+			eval(env, scope, args[1]);
+			return ret;
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "catch");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			try {
+				_VAR ret = _NIL(env);
+				_FORI(args, i, 1) {
+					ret = eval(env, scope, args[i]);
+				}
+				return ret;
+			} catch (ThrowLispException e) {
+				_VAR exp = eval(env, scope, args[0]);
+				if (_EQ_NIL_OR_SYMBOL(e.except(), exp)) {
+					return e.ret();
+				}
+				throw e;
+			}
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "throw");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			throw ThrowLispException(eval(env, scope, args[0]), eval(env, scope, args[1]));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "block");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			try {
+				_VAR ret = _NIL(env);
+				_FORI(args, i, 1) {
+					ret = eval(env, scope, args[i]);
+				}
+				return ret;
+			} catch (ReturnLispException e) {
+				if (_EQ_NIL_OR_SYMBOL(e.tag(), args[0])) {
+					return e.var();
+				}
+				throw e;
+			}
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "return-from");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR ret = _OPT_EVAL(env, scope, args, 1, _NIL(env));
+			throw ReturnLispException(args[0], ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "defmacro");
+		{
+			// TODO: implement
+			// refer [http://clhs.lisp.se/Body/m_defmac.htm]
+			throw LispException("not implemeneted");
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "macroexpand");
+		{
+			// TODO: implement
+			throw LispException("not implemeneted");
+		}
+		DECL_NATIVE_END();
 	}
 
 	void builtin_type(Env & env) {
@@ -1381,9 +1512,6 @@ namespace LISP {
 	}
 
 	void builtin_algorithm(Env & env) {
-
-		// remove
-
 		// TODO: refer - [http://www.lispworks.com/documentation/lw60/CLHS/Body/f_map.htm]
 		DECL_NATIVE_BEGIN(env, "map");
 		{
@@ -1391,10 +1519,7 @@ namespace LISP {
 			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
 			_VAR result_type = eval(env, scope, args[0]); /* TODO: use it */
 			_VAR func = function(env, scope, eval(env, scope, args[1]));
-			_VAR seq = eval(env, scope, args[2]); /* TODO: use it */
-
 			vector<_VAR> ret;
-
 			vector<vector<_VAR> > lists;
 			size_t size = 0;
 			for (size_t i = 2; i < args.size(); i++) {
@@ -1404,16 +1529,41 @@ namespace LISP {
 				}
 				lists.push_back(lst);
 			}
-
 			for (size_t i = 0; i < size; i++) {
 				vector<_VAR> fargs;
 				for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
 					vector<_VAR> & lst = (*iter);
-					fargs.push_back((i < lst.size() ? lst[i] : _NIL(env)));
+					fargs.push_back(quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
 				}
-				ret.push_back(func->proc(env, scope, fargs));
+				_VAR r = func->proc(env, scope, fargs);
+				ret.push_back(r);
 			}
-
+			return _HEAP_ALLOC(env, ret);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "mapcar");
+		{
+			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
+			_VAR func = function(env, scope, eval(env, scope, args[0]));
+			vector<_VAR> ret;
+			vector<vector<_VAR> > lists;
+			size_t size = 0;
+			for (size_t i = 1; i < args.size(); i++) {
+				vector<_VAR> lst = eval(env, scope, args[i])->r_list();
+				if (lst.size() > size) {
+					size = lst.size();
+				}
+				lists.push_back(lst);
+			}
+			for (size_t i = 0; i < size; i++) {
+				vector<_VAR> fargs;
+				for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
+					vector<_VAR> lst = (*iter);
+					fargs.push_back(quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
+				}
+				_VAR r = func->proc(env, scope, fargs);
+				ret.push_back(r);
+			}
 			return _HEAP_ALLOC(env, ret);
 		}
 		DECL_NATIVE_END();
@@ -1439,6 +1589,21 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "reduce");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR func = function(env, scope, eval(env, scope, args[0]));
+			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			_VAR sum = (lst.size() > 0 ? lst[0] : _NIL(env));
+			for (size_t i = 1; i < lst.size(); i++) {
+				vector<_VAR> fargs;
+				fargs.push_back(sum);
+				fargs.push_back(lst[i]);
+				sum = func->proc(env, scope, fargs);
+			}
+			return sum;
 		}
 		DECL_NATIVE_END();
 	}
@@ -1480,8 +1645,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "remove-if");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			_VAR func = eval(env, scope, args[0]);
-			func = function(env, scope, func);
+			_VAR func = function(env, scope, eval(env, scope, args[0]));
 			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				vector<_VAR> fargs;
