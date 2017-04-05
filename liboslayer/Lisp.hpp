@@ -26,6 +26,7 @@ namespace LISP {
 	DECL_NAMED_EXCEPTION(LispException);
 	DECL_EXCEPTION(ParseLispException, LispException);
 	DECL_EXCEPTION(EvalLispException, LispException);
+	DECL_EXCEPTION(DivisionByZeroLispException, LispException);
 
 	/**
 	 * 
@@ -100,7 +101,7 @@ namespace LISP {
 		void clear();
 		OS::GCRef<Var> rsearch(const std::string & name);
 		OS::GCRef<Var> rget(const std::string & name);
-		void rput(const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rput(const std::string & name, const OS::GCRef<Var> & var);
 		std::map<std::string, OS::GCRef<Var> > & registry();
 		OS::GCRef<Var> get(const std::string & name);
 	    void put(const std::string & name, const OS::GCRef<Var> & var);
@@ -135,6 +136,7 @@ namespace LISP {
 		virtual ~Boolean() {}
 		bool & val() { return _val; }
 		bool val() const { return _val; }
+		bool & operator* () {return _val;}
 		Boolean & operator= (bool val) { _val = val;  return *this; }
 		std::string toString() const { return (_val ? "T" : "NIL"); }
 	};
@@ -173,6 +175,10 @@ namespace LISP {
 			return (negative ? -n : n);
 		}
 
+		bool zerop() const { return num == 0; }
+		bool oddp() const { return (num != 0 && num % 2 != 0); }
+		bool evenp() const { return (num == 0 || num % 2 == 0); }
+
 		long long raw() const {return num;}
 		
         long long & operator* () {return num;}
@@ -209,8 +215,6 @@ namespace LISP {
 		Float(double num) : num(num) {}
 		virtual ~Float() {}
 
-		double raw() const {return num;}
-
 		static bool isFloatString(const std::string & istr) {
 			std::string n = istr;
 			if (*istr.begin() == '-' || *istr.begin() == '+') {
@@ -231,6 +235,10 @@ namespace LISP {
 		static double toFloat(const std::string & istr) {
 			return (double)atof(istr.c_str());
 		}
+
+		bool zerop() const { return num == 0; }
+
+		double raw() const {return num;}
 
 		double & operator* () {return num;}
         Float & operator+=(const Float & other) {num += other.num; return *this;}

@@ -10,6 +10,7 @@
 #define _NIL(e) _HEAP_ALLOC(e,"nil")
 #define _CHECK_ARGS_MIN_COUNT(L,C) validateArgumentCountMin(L,C)
 #define _CHECK_ARGS_EXACT_COUNT(L,C) validateArgumentCountExact(L,C)
+#define _CHECK_ARGS_MAX_COUNT(L,C) validateArgumentCountMax(L,C)
 #define _EQ_NIL_OR_SYMBOL(A,B) (((A)->isNil() && (B)->isNil()) ||		\
 								(((A)->isNil() == false && (B)->isNil() == false) && \
 								 ((A)->r_symbol() == (B)->r_symbol())))
@@ -134,16 +135,16 @@ namespace LISP {
 		}
 		throw UnboundLispException(name);
 	}
-	void Scope::rput(const string & name, const _VAR & var) {
+	_VAR Scope::rput(const string & name, const _VAR & var) {
 		if (_registry.find(name) != _registry.end()) {
 			_registry[name] = var;
-			return;
+			return var;
 		}
 		if (_parent.nil() == false) {
-			_parent->rput(name, var);
-			return;
+			return _parent->rput(name, var);
 		}
 		_registry[name] = var;
+		return var;
 	}
 	map<string, _VAR > & Scope::registry() {
 		return _registry;
@@ -547,6 +548,13 @@ namespace LISP {
 								+ " / expected: " + Text::toString(expect));
 		}
 	}
+
+	static void validateArgumentCountMax(vector<_VAR> & args, size_t expect) {
+		if (args.size() > expect) {
+			throw LispException("Wrong argument count: " + Text::toString(args.size())
+								+ " / expected maximum: " + Text::toString(expect));
+		}
+	}
 	
 	Arguments::Arguments() {}
 	Arguments::Arguments(vector<_VAR> & proto) : proto(proto) {}
@@ -657,7 +665,7 @@ namespace LISP {
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
 	static void builtin_string(Env & env);
-	static void builtin_artithmetic(Env & env);
+	static void builtin_arithmetic(Env & env);
 	static void builtin_io(Env & env);
 	static void builtin_pathname(Env & env);
 	static void builtin_file(Env & env);
@@ -733,6 +741,15 @@ namespace LISP {
 		vector<_VAR> ret;
 		ret.push_back(var);
 		return ret;
+	}
+
+	bool zerop(_VAR v) {
+		if (v->isInteger()) {
+			return v->r_integer().zerop();
+		} else if (v->isFloat()) {
+			return v->r_float().zerop();
+		}
+		throw LispException("Not number - '" + v->toString() + "'");
 	}
 
 	_VAR toFloat(Env & env, _VAR v) {
@@ -815,9 +832,13 @@ namespace LISP {
 	}
 
 	_VAR divide(Env & env, _VAR v1, _VAR v2) {
+		if (zerop(v2)) {
+			throw DivisionByZeroLispException("dvision by zero");
+		}
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = toFloat(env, v1);
 			v2 = toFloat(env, v2);
+			
 			return _HEAP_ALLOC(env, v1->r_float() / v2->r_float());
 		}
 		return _HEAP_ALLOC(env, v1->r_integer() / v2->r_integer());
@@ -1078,7 +1099,7 @@ namespace LISP {
 		builtin_list(env);
 		builtin_logic(env);
 		builtin_string(env);
-		builtin_artithmetic(env);
+		builtin_arithmetic(env);
 		builtin_io(env);
 		builtin_pathname(env);
 		builtin_file(env);
@@ -1111,6 +1132,23 @@ namespace LISP {
 			return scope->rget(args[0]->r_symbol());
 		}
 		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "defparameter");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
+			scope->rput(args[0]->r_symbol(), eval(env, scope, args[1]));
+			return args[0];
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "defvar");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_MAX_COUNT(args, 2);
+			if (args.size() == 2 && scope->rsearch(args[0]->r_symbol()).nil() == true) {
+				scope->rput(args[0]->r_symbol(), eval(env, scope, args[1]));
+			}
+			return args[0];
+		}
+		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setf");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1129,9 +1167,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "setq");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			_VAR v = eval(env, scope, args[1]);
-			scope->rput(args[0]->r_symbol(), v);
-			return v;
+			return scope->rput(args[0]->r_symbol(), eval(env, scope, args[1]));
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "quote");
@@ -1660,6 +1696,24 @@ namespace LISP {
 		}
 		DECL_NATIVE_END();
 
+		DECL_NATIVE_BEGIN(env, "remove-if-not");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_VAR func = function(env, scope, eval(env, scope, args[0]));
+			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
+				vector<_VAR> fargs;
+				fargs.push_back(*iter);
+				if (func->proc(env, scope, fargs)->isNil()) {
+					iter = lst.erase(iter);
+				} else {
+					iter++;
+				}
+			}
+			return _HEAP_ALLOC(env, lst);
+		}
+		DECL_NATIVE_END();
+
 		// TODO: implement
 		// [https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node144.html]
 		// remove-if-not
@@ -1775,7 +1829,7 @@ namespace LISP {
 		}
 		DECL_NATIVE_END();
 	}
-	void builtin_artithmetic(Env & env) {
+	void builtin_arithmetic(Env & env) {
 		DECL_NATIVE_BEGIN(env, "=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1862,6 +1916,18 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			return _HEAP_ALLOC(env, lteq(env, eval(env, scope, args[0]), eval(env, scope, args[1])));
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "oddp");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().oddp());
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "evenp");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().evenp());
 		}
 		DECL_NATIVE_END();
 	}

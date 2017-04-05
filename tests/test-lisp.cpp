@@ -41,6 +41,23 @@ static void test_ref() {
 	Env env;
 	native(env);
 
+	compile(env, "(defparameter *x* 1)");
+	ASSERT(*compile(env, "*x*")->r_integer(), ==, 1);
+	compile(env, "(defparameter *x* 2)");
+	ASSERT(*compile(env, "*x*")->r_integer(), ==, 2);
+	compile(env, "(defvar *x* 3)");
+	ASSERT(*compile(env, "*x*")->r_integer(), ==, 2);
+	compile(env, "(defvar *y*)");
+	try {
+		compile(env, "*y*");
+	} catch (LispException e) {
+		cout << "expected exception: " << e.toString() << endl;
+	}
+	compile(env, "(defvar *y* 1)");
+	ASSERT(*compile(env, "*y*")->r_integer(), ==, 1);
+	compile(env, "(defvar *y* 10)");
+	ASSERT(*compile(env, "*y*")->r_integer(), ==, 1);
+
 	ASSERT(*compile(env, "(setq a (car (list 1 2 3)))")->r_integer(), ==, 1);
 	ASSERT(*env.scope()->get("a")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(setq b (cdr (list 1 2 3)))")->r_list()[0]->r_integer(), ==, 2);
@@ -525,6 +542,19 @@ static void test_arithmetic() {
 	ASSERT(!compile(env, "(>= 4 1.0)")->isNil(), ==, true);
 
 	ASSERT(*compile(env, "(* 4 1.2)")->r_float(), ==, 4.8);
+	ASSERT(compile(env, "(oddp 0)")->isNil(), ==, true);
+	ASSERT(compile(env, "(evenp 0)")->isNil(), ==, false);
+	ASSERT(compile(env, "(oddp 1)")->isNil(), ==, false);
+	ASSERT(compile(env, "(evenp 1)")->isNil(), ==, true);
+	ASSERT(compile(env, "(oddp 2)")->isNil(), ==, true);
+	ASSERT(compile(env, "(evenp 2)")->isNil(), ==, false);
+
+	try {
+		compile(env, "(/ 2 0)");
+		throw "this should not be thrown";
+	} catch (DivisionByZeroLispException e) {
+		cout << "expected exception : " << e.toString() << endl;
+	}
 }
 
 static void test_list() {
@@ -532,6 +562,10 @@ static void test_list() {
 	Env env;
 	native(env);
 	ASSERT(compile(env, "(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))")->r_list().size(), ==, 2);
+	ASSERT(compile(env, "(remove-if #'(lambda (x) (= x 1)) '(1 2 1 3))")->r_list().size(), ==, 2);
+	ASSERT(compile(env, "(remove-if #'oddp '(1 2 4 1 3 4 5))")->r_list().size(), ==, 3);
+	ASSERT(compile(env, "(remove-if-not #'evenp '(1 2 3 4 5 6 7 8 9))")->r_list().size(), ==, 4);
+	ASSERT(compile(env, "(remove-if #'evenp '(1 2 3 4 5 6 7 8 9))")->r_list().size(), ==, 5);
 	compile(env, "(setq *lst* (list 1 2 3))");
 	ASSERT(*compile(env, "(car *lst*)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(car (list 1 2 3))")->r_integer(), ==, 1);
