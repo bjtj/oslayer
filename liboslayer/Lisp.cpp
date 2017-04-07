@@ -11,11 +11,14 @@
 #define _CHECK_ARGS_MIN_COUNT(L,C) validateArgumentCountMin(L,C)
 #define _CHECK_ARGS_EXACT_COUNT(L,C) validateArgumentCountExact(L,C)
 #define _CHECK_ARGS_MAX_COUNT(L,C) validateArgumentCountMax(L,C)
+#define _CHECK_ARGS_ODD_COUNT(L) validateArgumentCountOdd(L)
+#define _CHECK_ARGS_EVEN_COUNT(L) validateArgumentCountEven(L)
 #define _EQ_NIL_OR_SYMBOL(A,B) (((A)->isNil() && (B)->isNil()) ||		\
 								(((A)->isNil() == false && (B)->isNil() == false) && \
 								 ((A)->r_symbol() == (B)->r_symbol())))
 #define _OPT_EVAL(E,S,L,N,D) (N < L.size() ? eval(E, S, L[N]) : D)
-#define _FORI(L,I,F) for (size_t I = F; I < L.size(); I++)
+#define _FORI(L,I,F) for (size_t I = (F); I < (L).size(); I++)
+#define _FORI_STEP(L,I,F,S) for (size_t I = (F); I < (L).size(); I += (S))
 
 #define DECL_NATIVE_BEGIN(ENV,NAME)								\
 	do {														\
@@ -555,6 +558,20 @@ namespace LISP {
 								+ " / expected maximum: " + Text::toString(expect));
 		}
 	}
+
+	static void validateArgumentCountOdd(vector<_VAR> & args) {
+		if (args.size() % 2 == 0) {
+			throw LispException("Wrong argument count: " + Text::toString(args.size())
+								+ " / expected : odd");
+		}
+	}
+
+	static void validateArgumentCountEven(vector<_VAR> & args) {
+		if (args.size() % 2 != 0) {
+			throw LispException("Wrong argument count: " + Text::toString(args.size())
+								+ " / expected : even");
+		}
+	}
 	
 	Arguments::Arguments() {}
 	Arguments::Arguments(vector<_VAR> & proto) : proto(proto) {}
@@ -666,6 +683,7 @@ namespace LISP {
 	static void builtin_logic(Env & env);
 	static void builtin_string(Env & env);
 	static void builtin_arithmetic(Env & env);
+	static void builtin_mathematic(Env & env);
 	static void builtin_io(Env & env);
 	static void builtin_pathname(Env & env);
 	static void builtin_file(Env & env);
@@ -1100,6 +1118,7 @@ namespace LISP {
 		builtin_logic(env);
 		builtin_string(env);
 		builtin_arithmetic(env);
+		builtin_mathematic(env);
 		builtin_io(env);
 		builtin_pathname(env);
 		builtin_file(env);
@@ -1166,8 +1185,12 @@ namespace LISP {
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setq");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			return scope->rput(args[0]->r_symbol(), eval(env, scope, args[1]));
+			_CHECK_ARGS_EVEN_COUNT(args);
+			_VAR ret = _NIL(env);
+			_FORI_STEP(args, i, 0, 2) {
+				ret = scope->rput(args[i + 0]->r_symbol(), eval(env, scope, args[i + 1]));
+			}
+			return ret;
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "quote");
@@ -1830,19 +1853,6 @@ namespace LISP {
 		DECL_NATIVE_END();
 	}
 	void builtin_arithmetic(Env & env) {
-		DECL_NATIVE_BEGIN(env, "=");
-		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR v = eval(env, scope, args[0]);
-			Integer val = v->r_integer();
-			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-				if (!eq(env, v, eval(env, scope, *iter))) {
-					return _NIL(env);
-				}
-			}
-			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "+");
 		{
 			_VAR v = _HEAP_ALLOC(env, 0);
@@ -1894,42 +1904,81 @@ namespace LISP {
 			return _HEAP_ALLOC(env, sum);
 		}
 		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			_FORI(args, i, 1) {
+				if (!eq(env, v, eval(env, scope, args[i]))) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}
+		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, ">");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			return _HEAP_ALLOC(env, gt(env, eval(env, scope, args[0]), eval(env, scope, args[1])));
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			_FORI(args, i, 1) {
+				if (!gt(env, v, eval(env, scope, args[i]))) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "<");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			return _HEAP_ALLOC(env, lt(env, eval(env, scope, args[0]), eval(env, scope, args[1])));
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			_FORI(args, i, 1) {
+				if (!lt(env, v, eval(env, scope, args[i]))) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, ">=");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			return _HEAP_ALLOC(env, gteq(env, eval(env, scope, args[0]), eval(env, scope, args[1])));
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			_FORI(args, i, 1) {
+				if (!gteq(env, v, eval(env, scope, args[i]))) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "<=");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			return _HEAP_ALLOC(env, lteq(env, eval(env, scope, args[0]), eval(env, scope, args[1])));
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			_FORI(args, i, 1) {
+				if (!lteq(env, v, eval(env, scope, args[i]))) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "oddp");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().oddp());
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "evenp");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().evenp());
 		}
 		DECL_NATIVE_END();
+	}
+	void builtin_mathematic(Env & env) {
+		// TODO: implement
 	}
 	void builtin_io(Env & env) {
 
@@ -1956,7 +2005,6 @@ namespace LISP {
 
         }
 		DECL_NATIVE_END();
-
 		DECL_NATIVE_BEGIN(env, "read-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2257,7 +2305,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "decode-universal-time");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			// TODO: apply specific zone
+			// TODO: apply specific zone - eval args[1]
+			// TODO: (decode-universal-time 0 0) - expect 0, 0, 0, 1, 1, 1900, 0, false, 0
 			osl_time_t time = {0,};
 			time.sec = (unsigned long)*eval(env, scope, args[0])->r_integer();
 			time = osl_network_time_to_system_time(time);
@@ -2269,15 +2318,17 @@ namespace LISP {
 			ret.push_back(_HEAP_ALLOC(env, date.getDay()));
 			ret.push_back(_HEAP_ALLOC(env, date.getMonth() + 1));
 			ret.push_back(_HEAP_ALLOC(env, date.getYear()));
-			// day of week
-			// daylight-p
-			// zone
+			ret.push_back(_HEAP_ALLOC(env, date.getDayOfWeek()));
+			ret.push_back(_NIL(env)); // TODO: daylight-p ???
+			ret.push_back(_HEAP_ALLOC(env, -date.getGmtOffset())); // minute offset
 			return _HEAP_ALLOC(env, ret);
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "encode-universal-time");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 6); // seconds, minutes, hours, dates, month and year (gmt offset)
+			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
+			// TODO: (encode-universal-time 0 0 0 1 1 1900 0) -> expect 0
+			_CHECK_ARGS_MIN_COUNT(args, 6);
 			Date date = Date::now();
 			date.setSecond((int)*args[0]->r_integer());
 			date.setMinute((int)*args[1]->r_integer());
