@@ -88,23 +88,46 @@ namespace LISP {
 	extern std::string unwrap_text(const std::string & txt);
 
 	/**
+	 * @brief registry
+	 */
+	
+	class Registry : public std::map< std::string, OS::GCRef<Var> > {
+	private:
+	public:
+		Registry();
+		virtual ~Registry();
+		bool contains(const std::string & k);
+	};
+
+	/**
 	 * @brief scope
 	 */
 	class Scope {
 	private:
 		UTIL::AutoRef<Scope> _parent;
-		std::map<std::string, OS::GCRef<Var> > _registry;
+		std::map<std::string, Registry> _registries;
 	public:
 		Scope();
 		virtual ~Scope();
 		UTIL::AutoRef<Scope> & parent();
 		void clear();
-		OS::GCRef<Var> rsearch(const std::string & name);
-		OS::GCRef<Var> rget(const std::string & name);
-		OS::GCRef<Var> rput(const std::string & name, const OS::GCRef<Var> & var);
-		std::map<std::string, OS::GCRef<Var> > & registry();
-		OS::GCRef<Var> get(const std::string & name);
-	    void put(const std::string & name, const OS::GCRef<Var> & var);
+		std::map<std::string, Registry> & registries();
+		Registry & registry(const std::string id);
+		OS::GCRef<Var> rsearch_sym(const std::string & name);
+		OS::GCRef<Var> rget_sym(const std::string & name);
+		OS::GCRef<Var> rput_sym(const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch_func(const std::string & name);
+		OS::GCRef<Var> rget_func(const std::string & name);
+		OS::GCRef<Var> rput_func(const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch(const std::string id, const std::string & name);
+		OS::GCRef<Var> rget(const std::string id, const std::string & name);
+		OS::GCRef<Var> rput(const std::string id, const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get_sym(const std::string & name);
+	    void put_sym(const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get_func(const std::string & name);
+	    void put_func(const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get(const std::string id, const std::string & name);
+	    void put(const std::string id, const std::string & name, const OS::GCRef<Var> & var);
 		int depth();
 		std::string toString() const;
 	};
