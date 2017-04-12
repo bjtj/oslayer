@@ -2,8 +2,19 @@
 #define __BYTE_ARRAY_HPP__
 
 #include <string>
+#include "os.hpp"
 
 namespace UTIL {
+
+	/**
+	 * underflow exception
+	 */
+	DECL_NAMED_EXCEPTION(UnderflowException);
+	
+	/**
+	 * overflow exception
+	 */
+	DECL_NAMED_EXCEPTION(OverflowException);
 
 	/**
 	 * byte array
@@ -53,8 +64,26 @@ namespace UTIL {
 	public:
 		ByteArrayStream(ByteArray & array);
 		virtual ~ByteArrayStream();
+		void write_i8(int8_t v);
+		void write_i16(int16_t v);
+		void write_i32(int32_t v);
+		void write_i64(int64_t v);
+		void write_ui8(uint8_t v);
+		void write_ui16(uint16_t v);
+		void write_ui32(uint32_t v);
+		void write_ui64(uint64_t v);
+		int8_t read_i8();
+		int16_t read_i16();
+		int32_t read_i32();
+		int64_t read_i64();
+		uint8_t read_ui8();
+		uint16_t read_ui16();
+		uint32_t read_ui32();
+		uint64_t read_ui64();
 		size_t write(const char * data, size_t count);
 		size_t read(char * out, size_t count);
+		void nwrite(const char * data, size_t count);
+		void nread(char * out, size_t count);
 		ByteArray & array();
 		size_t & position();
 		size_t remaining();

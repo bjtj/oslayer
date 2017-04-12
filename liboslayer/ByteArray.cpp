@@ -128,6 +128,62 @@ namespace UTIL {
 	}
 	ByteArrayStream::~ByteArrayStream() {
 	}
+	void ByteArrayStream::write_i8(int8_t v) {
+		nwrite((const char *)&v, sizeof(int8_t));
+	}
+	void ByteArrayStream::write_i16(int16_t v) {
+		nwrite((const char *)&v, sizeof(int16_t));
+	}
+	void ByteArrayStream::write_i32(int32_t v) {
+		nwrite((const char *)&v, sizeof(int32_t));
+	}
+	void ByteArrayStream::write_i64(int64_t v) {
+		nwrite((const char *)&v, sizeof(int64_t));
+	}
+	void ByteArrayStream::write_ui8(uint8_t v) {
+		nwrite((const char *)&v, sizeof(uint8_t));
+	}
+	void ByteArrayStream::write_ui16(uint16_t v) {
+		nwrite((const char *)&v, sizeof(uint16_t));
+	}
+	void ByteArrayStream::write_ui32(uint32_t v) {
+		nwrite((const char *)&v, sizeof(uint32_t));
+	}
+	void ByteArrayStream::write_ui64(uint64_t v) {
+		nwrite((const char *)&v, sizeof(uint64_t));
+	}
+
+#define _READ(T)						   \
+	T v = 0;							   \
+	nread((char *)&v, sizeof(T));		   \
+	return v
+
+	int8_t ByteArrayStream::read_i8() {
+		_READ(int8_t);
+	}
+	int16_t ByteArrayStream::read_i16() {
+		_READ(int16_t);
+	}
+	int32_t ByteArrayStream::read_i32() {
+		_READ(int32_t);
+	}
+	int64_t ByteArrayStream::read_i64() {
+		_READ(int64_t);
+	}
+	uint8_t ByteArrayStream::read_ui8() {
+		_READ(uint8_t);
+	}
+	uint16_t ByteArrayStream::read_ui16() {
+		_READ(uint16_t);
+	}
+	uint32_t ByteArrayStream::read_ui32() {
+		_READ(uint32_t);
+	}
+	uint64_t ByteArrayStream::read_ui64() {
+		_READ(uint64_t);
+	}
+#undef _READ
+	
 	size_t ByteArrayStream::write(const char * data, size_t count) {
 		size_t i = 0;
 		for (; i < count && _position < size(); i++, _position++)
@@ -143,6 +199,24 @@ namespace UTIL {
 			out[i] = _array[_position];
 		}
 		return i;
+	}
+	void ByteArrayStream::nwrite(const char * data, size_t count) {
+		if (_position + count > _array.size()) {
+			throw OverflowException("Overflow exception");
+		}
+		for (size_t i = 0; i < count && _position < size(); i++, _position++)
+		{
+			_array[_position] = data[i];
+		}
+	}
+	void ByteArrayStream::nread(char * out, size_t count) {
+		if (_position + count > _array.size()) {
+			throw UnderflowException("Underflow exception");
+		}
+		for (size_t i = 0; i < count && _position < size(); i++, _position++)
+		{
+			out[i] = _array[_position];
+		}
 	}
 	ByteArray & ByteArrayStream::array() {
 		return _array;
