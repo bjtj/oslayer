@@ -1,5 +1,6 @@
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/SecureSocket.hpp>
+#include <liboslayer/Thread.hpp>
 
 #if defined(USE_OPENSSL)
 

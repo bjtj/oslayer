@@ -10,13 +10,17 @@ namespace UTIL {
 	 *
 	 */
 
-	StatefulThread::StatefulThread() : triggered(false), busy(false) {
+	StatefulThread::StatefulThread()
+		: triggered(false), busy(false) {
 	}
+	
 	StatefulThread::~StatefulThread() {
 	}
+	
 	void StatefulThread::setBegin() {
 		busy = true;
 	}
+	
 	void StatefulThread::setEnd() {
 		busy = false;
 	}
@@ -33,28 +37,32 @@ namespace UTIL {
 	void StatefulThread::loop() {
 		while (!interrupted()) {
 			if (!triggered) {
-				idle(10);
+				_evt.wait();
 				continue;
 			}
 			triggered = false;
-			
 			setBegin();
 			onTask();
 			setEnd();
-			
 			notifyObservers();
 		}
 	}
+	
+	void StatefulThread::interrupt() {
+		Thread::interrupt();
+		_evt.notify();
+	}
+	
 	void StatefulThread::onTask() {
 	}
+	
 	void StatefulThread::run() {
 		loop();
 	}
-	void StatefulThread::setTrigger(bool trigger) {
-		this->triggered = trigger;
-	}
-	bool StatefulThread::isTriggered() {
-		return triggered;
+
+	void StatefulThread::wakeup() {
+		triggered = true;
+		_evt.notify();
 	}
 
 	/**
@@ -70,10 +78,8 @@ namespace UTIL {
 	}
     
     void ThreadPool::init() {
-		
 		workingQueue.clear();
 		freeQueue.clear();
-		
         for (size_t i = 0; i < poolSize; i++) {
 			StatefulThread * t = creator.createInstance();
 			t->addObserver(this);
@@ -82,24 +88,18 @@ namespace UTIL {
     }
 
 	void ThreadPool::start() {
-
 		if (!running) {
-            
             init();
-
 			for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
 				StatefulThread * thread = *iter;
 				thread->start();
 			}
-
 			running = true;
 		}
-
 	}
+	
 	void ThreadPool::stop() {
-
 		if (running) {
-
 			vector<StatefulThread*> lst;
 			workingQueueLock.wait();
 			for (deque<StatefulThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
@@ -108,23 +108,17 @@ namespace UTIL {
 				lst.push_back(thread);
 			}
 			workingQueueLock.post();
-			
 			for (size_t i = 0; i < lst.size(); i++) {
 				lst[i]->waitTillEnd();
 			}
-            
             for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
                 StatefulThread * thread = *iter;
-                
                 thread->interrupt();
                 thread->wait();
-                
                 creator.releaseInstance(thread);
             }
-            
             freeQueue.clear();
             workingQueue.clear();
-
 			running = false;
 		}
 	}
@@ -178,7 +172,7 @@ namespace UTIL {
 		if (find(workingQueue.begin(), workingQueue.end(), thread) == workingQueue.end()) {
 			workingQueue.push_back(thread);
 		}
-		thread->setTrigger(true);
+		thread->wakeup();
 		workingQueueLock.post();
 	}
     

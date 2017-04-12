@@ -1,4 +1,5 @@
 #include <liboslayer/os.hpp>
+#include <liboslayer/Thread.hpp>
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/AutoRef.hpp>
 #include <liboslayer/DatagramSocket.hpp>

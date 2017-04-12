@@ -1,8 +1,10 @@
 #ifndef __POOL_HPP__
 #define __POOL_HPP__
 
-#include "os.hpp"
 #include <deque>
+#include "os.hpp"
+#include "Event.hpp"
+#include "Thread.hpp"
 #include "Observer.hpp"
 
 namespace UTIL {
@@ -28,6 +30,7 @@ namespace UTIL {
 	 */
 	class StatefulThread : public OS::Thread, public Observable {
 	private:
+		OS::Event _evt;
 		bool triggered;
 		bool busy;
 	public:
@@ -38,10 +41,12 @@ namespace UTIL {
 		bool inBusy();
 		void waitTillEnd();
 		void loop();
+		virtual void interrupt();
 		virtual void onTask();
 		virtual void run();
-		void setTrigger(bool trigger);
-		bool isTriggered();
+		// void setTrigger(bool trigger);
+		// bool isTriggered();
+		void wakeup();
 	};
 
 	/**

@@ -13,6 +13,7 @@ liboslayerinc_HEADERS= \
 	DatagramSocket.hpp \
 	Date.hpp \
 	Endian.hpp \
+	Event.hpp \
 	File.hpp \
 	FileStream.hpp \
 	Hash.hpp \
@@ -42,6 +43,7 @@ liboslayerinc_HEADERS= \
 	TaskThreadPool.hpp \
 	TestSuite.hpp \
 	Text.hpp \
+	Thread.hpp \
 	ThreadPool.hpp \
 	Timer.hpp \
 	Tree.hpp \
@@ -73,6 +75,8 @@ liboslayer_la_SOURCES= \
 	Date.hpp \
 	Endian.cpp \
 	Endian.hpp \
+	Event.cpp \
+	Event.hpp \
 	File.cpp \
 	File.hpp \
 	FileStream.cpp \
@@ -121,6 +125,8 @@ liboslayer_la_SOURCES= \
 	TestSuite.hpp \
 	Text.cpp \
 	Text.hpp \
+	Thread.cpp \
+	Thread.hpp \
 	ThreadPool.cpp \
 	ThreadPool.hpp \
 	Timer.cpp \

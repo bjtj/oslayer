@@ -8,6 +8,7 @@ check_PROGRAMS = \
 	test-date \
 	test-base64 \
 	test-bytearray \
+	test-event \
 	test-random \
 	test-tree \
 	test-regex \
@@ -49,6 +50,7 @@ test_ref_SOURCES=test-ref.cpp
 test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
 test_bytearray_SOURCES=test-bytearray.cpp
+test_event_SOURCES=test-event.cpp
 test_random_SOURCES=test-random.cpp
 test_tree_SOURCES=test-tree.cpp
 test_regex_SOURCES=test-regex.cpp

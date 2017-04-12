@@ -169,7 +169,8 @@ namespace OS {
 			return _message.c_str();
 		}
 	};
-    
+
+	DECL_NAMED_EXCEPTION(NotSupportedPlatformException);
     DECL_NAMED_EXCEPTION(NullException);
     DECL_NAMED_EXCEPTION(IOException);
     DECL_NAMED_EXCEPTION(NotImplementedException);
@@ -233,50 +234,6 @@ namespace OS {
         virtual ~AutoLock();
     };
 
-	/*
-	 * @brief Thread
-	 */
-	class Thread {
-	private:
-		
-		THREAD_HANDLE handle;
-		bool signal_interrupt;
-		bool running;
-		size_t stack_size;
-
-	private:
-		
-		static unsigned int s_thread_id_seed;
-
-	public:
-		
-		unsigned int id;
-
-	private:
-
-		void init();
-		
-	public:
-		
-		Thread();
-		Thread(size_t stack_size);
-		virtual ~Thread();
-
-		unsigned int getId();
-
-		void reset();
-
-		bool start();
-		void interrupt();
-		bool interrupted();
-		bool isRunning();
-
-		virtual void onInterrupt();
-
-		void wait();
-
-		virtual void run() = 0;
-	};
 }
 
 #endif
