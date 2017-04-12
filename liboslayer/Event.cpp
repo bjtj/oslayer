@@ -3,7 +3,25 @@
 namespace OS {
 
 	Event::Event() {
-#if defined(USE_PTHREAD)
+#if defined(USE_APPLE_STD)
+        bool _mutex_init = false;
+        try {
+            if (pthread_mutex_init(&_mutex, NULL) != 0) {
+                throw Exception("pthread_mutex_init() error");
+            }
+            _mutex_init = true;
+            if (pthread_cond_init(&_cond, NULL) != 0) {
+                throw Exception("pthread_cond_init() error");
+            }
+        } catch (Exception e) {
+            if (_mutex_init) {
+                if (pthread_mutex_destroy(&_mutex) != 0) {
+                    // pthread_mutex_destroy() error
+                }
+            }
+            throw e;
+        }
+#elif defined(USE_PTHREAD)
 		bool _mutex_init = false;
 		bool _condattr_init = false;
 		pthread_condattr_t attr;
@@ -65,7 +83,12 @@ namespace OS {
 	}
 
 	void Event::wait(unsigned long timeout) {
-#if defined(USE_PTHREAD)
+#if defined(USE_APPLE_STD)
+        if (timeout > 0) {
+            throw NotSupportedPlatformException("not supported platform");
+        }
+        pthread_cond_wait(&_cond, &_mutex);
+#elif defined(USE_PTHREAD)
 		if (timeout == 0) {
 			pthread_cond_wait(&_cond, &_mutex);
 		} else {

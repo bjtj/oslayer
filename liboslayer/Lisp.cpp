@@ -2324,9 +2324,13 @@ namespace LISP {
 	void builtin_system(Env & env) {
 		DECL_NATIVE_BEGIN(env, "system");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
+#if defined(USE_APPLE_STD)
+            throw LispException("system() deprecated");
+#else
+            _CHECK_ARGS_MIN_COUNT(args, 1);
 			Integer ret(system(eval(env, scope, args[0])->toString().c_str()));
-			return _HEAP_ALLOC(env, ret);
+            return _HEAP_ALLOC(env, ret);
+#endif
 		}
 		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "load");

@@ -13,7 +13,8 @@ namespace OS {
 	Endian::~Endian() {
 	}
 	Endian Endian::getNativeEndian() {
-		return ((0x0102 >> 8) == 0x01 ? Endian(BE) : Endian(LE));
+        uint16_t v = 0x0102; // note) use variable to avoid dead code warning
+		return (((v >> 8) == 0x01) ? Endian(BE) : Endian(LE));
 	}
 	bool Endian::is_be() const {
 		return (_endian == BE);
