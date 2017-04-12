@@ -12,6 +12,7 @@ liboslayerinc_HEADERS= \
 	DatabaseConnection.hpp \
 	DatagramSocket.hpp \
 	Date.hpp \
+	Endian.hpp \
 	File.hpp \
 	FileStream.hpp \
 	Hash.hpp \
@@ -70,6 +71,8 @@ liboslayer_la_SOURCES= \
 	DatagramSocket.hpp \
 	Date.cpp \
 	Date.hpp \
+	Endian.cpp \
+	Endian.hpp \
 	File.cpp \
 	File.hpp \
 	FileStream.cpp \
