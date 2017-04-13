@@ -6,7 +6,7 @@ namespace OS {
 	 * @brief endian
 	 */
 	Endian::Endian(int endian) : _endian(endian) {
-		if (_endian != BE & _endian != LE) {
+		if (_endian != BE && _endian != LE) {
 			throw UnknownEndianException("unknow endian exception");
 		}
 	}

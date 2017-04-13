@@ -60,7 +60,7 @@ namespace LISP {
 	 */
 	class ThrowLispException : public LispException {
 	private:
-		OS::GCRef<Var> _except;
+		OS::GCRef<Var> _exc;
 		OS::GCRef<Var> _ret;
 	public:
 		explicit ThrowLispException(OS::GCRef<Var> except, OS::GCRef<Var> ret);

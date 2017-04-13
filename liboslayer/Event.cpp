@@ -58,7 +58,7 @@ namespace OS {
 		}
 #elif defined(USE_MS_WIN)
 		_mutex = CreateMutex(NULL, FALSE, NULL);
-		_evt = CreateEvent(NULL, TRUE, FALSE, NULL);
+		_evt = CreateEvent(NULL, FALSE, FALSE, NULL);
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif
@@ -135,12 +135,25 @@ namespace OS {
 		}
 #elif defined(USE_MS_WIN)
 		unlock();
+		DWORD ret;
 		if (timeout == 0) {
-			WaitForSingleObject(_evt, INFINITE);
+			ret = WaitForSingleObject(_evt, INFINITE);
 		} else {
-			WaitForSingleObject(_evt, timeout);
-		}
+			ret = WaitForSingleObject(_evt, timeout);
+		}		
 		lock();
+		switch (ret) {
+		case WAIT_OBJECT_0:
+			// good
+			break;
+		case WAIT_ABANDONED:
+			break;
+		case WAIT_TIMEOUT:
+			throw TimeoutException("timeout");
+		case WAIT_FAILED:
+		default:
+			throw Exception("WaitForSingleObject() failed");
+		}
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif

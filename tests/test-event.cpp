@@ -25,10 +25,14 @@ public:
 		LOG("wait...");
 		unsigned long _t = tick_milli();
 		if (_timeout == 0) {
+			_evt.lock();
 			_evt.wait();
+			_evt.unlock();
 		} else {
 			try {
+				_evt.lock();
 				_evt.wait(_timeout);
+				_evt.unlock();
 			} catch (TimeoutException e) {
 				cerr << "exception: " << e.what() << endl;
 			}
@@ -56,14 +60,18 @@ public:
 			WorkerThread w(e, i * 2000);
 			w.start();
 			idle(1000);
+			e.lock();
 			e.notify();
+			e.unlock();
 			w.join();
 			ASSERT(w.due(), >=, 1000);
 		}
 
 		unsigned long _t = tick_milli();
 		try {
+			e.lock();
 			e.wait(2000);
+			e.unlock();
 			throw "unexpect throw";
 		} catch (TimeoutException e) {
 			// expect

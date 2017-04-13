@@ -80,12 +80,12 @@ namespace LISP {
 	 */
 	
 	ThrowLispException::ThrowLispException(_VAR except, _VAR ret)
-		: _except(except), _ret(ret) {
+		: _exc(except), _ret(ret) {
 	}
 	ThrowLispException::~ThrowLispException() throw() {
 	}
 	_VAR ThrowLispException::except() {
-		return _except;
+		return _exc;
 	}
 	_VAR ThrowLispException::ret() {
 		return _ret;
