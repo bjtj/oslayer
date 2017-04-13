@@ -31,21 +31,19 @@ namespace UTIL {
 	class StatefulThread : public OS::Thread, public Observable {
 	private:
 		OS::Event _evt;
-		bool triggered;
-		bool busy;
+		bool _triggered;
+		bool _busy;
 	public:
 		StatefulThread();
 		virtual ~StatefulThread();
-		void setBegin();
-		void setEnd();
+		void preTask();
+		void postTask();
 		bool inBusy();
 		void waitTillEnd();
 		void loop();
 		virtual void interrupt();
 		virtual void onTask();
 		virtual void run();
-		// void setTrigger(bool trigger);
-		// bool isTriggered();
 		void wakeup();
 	};
 

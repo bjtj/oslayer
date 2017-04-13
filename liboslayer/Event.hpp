@@ -20,7 +20,8 @@ namespace OS {
 		pthread_mutex_t _mutex;
 		pthread_cond_t _cond;
 #elif defined(USE_MS_WIN)
-		HANDLE _handle;
+		HANDLE _mutex;
+		HANDLE _evt;
 #else
 		// not support
 #endif
@@ -30,6 +31,8 @@ namespace OS {
 	public:
 		Event();
 		virtual ~Event();
+		void lock();
+		void unlock();
 		void wait();
 		void wait(unsigned long timeout);
 		void notify();

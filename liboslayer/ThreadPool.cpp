@@ -11,39 +11,45 @@ namespace UTIL {
 	 */
 
 	StatefulThread::StatefulThread()
-		: triggered(false), busy(false) {
+		: _triggered(false), _busy(false) {
 	}
 	
 	StatefulThread::~StatefulThread() {
 	}
 	
-	void StatefulThread::setBegin() {
-		busy = true;
+	void StatefulThread::preTask() {
+		_busy = true;
 	}
 	
-	void StatefulThread::setEnd() {
-		busy = false;
+	void StatefulThread::postTask() {
+		_busy = false;
 	}
 
 	bool StatefulThread::inBusy() {
-		return busy;
+		return _busy;
 	}
 	
 	void StatefulThread::waitTillEnd() {
-		while (busy) {
+		while (_busy) {
 			idle(10);
 		}
 	}
 	void StatefulThread::loop() {
 		while (!interrupted()) {
-			if (!triggered) {
+			bool _cont = false;
+			_evt.lock();
+			if (!_triggered) {
 				_evt.wait();
+				_cont = !_triggered;
+			}
+			_triggered = false;
+			_evt.unlock();
+			if (_cont) {
 				continue;
 			}
-			triggered = false;
-			setBegin();
+			preTask();
 			onTask();
-			setEnd();
+			postTask();
 			notifyObservers();
 		}
 	}
@@ -61,8 +67,10 @@ namespace UTIL {
 	}
 
 	void StatefulThread::wakeup() {
-		triggered = true;
+		_triggered = true;
+		_evt.lock();
 		_evt.notify();
+		_evt.unlock();
 	}
 
 	/**
@@ -71,7 +79,6 @@ namespace UTIL {
 	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator)
 		: freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
 	}
-
 	
 	ThreadPool::~ThreadPool() {
 		stop();

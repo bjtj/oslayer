@@ -57,7 +57,8 @@ namespace OS {
 			throw e;
 		}
 #elif defined(USE_MS_WIN)
-		_handle = CreateEvent(NULL, TRUE, FALSE, NULL);
+		_mutex = CreateMutex(NULL, FALSE, NULL);
+		_evt = CreateEvent(NULL, TRUE, FALSE, NULL);
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif
@@ -72,7 +73,33 @@ namespace OS {
 			// pthread_cond_destroy() error
 		}
 #elif defined(USE_MS_WIN)
-		CloseHandle(_handle);
+		CloseHandle(_evt);
+		CloseHandle(_mutex);
+#else
+		throw NotSupportedPlatformException("not supported platform");
+#endif
+	}
+
+	void Event::lock() {
+#if defined(USE_PTHREAD)
+		if (pthread_mutex_lock(&_mutex) != 0) {
+			throw Exception("pthread_mutex_lock() failed");
+		}
+#elif defined(USE_MS_WIN)
+		// TODO: https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms686927(v=vs.85).aspx
+		WaitForSingleObject(_mutex, INFINITE);
+#else
+		throw NotSupportedPlatformException("not supported platform");
+#endif
+	}
+	
+	void Event::unlock() {
+#if defined(USE_PTHREAD)
+		if (pthread_mutex_unlock(&_mutex) != 0) {
+			throw Exception("pthread_mutex_lock() failed");
+		}
+#elif defined(USE_MS_WIN)
+		ReleaseMutex(_mutex);
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif
@@ -107,11 +134,13 @@ namespace OS {
 			}
 		}
 #elif defined(USE_MS_WIN)
+		unlock();
 		if (timeout == 0) {
-			WaitForSingleObject(_handle, INFINITE);
+			WaitForSingleObject(_evt, INFINITE);
 		} else {
-			WaitForSingleObject(_handle, timeout);
+			WaitForSingleObject(_evt, timeout);
 		}
+		lock();
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif
@@ -121,7 +150,7 @@ namespace OS {
 #if defined(USE_PTHREAD)
 		pthread_cond_signal(&_cond);
 #elif defined(USE_MS_WIN)
-		SetEvent(_handle);
+		SetEvent(_evt);
 #else
 		throw NotSupportedPlatformException("not supported platform");
 #endif
