@@ -377,7 +377,20 @@ namespace OS {
 		: gmtoffset(0), year(0), month(0), day(0), wday(0),
 		  hour(0), minute(0), second(0), millisecond(0)
 	{
-		*this = s_systemtime_to_date(s_filetime_to_systemtime(ft));
+		*this = Date(s_filetime_to_systemtime(ft));
+	}
+
+	Date::Date(const SYSTEMTIME st)
+		: gmtoffset(0), 
+		year(st.wYear), 
+		month(st.wMonth - 1), 
+		day(st.wDay), 
+		wday(st.wDayOfWeek),
+		hour(st.wHour), 
+		minute(st.wMinute), 
+		second(st.wSecond), 
+		millisecond(st.wMilliseconds)
+	{		
 	}
 #endif
 
@@ -647,7 +660,7 @@ namespace OS {
 
 	void Date::setTime(const osl_time_t time, int gmtoffset) {
 #if defined(USE_MS_WIN)
-		*this = s_systemtime_to_date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
+		*this = Date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
 		setGmtOffset(gmtoffset);
 #else
 		time_t t = (time_t)time.sec;

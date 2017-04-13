@@ -11,7 +11,22 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sample", "sample\sample.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libhello", "libhello\libhello.vcxproj", "{94647DC0-CA38-4B0F-BA24-39DF531AB938}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestProject1", "TestProject1\TestProject1.vcxproj", "{E44CC8A2-1DA1-4A28-91F4-DCC80B7E27CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{62F62888-B617-D1C5-DD02-0CC27E78A455} = {62F62888-B617-D1C5-DD02-0CC27E78A455}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{27ED881B-6949-43D2-8276-9F9430D2BB29}"
+	ProjectSection(SolutionItems) = preProject
+		Local.testsettings = Local.testsettings
+		oslayer.vsmdi = oslayer.vsmdi
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = oslayer.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
 		Release|Win32 = Release|Win32
@@ -29,6 +44,10 @@ Global
 		{94647DC0-CA38-4B0F-BA24-39DF531AB938}.Debug|Win32.Build.0 = Debug|Win32
 		{94647DC0-CA38-4B0F-BA24-39DF531AB938}.Release|Win32.ActiveCfg = Release|Win32
 		{94647DC0-CA38-4B0F-BA24-39DF531AB938}.Release|Win32.Build.0 = Release|Win32
+		{E44CC8A2-1DA1-4A28-91F4-DCC80B7E27CB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E44CC8A2-1DA1-4A28-91F4-DCC80B7E27CB}.Debug|Win32.Build.0 = Debug|Win32
+		{E44CC8A2-1DA1-4A28-91F4-DCC80B7E27CB}.Release|Win32.ActiveCfg = Release|Win32
+		{E44CC8A2-1DA1-4A28-91F4-DCC80B7E27CB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

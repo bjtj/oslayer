@@ -60,6 +60,7 @@ namespace OS {
 		Date(osl_time_t time, int gmtoffset);
 #if defined(USE_MS_WIN)
 		Date(const FILETIME ft);
+		Date(const SYSTEMTIME st);
 #endif
 		virtual ~Date();
 		static Date now();
