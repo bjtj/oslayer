@@ -12,11 +12,11 @@ namespace UTIL {
 	 */
 	class TaskThread : public StatefulThread {
 	private:
-		AutoRef<Task> task;
+		OS::AutoRef<Task> task;
 	public:
 		TaskThread();
 		virtual ~TaskThread();
-		void setTask(AutoRef<Task> task);
+		void setTask(OS::AutoRef<Task> task);
 		virtual void onTask();
 	};
 
@@ -29,9 +29,9 @@ namespace UTIL {
 	public:
 		TaskThreadPool(size_t count);
 		virtual ~TaskThreadPool();
-		void setTask(AutoRef<Task> task);
-		void setTaskWaitIfFull(AutoRef<Task> task);
-		void setTaskWaitIfFullWithTimeout(AutoRef<Task> task, unsigned long timeout);
+		void setTask(OS::AutoRef<Task> task);
+		void setTaskWaitIfFull(OS::AutoRef<Task> task);
+		void setTaskWaitIfFullWithTimeout(OS::AutoRef<Task> task, unsigned long timeout);
 	};
 }
 

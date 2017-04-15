@@ -2,6 +2,7 @@
 #include <liboslayer/Observer.hpp>
 
 using namespace std;
+using namespace OS;
 using namespace UTIL;
 
 static int s_value = 0;

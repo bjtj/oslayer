@@ -3,6 +3,7 @@
 #include "utils.hpp"
 
 using namespace std;
+using namespace OS;
 using namespace UTIL;
 
 static int s_refcount = 0;

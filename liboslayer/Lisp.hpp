@@ -104,12 +104,12 @@ namespace LISP {
 	 */
 	class Scope {
 	private:
-		UTIL::AutoRef<Scope> _parent;
+		OS::AutoRef<Scope> _parent;
 		std::map<std::string, Registry> _registries;
 	public:
 		Scope();
 		virtual ~Scope();
-		UTIL::AutoRef<Scope> & parent();
+		OS::AutoRef<Scope> & parent();
 		void clear();
 		std::map<std::string, Registry> & registries();
 		Registry & registry(const std::string id);
@@ -144,7 +144,7 @@ namespace LISP {
 		virtual ~Procedure();
 		std::string & name();
 		OS::GCRef<Var> & doc();
-		virtual OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
+		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
 	};
 
 	/**
@@ -390,14 +390,14 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		UTIL::AutoRef<Scope> _scope;
+		OS::AutoRef<Scope> _scope;
 		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		UTIL::AutoRef<Scope> & scope();
+		OS::AutoRef<Scope> & scope();
 		OS::SharedHeap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
@@ -409,7 +409,7 @@ namespace LISP {
 	 */
 	class Func {
 	private:
-		UTIL::AutoRef<Scope> _scope;
+		OS::AutoRef<Scope> _scope;
 		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
 		OS::GCRef<Var> _body;
@@ -417,7 +417,7 @@ namespace LISP {
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
 		virtual ~Func();
-		UTIL::AutoRef<Scope> & scope();
+		OS::AutoRef<Scope> & scope();
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & body();
@@ -456,10 +456,10 @@ namespace LISP {
         Integer _inum;
 		Float _fnum;
 		Func _func;
-		UTIL::AutoRef<Procedure> _procedure;
+		OS::AutoRef<Procedure> _procedure;
 		OS::File _file;
 		FileDescriptor _fd;
-		UTIL::AutoRef<Any> _ext;
+		OS::AutoRef<Any> _ext;
 		
 	public:
 		explicit Var();
@@ -478,10 +478,10 @@ namespace LISP {
 		explicit Var(double dnum);
 		explicit Var(const Float & fnum);
 		explicit Var(const Func & func);
-		explicit Var(UTIL::AutoRef<Procedure> procedure);
+		explicit Var(OS::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
 		explicit Var(const FileDescriptor & fd);
-		explicit Var(UTIL::AutoRef<Any> ext);
+		explicit Var(OS::AutoRef<Any> ext);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -511,11 +511,11 @@ namespace LISP {
 		Float & r_float();
 		OS::File & r_file();
 		Func & r_func();
-		UTIL::AutoRef<Procedure> & r_procedure();
+		OS::AutoRef<Procedure> & r_procedure();
 		FileDescriptor & r_fileDescriptor();
-		UTIL::AutoRef<Any> & r_ext();
-		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
-		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+		OS::AutoRef<Any> & r_ext();
+		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
 	};
 
@@ -554,18 +554,18 @@ namespace LISP {
 
 		size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
 		void mapArguments(Env & env,
-						  UTIL::AutoRef<Scope> sub_scope,
-						  UTIL::AutoRef<Scope> scope,
+						  OS::AutoRef<Scope> sub_scope,
+						  OS::AutoRef<Scope> scope,
 						  std::vector<OS::GCRef<Var> > & args);
 		size_t mapOptionals(Env & env,
-							UTIL::AutoRef<Scope> sub_scope,
-							UTIL::AutoRef<Scope> scope,
+							OS::AutoRef<Scope> sub_scope,
+							OS::AutoRef<Scope> scope,
 							std::vector<OS::GCRef<Var> > & proto,
 							size_t pstart,
 							std::vector<OS::GCRef<Var> > & args,
 							size_t astart);
 		static std::vector<OS::GCRef<Var> > extractRest(Env & env,
-														UTIL::AutoRef<Scope> scope,
+														OS::AutoRef<Scope> scope,
 														std::vector<OS::GCRef<Var> > & args,
 														size_t start);
 		static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
@@ -580,7 +580,7 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, UTIL::AutoRef<Scope> scope, const OS::GCRef<Var> & var);
+	extern OS::GCRef<Var> eval(Env & env, OS::AutoRef<Scope> scope, const OS::GCRef<Var> & var);
 	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 

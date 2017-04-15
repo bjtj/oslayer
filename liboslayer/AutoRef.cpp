@@ -1,6 +1,7 @@
 #include "AutoRef.hpp"
 
-namespace UTIL {
+namespace OS {
+	
     SharedCounter::SharedCounter() : _count(0), sem(1) {
     }
     SharedCounter::~SharedCounter() {

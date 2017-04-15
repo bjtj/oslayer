@@ -2,6 +2,7 @@
 #include <liboslayer/ArgumentParser.hpp>
 
 using namespace std;
+using namespace OS;
 using namespace UTIL;
 
 class ArgumentParserTestCase : public TestCase {

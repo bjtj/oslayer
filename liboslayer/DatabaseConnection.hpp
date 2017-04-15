@@ -55,8 +55,8 @@ namespace UTIL {
 		virtual ~PreparedStatement();
 		std::string & sql();
 		virtual bool execute() = 0;
-		virtual AutoRef<ResultSet> executeQuery() = 0;
-		virtual AutoRef<ResultSet> executeStep() = 0;
+		virtual OS::AutoRef<ResultSet> executeQuery() = 0;
+		virtual OS::AutoRef<ResultSet> executeStep() = 0;
 	};
 
 	/**
@@ -69,7 +69,7 @@ namespace UTIL {
 		virtual void connect(const std::string & url) = 0;
 		virtual void connect(const std::string & url, const std::string & username, const std::string & password) = 0;
 		virtual void disconnect() = 0;
-		virtual AutoRef<PreparedStatement> prepareStatement(const std::string & sql) = 0;
+		virtual OS::AutoRef<PreparedStatement> prepareStatement(const std::string & sql) = 0;
 		virtual void setAutoCommit() = 0;
 		virtual void beginTransaction() = 0;
 		virtual void commit() = 0;

@@ -24,13 +24,13 @@ namespace XML {
 		std::string _ns;
 		std::string _tagName;
 		std::map<std::string, std::string> _attrs;
-		std::vector<UTIL::AutoRef<XmlNode> > _children;
+		std::vector<OS::AutoRef<XmlNode> > _children;
 		std::string _text;
 	
 	public:
 		XmlNode() : type(NONE), parent(NULL) {}
 		virtual ~XmlNode() {
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end();) {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end();) {
 				iter = _children.erase(iter);
 			}
 		}
@@ -99,11 +99,11 @@ namespace XML {
 		std::map<std::string, std::string> & attrs() {
 			return _attrs;
 		}
-		UTIL::AutoRef<XmlNode> child(size_t idx) {
+		OS::AutoRef<XmlNode> child(size_t idx) {
 			testType(ELEMENT);
 			return _children[idx];
 		}
-		void addChild(UTIL::AutoRef<XmlNode> node) {
+		void addChild(OS::AutoRef<XmlNode> node) {
 			testType(ELEMENT);
 			node->setParent(this);
 			_children.push_back(node);
@@ -112,82 +112,82 @@ namespace XML {
 			testType(ELEMENT);
 			_children.erase(_children.begin() + idx);
 		}
-		UTIL::AutoRef<XmlNode> getFirstChild() {
+		OS::AutoRef<XmlNode> getFirstChild() {
 			return *_children.begin();
 		}
-		UTIL::AutoRef<XmlNode> getFirstChildElement() {
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+		OS::AutoRef<XmlNode> getFirstChildElement() {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isElement()) {
 					return *iter;
 				}
 			}
-			return UTIL::AutoRef<XmlNode>();
+			return OS::AutoRef<XmlNode>();
 		}
-		UTIL::AutoRef<XmlNode> getFirstChildText() {
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+		OS::AutoRef<XmlNode> getFirstChildText() {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isText()) {
 					return *iter;
 				}
 			}
-			return UTIL::AutoRef<XmlNode>();
+			return OS::AutoRef<XmlNode>();
 		}
-		UTIL::AutoRef<XmlNode> getLastChild() {
+		OS::AutoRef<XmlNode> getLastChild() {
 			return *_children.rbegin();
 		}
-		std::vector<UTIL::AutoRef<XmlNode> > & children() {
+		std::vector<OS::AutoRef<XmlNode> > & children() {
 			testType(ELEMENT);
 			return _children;
 		}
-		UTIL::AutoRef<XmlNode> getElementByTagNameInDepth(const std::string & tagName, int depth) {
+		OS::AutoRef<XmlNode> getElementByTagNameInDepth(const std::string & tagName, int depth) {
 			if (--depth <= 0) {
-				return UTIL::AutoRef<XmlNode>();
+				return OS::AutoRef<XmlNode>();
 			}
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
 					return *iter;
 				}
-				UTIL::AutoRef<XmlNode> elem = (*iter)->getElementByTagNameInDepth(tagName, depth);
+				OS::AutoRef<XmlNode> elem = (*iter)->getElementByTagNameInDepth(tagName, depth);
 				if (elem.nil() == false) {
 					return elem;
 				}
 			}
-			return UTIL::AutoRef<XmlNode>();
+			return OS::AutoRef<XmlNode>();
 		}
-		UTIL::AutoRef<XmlNode> getElementByTagName(const std::string & tagName) {
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+		OS::AutoRef<XmlNode> getElementByTagName(const std::string & tagName) {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
 					return *iter;
 				}
-				UTIL::AutoRef<XmlNode> elem = (*iter)->getElementByTagName(tagName);
+				OS::AutoRef<XmlNode> elem = (*iter)->getElementByTagName(tagName);
 				if (elem.nil() == false) {
 					return elem;
 				}
 			}
-			return UTIL::AutoRef<XmlNode>();
+			return OS::AutoRef<XmlNode>();
 		}
-		std::vector<UTIL::AutoRef<XmlNode> > getElementsByTagNameInDepth(const std::string & tagName, int depth) {
-			std::vector<UTIL::AutoRef<XmlNode> > lst;
+		std::vector<OS::AutoRef<XmlNode> > getElementsByTagNameInDepth(const std::string & tagName, int depth) {
+			std::vector<OS::AutoRef<XmlNode> > lst;
 			if (depth-- <= 0) {
 				return lst;
 			}
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
 					lst.push_back(*iter);
 				}
-				std::vector<UTIL::AutoRef<XmlNode> > ret = (*iter)->getElementsByTagNameInDepth(tagName, depth);
+				std::vector<OS::AutoRef<XmlNode> > ret = (*iter)->getElementsByTagNameInDepth(tagName, depth);
 				if (ret.size() > 0) {
 					lst.insert(lst.end(), ret.begin(), ret.end());
 				}
 			}
 			return lst;
 		}
-		std::vector<UTIL::AutoRef<XmlNode> > getElementsByTagName(const std::string & tagName) {
-			std::vector<UTIL::AutoRef<XmlNode> > lst;
-			for (std::vector<UTIL::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
+		std::vector<OS::AutoRef<XmlNode> > getElementsByTagName(const std::string & tagName) {
+			std::vector<OS::AutoRef<XmlNode> > lst;
+			for (std::vector<OS::AutoRef<XmlNode> >::iterator iter = _children.begin(); iter != _children.end(); iter++) {
 				if ((*iter)->isElement() && (*iter)->tagName() == tagName) {
 					lst.push_back(*iter);
 				}
-				std::vector<UTIL::AutoRef<XmlNode> > ret = (*iter)->getElementsByTagName(tagName);
+				std::vector<OS::AutoRef<XmlNode> > ret = (*iter)->getElementsByTagName(tagName);
 				if (ret.size() > 0) {
 					lst.insert(lst.end(), ret.begin(), ret.end());
 				}
@@ -224,17 +224,17 @@ namespace XML {
 	class XmlDocument {
 	private:
 		std::string _firstLine;
-		UTIL::AutoRef<XmlNode> _rootNode;
+		OS::AutoRef<XmlNode> _rootNode;
 	public:
 		XmlDocument() {}
 		virtual ~XmlDocument() {}
 		std::string & firstLine() {
 			return _firstLine;
 		}
-		UTIL::AutoRef<XmlNode> getRootNode() {
+		OS::AutoRef<XmlNode> getRootNode() {
 			return _rootNode;
 		}
-		void setRootNode(UTIL::AutoRef<XmlNode> root) {
+		void setRootNode(OS::AutoRef<XmlNode> root) {
 			_rootNode = root;
 		}
 		static std::string escapeString(const std::string & str) {
@@ -248,7 +248,7 @@ namespace XML {
 			}
 			return ret;
 		}
-		static std::string toFullTagString(UTIL::AutoRef<XmlNode> node) {
+		static std::string toFullTagString(OS::AutoRef<XmlNode> node) {
 			std::string xml = toTagNameString(node);
 			if (node->attrs().size() > 0) {
 				xml.append(" ");
@@ -258,13 +258,13 @@ namespace XML {
 			}
 			return xml;
 		}
-		static std::string toTagNameString(UTIL::AutoRef<XmlNode> node) {
+		static std::string toTagNameString(OS::AutoRef<XmlNode> node) {
 			if (!node->ns().empty()) {
 				return node->ns() + ":" + node->tagName();
 			}
 			return node->tagName();
 		}
-		static std::string toString(UTIL::AutoRef<XmlNode> node) {
+		static std::string toString(OS::AutoRef<XmlNode> node) {
 			std::string xml;
 			if (node.nil() == false) {
 				if (node->isElement()) {
@@ -294,13 +294,13 @@ namespace XML {
 	 */
 	class XmlNodeCursor {
 	private:
-		UTIL::AutoRef<XmlNode> _root;
+		OS::AutoRef<XmlNode> _root;
 		XmlNode * _cursor;
 	public:
 		XmlNodeCursor() : _cursor(NULL) {}
-		XmlNodeCursor(UTIL::AutoRef<XmlNode> root) : _root(root), _cursor(&root) {}
+		XmlNodeCursor(OS::AutoRef<XmlNode> root) : _root(root), _cursor(&root) {}
 		virtual ~XmlNodeCursor() {}
-		void enter(UTIL::AutoRef<XmlNode> element) {
+		void enter(OS::AutoRef<XmlNode> element) {
 			element->testType(XmlNode::ELEMENT);
 			if (_root.nil()) {
 				_root = element;
@@ -314,13 +314,13 @@ namespace XML {
 				_cursor = _cursor->getParent();
 			}
 		}
-		void append(UTIL::AutoRef<XmlNode> node) {
+		void append(OS::AutoRef<XmlNode> node) {
 			_cursor->addChild(node);
 		}
 		XmlNode * cursor() {
 			return _cursor;
 		}
-		UTIL::AutoRef<XmlNode> root() {
+		OS::AutoRef<XmlNode> root() {
 			return _root;
 		}
 	};
@@ -394,7 +394,7 @@ namespace XML {
 			return tokens;
 		}
 
-		static void parseAttrs(const std::string & attrs, UTIL::AutoRef<XmlNode> node) {
+		static void parseAttrs(const std::string & attrs, OS::AutoRef<XmlNode> node) {
 			if (attrs.empty()) {
 				return;
 			}
@@ -411,7 +411,7 @@ namespace XML {
 			}
 		}
 
-		static void parseTag(const std::string & tag, UTIL::AutoRef<XmlNode> node) {
+		static void parseTag(const std::string & tag, OS::AutoRef<XmlNode> node) {
 			std::string ns;
 			std::string name;
 			std::string attrs;
@@ -458,13 +458,13 @@ namespace XML {
 				
 				if (text[e - 1] == '/') {
 					// atom
-					UTIL::AutoRef<XmlNode> node(new XmlNode);
+					OS::AutoRef<XmlNode> node(new XmlNode);
 					node->setType(XmlNode::ELEMENT);
 					parseTag(trim(text.substr(s + 1, e - (s + 1) - 1)), node);
 					cursor.append(node);
 				} else if (text[s + 1] == '/') {
 					{
-						UTIL::AutoRef<XmlNode> node(new XmlNode);
+						OS::AutoRef<XmlNode> node(new XmlNode);
 						node->setType(XmlNode::TEXT);
 						node->text() = XmlDecoder::decode(text.substr(l, s - l));
 						cursor.append(node);
@@ -473,13 +473,13 @@ namespace XML {
 					cursor.leave();
 				} else {
 					if (cursor.root().nil() == false) {
-						UTIL::AutoRef<XmlNode> node(new XmlNode);
+						OS::AutoRef<XmlNode> node(new XmlNode);
 						node->setType(XmlNode::TEXT);
 						node->text() = XmlDecoder::decode(text.substr(l, s - l));
 						cursor.append(node);
 					}
 					// start tag
-					UTIL::AutoRef<XmlNode> node(new XmlNode);
+					OS::AutoRef<XmlNode> node(new XmlNode);
 					node->setType(XmlNode::ELEMENT);
 					parseTag(trim(text.substr(s + 1, e - (s + 1))), node);
 					cursor.enter(node);
@@ -489,7 +489,7 @@ namespace XML {
 				s = text.find("<", e + 1);
 			}
 
-			doc.setRootNode(UTIL::AutoRef<XmlNode>(cursor.root()));
+			doc.setRootNode(OS::AutoRef<XmlNode>(cursor.root()));
 			return doc;
 		}
 	};

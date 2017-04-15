@@ -5,7 +5,6 @@
 namespace OS {
 
 	using namespace std;
-	using namespace UTIL;
 	
 	/**
 	 * References

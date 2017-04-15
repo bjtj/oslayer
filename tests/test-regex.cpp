@@ -2,6 +2,7 @@
 #include <liboslayer/Regex.hpp>
 
 using namespace std;
+using namespace OS;
 using namespace UTIL;
 
 /**

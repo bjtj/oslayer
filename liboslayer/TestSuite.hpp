@@ -77,15 +77,15 @@ namespace UTIL {
 	class TestSuite {
 	private:
 		TestEnvironment env;
-		std::vector<AutoRef<TestCase> > testCases;
+		std::vector< OS::AutoRef<TestCase> > testCases;
 	public:
 		TestSuite(TestEnvironment & env);
 		TestSuite();
 		virtual ~TestSuite();
-		void addTestCase(AutoRef<TestCase> testCase);
-		void removeTestCase(AutoRef<TestCase> testCase);
+		void addTestCase(OS::AutoRef<TestCase> testCase);
+		void removeTestCase(OS::AutoRef<TestCase> testCase);
 		std::vector<TestResult> testAll();
-		TestResult test(AutoRef<TestCase> testCase);
+		TestResult test(OS::AutoRef<TestCase> testCase);
 	};
 
 	class TestReport {

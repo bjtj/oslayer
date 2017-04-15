@@ -66,8 +66,8 @@ namespace UTIL {
 	private:
 		bool enabled;
 		LogLevel level;
-		AutoRef<LogFormatter> formatter;
-		AutoRef<LogPrinter> printer;
+		OS::AutoRef<LogFormatter> formatter;
+		OS::AutoRef<LogPrinter> printer;
 	public:
 		LogSession(const LogLevel & level);
 		LogSession(int level);
@@ -75,10 +75,10 @@ namespace UTIL {
 		void log(const std::string & msg) const;
 		void setEnable(bool enable);
 		bool isEnable();
-		AutoRef<LogFormatter> getFormatter();
-		AutoRef<LogPrinter> getPrinter();
-		void setFormatter(AutoRef<LogFormatter> formatter);
-		void setPrinter(AutoRef<LogPrinter> printer);
+		OS::AutoRef<LogFormatter> getFormatter();
+		OS::AutoRef<LogPrinter> getPrinter();
+		void setFormatter(OS::AutoRef<LogFormatter> formatter);
+		void setPrinter(OS::AutoRef<LogPrinter> printer);
 		LogLevel getLevel() const;
 	};
 
@@ -88,13 +88,13 @@ namespace UTIL {
 	class Logger : public Observer {
 	private:
 		std::string name;
-		AutoRef<LogSession> _fatal;
-		AutoRef<LogSession> _error;
-		AutoRef<LogSession> _warn;
-		AutoRef<LogSession> _info;
-		AutoRef<LogSession> _debug;
-		AutoRef<LogSession> _trace;
-		AutoRef<LogSession> _verbose;
+		OS::AutoRef<LogSession> _fatal;
+		OS::AutoRef<LogSession> _error;
+		OS::AutoRef<LogSession> _warn;
+		OS::AutoRef<LogSession> _info;
+		OS::AutoRef<LogSession> _debug;
+		OS::AutoRef<LogSession> _trace;
+		OS::AutoRef<LogSession> _verbose;
 	public:
 		Logger(const std::string & name);
 		virtual ~Logger();
@@ -108,16 +108,16 @@ namespace UTIL {
 		virtual void logd(const std::string & msg) const;
 		virtual void logt(const std::string & msg) const;
 		virtual void logv(const std::string & msg) const;
-		AutoRef<LogSession> & session(int level);
-		AutoRef<LogSession> & fatal();
-		AutoRef<LogSession> & error();
-		AutoRef<LogSession> & warn();
-		AutoRef<LogSession> & info();
-		AutoRef<LogSession> & debug();
-		AutoRef<LogSession> & trace();
-		AutoRef<LogSession> & verbose();
+		OS::AutoRef<LogSession> & session(int level);
+		OS::AutoRef<LogSession> & fatal();
+		OS::AutoRef<LogSession> & error();
+		OS::AutoRef<LogSession> & warn();
+		OS::AutoRef<LogSession> & info();
+		OS::AutoRef<LogSession> & debug();
+		OS::AutoRef<LogSession> & trace();
+		OS::AutoRef<LogSession> & verbose();
 		virtual void onUpdate(Observable * target);
-		void updateLogger(AutoRef<Logger> logger);
+		void updateLogger(OS::AutoRef<Logger> logger);
 	};
 
 	/**
@@ -133,8 +133,8 @@ namespace UTIL {
 		LoggerDescriptor(const std::string & pattern);
 		virtual ~LoggerDescriptor();
 		bool match(const std::string & keyword) const;
-		AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
-		AutoRef<LogSession> makeSession(LoggerFactory & factory, int level);
+		OS::AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
+		OS::AutoRef<LogSession> makeSession(LoggerFactory & factory, int level);
 		void setFormatter(int level, const std::string & name);
 		void setPrinter(int level, const std::string & name);
 		void setAllFormatter(const std::string & name);
@@ -146,22 +146,22 @@ namespace UTIL {
 	 */
 	class LoggerFactory : public Observable {
 	private:
-		std::map<std::string, AutoRef<LogFormatter> > formatters;
-		std::map<std::string, AutoRef<LogPrinter> > printers;
+		std::map<std::string, OS::AutoRef<LogFormatter> > formatters;
+		std::map<std::string, OS::AutoRef<LogPrinter> > printers;
 		std::vector<LoggerDescriptor> descriptors;
 	private:
 		LoggerFactory();
 	public:
 		virtual ~LoggerFactory();
 		static LoggerFactory & getInstance();
-		AutoRef<Logger> getObservingLogger(const std::string & name);
-		AutoRef<Logger> getLogger(const std::string & name);
+		OS::AutoRef<Logger> getObservingLogger(const std::string & name);
+		OS::AutoRef<Logger> getLogger(const std::string & name);
 		void setLoggerDescriptorSimple(const std::string & pattern, const std::string & formatterName, const std::string & printerName);
 		void setLoggerDescriptor(const LoggerDescriptor & descriptor);
-		void setFormatter(const std::string & name, AutoRef<LogFormatter> formatter);
-		void setPrinter(const std::string & name, AutoRef<LogPrinter> writer);
-		AutoRef<LogFormatter> getFormatter(const std::string & name);
-		AutoRef<LogPrinter> getPrinter(const std::string & name);
+		void setFormatter(const std::string & name, OS::AutoRef<LogFormatter> formatter);
+		void setPrinter(const std::string & name, OS::AutoRef<LogPrinter> writer);
+		OS::AutoRef<LogFormatter> getFormatter(const std::string & name);
+		OS::AutoRef<LogPrinter> getPrinter(const std::string & name);
 	};
 }
 

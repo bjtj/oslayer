@@ -22,20 +22,20 @@ namespace UTIL {
 	 */
 	class TreeNode {
 	private:
-		Ref<TreeNode> _parent;
-		std::vector< AutoRef<TreeNode> > _children;
+		OS::Ref<TreeNode> _parent;
+		std::vector< OS::AutoRef<TreeNode> > _children;
 	public:
 		TreeNode();
 		virtual ~TreeNode();
-		Ref<TreeNode> & parent();
-		Ref<TreeNode> root();
-		std::vector< AutoRef<TreeNode> > & children();
-		void addChild(AutoRef<TreeNode> child);
-		void removeChild(AutoRef<TreeNode> child);
-		AutoRef<TreeNode> & childAt(size_t idx);
+		OS::Ref<TreeNode> & parent();
+		OS::Ref<TreeNode> root();
+		std::vector< OS::AutoRef<TreeNode> > & children();
+		void addChild(OS::AutoRef<TreeNode> child);
+		void removeChild(OS::AutoRef<TreeNode> child);
+		OS::AutoRef<TreeNode> & childAt(size_t idx);
 		size_t childCount();
-		AutoRef<TreeNode> find(fn_treenode_equals fn, TreeNode * left);
-		std::vector< AutoRef<TreeNode> > findAll(fn_treenode_equals fn, TreeNode * left);
+		OS::AutoRef<TreeNode> find(fn_treenode_equals fn, TreeNode * left);
+		std::vector< OS::AutoRef<TreeNode> > findAll(fn_treenode_equals fn, TreeNode * left);
 		size_t depth();
 	};
 
@@ -44,16 +44,16 @@ namespace UTIL {
 	 */
 	class TreeNodeCursor {
 	private:
-		AutoRef<TreeNode> _root;
-		Ref<TreeNode> _cursor;
+		OS::AutoRef<TreeNode> _root;
+		OS::Ref<TreeNode> _cursor;
 	public:
-		TreeNodeCursor(AutoRef<TreeNode> root);
+		TreeNodeCursor(OS::AutoRef<TreeNode> root);
 		virtual ~TreeNodeCursor();
-		AutoRef<TreeNode> & root();
-		Ref<TreeNode> & cursor();
-	    Ref<TreeNodeCursor> enter(AutoRef<TreeNode> node);
-		Ref<TreeNodeCursor> leave();
-		Ref<TreeNodeCursor> append(AutoRef<TreeNode> node);
+		OS::AutoRef<TreeNode> & root();
+		OS::Ref<TreeNode> & cursor();
+	    OS::Ref<TreeNodeCursor> enter(OS::AutoRef<TreeNode> node);
+		OS::Ref<TreeNodeCursor> leave();
+		OS::Ref<TreeNodeCursor> append(OS::AutoRef<TreeNode> node);
 	};
 
 	/**
@@ -61,11 +61,11 @@ namespace UTIL {
 	 */
 	class Tree {
 	private:
-		AutoRef<TreeNode> _rootNode;
+		OS::AutoRef<TreeNode> _rootNode;
 	public:
 		Tree();
 		virtual ~Tree();
-		AutoRef<TreeNode> & rootNode();
+		OS::AutoRef<TreeNode> & rootNode();
 	};
 }
 

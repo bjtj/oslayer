@@ -38,7 +38,7 @@ namespace OS {
 		SSL_CTX * ctx;
 		SSL * ssl;
 		X509 * peerCert;
-		UTIL::AutoRef<CertificateVerifier> verifier;
+		OS::AutoRef<CertificateVerifier> verifier;
 		bool peerCertRequired;
 		bool needHandshake;
 		unsigned long recvTimeout;
@@ -64,7 +64,7 @@ namespace OS {
 		virtual void setRecvTimeout(unsigned long timeout);
 		virtual unsigned long setRecvTimeout();
 		virtual void close();
-		void setVerifier(UTIL::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(OS::AutoRef<CertificateVerifier> verifier);
 		void setPeertCertRequired(bool required);
 		std::string getErrorString(unsigned long err);
 	};
@@ -75,7 +75,7 @@ namespace OS {
 	class SecureServerSocket : public ServerSocket {
 	private:
 		SSL_CTX * ctx;
-		UTIL::AutoRef<CertificateVerifier> verifier;
+		OS::AutoRef<CertificateVerifier> verifier;
 	public:
 		SecureServerSocket();
 		SecureServerSocket(int port);
@@ -85,7 +85,7 @@ namespace OS {
 		void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual Socket * accept();
 		virtual void close();
-		void setVerifier(UTIL::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(OS::AutoRef<CertificateVerifier> verifier);
 	};
 
 

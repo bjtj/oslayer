@@ -101,8 +101,8 @@ namespace UTIL {
 		bool _any;
 		Position _position;
 		std::string _charset;
-		std::vector<AutoRef<Matcher> > _elements;
-		std::vector<AutoRef<Matcher> > _alters;
+		std::vector< OS::AutoRef<Matcher> > _elements;
+		std::vector< OS::AutoRef<Matcher> > _alters;
 		bool _group;
 	public:
 		Matcher();
@@ -115,14 +115,14 @@ namespace UTIL {
 		std::string & charset();
 		void setParent(Matcher * parent);
 		Matcher * getParent();
-		std::vector<AutoRef<Matcher> > & elements();
-		std::vector<AutoRef<Matcher> > & alters();
-		void addChild(AutoRef<Matcher> child);
+		std::vector< OS::AutoRef<Matcher> > & elements();
+		std::vector< OS::AutoRef<Matcher> > & alters();
+		void addChild(OS::AutoRef<Matcher> child);
 		bool & group();
 		void altering();
 		MatchResult match(const std::string & text);
 		MatchResult match(Matcher * parent, const std::string & text);
-		AutoRef<Matcher> nextMatcher(Matcher * target);
+		OS::AutoRef<Matcher> nextMatcher(Matcher * target);
 		std::string toString() const;
 	};
 
@@ -139,10 +139,10 @@ namespace UTIL {
 		virtual ~Regex();
 		static bool & debug();
 		std::string & regex();
-		AutoRef<Matcher> makeMatcher();
-		static AutoRef<Matcher> makeMatcher(const std::string & regex);
-		static AutoRef<Matcher> makeMatcher(Iterator<std::string> & tokens_iter);
-		static void makeMatcher_r(Iterator<std::string> & tokens_iter, AutoRef<Matcher> parent);
+		OS::AutoRef<Matcher> makeMatcher();
+		static OS::AutoRef<Matcher> makeMatcher(const std::string & regex);
+		static OS::AutoRef<Matcher> makeMatcher(Iterator<std::string> & tokens_iter);
+		static void makeMatcher_r(Iterator<std::string> & tokens_iter, OS::AutoRef<Matcher> parent);
 		static std::vector<std::string> tokenize(const std::string & regex);
 	};
 }

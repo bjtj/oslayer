@@ -3,7 +3,7 @@
 
 #include "os.hpp"
 
-namespace UTIL {
+namespace OS {
 
     class SharedCounter {
     private:

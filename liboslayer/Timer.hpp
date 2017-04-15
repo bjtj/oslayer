@@ -48,13 +48,13 @@ namespace UTIL {
 	class TimerSession {
 	private:
 		TimerSchedule schedule;
-		AutoRef<TimerTask> task;
+		OS::AutoRef<TimerTask> task;
 		unsigned int runCount;
 		unsigned long startTick;
 		unsigned long lastLapseTick;
 	
 	public:
-		TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task);
+		TimerSession(TimerSchedule & schedule, OS::AutoRef<TimerTask> task);
 		virtual ~TimerSession();
 		void start();
 		void process();
@@ -74,11 +74,11 @@ namespace UTIL {
 		TimerLooper();
 		virtual ~TimerLooper();
 		void addSession(TimerSession & session);
-		void delay(unsigned long delay, AutoRef<TimerTask> task);
-		void interval(unsigned long interval, AutoRef<TimerTask> task);
-		void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
-		void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
-		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
+		void delay(unsigned long delay, OS::AutoRef<TimerTask> task);
+		void interval(unsigned long interval, OS::AutoRef<TimerTask> task);
+		void intervalWithCount(unsigned long interval, int count, OS::AutoRef<TimerTask> task);
+		void delayAndInterval(unsigned long delay, unsigned long interval, OS::AutoRef<TimerTask> task);
+		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, OS::AutoRef<TimerTask> task);
 		void loop();
 		void stop();
 	};
