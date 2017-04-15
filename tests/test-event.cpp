@@ -59,7 +59,7 @@ public:
 		for (int i = 0; i < 2; i++) {
 			WorkerThread w(e, i * 2000);
 			w.start();
-			idle(1000);
+			idle(1100);
 			e.lock();
 			e.notify();
 			e.unlock();

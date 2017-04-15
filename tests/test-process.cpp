@@ -21,21 +21,18 @@ static void s_system(const char * cmd) {
 }
 
 static void test_process() {
-	
 	s_system("rm -rf .process-test");
 	s_system("mkdir .process-test");
 	s_system("touch .process-test/a.txt");
 	s_system("touch .process-test/b.txt");
-
+	
 	Process p("ls -asl");
 	p.start();
-
 	cout << "OUT > " << endl;
 	FileStream out(p.out());
 	while (!out.eof()) {
 		cout << out.readline() << endl;
 	}
-	
 	cout << "ERR > " << endl;
 	FileStream err(p.err());
 	while (!err.eof()) {
@@ -44,19 +41,14 @@ static void test_process() {
 
 	cout << "wait..." << endl;
 	p.wait();
-
 	ASSERT(p.exitCode(), ==, 0);
-
 	p.close();
 
 	s_system("rm -rf .process-test");
 }
 
 int main(int argc, char *args[]) {
-
 	test_process();
-
 	cout << "Done" << endl;
-    
     return 0;
 }

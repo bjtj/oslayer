@@ -148,7 +148,7 @@ namespace LISP {
 	};
 
 	/**
-	 * @brief 
+	 * @brief boolean
 	 */
 	class Boolean {
 	private:
@@ -163,6 +163,46 @@ namespace LISP {
 		Boolean & operator= (bool val) { _val = val;  return *this; }
 		std::string toString() const { return (_val ? "T" : "NIL"); }
 	};
+
+	/**
+	 * @brief character
+	 * @ref http://clhs.lisp.se/Body/c_charac.htm
+	 */
+	class Character {
+	private:
+		int _ch;
+	public:
+		Character();
+		Character(int ch);
+		Character(const std::string & name);
+		virtual ~Character();
+		int & val();
+		size_t width() const;
+		bool alpha_char_p() const;
+		bool alpha_numeric_p() const;
+		bool digit_char_p() const;
+		bool graphic_char_p() const;
+		bool standard_char_p() const;
+		Character upcase() const;
+		Character downcase() const;
+		bool upper_case_p() const;
+		bool lower_case_p() const;
+		bool both_case_p() const;
+		int char_code() const;
+		int char_int() const;
+		int char_code_limit() const;
+		std::string charname() const;
+		bool equal(const Character & ch) const;
+		bool lessp(const Character & ch) const;
+		bool greaterp(const Character & ch) const;
+		bool operator== (const Character & ch) const;
+		bool operator/= (const Character & ch) const;
+		bool operator< (const Character & ch) const;
+		bool operator> (const Character & ch) const;
+		bool operator<= (const Character & ch) const;
+		bool operator>= (const Character & ch) const;
+	};
+
 
 	/**
 	 * @brief lisp integer
@@ -386,12 +426,13 @@ namespace LISP {
 		const static int SYMBOL = 1;
 		const static int LIST = 2;
 		const static int BOOLEAN = 3;
-		const static int INTEGER = 4;
-		const static int FLOAT = 5;
-		const static int STRING = 6;
-		const static int FUNC = 7;
-		const static int FILE = 8;
-		const static int FILE_DESCRIPTOR = 9;
+		const static int CHARACTER = 4;
+		const static int INTEGER = 5;
+		const static int FLOAT = 6;
+		const static int STRING = 7;
+		const static int FUNC = 8;
+		const static int FILE = 9;
+		const static int FILE_DESCRIPTOR = 10;
 		
 	private:
 		static bool _debug;
@@ -400,6 +441,7 @@ namespace LISP {
 		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
 		Boolean _bval;
+		Character _ch;
         Integer _inum;
 		Float _fnum;
 		Func _func;
@@ -414,6 +456,7 @@ namespace LISP {
 		explicit Var(std::vector<OS::GCRef<Var> > lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);
+		explicit Var(const Character & ch);
 		explicit Var(short inum);
 		explicit Var(int inum);
 		explicit Var(long inum);

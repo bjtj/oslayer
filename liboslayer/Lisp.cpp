@@ -279,6 +279,106 @@ namespace LISP {
 	_VAR & Procedure::doc() {
 		return _doc;
 	}
+
+	/**
+	 * 
+	 */
+	Character::Character() : _ch(0) {
+	}
+	Character::Character(int ch) : _ch(ch) {
+	}
+	Character::Character(const string & name) : _ch(0) {
+		// todo:
+	}
+	Character::~Character() {
+	}
+	int & Character::val() {
+		return _ch;
+	}
+	size_t Character::width() const {
+		return sizeof(_ch);
+	}
+	bool Character::alpha_char_p() const {
+		// todo
+		return false;
+	}
+	bool Character::alpha_numeric_p() const {
+		// todo
+		return false;
+	}
+	bool Character::digit_char_p() const {
+		// todo
+		return false;
+	}
+	bool Character::graphic_char_p() const {
+		// todo
+		return false;
+	}
+	bool Character::standard_char_p() const {
+		// todo
+		return false;
+	}
+	Character Character::upcase() const {
+		// todo
+		return *this;
+	}
+	Character Character::downcase() const {
+		// todo
+		return *this;
+	}
+	bool Character::upper_case_p() const {
+		// todo
+		return false;
+	}
+	bool Character::lower_case_p() const {
+		// todo
+		return false;
+	}
+	bool Character::both_case_p() const {
+		// todo
+		return false;
+	}
+	int Character::char_code() const {
+		return _ch;
+	}
+	int Character::char_int() const {
+		return _ch;
+	}
+	int Character::char_code_limit() const {
+		// todo
+		return 0;
+	}
+	string Character::charname() const {
+		// todo
+		return "";
+	}
+	bool Character::equal(const Character & ch) const {
+		return upcase() == ch.upcase();
+	}
+	bool Character::lessp(const Character & ch) const {
+		return upcase() < ch.upcase();
+	}
+	bool Character::greaterp(const Character & ch) const {
+		return upcase() > ch.upcase();
+	}
+	bool Character::operator== (const Character & ch) const {
+		return _ch == ch._ch;
+	}
+	bool Character::operator/= (const Character & ch) const {
+		return _ch != ch._ch;
+	}
+	bool Character::operator< (const Character & ch) const {
+		return _ch < ch._ch;
+	}
+	bool Character::operator> (const Character & ch) const {
+		return _ch > ch._ch;
+	}
+	bool Character::operator<= (const Character & ch) const {
+		return _ch <= ch._ch;
+	}
+	bool Character::operator>= (const Character & ch) const {
+		return _ch >= ch._ch;
+	}
 	
 	/**
 	 * @brief Env
@@ -396,6 +496,9 @@ namespace LISP {
 		}
 		_trace("init - Boolean");
 	}
+	Var::Var(const Character & ch) : _type(CHARACTER), _ch(ch) {
+		_trace("init - character");
+	}
 	Var::Var(short inum) : _type(INTEGER), _inum(inum) {
 		_trace("init - short");
 	}
@@ -486,6 +589,8 @@ namespace LISP {
 			return "LIST";
 		case BOOLEAN:
 			return "BOOLEAN";
+		case CHARACTER:
+			return "CHARACTER";
 		case INTEGER:
 			return "INTEGER";
 		case FLOAT:
@@ -576,7 +681,14 @@ namespace LISP {
 			return ret;
 		}
 		case BOOLEAN:
+		{
 			return _bval.toString();
+		}
+		case CHARACTER:
+		{
+			// todo
+			return "#\\CHAR";
+		}
 		case INTEGER:
 		{
 			return Text::toString(_inum.raw());
@@ -2281,21 +2393,7 @@ namespace LISP {
 					}
 				}
 			}
-				
-			// TODO: refactoring
-#if defined(USE_UNIX_STD)
-			FILE * fp = fopen(file.getPath().c_str(), flags);
-			if (!fp) {
-				throw LispException("Cannot open file");
-			}
-			return _HEAP_ALLOC(env, FileDescriptor(fp));
-#elif defined(USE_MS_WIN)
-			FILE * fp = NULL;
-			if (fopen_s(&fp, file.getPath().c_str(), flags) != 0) {
-				throw LispException("Cannot open file");
-			}
-			return _HEAP_ALLOC(env, FileDescriptor(fp));
-#endif		
+			return _HEAP_ALLOC(env, FileDescriptor(FileStream::s_open(file.getPath(), flags)));
 		}
 		DECL_NATIVE_END();
 

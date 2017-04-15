@@ -10,25 +10,25 @@ namespace UTIL {
 	using namespace std;
 	using namespace OS;
 	
-	FileStream::FileStream() : fp(NULL) {
+	FileStream::FileStream() : _fp(NULL) {
 		_init();
 	}
 
-	FileStream::FileStream(FILE * fp) : fp(fp) {
+	FileStream::FileStream(FILE * fp) : _fp(fp) {
 		_init();
-		if (!fp) {
+		if (_fp == NULL) {
 			throw IOException("invalid file poitner");
 		}
 	}
 
-	FileStream::FileStream(File file, const string & flags) : fp(NULL) {
+	FileStream::FileStream(File file, const string & flags) : _fp(NULL) {
 		_init();
-		open(file.getPath(), flags);
+		_fp = s_open(file.getPath(), flags);
 	}
 
-	FileStream::FileStream(const string & path, const string & flags) : fp(NULL) {
+	FileStream::FileStream(const string & path, const string & flags) : _fp(NULL) {
 		_init();
-		open(path, flags);
+		_fp = s_open(path, flags);
 	}
 
 	FileStream::~FileStream() {
@@ -37,13 +37,13 @@ namespace UTIL {
 
 	void FileStream::_init() {
 #if defined(USE_MS_WIN)
-		handle = NULL;
+		_handle = NULL;
 		_eof = false;
 #endif
 	}
 
 	void FileStream::testFileOpen() {
-		if (fp == NULL) {
+		if (_fp == NULL) {
 			throw IOException("Invalid file");
 		}
 	}
@@ -56,16 +56,23 @@ namespace UTIL {
 		}
 	}
 
-	void FileStream::open(const string & path, const string & flags) {
-#if defined(USE_UNIX_STD)
-		fp = fopen(path.c_str(), flags.c_str());
-		if (!fp) {
-			throw IOException("fopen() error - '" + path + "'");
-		}
-#elif defined(USE_MS_WIN)
+	void FileStream::open(const std::string & path, const std::string & flags) {
+		_fp = s_open(path, flags);
+	}
+
+	FILE * FileStream::s_open(const string & path, const string & flags) {
+#if defined(USE_MS_WIN)
+		FILE * fp = NULL;
 		if (fopen_s(&fp, path.c_str(), flags.c_str()) != 0) {
 			throw IOException("fopen_s() error - '" + path + "'");
 		}
+		return fp;
+#else
+		FILE * fp = fopen(path.c_str(), flags.c_str());
+		if (fp == NULL) {
+			throw IOException("fopen() error - '" + path + "'");
+		}
+		return fp;
 #endif
 	}
 
@@ -76,7 +83,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		return feof(fp) ? true : false;
+		return feof(_fp) ? true : false;
 	}
 
 	int FileStream::read() {
@@ -86,7 +93,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		int ch = fgetc(fp);
+		int ch = fgetc(_fp);
 		if (ch == EOF) {
 			ch = -1;
 		}
@@ -100,7 +107,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		return fread(buffer, 1, len, fp);
+		return fread(buffer, 1, len, _fp);
 	}
 
 	string FileStream::readline() {
@@ -129,23 +136,19 @@ namespace UTIL {
 	}
 
 	void FileStream::write(int ch) {
-
 		if (isWin32Mode()) {
 			writeWin32(ch);
 		}
-
 		testOpen();
-		fputc(ch, fp);
+		fputc(ch, _fp);
 	}
 
 	size_t FileStream::write(const char * buffer, size_t len) {
-
 		if (isWin32Mode()) {
 			return writeWin32(buffer, len);
 		}
-
 		testOpen();
-		return fwrite(buffer, 1, len, fp);
+		return fwrite(buffer, 1, len, _fp);
 	}
 
 	void FileStream::write(const string & data) {
@@ -160,17 +163,15 @@ namespace UTIL {
 
 	void FileStream::rewind() {
 		testOpen();
-		::rewind(fp);
+		::rewind(_fp);
 	}
 
 	void FileStream::seek(size_t pos) {
-
 		if (isWin32Mode()) {
 			seekWin32(pos);
 		}
-
 		testOpen();
-		fseek(fp, pos, SEEK_SET);
+		fseek(_fp, pos, SEEK_SET);
 	}
 
 	void FileStream::seekEnd(size_t pos) {
@@ -180,7 +181,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		fseek(fp, pos, SEEK_END);
+		fseek(_fp, pos, SEEK_END);
 	}
 
 	void FileStream::seekOffset(long offset) {
@@ -190,7 +191,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		fseek(fp, offset, SEEK_CUR);
+		fseek(_fp, offset, SEEK_CUR);
 	}
 
 	size_t FileStream::position() {
@@ -200,7 +201,7 @@ namespace UTIL {
 		}
 
 		testOpen();
-		long pos = ftell(fp);
+		long pos = ftell(_fp);
 		if (pos < 0) {
 			throw IOException("ftell() error", -1, 0);
 		}
@@ -208,9 +209,9 @@ namespace UTIL {
 	}
 
 	void FileStream::close() {
-		if (fp) {
-			fclose(fp);
-			fp = NULL;
+		if (_fp) {
+			fclose(_fp);
+			_fp = NULL;
 		}
 	}
 
@@ -219,7 +220,7 @@ namespace UTIL {
 	 */
 	bool FileStream::isWin32Mode() {
 #if defined(USE_MS_WIN)
-		return (fp == NULL && handle != NULL);
+		return (_fp == NULL && _handle != NULL);
 #else
 		return false;
 #endif
@@ -227,7 +228,7 @@ namespace UTIL {
 
 	void FileStream::testHandleOpen() {
 #if defined(USE_MS_WIN)
-		if (handle == NULL) {
+		if (_handle == NULL) {
 			throw IOException("Invalid handle");
 		}
 #else
@@ -236,8 +237,8 @@ namespace UTIL {
 	}
 
 #if defined(USE_MS_WIN)
-	FileStream::FileStream(HANDLE handle) : fp(NULL), handle(handle), _eof(false) {
-		if (!handle) {
+	FileStream::FileStream(HANDLE handle) : _fp(NULL), _handle(handle), _eof(false) {
+		if (!_handle) {
 			throw IOException("invalid handle");
 		}
 	}
@@ -268,7 +269,7 @@ namespace UTIL {
 #if defined(USE_MS_WIN)
 		testOpen();
 		DWORD dwRead = 0;
-		BOOL bSuccess = ReadFile(handle, buffer, size, &dwRead, NULL);
+		BOOL bSuccess = ReadFile(_handle, buffer, size, &dwRead, NULL);
 		_eof = (!bSuccess || dwRead == 0);
 		return (_eof ? 0 : dwRead);
 #else
@@ -289,7 +290,7 @@ namespace UTIL {
 #if defined(USE_MS_WIN)
 		testOpen();
 		DWORD dwWritten = 0;
-		BOOL bSuccess = WriteFile(handle, buffer, len, &dwWritten, NULL);
+		BOOL bSuccess = WriteFile(_handle, buffer, len, &dwWritten, NULL);
 		return (size_t)dwWritten;
 #else
 		throw Exception("Not Supported");
@@ -307,7 +308,7 @@ namespace UTIL {
 	void FileStream::seekWin32(size_t pos) {
 #if defined(USE_MS_WIN)
 		testOpen();
-		SetFilePointer(handle, (long)pos, NULL, FILE_BEGIN);
+		SetFilePointer(_handle, (long)pos, NULL, FILE_BEGIN);
 #else
 		throw Exception("Not Supported");
 #endif
@@ -316,7 +317,7 @@ namespace UTIL {
 	void FileStream::seekEndWin32(size_t pos) {
 #if defined(USE_MS_WIN)
 		testOpen();
-		SetFilePointer(handle, (long)pos, NULL, FILE_END);
+		SetFilePointer(_handle, (long)pos, NULL, FILE_END);
 #else
 		throw Exception("Not Supported");
 #endif
@@ -325,7 +326,7 @@ namespace UTIL {
 	void FileStream::seekOffsetWin32(long offset) {
 #if defined(USE_MS_WIN)
 		testOpen();
-		SetFilePointer(handle, offset, NULL, FILE_CURRENT);
+		SetFilePointer(_handle, offset, NULL, FILE_CURRENT);
 #else
 		throw Exception("Not Supported");
 #endif
@@ -334,7 +335,7 @@ namespace UTIL {
 	size_t FileStream::positionWin32() {
 #if defined(USE_MS_WIN)
 		testOpen();
-		return (size_t)SetFilePointer(handle, 0, NULL, FILE_CURRENT);
+		return (size_t)SetFilePointer(_handle, 0, NULL, FILE_CURRENT);
 #else
 		throw Exception("Not Supported");
 #endif
@@ -342,9 +343,9 @@ namespace UTIL {
 
 	void FileStream::closeWin32() {
 #if defined(USE_MS_WIN)
-		if (handle) {
-			CloseHandle(handle);
-			handle = NULL;
+		if (_handle) {
+			CloseHandle(_handle);
+			_handle = NULL;
 		}
 #else
 		throw Exception("Not Supported");

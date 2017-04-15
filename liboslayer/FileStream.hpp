@@ -12,7 +12,7 @@ namespace UTIL {
 	 */
 	class FileStream {
 	private:
-		FILE * fp;		
+		FILE * _fp;
 	public:
 		FileStream();
 		FileStream(FILE * fp);
@@ -25,6 +25,7 @@ namespace UTIL {
 	public:
 		void testOpen();
 		void open(const std::string & path, const std::string & flags);
+		static FILE * s_open(const std::string & path, const std::string & flags);
 		bool eof();
 		int read();
 		size_t read(char * buffer, size_t len);
@@ -48,7 +49,7 @@ namespace UTIL {
 
 #if defined(USE_MS_WIN)
 	private:
-		HANDLE handle;
+		HANDLE _handle;
 		bool _eof;
 	public:
 		FileStream(HANDLE handle);
