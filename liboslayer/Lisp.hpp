@@ -148,6 +148,16 @@ namespace LISP {
 	};
 
 	/**
+	 * @brief any
+	 */
+	class Any {
+	public:
+		Any() {}
+		virtual ~Any() {}
+	};
+
+
+	/**
 	 * @brief boolean
 	 */
 	class Boolean {
@@ -433,6 +443,7 @@ namespace LISP {
 		const static int FUNC = 8;
 		const static int FILE = 9;
 		const static int FILE_DESCRIPTOR = 10;
+		const static int EXTEND = 100;
 		
 	private:
 		static bool _debug;
@@ -448,6 +459,7 @@ namespace LISP {
 		UTIL::AutoRef<Procedure> _procedure;
 		OS::File _file;
 		FileDescriptor _fd;
+		UTIL::AutoRef<Any> _ext;
 		
 	public:
 		explicit Var();
@@ -469,6 +481,7 @@ namespace LISP {
 		explicit Var(UTIL::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
 		explicit Var(const FileDescriptor & fd);
+		explicit Var(UTIL::AutoRef<Any> ext);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -489,6 +502,7 @@ namespace LISP {
 		bool isFunction() const;
 		bool isFile() const;
 		bool isFileDescriptor() const;
+		bool isExtend() const;
 		std::string & r_symbol();
 		std::string & r_string();
 		std::vector<OS::GCRef<Var> > & r_list();
@@ -499,6 +513,7 @@ namespace LISP {
 		Func & r_func();
 		UTIL::AutoRef<Procedure> & r_procedure();
 		FileDescriptor & r_fileDescriptor();
+		UTIL::AutoRef<Any> & r_ext();
 		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, UTIL::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;

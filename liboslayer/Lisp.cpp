@@ -3,6 +3,7 @@
 #include "Text.hpp"
 #include "Iterator.hpp"
 #include "FileStream.hpp"
+#include "Socket.hpp"
 
 #define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,V) E.alloc(new Var(V))
@@ -535,6 +536,9 @@ namespace LISP {
 	Var::Var(const FileDescriptor & fd) : _type(FILE_DESCRIPTOR), _fd(fd) {
 		_trace("init - FileDescriptor");
 	}
+	Var::Var(AutoRef<Any> ext) : _type(EXTEND), _ext(ext) {
+		_trace("init - Extend");
+	}
 	Var::~Var() {
 		_trace("deinit");
 	}
@@ -603,6 +607,8 @@ namespace LISP {
 			return "FILE";
 		case FILE_DESCRIPTOR:
 			return "FILE DESCRIPTOR";
+		case EXTEND:
+			return "EXTEND";
 		default:
 			break;
 		}
@@ -624,6 +630,7 @@ namespace LISP {
 	bool Var::isFunction() const {return _type == FUNC;}
 	bool Var::isFile() const {return _type == FILE;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
+	bool Var::isExtend() const {return _type == EXTEND;}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
 	string & Var::r_string() {typeCheck(STRING); return _str;}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
@@ -634,6 +641,7 @@ namespace LISP {
 	Func & Var::r_func() {typeCheck(FUNC); return _func;}
 	AutoRef<Procedure> & Var::r_procedure() {typeCheck(FUNC); return _procedure;}
 	FileDescriptor & Var::r_fileDescriptor() {typeCheck(FILE_DESCRIPTOR); return _fd;}
+	AutoRef<Any> & Var::r_ext() {typeCheck(EXTEND); return _ext;}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
 			throw LispException("not function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
@@ -711,6 +719,8 @@ namespace LISP {
 			return "#p\"" + _file.getPath() + "\"";
 		case FILE_DESCRIPTOR:
 			return "#<FD>";
+		case EXTEND:
+			return "#<EXTEND>";
 		default:
 			break;
 		}
@@ -857,6 +867,70 @@ namespace LISP {
 	map<string, _VAR> & Arguments::keywords() {
 		return _keywords;
 	}
+
+	// ext
+
+	/**
+	 * @brief Server
+	 */
+	class LispServerSocket : public Any {
+	private:
+		ServerSocket _server;
+	public:
+		LispServerSocket(int port) : _server(port) {
+			_server.setReuseAddr(true);
+			_server.bind();
+			_server.listen(50);
+		}
+		virtual ~LispServerSocket() {
+			_server.close();
+		}
+		ServerSocket & server() {
+			return _server;
+		}
+		AutoRef<Socket> accept() {
+			return AutoRef<Socket>(_server.accept());
+		}
+	};
+
+	/**
+	 * @brief socket
+	 */
+	class LispSocket : public Any {
+	private:
+		AutoRef<Socket> _socket;
+	public:
+		LispSocket(Socket * socket) : _socket(socket) {
+		}
+		LispSocket(AutoRef<Socket> socket) : _socket(socket) {
+		}
+		virtual ~LispSocket() {
+			_socket->close();
+		}
+		AutoRef<Socket> & socket() {
+			return _socket;
+		}
+		int recv(char * buf, size_t size) {
+			return _socket->recv(buf, size);
+		}
+		int send(_VAR v) {
+			switch (v->getType()) {
+			case Var::STRING:
+			{
+				string str = v->toString();
+				return _socket->send(str.c_str(), str.size());
+			}
+			case Var::INTEGER:
+			{
+				char d = (char)*v->r_integer();
+				return _socket->send(&d, 1);
+			}
+			default:
+				throw LispException("Not supported variable type - " + v->getTypeString());
+			}
+		}
+	};
+
 
 	// built-in
 	static void builtin_essential(Env & env);
@@ -2418,6 +2492,83 @@ namespace LISP {
 	}
 	void builtin_socket(Env & env) {
 		// TODO: implement
+
+		DECL_NATIVE_BEGIN(env, "server-open");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			int port = (int)eval(env, scope, args[0])->r_integer().raw();
+			return _HEAP_ALLOC(env, AutoRef<Any>(new LispServerSocket(port)));
+		}
+		DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "connect");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
+			_VAR host = eval(env, scope, args[0]);
+			_VAR port = eval(env, scope, args[1]);
+			try {
+				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)port->r_integer().raw())));
+				socket->connect();
+				return _HEAP_ALLOC(env, AutoRef<Any>(new LispSocket(socket)));
+			} catch (Exception e) {
+				throw LispException("socket connect exception - " + e.message());
+			}
+		}
+		DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "accept");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			_VAR serv = eval(env, scope, args[0]);
+			AutoRef<Any> ext = serv->r_ext();
+			LispServerSocket * server = ((LispServerSocket*)&ext);
+			try {
+				return _HEAP_ALLOC(env, AutoRef<Any>(new LispSocket(server->accept())));
+			} catch (Exception e) {
+				throw LispException("socket accept exception - " + e.message());
+			}
+		}
+		DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "recv");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			_VAR sock = eval(env, scope, args[0]);
+			AutoRef<Any> ext = sock->r_ext();
+			LispSocket * socket = ((LispSocket*)&ext);
+			char d;
+			try {
+				socket->recv(&d, 1);
+			} catch (Exception e) {
+				throw LispException("socket recv exception - " + e.message());
+			}
+			return _HEAP_ALLOC(env, (int)d);
+		}
+		DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "send");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
+			_VAR sock = eval(env, scope, args[0]);
+			_VAR data = eval(env, scope, args[1]);
+			AutoRef<Any> ext = sock->r_ext();
+			LispSocket * socket = ((LispSocket*)&ext);
+			int cnt = 0;
+			try {
+				if (data->isList()) {
+					vector<_VAR> lst = data->r_list();
+					_FORI(lst, i, 0) {
+						cnt += socket->send(lst[i]);
+					}
+				} else {
+					cnt = socket->send(data);
+				}
+				return _HEAP_ALLOC(env, cnt);
+			} catch (Exception e) {
+				throw LispException("socket send exception - " + e.message());
+			}
+		}
+		DECL_NATIVE_END();
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE_BEGIN(env, "system");

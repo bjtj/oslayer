@@ -6,6 +6,11 @@ using namespace std;
 
 int main(int argc, char *args[]) {
 
+	if (argc > 1 && string (args[1]) == "--debug") {
+		Env::setDebug(true);
+		Var::setDebug(true);
+	}
+
 	bool done = false;
 	Env env;
 	native(env);

@@ -1,6 +1,7 @@
-noinst_PROGRAMS=repl
+noinst_PROGRAMS=repl echo-server
 
 repl_SOURCES=repl.cpp
+echo_server_SOURCES=echo-server.cpp
 
 AM_CPPFLAGS=-I$(top_srcdir)
 AM_CXXFLAGS=$(PTHREAD_CXXFLAGS)
