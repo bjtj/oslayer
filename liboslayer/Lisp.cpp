@@ -2571,6 +2571,19 @@ namespace LISP {
 		DECL_NATIVE_END();
 	}
 	void builtin_system(Env & env) {
+		DECL_NATIVE_BEGIN(env, "system-type");
+		{
+#if defined(PLATFORM_APPLE)
+			return _HEAP_ALLOC(env, "apple");
+#elif defined(PLATFORM_WINDOWS)
+			return _HEAP_ALLOC(env, "windows");
+#elif defined(PLATFORM_UNIX)
+			return _HEAP_ALLOC(env, "unix");
+#else
+			throw LispException("unknown system type");
+#endif
+		}
+		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "system");
 		{
 #if defined(USE_APPLE_STD)

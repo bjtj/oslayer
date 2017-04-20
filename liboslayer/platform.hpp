@@ -71,7 +71,7 @@
 
 #elif defined(_WIN32) || defined(_WIN64) /* windows */
 
-#	define PLATFORM_WINDOW
+#	define PLATFORM_WINDOWS
 
 // #	define _WIN32_WINNT 0x501 /* force to use windows xp APIs */
 
