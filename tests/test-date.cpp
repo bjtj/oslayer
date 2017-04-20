@@ -75,6 +75,7 @@ public:
 
 			ASSERT(Date::formatRfc1123(d), ==, "Wed, 22 Mar 2017 14:33:52 GMT");
 			ASSERT(Date::formatRfc1036(d), ==, "Wednesday, 22-Mar-17 14:33:52 GMT");
+			ASSERT(Date::formatRfc8601(d), ==, "2017-03-22T23:33:52+09:00");
 		}
 
 		{

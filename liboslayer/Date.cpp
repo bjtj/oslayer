@@ -479,6 +479,22 @@ namespace OS {
 		}
 		return ret;
     }
+
+	// 2017-04-20T03:48:30+00:00
+	std::string Date::formatRfc8601(const Date & date) {
+		char buffer[30] = {0,};
+		snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
+				 date.getYear(), date.getMonth() + 1, date.getDay(),
+				 date.getHour(), date.getMinute(), date.getSecond(),
+				 date.getGmtOffset() >= 0 ? '+' : '-',
+				 ((int)abs(date.getGmtOffset())) / 60,
+				 ((int)abs(date.getGmtOffset())) % 60);
+		return string(buffer);
+	}
+	Date Date::parseRfc8601(const std::string & date) {
+		// TODO: implement
+		throw NotImplementedException("Not implemented");
+	}
 	
 	// Wed, 09 Jun 2021 10:18:14 GMT
 	string Date::formatRfc1123(const Date & date) {
