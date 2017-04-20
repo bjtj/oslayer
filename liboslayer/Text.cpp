@@ -577,7 +577,22 @@ namespace UTIL {
         va_start(args, fmt);
         osl_vsnprintf(buffer, sizeof(buffer), fmt, args);
         va_end(args);
-        return buffer;
+        return string(buffer);
+    }
+
+	/**
+     * @brief n-format
+     */
+    string Text::nformat(const size_t buf_size, const char * fmt, ...) {
+		char * buffer = new char[buf_size];
+		memset(buffer, 0, buf_size);
+        va_list args;
+        va_start(args, fmt);
+        osl_vsnprintf(buffer, buf_size, fmt, args);
+        va_end(args);
+		string ret(buffer);
+		delete[] buffer;
+        return ret;
     }
 
 	/**

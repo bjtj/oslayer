@@ -204,6 +204,20 @@ public:
 	}
 };
 
+class FormatTestCase : public TestCase
+{
+public:
+    FormatTestCase() : TestCase("format test case") {
+	}
+    virtual ~FormatTestCase() {
+	}
+	virtual void test() {
+		ASSERT(Text::format("%s", "hello world"), ==, "hello world");
+		ASSERT(Text::nformat(1024, "%s", "hello world"), ==, "hello world");
+		ASSERT(Text::nformat(5, "%s", "hello world"), ==, "hell");;
+	}
+};
+
 
 int main(int argc, char *args[]) {
 
@@ -211,6 +225,7 @@ int main(int argc, char *args[]) {
 	ts.addTestCase(AutoRef<TestCase>(new TextTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new SplitTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new CommaNumberTest));
+	ts.addTestCase(AutoRef<TestCase>(new FormatTestCase));
 
 	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);
