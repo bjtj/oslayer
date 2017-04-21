@@ -245,14 +245,19 @@ namespace UTIL {
 	/**
 	 * @brief check contains
 	 */
-	bool Text::contains(vector<string> & vec, string target) {
-		return (std::find(vec.begin(), vec.end(), target) != vec.end());
+	bool Text::contains(const vector<string> & vec, const string & target) {
+		for (vector<string>::const_iterator iter = vec.begin(); iter != vec.end(); iter++) {
+			if (*iter == target) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
 	 * @brief replace all
 	 */
-	string Text::replaceAll(string src, string match, string rep) {
+	string Text::replaceAll(const string & src, const string & match, const string & rep) {
 		string ret = src;
 		size_t f = 0;
 		while ((f = ret.find(match, f)) != string::npos) {
@@ -307,42 +312,28 @@ namespace UTIL {
 	/**
 	 * @brief to map string
 	 */
-	string Text::toMapString(map<string, string> & m, string item_sep, string line_sep) {
-		
+	string Text::toMapString(const map<string, string> & m, const string & item_sep, const string & line_sep) {
 		string ret = "";
-
-		for (map<string, string>::iterator it = m.begin(); it != m.end(); it++) {
-			string name = it->first;
-			string & value = it->second;
-
+		for (map<string, string>::const_iterator it = m.begin(); it != m.end(); it++) {
 			if (!ret.empty()) {
 				ret += line_sep;
 			}
-
-			ret += (name + item_sep + value);
+			ret += (it->first + item_sep + it->second);
 		}
-
 		return ret;
 	}
 
 	/**
 	 * @brief to map string
 	 */
-	string Text::toMapString(vector<pair<string, string> > & m, string item_sep, string line_sep) {
-		
+	string Text::toMapString(const vector<pair<string, string> > & m, const string & item_sep, const string & line_sep) {
 		string ret = "";
-
 		for (size_t i = 0; i < m.size(); i++) {
-			string name = m[i].first;
-			string & value = m[i].second;
-
 			if (!ret.empty()) {
 				ret += line_sep;
 			}
-
-			ret += (name + item_sep + value);
+			ret += (m[i].first + item_sep + m[i].second);
 		}
-
 		return ret;
 	}
 
@@ -500,11 +491,11 @@ namespace UTIL {
 	 * @brief starts with
 	 */
 
-	bool Text::startsWithIgnoreCase(string a, string b) {
+	bool Text::startsWithIgnoreCase(const string & a, const string & b) {
 		return startsWith(a, b, true);
 	}
 	
-	bool Text::startsWith(string a, string b, bool ignorecase) {
+	bool Text::startsWith(const string & a, const string & b, bool ignorecase) {
 		
 		if (b.empty()) {
 			return false;
@@ -526,25 +517,20 @@ namespace UTIL {
 	 * @brief ends with
 	 */
 
-	bool Text::endsWithIgnoreCase(string a, string b) {
+	bool Text::endsWithIgnoreCase(const string & a, const string & b) {
 		return endsWith(a, b, true);
 	}
 
-	bool Text::endsWith(string a, string b, bool ignorecase) {
-
+	bool Text::endsWith(const string & a, const string & b, bool ignorecase) {
 		if (b.empty()) {
 			return false;
 		}
-
 		if (a.length() >= b.length()) {
-
 			if (ignorecase) {
 				return !(strcasecmp(a.substr(a.length() - b.length()).c_str(), b.c_str()));
 			}
-			
 			return !(a.substr(a.length() - b.length()).compare(b));
 		}
-
 		return false;
 		
 	}
@@ -552,19 +538,17 @@ namespace UTIL {
 	/**
 	 * @brief compare ignore case
 	 */
-	int Text::compareIgnoreCase(string a, string b) {
+	int Text::compareIgnoreCase(const string & a, const string & b) {
 		return strcasecmp(a.c_str(), b.c_str());
 	}
 
 	/**
 	 * @brief equals ignore case
 	 */
-	bool Text::equalsIgnoreCase(string a, string b) {
-
+	bool Text::equalsIgnoreCase(const string & a, const string & b) {
 		if (a.length() != b.length()) {
 			return false;
 		}
-		
 		return (!strcasecmp(a.c_str(), b.c_str()) ? true : false);
 	}
     

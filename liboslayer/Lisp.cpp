@@ -2571,6 +2571,19 @@ namespace LISP {
 		DECL_NATIVE_END();
 	}
 	void builtin_system(Env & env) {
+		DECL_NATIVE_BEGIN(env, "system-type");
+		{
+#if defined(PLATFORM_APPLE)
+			return _HEAP_ALLOC(env, "apple");
+#elif defined(PLATFORM_WINDOWS)
+			return _HEAP_ALLOC(env, "windows");
+#elif defined(PLATFORM_UNIX)
+			return _HEAP_ALLOC(env, "unix");
+#else
+			throw LispException("unknown system type");
+#endif
+		}
+		DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "system");
 		{
 #if defined(USE_APPLE_STD)
@@ -2654,16 +2667,51 @@ namespace LISP {
 			// TODO: (encode-universal-time 0 0 0 1 1 1900 0) -> expect 0
 			_CHECK_ARGS_MIN_COUNT(args, 6);
 			Date date = Date::now();
-			date.setSecond((int)*args[0]->r_integer());
-			date.setMinute((int)*args[1]->r_integer());
-			date.setHour((int)*args[2]->r_integer());
-			date.setDay((int)*args[3]->r_integer());
-			date.setMonth((int)((*args[4]->r_integer()) - 1));
-			date.setYear((int)*args[5]->r_integer());
+			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
+			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
+			date.setHour((int)*eval(env, scope, args[2])->r_integer());
+			date.setDay((int)*eval(env, scope, args[3])->r_integer());
+			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
+			date.setYear((int)*eval(env, scope, args[5])->r_integer());
 			if (args.size() > 6) {
-				date.setGmtOffset((int)*args[6]->r_integer());
+				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
 			}
 			return _HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
+		}
+		DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "format-time-string-rfc8601");
+		{
+			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
+			_CHECK_ARGS_MIN_COUNT(args, 6);
+			Date date = Date::now();
+			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
+			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
+			date.setHour((int)*eval(env, scope, args[2])->r_integer());
+			date.setDay((int)*eval(env, scope, args[3])->r_integer());
+			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
+			date.setYear((int)*eval(env, scope, args[5])->r_integer());
+			if (args.size() > 6) {
+				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
+			}
+			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc8601(date)));
+		}
+		DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "format-time-string-rfc1123");
+		{
+			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
+			_CHECK_ARGS_MIN_COUNT(args, 6);
+			Date date = Date::now();
+			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
+			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
+			date.setHour((int)*eval(env, scope, args[2])->r_integer());
+			date.setDay((int)*eval(env, scope, args[3])->r_integer());
+			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
+			date.setYear((int)*eval(env, scope, args[5])->r_integer());
+			if (args.size() > 6) {
+				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
+			}
+			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc1123(date)));
 		}
 		DECL_NATIVE_END();
 	}

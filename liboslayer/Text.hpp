@@ -27,18 +27,18 @@ namespace UTIL {
 		static bool match(const std::string & f, const std::string & s);
 		static std::vector<std::string> split(const std::string & target, const std::string & sep);
 		static std::string join(const std::vector<std::string> & vec, const std::string & glue);
-		static bool contains(std::vector<std::string> & vec, std::string target);
-		static std::string replaceAll(std::string src, std::string match, std::string rep);
+		static bool contains(const std::vector<std::string> & vec, const std::string & target);
+		static std::string replaceAll(const std::string & src, const std::string & match, const std::string & rep);
 		static std::string quote(const std::string & str, const std::string & q = "'");
 		static std::vector<std::string> toVector(const char * first, ...);
 		static std::vector<std::string> toVector(int cnt, char ** strs);
 		static std::map<std::string, std::string> toMap(const std::vector<std::string> & vec);
-		static std::string toMapString(std::map<std::string, std::string> & m,
-									   std::string item_sep = ": ",
-									   std::string line_sep = ", ");
-		static std::string toMapString(std::vector<std::pair<std::string, std::string> > & m,
-									   std::string item_sep = ": ",
-									   std::string line_sep = ", ");
+		static std::string toMapString(const std::map<std::string, std::string> & m,
+									   const std::string & item_sep = ": ",
+									   const std::string & line_sep = ", ");
+		static std::string toMapString(const std::vector<std::pair<std::string, std::string> > & m,
+									   const std::string & item_sep = ": ",
+									   const std::string & line_sep = ", ");
 		static int toInt(const std::string & str, int radix = 10);
 		static long toLong(const std::string & str, int radix = 10);
 		static float toFloat(const std::string & str);
@@ -76,13 +76,13 @@ namespace UTIL {
         static std::string toString(const std::vector<KeyValue> & lst,
 									const std::string & item_sep = ": ",
 									const std::string & line_sep = ", ");
-        
-		static bool startsWith(std::string a, std::string b, bool ignorecase=false);
-		static bool startsWithIgnoreCase(std::string a, std::string b);
-		static bool endsWith(std::string a, std::string b, bool ignorecase=false);
-		static bool endsWithIgnoreCase(std::string a, std::string b);
-		static int compareIgnoreCase(std::string a, std::string b);
-		static bool equalsIgnoreCase(std::string a, std::string b);
+
+		static bool startsWithIgnoreCase(const std::string & a, const std::string & b);
+		static bool startsWith(const std::string & a, const std::string & b, bool ignorecase=false);
+		static bool endsWithIgnoreCase(const std::string & a, const std::string & b);
+		static bool endsWith(const std::string & a, const std::string & b, bool ignorecase=false);
+		static int compareIgnoreCase(const std::string & a, const std::string & b);
+		static bool equalsIgnoreCase(const std::string & a, const std::string & b);
         
         static std::string format(const char * fmt, ...);
 		static std::string nformat(const size_t buf_size, const char * fmt, ...);
