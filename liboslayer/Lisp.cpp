@@ -292,6 +292,18 @@ namespace LISP {
 		if (_name.size() == 1) {
 			_ch = _name[0];
 		}
+		if (_name == "Backspace") {
+			_ch = (char)8;
+		}
+		if (_name == "Tab") {
+			_ch = '\t';
+		}
+		if (_name == "Newline") {
+			_ch = '\n';
+		}
+		if (_name == "Linefeed") {
+			_ch = '\n';
+		}
 		if (_name == "Space") {
 			_ch = ' ';
 		}
@@ -2046,6 +2058,13 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-code");
 		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().raw());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "code-char");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, Character(eval(env, scope, args[0])->r_integer().raw()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-int");
 		{
@@ -2131,6 +2150,22 @@ namespace LISP {
 	}
 
 	void builtin_string(Env & env) {
+		DECL_NATIVE_BEGIN(env, "string");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			_VAR v = eval(env, scope, args[0]);
+			switch (v->getType()) {
+			case Var::STRING:
+				return v;
+			case Var::SYMBOL:
+				return _HEAP_ALLOC(env, wrap_text(v->r_symbol()));
+			case Var::CHARACTER:
+				return _HEAP_ALLOC(env, wrap_text(string(1, (char)v->r_character().raw())));
+			default:
+				break;
+			}
+			throw LispException(v->toString() + " is not a string designator");
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2580,15 +2615,23 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "recv");
 		{
-			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_MAX_COUNT(args, 2);
+			_VAR err;
 			_VAR sock = eval(env, scope, args[0]);
+			if (args.size() == 2) {
+				err = eval(env, scope, args[1]);
+			}
 			AutoRef<Any> ext = sock->r_ext();
 			LispSocket * socket = ((LispSocket*)&ext);
 			char d;
 			try {
 				socket->recv(&d, 1);
 			} catch (Exception e) {
-				throw LispException("socket recv exception - " + e.message());
+				if (err.nil()) {
+					throw LispException("socket recv exception - " + e.message());
+				}
+				return err;
 			}
 			return _HEAP_ALLOC(env, (int)d);
 		}DECL_NATIVE_END();
