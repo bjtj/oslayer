@@ -27,19 +27,94 @@ namespace UTIL {
 	Text::~Text() {
 	}
 
-	static string spaces = " \t\r\n";
+	static string _alpha_lower("abcdefghijklmnopqrstuvwxyz");
+	static string _alpha_upper("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	static string _digit("0123456789");
+	static string _hex_numeric("0123456789abcdefABCDEF");
+	static string _alpha = _alpha_lower + _alpha_upper;
+	static string _alpha_numeric = _alpha + _digit;
+	static string _spaces(" \t\r\n");
+
+	bool Text::isAlpha(char ch) {
+		return (_alpha.find(ch) != string::npos);
+	}
+	
+	bool Text::isAlphaNumeric(char ch) {
+		return (_alpha_numeric.find(ch) != string::npos);
+	}
+	
+	bool Text::isDigit(char ch) {
+		return (_digit.find(ch) != string::npos);
+	}
+	
+	bool Text::isHexNumeric(char ch) {
+		return (_hex_numeric.find(ch) != string::npos);
+	}
+	
+	bool Text::isLowercse(char ch) {
+		return (_alpha_lower.find(ch) != string::npos);
+	}
+	
+	bool Text::isUppercase(char ch) {
+		return (_alpha_upper.find(ch) != string::npos);
+	}
+
+	char Text::upcase(char ch) {
+		size_t idx = _alpha_lower.find(ch);
+		if (idx != string::npos) {
+			return _alpha_upper[idx];
+		}
+		return ch;
+	}
+	char Text::downcase(char ch) {
+		size_t idx = _alpha_upper.find(ch);
+		if (idx != string::npos) {
+			return _alpha_lower[idx];
+		}
+		return ch;
+	}
+
+	string Text::upcase(const string & str) {
+		string ret;
+		for (string::const_iterator iter = str.begin(); iter != str.end(); iter++) {
+			ret.append(1, upcase(*iter));
+		}
+		return ret;
+	}
+	
+	string Text::downcase(const string & str) {
+		string ret;
+		for (string::const_iterator iter = str.begin(); iter != str.end(); iter++) {
+			ret.append(1, downcase(*iter));
+		}
+		return ret;
+	}
+	
+	string Text::capitalize(const string & str) {
+		string ret;
+		size_t idx = str.find_first_not_of(_spaces);
+		if (idx == string::npos) {
+			return str;
+		}
+		if (idx > 0) {
+			ret.append(str.substr(0, idx));
+		}
+		ret.append(1, upcase(str[idx]));
+		ret.append(str.substr(idx + 1));
+		return ret;
+	}
 
 	/**
 	 * @breif trim
 	 */
 	string Text::trim(const string & str) {
-		return trim(str, spaces);
+		return trim(str, _spaces);
 	}
 	string Text::ltrim(const string & str) {
-		return ltrim(str, spaces);
+		return ltrim(str, _spaces);
 	}
 	string Text::rtrim(const string & str) {
-		return rtrim(str, spaces);
+		return rtrim(str, _spaces);
 	}
 	string Text::trim(const string & str, const string & spaces) {
 		size_t f = 0;
@@ -352,7 +427,7 @@ namespace UTIL {
 		return (float)atof(str.c_str());
 	}
 	
-	double toDouble(const std::string & str) {
+	double toDouble(const string & str) {
 		return (double)atof(str.c_str());
 	}
 

@@ -181,12 +181,15 @@ namespace LISP {
 	class Character {
 	private:
 		int _ch;
+		std::string _name;
 	public:
 		Character();
 		Character(int ch);
 		Character(const std::string & name);
 		virtual ~Character();
-		int & val();
+		int & raw();
+		int raw() const;
+		std::string & name();
 		size_t width() const;
 		bool alpha_char_p() const;
 		bool alpha_numeric_p() const;
@@ -504,6 +507,7 @@ namespace LISP {
 		bool isFileDescriptor() const;
 		bool isExtend() const;
 		std::string & r_symbol();
+		Character & r_character();
 		std::string & r_string();
 		std::vector<OS::GCRef<Var> > & r_list();
 		Boolean & r_boolean();

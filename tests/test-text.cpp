@@ -218,6 +218,45 @@ public:
 	}
 };
 
+class CaseTestCase : public TestCase {
+public:
+    CaseTestCase() : TestCase("case test") {
+	}
+    virtual ~CaseTestCase() {
+	}
+	virtual void test() {
+		for (char c = 'a'; c <= 'z'; c++) {
+			ASSERT(Text::upcase(c), ==, 'A' + (c - 'a'));
+			ASSERT(Text::isUppercase(Text::upcase(c)), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		for (char c = 'A'; c <= 'Z'; c++) {
+			ASSERT(Text::downcase(c), ==, 'a' + (c - 'A'));
+			ASSERT(Text::isLowercse(Text::downcase(c)), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		for (char c = '0'; c <= '9'; c++) {
+			ASSERT(Text::isDigit(c), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		for (char c = '0'; c <= '9'; c++) {
+			ASSERT(Text::isHexNumeric(c), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		for (char c = 'a'; c <= 'f'; c++) {
+			ASSERT(Text::isHexNumeric(c), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		for (char c = 'A'; c <= 'F'; c++) {
+			ASSERT(Text::isHexNumeric(c), ==, true);
+			ASSERT(Text::isAlphaNumeric(Text::upcase(c)), ==, true);
+		}
+		ASSERT(Text::downcase("ABCDEFGHIJKLMNOPQRSTUVWXYZ"), ==, "abcdefghijklmnopqrstuvwxyz");
+		ASSERT(Text::upcase("abcdefghijklmnopqrstuvwxyz"), ==, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+		ASSERT(Text::capitalize("hello world"), ==, "Hello world");
+	}
+};
+
 
 int main(int argc, char *args[]) {
 
@@ -226,6 +265,7 @@ int main(int argc, char *args[]) {
 	ts.addTestCase(AutoRef<TestCase>(new SplitTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new CommaNumberTest));
 	ts.addTestCase(AutoRef<TestCase>(new FormatTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new CaseTestCase));
 
 	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);

@@ -18,6 +18,17 @@ namespace UTIL {
 		Text(const Text&);
 		Text & operator=(const Text&);
 	public:
+		static bool isAlpha(char ch);
+		static bool isAlphaNumeric(char ch);
+		static bool isDigit(char ch);
+		static bool isHexNumeric(char ch);
+		static bool isLowercse(char ch);
+		static bool isUppercase(char ch);
+		static char upcase(char ch);
+		static char downcase(char ch);
+		static std::string upcase(const std::string & str);
+		static std::string downcase(const std::string & str);
+		static std::string capitalize(const std::string & str);
 		static std::string trim(const std::string & str);
 		static std::string ltrim(const std::string & str);
 		static std::string rtrim(const std::string & str);

@@ -288,28 +288,36 @@ namespace LISP {
 	}
 	Character::Character(int ch) : _ch(ch) {
 	}
-	Character::Character(const string & name) : _ch(0) {
-		// todo:
+	Character::Character(const string & name) : _ch(0), _name(name) {
+		if (_name.size() == 1) {
+			_ch = _name[0];
+		}
+		if (_name == "Space") {
+			_ch = ' ';
+		}
 	}
 	Character::~Character() {
 	}
-	int & Character::val() {
+	int & Character::raw() {
 		return _ch;
+	}
+	int Character::raw() const {
+		return _ch;
+	}
+	string & Character::name() {
+		return _name;
 	}
 	size_t Character::width() const {
 		return sizeof(_ch);
 	}
 	bool Character::alpha_char_p() const {
-		// todo
-		return false;
+		return Text::isAlpha((char)_ch);
 	}
 	bool Character::alpha_numeric_p() const {
-		// todo
-		return false;
+		return Text::isAlphaNumeric((char)_ch);
 	}
 	bool Character::digit_char_p() const {
-		// todo
-		return false;
+		return Text::isDigit((char)_ch);
 	}
 	bool Character::graphic_char_p() const {
 		// todo
@@ -320,24 +328,19 @@ namespace LISP {
 		return false;
 	}
 	Character Character::upcase() const {
-		// todo
-		return *this;
+		return Character(Text::upcase((char)_ch));
 	}
 	Character Character::downcase() const {
-		// todo
-		return *this;
+		return Character(Text::downcase((char)_ch));
 	}
 	bool Character::upper_case_p() const {
-		// todo
-		return false;
+		return Text::isUppercase((char)_ch);
 	}
 	bool Character::lower_case_p() const {
-		// todo
-		return false;
+		return Text::isLowercse((char)_ch);
 	}
 	bool Character::both_case_p() const {
-		// todo
-		return false;
+		return (Text::isUppercase((char)_ch) || Text::isLowercse((char)_ch));
 	}
 	int Character::char_code() const {
 		return _ch;
@@ -350,8 +353,7 @@ namespace LISP {
 		return 0;
 	}
 	string Character::charname() const {
-		// todo
-		return "";
+		return _name;
 	}
 	bool Character::equal(const Character & ch) const {
 		return upcase() == ch.upcase();
@@ -632,6 +634,7 @@ namespace LISP {
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
 	bool Var::isExtend() const {return _type == EXTEND;}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
+	Character & Var::r_character() {typeCheck(CHARACTER); return _ch;};
 	string & Var::r_string() {typeCheck(STRING); return _str;}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
 	Boolean & Var::r_boolean() {typeCheck(BOOLEAN); return _bval;}
@@ -694,8 +697,7 @@ namespace LISP {
 		}
 		case CHARACTER:
 		{
-			// todo
-			return "#\\CHAR";
+			return "#\\" + string(1, (char)_ch.raw());
 		}
 		case INTEGER:
 		{
@@ -938,6 +940,7 @@ namespace LISP {
 	static void builtin_algorithm(Env & env);
 	static void builtin_list(Env & env);
 	static void builtin_logic(Env & env);
+	static void builtin_character(Env & env);
 	static void builtin_string(Env & env);
 	static void builtin_arithmetic(Env & env);
 	static void builtin_mathematic(Env & env);
@@ -1223,6 +1226,9 @@ namespace LISP {
 				case '\'':
 					tokens.push_back("#'");
 					break;
+				case '\\':
+					tokens.push_back("#\\");
+					break;
 				default:
 					throw LispException("unexpected token '" + string(1, *iter) + "' after #");
 				}
@@ -1270,6 +1276,11 @@ namespace LISP {
 		} else if (*iter == "#'") {
 			vector<_VAR> lst;
 			lst.push_back(_HEAP_ALLOC(env, "function"));
+			lst.push_back(read_from_tokens(env, ++iter, end));
+			return _HEAP_ALLOC(env, lst);
+		} else if (*iter == "#\\") {
+			vector<_VAR> lst;
+			lst.push_back(_HEAP_ALLOC(env, "#\\"));
 			lst.push_back(read_from_tokens(env, ++iter, end));
 			return _HEAP_ALLOC(env, lst);
 		} else {
@@ -1365,6 +1376,7 @@ namespace LISP {
 		builtin_algorithm(env);
 		builtin_list(env);
 		builtin_logic(env);
+		builtin_character(env);
 		builtin_string(env);
 		builtin_arithmetic(env);
 		builtin_mathematic(env);
@@ -1384,14 +1396,12 @@ namespace LISP {
 				return _NIL(env);
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "symbolp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isSymbol());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "lambda");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1399,22 +1409,19 @@ namespace LISP {
 			Func func(args[0], args[1]);
 			func.scope()->registries() = scope->registries();
 			return _HEAP_ALLOC(env, func);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defun");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			args[1]->typeCheck(Var::LIST);
 			return scope->rput("function", args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defparameter");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			scope->rput("symbol", args[0]->r_symbol(), eval(env, scope, args[1]));
 			return args[0];
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defvar");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1423,8 +1430,7 @@ namespace LISP {
 				scope->rput("symbol", args[0]->r_symbol(), eval(env, scope, args[1]));
 			}
 			return args[0];
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setf");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1438,8 +1444,7 @@ namespace LISP {
 				*var = *other;
 			}
 			return var;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setq");
 		{
 			_CHECK_ARGS_EVEN_COUNT(args);
@@ -1448,26 +1453,27 @@ namespace LISP {
 				ret = scope->rput("symbol", args[i + 0]->r_symbol(), eval(env, scope, args[i + 1]));
 			}
 			return ret;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "#\\");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, Character(args[0]->r_symbol()));
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "quote");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return quote(env, scope, args[0]);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "`");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return quasi(env, scope, args[0]);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "function");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return function(env, scope, args[0]);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "funcall");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1475,8 +1481,7 @@ namespace LISP {
 			_VAR func = function(env, scope, funcsym);
 			vector<_VAR> fargs(args.begin() + 1, args.end());
 			return func->proc(env, scope, fargs);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "let");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1493,8 +1498,7 @@ namespace LISP {
 				ret = eval(env, local_scope, *iter);
 			}
 			return ret;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "if");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1505,8 +1509,7 @@ namespace LISP {
 				return eval(env, scope, args[2]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "when");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1515,8 +1518,7 @@ namespace LISP {
 				return eval(env, scope, args[1]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "unless");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1525,8 +1527,7 @@ namespace LISP {
 				return eval(env, scope, args[1]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "cond");
 		{
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
@@ -1536,8 +1537,7 @@ namespace LISP {
 				}
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "progn");
 		{
 			_VAR ret = _NIL(env);
@@ -1545,8 +1545,7 @@ namespace LISP {
 				ret = eval(env, scope, args[i]);
 			}
 			return ret;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "while");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1555,8 +1554,7 @@ namespace LISP {
 				eval(env, scope, args[1]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "dolist");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1570,8 +1568,7 @@ namespace LISP {
 				eval(env, local_scope, args[1]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "dotimes");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1586,8 +1583,7 @@ namespace LISP {
 				eval(env, local_scope, args[1]);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "loop");
 		{
 			// TODO: implement
@@ -1603,8 +1599,7 @@ namespace LISP {
 			//  E
 			//  NIL
 			throw LispException("not implemeneted");
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "list");
 		{
 			vector<_VAR> elts;
@@ -1612,8 +1607,7 @@ namespace LISP {
 				elts.push_back(eval(env, scope, *iter));
 			}
 			return _HEAP_ALLOC(env, elts);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "cons");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1628,8 +1622,7 @@ namespace LISP {
 				ret.push_back(cell);
 			}
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "car");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1638,8 +1631,7 @@ namespace LISP {
 				return lst[0];
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "cdr");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1652,8 +1644,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, rest);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "nth");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1663,8 +1654,7 @@ namespace LISP {
 				return lst[idx];
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "nthcdr");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1678,8 +1668,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, rest);
 			}
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "subseq");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
@@ -1691,8 +1680,7 @@ namespace LISP {
 				ret.push_back(lst[i]);
 			}
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "unwind-protect");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1705,8 +1693,7 @@ namespace LISP {
 			}
 			eval(env, scope, args[1]);
 			return ret;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "catch");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1723,14 +1710,12 @@ namespace LISP {
 				}
 				throw e;
 			}
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "throw");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			throw ThrowLispException(eval(env, scope, args[0]), eval(env, scope, args[1]));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "block");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1746,28 +1731,24 @@ namespace LISP {
 				}
 				throw e;
 			}
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "return-from");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR ret = _OPT_EVAL(env, scope, args, 1, _NIL(env));
 			throw ReturnLispException(args[0], ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defmacro");
 		{
 			// TODO: implement
 			// refer [http://clhs.lisp.se/Body/m_defmac.htm]
 			throw LispException("not implemeneted");
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "macroexpand");
 		{
 			// TODO: implement
 			throw LispException("not implemeneted");
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 
 	void builtin_type(Env & env) {
@@ -1775,56 +1756,47 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isSymbol());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "listp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isList());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "booleanp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isBoolean());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "integerp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isInteger());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "floatp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFloat());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "stringp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isString());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "funcp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFunction());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "pathnamep");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFile());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "streamp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFileDescriptor());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 
 	void builtin_algorithm(Env & env) {
@@ -1855,8 +1827,7 @@ namespace LISP {
 				ret.push_back(r);
 			}
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "mapcar");
 		{
 			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
@@ -1881,8 +1852,7 @@ namespace LISP {
 				ret.push_back(r);
 			}
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "sort");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1905,8 +1875,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "reduce");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1920,8 +1889,7 @@ namespace LISP {
 				sum = func->proc(env, scope, fargs);
 			}
 			return sum;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 
 	void builtin_list(Env & env) {
@@ -1930,8 +1898,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			vector<_VAR> lst = eval(env, scope, args[0])->r_list();
 			return _HEAP_ALLOC(env, Integer((long long)lst.size()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "append");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
@@ -1941,8 +1908,7 @@ namespace LISP {
 				ret.insert(ret.end(), lst.begin(), lst.end());
 			}
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "remove");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1956,8 +1922,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "remove-if");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -1973,8 +1938,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "remove-if-not");
 		{
@@ -1991,8 +1955,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		// TODO: implement
 		// [https://www.cs.cmu.edu/Groups/AI/html/cltl/clm/node144.html]
@@ -2007,8 +1970,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isNil());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "or");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
@@ -2020,8 +1982,7 @@ namespace LISP {
 				}
 			}
 			return var;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "and");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
@@ -2033,8 +1994,140 @@ namespace LISP {
 				}
 			}
 			return var;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
+	}
+
+	void builtin_character(Env & env) {
+		DECL_NATIVE_BEGIN(env, "character");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "characterp");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "alpha-char-p");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "alpha-numeric-p");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "digit-char-p");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "graphic-char-p");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "standard-char-p");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "upcase");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().upcase());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "downcase");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().downcase());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "upper-case-p");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().upper_case_p());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "lower-case-p");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().lower_case_p());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "both-case-p");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().both_case_p());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-code");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-int");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().raw());
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-code-limit");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "charname");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _HEAP_ALLOC(env, wrap_text(eval(env, scope, args[0])->r_character().charname()));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-equal");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-lessp");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char-greaterp");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			Character ch = eval(env, scope, args[0])->r_character();
+			_FORI(args, i, 1) {
+				if ((ch == eval(env, scope, args[i])->r_character()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char/=");
+		{
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char<");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			Character ch = eval(env, scope, args[0])->r_character();
+			_FORI(args, i, 1) {
+				if ((ch < eval(env, scope, args[i])->r_character()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char>");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			Character ch = eval(env, scope, args[0])->r_character();
+			_FORI(args, i, 1) {
+				if ((ch > eval(env, scope, args[i])->r_character()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char<=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			Character ch = eval(env, scope, args[0])->r_character();
+			_FORI(args, i, 1) {
+				if ((ch <= eval(env, scope, args[i])->r_character()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "char>=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			Character ch = eval(env, scope, args[0])->r_character();
+			_FORI(args, i, 1) {
+				if ((ch >= eval(env, scope, args[i])->r_character()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
+		
 	}
 
 	void builtin_string(Env & env) {
@@ -2048,31 +2141,27 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-prefix-p");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			string str = eval(env, scope, args[0])->toString();
 			string dst = eval(env, scope, args[1])->toString();
 			return _HEAP_ALLOC(env, Text::startsWith(str, dst));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-suffix-p");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			string str = eval(env, scope, args[0])->toString();
 			string dst = eval(env, scope, args[1])->toString();
 			return _HEAP_ALLOC(env, Text::endsWith(str, dst));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-length");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			Integer len((long long)eval(env, scope, args[0])->toString().length());
 			return _HEAP_ALLOC(env, len);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-append");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
@@ -2081,8 +2170,7 @@ namespace LISP {
 				ret.append(eval(env, scope, *iter)->toString());
 			}
 			return _HEAP_ALLOC(env, wrap_text(ret));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "format");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -2095,8 +2183,7 @@ namespace LISP {
 				return _NIL(env);
 			}
 			return _HEAP_ALLOC(env, wrap_text(str));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "enough-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
@@ -2106,8 +2193,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, wrap_text(org.substr(prefix.length())));
 			}
 			return _HEAP_ALLOC(env, wrap_text(org));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_arithmetic(Env & env) {
 		DECL_NATIVE_BEGIN(env, "+");
@@ -2117,8 +2203,7 @@ namespace LISP {
 				v = plus(env, v, eval(env, scope, *iter));
 			}
 			return v;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "-");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);				
@@ -2130,8 +2215,7 @@ namespace LISP {
 				v = minus(env, v, eval(env, scope, *iter));
 			}
 			return v;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "*");
 		{
 			_VAR v = _HEAP_ALLOC(env, 1);
@@ -2139,8 +2223,7 @@ namespace LISP {
 				v = multiply(env, v, eval(env, scope, *iter));
 			}
 			return v;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "/");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2149,8 +2232,7 @@ namespace LISP {
 				v = divide(env, v, eval(env, scope, *iter));
 			}
 			return v;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "%");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2159,8 +2241,7 @@ namespace LISP {
 				sum %= eval(env, scope, *iter)->r_integer();
 			}
 			return _HEAP_ALLOC(env, sum);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2171,8 +2252,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, ">");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2183,8 +2263,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "<");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2195,8 +2274,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, ">=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2207,8 +2285,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "<=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2219,20 +2296,17 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "oddp");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().oddp());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "evenp");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().evenp());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_mathematic(Env & env) {
 		// TODO: implement
@@ -2260,8 +2334,7 @@ namespace LISP {
 			}
 			return ret;
 
-        }
-		DECL_NATIVE_END();
+        }DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "read-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2271,8 +2344,7 @@ namespace LISP {
 			}
 			string line = fd.readline();
 			return _HEAP_ALLOC(env, wrap_text(line));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2284,8 +2356,7 @@ namespace LISP {
 			fd.write(msg);
 			fd.write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2296,8 +2367,7 @@ namespace LISP {
 			string msg = eval(env, scope, args[0])->toString();
 			fd.write(msg);
 			return _HEAP_ALLOC(env, wrap_text(msg));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2309,8 +2379,7 @@ namespace LISP {
 			fd.write(msg);
 			fd.write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_pathname(Env & env) {
 		DECL_NATIVE_BEGIN(env, "pathname");
@@ -2318,43 +2387,37 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR path = pathname(env, eval(env, scope, args[0]));
 			return path;
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "pathname-name");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, wrap_text(file.getFileNameWithoutExtension()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "pathname-type");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, wrap_text(file.getExtension()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, wrap_text(file.getPath()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "directory-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, wrap_text(file.getDirectory()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, wrap_text(file.getFileName()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		
 		// https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Names.html
 		
@@ -2370,8 +2433,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, wrap_text(path.substr(0, path.size() - 1)));
 			}
 			return _HEAP_ALLOC(env, wrap_text(path));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-name-directory");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2382,8 +2444,7 @@ namespace LISP {
 				return _NIL(env);
 			}
 			return _HEAP_ALLOC(env, wrap_text(path.substr(0, f+1)));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_file(Env & env) {
 		DECL_NATIVE_BEGIN(env, "dir");
@@ -2396,50 +2457,43 @@ namespace LISP {
 				lst.push_back(_HEAP_ALLOC(env, *iter));
 			}
 			return _HEAP_ALLOC(env, lst);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "probe-file");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return file.exists() ? _HEAP_ALLOC(env, file) : _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "dirp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, file.isDirectory());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "filep");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, file.isFile());
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-length");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, Integer((long long)file.getSize()));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-attribute-creation");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.creationTime()).sec));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-attribute-lastmodified");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			File file = pathname(env, eval(env, scope, args[0]))->r_file();
 			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.lastModifiedTime()).sec));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "open");
 		{
@@ -2468,8 +2522,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, FileDescriptor(FileStream::s_open(file.getPath(), flags)));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "file-position");
 		{
@@ -2480,15 +2533,13 @@ namespace LISP {
 			}
 			return _HEAP_ALLOC(env, Integer((long long)fd.position()));
 				
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "close");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			eval(env, scope, args[0])->r_fileDescriptor().close();
 			return _NIL(env);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_socket(Env & env) {
 		// TODO: implement
@@ -2498,8 +2549,7 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			int port = (int)eval(env, scope, args[0])->r_integer().raw();
 			return _HEAP_ALLOC(env, AutoRef<Any>(new LispServerSocket(port)));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "connect");
 		{
@@ -2513,8 +2563,7 @@ namespace LISP {
 			} catch (Exception e) {
 				throw LispException("socket connect exception - " + e.message());
 			}
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "accept");
 		{
@@ -2527,8 +2576,7 @@ namespace LISP {
 			} catch (Exception e) {
 				throw LispException("socket accept exception - " + e.message());
 			}
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "recv");
 		{
@@ -2543,8 +2591,7 @@ namespace LISP {
 				throw LispException("socket recv exception - " + e.message());
 			}
 			return _HEAP_ALLOC(env, (int)d);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "send");
 		{
@@ -2567,8 +2614,7 @@ namespace LISP {
 			} catch (Exception e) {
 				throw LispException("socket send exception - " + e.message());
 			}
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE_BEGIN(env, "system-type");
@@ -2582,8 +2628,7 @@ namespace LISP {
 #else
 			throw LispException("unknown system type");
 #endif
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "system");
 		{
 #if defined(USE_APPLE_STD)
@@ -2593,8 +2638,7 @@ namespace LISP {
 			Integer ret(system(eval(env, scope, args[0])->toString().c_str()));
             return _HEAP_ALLOC(env, ret);
 #endif
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "load");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2614,8 +2658,7 @@ namespace LISP {
 				}
 			}
 			return _HEAP_ALLOC(env, true);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 	
 	void builtin_date(Env & env) {
@@ -2631,14 +2674,12 @@ namespace LISP {
 					 date.getHour(), date.getMinute(), date.getSecond(),
 					 date.getMillisecond());
 			return _HEAP_ALLOC(env, wrap_text(buffer));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "get-universal-time");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
 			return _HEAP_ALLOC(env, (long long)osl_get_time_network().sec);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "decode-universal-time");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2659,8 +2700,7 @@ namespace LISP {
 			ret.push_back(_NIL(env)); // TODO: daylight-p ???
 			ret.push_back(_HEAP_ALLOC(env, -date.getGmtOffset())); // minute offset
 			return _HEAP_ALLOC(env, ret);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "encode-universal-time");
 		{
 			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
@@ -2677,8 +2717,7 @@ namespace LISP {
 				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
 			}
 			return _HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "format-time-string-rfc8601");
 		{
 			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
@@ -2694,8 +2733,7 @@ namespace LISP {
 				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
 			}
 			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc8601(date)));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "format-time-string-rfc1123");
 		{
@@ -2712,8 +2750,7 @@ namespace LISP {
 				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
 			}
 			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc1123(date)));
-		}
-		DECL_NATIVE_END();
+		}DECL_NATIVE_END();
 	}
 
 	/**
