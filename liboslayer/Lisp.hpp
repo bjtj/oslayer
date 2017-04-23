@@ -412,22 +412,24 @@ namespace LISP {
 	 */
 	class Func {
 	private:
+		bool _macro;
 		OS::AutoRef<Scope> _scope;
 		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
-		OS::GCRef<Var> _body;
+		OS::GCRef<Var> _form;
 	public:
 		Func();
-		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & body);
+		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(bool macro, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
 		virtual ~Func();
+		bool empty() const;
+		bool & macro();
+		bool macro() const;
 		OS::AutoRef<Scope> & scope();
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
-		OS::GCRef<Var> & body();
-		const OS::GCRef<Var> doc() const;
-		const OS::GCRef<Var> params() const;
-		const OS::GCRef<Var> body() const;
-		bool empty();
+		OS::GCRef<Var> & form();
+		std::string toString() const;
 	};
 
 	/**

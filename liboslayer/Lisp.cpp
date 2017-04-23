@@ -34,7 +34,7 @@
 #define DECL_NATIVE_END()											\
 	}																\
 	};																\
-	_E.scope()->put("function", _N, _E.alloc(new Var(AutoRef<Procedure>(new _cls(_N))))); \
+	_E.scope()->put_func(_N, _E.alloc(new Var(AutoRef<Procedure>(new _cls(_N))))); \
 	} while (0);
 
 namespace LISP {
@@ -446,13 +446,25 @@ namespace LISP {
 	 * @brief Func
 	 */
 
-	Func::Func() : _scope(new Scope) {
+	Func::Func()
+		: _macro(false), _scope(new Scope) {
 	}
-	Func::Func(const _VAR & params, const _VAR & body) : _scope(new Scope) {
-		_params = params;
-		_body = body;
+	Func::Func(const _VAR & params, const _VAR & form)
+		: _macro(false), _scope(new Scope), _params(params), _form(form) {
+	}
+	Func::Func(bool macro, const _VAR & params, const _VAR & form)
+		: _macro(macro), _scope(new Scope), _params(params), _form(form) {
 	}
 	Func::~Func() {
+	}
+	bool Func::empty() const {
+		return _params.nil() || _form.nil() || _params->isNil() || _form->isNil();
+	}
+	bool & Func::macro() {
+		return _macro;
+	}
+	bool Func::macro() const {
+		return _macro;
 	}
 	AutoRef<Scope> & Func::scope() {
 		return _scope;
@@ -463,20 +475,14 @@ namespace LISP {
 	_VAR & Func::params() {
 		return _params;
 	}
-	_VAR & Func::body() {
-		return _body;
+	_VAR & Func::form() {
+		return _form;
 	}
-	const _VAR Func::doc() const {
-		return _doc;
-	}
-	const _VAR Func::params() const {
-		return _params;
-	}
-	const _VAR Func::body() const {
-		return _body;
-	}
-	bool Func::empty() {
-		return _params.nil() || _body.nil() || _params->isNil() || _body->isNil();
+	string Func::toString() const {
+		if (_macro) {
+			return "#<MACRO>";
+		}
+		return "#<FUNCTION>";
 	}
 
 	/**
@@ -659,7 +665,8 @@ namespace LISP {
 	AutoRef<Any> & Var::r_ext() {typeCheck(EXTEND); return _ext;}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
-			throw LispException("not function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
+			throw LispException("not function / name: '" + name->toString() +
+								"' / type : '" + getTypeString() + "'");
 		}
 		if (!_procedure.nil()) {
 			return _procedure->proc(env, scope, name, args);
@@ -667,7 +674,7 @@ namespace LISP {
 		Arguments binder(_func.params()->r_list());
 		_func.scope()->parent() = scope;
 		binder.mapArguments(env, _func.scope(), scope, args);
-		return eval(env, _func.scope(), _func.body());
+		return eval(env, _func.scope(), _func.form());
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, vector<_VAR> & args) {
 		if (!_procedure.nil()) {
@@ -726,8 +733,8 @@ namespace LISP {
 			if (!_procedure.nil()) {
 				return "#<COMPILED FUNCTION " + _procedure->name() + ">";
 			}
-			return "#<FUNCTION (PARAMS:" + _func.params()->toString() +
-				", BODY:" + _func.body()->toString() + ")>";
+			return _func.toString();
+			// return "#<FUNCTION>";
 		}
 		case FILE:
 			return "#p\"" + _file.getPath() + "\"";
@@ -780,9 +787,14 @@ namespace LISP {
 		}
 	}
 	
-	Arguments::Arguments() {}
-	Arguments::Arguments(vector<_VAR> & proto) : proto(proto) {}
-	Arguments::~Arguments() {}
+	Arguments::Arguments() {
+	}
+	
+	Arguments::Arguments(vector<_VAR> & proto) : proto(proto) {
+	}
+	
+	Arguments::~Arguments() {
+	}
 
 	size_t Arguments::countPartArguments(vector<_VAR> & arr, size_t start) {
 		size_t cnt = start;
@@ -803,7 +815,7 @@ namespace LISP {
 		size_t i = 0;
 		for (; i < ec; i++, ai++) {
 			_VAR val = eval(env, scope, args[ai]);
-			sub_scope->put("symbol", proto[i]->r_symbol(), val);
+			sub_scope->put_sym(proto[i]->r_symbol(), val);
 		}
 		if (i >= proto.size()) {
 			return;
@@ -821,7 +833,7 @@ namespace LISP {
 				throw LispException("Rest arguments are needed after &rest");
 			}
 			_VAR val = _HEAP_ALLOC(env, extractRest(env, scope, args, ai));
-			sub_scope->put("symbol", proto[i + 1]->r_symbol(), val);
+			sub_scope->put_sym(proto[i + 1]->r_symbol(), val);
 		}
 		_keywords = extractKeywords(args);
 	}
@@ -842,15 +854,15 @@ namespace LISP {
 			string sym;
 			if (proto[i]->isSymbol()) {
 				sym = proto[i]->r_symbol();
-				sub_scope->put("symbol", sym, _NIL(env));
+				sub_scope->put_sym(sym, _NIL(env));
 			} else if (proto[i]->isList()) {
 				_CHECK_ARGS_MIN_COUNT(proto[i]->r_list(), 2);
 				sym = proto[i]->r_list()[0]->r_symbol();
-				sub_scope->put("symbol", sym, proto[i]->r_list()[1]);
+				sub_scope->put_sym(sym, proto[i]->r_list()[1]);
 			}
 			if (j < args.size()) {
 				_VAR val = eval(env, scope, args[j]);
-				sub_scope->put("symbol", sym, val);
+				sub_scope->put_sym(sym, val);
 			}
 		}
 		return i - pstart;
@@ -1139,7 +1151,7 @@ namespace LISP {
 			return var;
 		}
 		if (var->isSymbol()) {
-			return scope->rget("function", var->r_symbol());
+			return scope->rget_func(var->r_symbol());
 		}
 		_VAR func = eval(env, scope, var);
 		if (func->isFunction()) {
@@ -1227,8 +1239,15 @@ namespace LISP {
 				tokens.push_back("\"" + str + "\"");
 			} else if (*iter == '(' || *iter == ')') {
 				tokens.push_back(string(1, *iter));
-			} else if (*iter == '\'' || *iter == ',' || *iter == '`') {
+			} else if (*iter == '\'' || *iter == '`') {
 				tokens.push_back(string(1, *iter));
+			} else if (*iter == ',') {
+				if (((iter + 1) != s.end()) && *(iter + 1) == '@') {
+					iter++;
+					tokens.push_back(",@");
+				} else {
+					tokens.push_back(string(1, *iter));
+				}
 			} else if (*iter == '#') {
 				iter++;
 				if (iter == s.end()) {
@@ -1283,6 +1302,11 @@ namespace LISP {
 		} else if (*iter == ",") {
 			vector<_VAR> lst;
 			lst.push_back(_HEAP_ALLOC(env, ","));
+			lst.push_back(read_from_tokens(env, ++iter, end));
+			return _HEAP_ALLOC(env, lst);
+		} else if (*iter == ",@") {
+			vector<_VAR> lst;
+			lst.push_back(_HEAP_ALLOC(env, ",@"));
 			lst.push_back(read_from_tokens(env, ++iter, end));
 			return _HEAP_ALLOC(env, lst);
 		} else if (*iter == "#'") {
@@ -1345,12 +1369,25 @@ namespace LISP {
 			if (lst.empty()) {
 				return _NIL(env);
 			}
-			if (lst[0]->isSymbol() && lst[0]->r_symbol() == ",") {
-				return eval(env, scope, lst[1]);
-			}
 			vector<_VAR> ret;
 			for (size_t i = 0; i < lst.size(); i++) {
-				ret.push_back(quasi(env, scope, lst[i]));
+				if (lst[i]->isList()) {
+					vector<_VAR> lv = lst[i]->r_list();
+					if (lv.empty() == false && lv[0]->isSymbol()) {
+						if (lv[0]->r_symbol() == ",") {
+							_CHECK_ARGS_EXACT_COUNT(lv, 2);
+							ret.push_back(eval(env, scope, lv[1]));
+						} else if (lv[0]->r_symbol() == ",@") {
+							_CHECK_ARGS_EXACT_COUNT(lv, 2);
+							vector<_VAR> llv = eval(env, scope, lv[1])->r_list();
+							ret.insert(ret.end(), llv.begin(), llv.end());
+						} else {
+							ret.push_back(quasi(env, scope, lst[i]));
+						}
+					}
+				} else {
+					ret.push_back(quasi(env, scope, lst[i]));
+				}
 			}
 			return _HEAP_ALLOC(env, ret);
 		}
@@ -1359,7 +1396,7 @@ namespace LISP {
 
 	_VAR eval(Env & env, AutoRef<Scope> scope, const _VAR & var) {
 		if (var->isSymbol()) {
-			return scope->rget("symbol", var->r_symbol());
+			return scope->rget_sym(var->r_symbol());
 		} else if (var->isList() == false) {
 			return var;
 		} else if (var->r_list().empty()) {
@@ -1404,7 +1441,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "boundp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			if (scope->rsearch("symbol", eval(env, scope, args[0])->r_symbol()).nil()) {
+			if (scope->rsearch_sym(eval(env, scope, args[0])->r_symbol()).nil()) {
 				return _NIL(env);
 			}
 			return _HEAP_ALLOC(env, true);
@@ -1426,20 +1463,20 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			args[1]->typeCheck(Var::LIST);
-			return scope->rput("function", args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
+			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defparameter");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
-			scope->rput("symbol", args[0]->r_symbol(), eval(env, scope, args[1]));
+			scope->rput_sym(args[0]->r_symbol(), eval(env, scope, args[1]));
 			return args[0];
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defvar");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_CHECK_ARGS_MAX_COUNT(args, 2);
-			if (args.size() == 2 && scope->rsearch("symbol", args[0]->r_symbol()).nil() == true) {
-				scope->rput("symbol", args[0]->r_symbol(), eval(env, scope, args[1]));
+			if (args.size() == 2 && scope->rsearch_sym(args[0]->r_symbol()).nil() == true) {
+				scope->rput_sym(args[0]->r_symbol(), eval(env, scope, args[1]));
 			}
 			return args[0];
 		}DECL_NATIVE_END();
@@ -1462,7 +1499,7 @@ namespace LISP {
 			_CHECK_ARGS_EVEN_COUNT(args);
 			_VAR ret = _NIL(env);
 			_FORI_STEP(args, i, 0, 2) {
-				ret = scope->rput("symbol", args[i + 0]->r_symbol(), eval(env, scope, args[i + 1]));
+				ret = scope->rput_sym(args[i + 0]->r_symbol(), eval(env, scope, args[i + 1]));
 			}
 			return ret;
 		}DECL_NATIVE_END();
@@ -1504,7 +1541,7 @@ namespace LISP {
 			for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
 				vector<_VAR> decl = (*iter)->r_list();
 				string sym = decl[0]->r_symbol();
-				local_scope->put("symbol", sym, eval(env, scope, decl[1]));
+				local_scope->put_sym(sym, eval(env, scope, decl[1]));
 			}
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 				ret = eval(env, local_scope, *iter);
@@ -1576,7 +1613,7 @@ namespace LISP {
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
-				local_scope->put("symbol", param, *iter);
+				local_scope->put_sym(param, *iter);
 				eval(env, local_scope, args[1]);
 			}
 			return _NIL(env);
@@ -1589,9 +1626,9 @@ namespace LISP {
 			Integer limit = eval(env, scope, steps[1])->r_integer();
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
-			local_scope->put("symbol", sym, _HEAP_ALLOC(env, Integer(0)));
-			for (; local_scope->get("symbol", sym)->r_integer() < limit;
-				 local_scope->put("symbol", sym, _HEAP_ALLOC(env, local_scope->get("symbol", sym)->r_integer() + 1))) {
+			local_scope->put_sym(sym, _HEAP_ALLOC(env, Integer(0)));
+			for (; local_scope->get_sym(sym)->r_integer() < limit;
+				 local_scope->put_sym(sym, _HEAP_ALLOC(env, local_scope->get_sym(sym)->r_integer() + 1))) {
 				eval(env, local_scope, args[1]);
 			}
 			return _NIL(env);
@@ -1754,7 +1791,11 @@ namespace LISP {
 		{
 			// TODO: implement
 			// refer [http://clhs.lisp.se/Body/m_defmac.htm]
-			throw LispException("not implemeneted");
+			// throw LispException("not implemeneted");
+			_CHECK_ARGS_MIN_COUNT(args, 3);
+			args[1]->typeCheck(Var::LIST);
+			return scope->rput_func(args[0]->r_symbol(),
+									_HEAP_ALLOC(env, Func(true, args[1], args[2])));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "macroexpand");
 		{
@@ -2348,8 +2389,8 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		env.scope()->put("symbol", "*standard-output*", _HEAP_ALLOC(env, FileDescriptor(stdout)));
-		env.scope()->put("symbol", "*standard-input*", _HEAP_ALLOC(env, FileDescriptor(stdin)));
+		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, FileDescriptor(stdout)));
+		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, FileDescriptor(stdin)));
 
 		DECL_NATIVE_BEGIN(env, "read");
 		{
@@ -2383,7 +2424,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget("symbol", "*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
@@ -2395,7 +2436,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget("symbol", "*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
@@ -2406,7 +2447,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget("symbol", "*standard-output*")->r_fileDescriptor();
+			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
@@ -2705,7 +2746,7 @@ namespace LISP {
 	}
 	
 	void builtin_date(Env & env) {
-		env.scope()->put("symbol", "internal-time-units-per-second", _HEAP_ALLOC(env, 1000));
+		env.scope()->put_sym("internal-time-units-per-second", _HEAP_ALLOC(env, 1000));
 		DECL_NATIVE_BEGIN(env, "now");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);

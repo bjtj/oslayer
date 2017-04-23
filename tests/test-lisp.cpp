@@ -140,6 +140,11 @@ static void test_quote() {
 	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[0]->r_integer(), ==, 1);
 	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[1]->r_integer(), ==, 2);
 	ASSERT(*compile(env, "`(1 2 ,(+ 2 3))")->r_list()[2]->r_integer(), ==, 5);
+
+	ASSERT(*compile(env, "`(1 2 ,@(list 3 4))")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "`(1 2 ,@(list 3 4))")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "`(1 2 ,@(list 3 4))")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "`(1 2 ,@(list 3 4))")->r_list()[3]->r_integer(), ==, 4);
 }
 
 static void test_setf() {
@@ -380,6 +385,17 @@ static void test_procedure() {
 	env.scope()->put_func("my-proc", env.alloc(new Var(AutoRef<Procedure>(new MyProc("my-proc")))));
 	ASSERT(*compile(env, "(my-proc 1)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(my-proc 1 2)")->r_integer(), ==, 2);
+}
+
+static void test_macro() {
+	Env env;
+	native(env);
+
+	try {
+		compile(env, "(defmacro mac1 (a b) `(+ ,a (* ,b 3)))");
+	} catch (...) {
+		// ignore
+	}
 }
 
 static void test_logic() {
@@ -793,6 +809,8 @@ int main(int argc, char *args[]) {
 		test_func_more();
 		cout << " *** test_procedure()" << endl;
 		test_procedure();
+		cout << " *** test_macro()" << endl;
+		test_macro();
 		cout << " *** test_type()" << endl;
 		test_type();
 		cout << " *** test_let()" << endl;
