@@ -2053,24 +2053,31 @@ namespace LISP {
 	void builtin_character(Env & env) {
 		DECL_NATIVE_BEGIN(env, "character");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "characterp");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "alpha-char-p");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "alpha-numeric-p");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "digit-char-p");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "graphic-char-p");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "standard-char-p");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "upcase");
 		{
@@ -2105,7 +2112,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "code-char");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			return _HEAP_ALLOC(env, Character(eval(env, scope, args[0])->r_integer().raw()));
+			return _HEAP_ALLOC(env, Character((char)eval(env, scope, args[0])->r_integer().raw()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-int");
 		{
@@ -2114,6 +2121,7 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-code-limit");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "charname");
 		{
@@ -2122,12 +2130,15 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-equal");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-lessp");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-greaterp");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char=");
 		{
@@ -2142,6 +2153,7 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char/=");
 		{
+            throw LispException("not implemented");
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char<");
 		{
@@ -2187,7 +2199,6 @@ namespace LISP {
 			}
 			return _HEAP_ALLOC(env, true);
 		}DECL_NATIVE_END();
-		
 	}
 
 	void builtin_string(Env & env) {
