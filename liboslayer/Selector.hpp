@@ -2,6 +2,7 @@
 #define __SELECTOR_HPP__
 
 #include "os.hpp"
+#include "Semaphore.hpp"
 
 namespace OS {
 

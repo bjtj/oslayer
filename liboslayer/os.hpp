@@ -207,33 +207,6 @@ namespace OS {
         static System * getInstance();
 		virtual void ignoreSigpipe() = 0;
     };
-
-	/**
-	 * @brief semaphore
-	 */
-	class Semaphore {
-	private:
-		int initial;
-		mutable SEM_HANDLE handle;
-	public:
-		Semaphore(int initial);
-		Semaphore(const Semaphore & other);
-		virtual ~Semaphore();
-		void wait() const;
-		void post() const;
-	};
-    
-    /**
-     * @brief auto lock
-     */
-    class AutoLock {
-    private:
-        Semaphore & sem;
-    public:
-        AutoLock(Semaphore & sem);
-        virtual ~AutoLock();
-    };
-
 }
 
 #endif

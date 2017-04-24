@@ -5,6 +5,7 @@
 #include <vector>
 #include "AutoRef.hpp"
 #include "os.hpp"
+#include "Semaphore.hpp"
 #include "Thread.hpp"
 
 namespace UTIL {

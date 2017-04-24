@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <map>
 #include "os.hpp"
+#include "Semaphore.hpp"
 
 namespace OS {
 

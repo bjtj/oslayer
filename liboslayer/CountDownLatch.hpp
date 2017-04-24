@@ -2,6 +2,7 @@
 #define __COUNT_DOWN_LATCH_HPP__
 
 #include "os.hpp"
+#include "Semaphore.hpp"
 
 namespace UTIL {
 	

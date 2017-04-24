@@ -24,6 +24,7 @@ liboslayerinc_HEADERS= \
 	Lisp.hpp \
 	Logger.hpp \
 	MessageQueue.hpp \
+	Mutex.hpp \
 	Network.hpp \
 	Object.hpp \
 	Observer.hpp \
@@ -36,6 +37,7 @@ liboslayerinc_HEADERS= \
 	Register.hpp \
 	SecureSocket.hpp \
 	Selector.hpp \
+	Semaphore.hpp \
 	Socket.hpp \
 	SocketApi.hpp \
 	StringElements.hpp \
@@ -92,6 +94,8 @@ liboslayer_la_SOURCES= \
 	Logger.cpp \
 	Logger.hpp \
 	MessageQueue.hpp \
+	Mutex.cpp \
+	Mutex.hpp \
 	Network.cpp \
 	Network.hpp \
 	Object.hpp \
@@ -112,6 +116,8 @@ liboslayer_la_SOURCES= \
 	SecureSocket.hpp \
 	Selector.cpp \
 	Selector.hpp \
+	Semaphore.cpp \
+	Semaphore.hpp \
 	Socket.cpp \
 	Socket.hpp \
 	SocketApi.cpp \

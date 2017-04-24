@@ -2,32 +2,26 @@
 
 namespace OS {
 	
-    SharedCounter::SharedCounter() : _count(0), sem(1) {
+    SharedRefCounter::SharedRefCounter() : _count(0) {
     }
-    SharedCounter::~SharedCounter() {
-    }
-    void SharedCounter::countUp() {
-        sem.wait();
-        _count++;
-        sem.post();
-    }
-    bool SharedCounter::countDownAndCheckZero() {
-        sem.wait();
-        countDown();
-        bool z = zero();
-        sem.post();
-        return z;
-    }
-    void SharedCounter::countDown() {
-        if (_count > 0) {
-            _count--;
-        }
-    }
-    bool SharedCounter::zero() {
-        return _count == 0;
-    }
-    int SharedCounter::count() {
-        return _count;
+    SharedRefCounter::~SharedRefCounter() {
     }
 
+	int SharedRefCounter::ref() {
+		_mutex.lock();
+		_count++;
+		_mutex.unlock();
+		return _count;
+	}
+	int SharedRefCounter::unref() {
+		_mutex.lock();
+		if (_count > 0) {
+			_count--;
+		}
+		_mutex.unlock();
+		return _count;
+	}
+	int SharedRefCounter::ref_count() {
+		return _count;
+	}
 }

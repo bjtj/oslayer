@@ -6,6 +6,7 @@
 #include "Event.hpp"
 #include "Thread.hpp"
 #include "Observer.hpp"
+#include "Semaphore.hpp"
 
 namespace UTIL {
 
