@@ -334,7 +334,7 @@ namespace UTIL {
 
 	Quantity makeQuantity(Iterator<string> & tokens_iter) {
 		Quantity quantity;
-		string tok = tokens_iter.get();
+		string tok = *tokens_iter;
 		if (tok == "*") {
 			quantity.initial() = 0;
 			quantity.limit() = -1;
@@ -350,7 +350,7 @@ namespace UTIL {
 			string e;
 			bool comma = false;
 			while (tokens_iter.has() && tokens_iter.next() != "}") {
-				string t = tokens_iter.get();
+				string t = *tokens_iter;
 				if (numberp(t)) {
 					switch (i) {
 					case 0:
@@ -372,7 +372,7 @@ namespace UTIL {
 			if (s.empty()) {
 				throw Exception("invalid quantification syntax");
 			}
-			if (tokens_iter.get() != "}") {
+			if (*tokens_iter != "}") {
 				throw Exception("invalid quantification syntax");
 			}
 			if (comma) {
@@ -429,7 +429,7 @@ namespace UTIL {
 	
 		for (;tokens_iter.has(); tokens_iter++) {
 		
-			string token = tokens_iter.get();
+			string token = *tokens_iter;
 
 			if (contains(token, Text::toVector("?", "*", "+", "{", (const char *)NULL))) {
 				Quantity quantity = makeQuantity(tokens_iter);
@@ -445,7 +445,7 @@ namespace UTIL {
 				string charset;
 				size_t i = 0;
 				tokens_iter++;
-				while (tokens_iter.has() && tokens_iter.get() != "]") {
+				while (tokens_iter.has() && *tokens_iter != "]") {
 					string t = tokens_iter.next();
 					if (i == 0 && t == "^") {
 						matcher->reverse() = true;
@@ -453,7 +453,7 @@ namespace UTIL {
 					}
 					i++;
 					if (t == "-") {
-						char to = tokens_iter.get()[0];
+						char to = (*tokens_iter)[0];
 						char ch = *charset.rbegin();
 						if (ch_in(ch, "0123456789")) {
 							if (!ch_in(to, "0123456789")) {
@@ -515,7 +515,7 @@ namespace UTIL {
 					parent->position().start_of_line() = true;
 				}
 			} else if (token == "$") {
-				if (tokens_iter.hasNext()) {
+				if (tokens_iter.has_next()) {
 					AutoRef<Matcher> matcher(new Matcher);
 					matcher->charset() = token;
 					parent->addChild(matcher);
