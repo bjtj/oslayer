@@ -54,11 +54,11 @@ namespace UTIL {
 		typename std::vector<T>::iterator end() {
 			return _vec.end();
 		}
-		std::vector<T> collect(const Condition & condition) {
+		std::vector<T> collect(Condition * condition) {
 			std::vector<T> lst;
 			while (has()) {
 				T & t = next();
-				if (condition.test(&t)) {
+				if (condition == NULL || condition->test(&t)) {
 					lst.push_back(t);
 				}
 			}
@@ -161,11 +161,11 @@ namespace UTIL {
 		typename std::vector<T>::const_iterator end() {
 			return _vec.end();
 		}
-		std::vector<T> collect(const Condition & condition) {
+		std::vector<T> collect(Condition * condition) {
 			std::vector<T> lst;
 			while (has()) {
 				T & t = next();
-				if (condition.test(&t)) {
+				if (condition == NULL || condition->test(&t)) {
 					lst.push_back(t);
 				}
 			}

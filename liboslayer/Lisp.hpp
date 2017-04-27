@@ -439,21 +439,23 @@ namespace LISP {
 	public:
 		const static int NIL = 0;
 		const static int SYMBOL = 1;
-		const static int LIST = 2;
-		const static int BOOLEAN = 3;
-		const static int CHARACTER = 4;
-		const static int INTEGER = 5;
-		const static int FLOAT = 6;
-		const static int STRING = 7;
-		const static int FUNC = 8;
-		const static int FILE = 9;
-		const static int FILE_DESCRIPTOR = 10;
+		const static int KEYWORD = 2;
+		const static int LIST = 3;
+		const static int BOOLEAN = 4;
+		const static int CHARACTER = 5;
+		const static int INTEGER = 6;
+		const static int FLOAT = 7;
+		const static int STRING = 8;
+		const static int FUNC = 9;
+		const static int FILE = 10;
+		const static int FILE_DESCRIPTOR = 11;
 		const static int EXTEND = 100;
 		
 	private:
 		static bool _debug;
 		int _type;
 		std::string _symbol;
+		std::string _keyword;
 		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
 		Boolean _bval;
@@ -499,6 +501,7 @@ namespace LISP {
 		void typeCheck(int t) const;
 		bool isNil() const;
 		bool isList() const;
+		bool isKeyword() const;
 		bool isSymbol() const;
 		bool isBoolean() const;
 		bool isInteger() const;
@@ -508,7 +511,20 @@ namespace LISP {
 		bool isFile() const;
 		bool isFileDescriptor() const;
 		bool isExtend() const;
+
+		const std::string & r_symbol() const;
+		const std::string & r_keyword() const;
+		const Character & r_character() const;
+		const std::string & r_string() const;
+		const std::vector<OS::GCRef<Var> > & r_list() const;
+		const Boolean & r_boolean() const;
+		const Integer & r_integer() const;
+		const Float & r_float() const;
+		const OS::File & r_file() const;
+		const Func & r_func() const;
+		
 		std::string & r_symbol();
+		std::string & r_keyword();
 		Character & r_character();
 		std::string & r_string();
 		std::vector<OS::GCRef<Var> > & r_list();
@@ -549,33 +565,82 @@ namespace LISP {
 	/**
 	 * @brief Arguments
 	 */
-	class Arguments {
-	private:
-		std::vector<OS::GCRef<Var> > proto;
-		std::map<std::string, OS::GCRef<Var> > _keywords;
-	public:
-		Arguments();
-		Arguments(std::vector<OS::GCRef<Var> > & proto);
-		virtual ~Arguments();
+	// class Arguments {
+	// private:
+	// 	std::vector< OS::GCRef<Var> > proto;
+	// 	std::map< std::string, OS::GCRef<Var> > _keywords;
+	// public:
+	// 	Arguments();
+	// 	Arguments(std::vector<OS::GCRef<Var> > & proto);
+	// 	virtual ~Arguments();
 
-		size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
-		void mapArguments(Env & env,
-						  OS::AutoRef<Scope> sub_scope,
-						  OS::AutoRef<Scope> scope,
-						  std::vector<OS::GCRef<Var> > & args);
-		size_t mapOptionals(Env & env,
-							OS::AutoRef<Scope> sub_scope,
-							OS::AutoRef<Scope> scope,
-							std::vector<OS::GCRef<Var> > & proto,
-							size_t pstart,
-							std::vector<OS::GCRef<Var> > & args,
-							size_t astart);
-		static std::vector<OS::GCRef<Var> > extractRest(Env & env,
-														OS::AutoRef<Scope> scope,
-														std::vector<OS::GCRef<Var> > & args,
-														size_t start);
-		static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
-		std::map<std::string, OS::GCRef<Var> > & keywords();
+	// 	size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
+	// 	void mapArguments(Env & env,
+	// 					  OS::AutoRef<Scope> sub_scope,
+	// 					  OS::AutoRef<Scope> scope,
+	// 					  std::vector<OS::GCRef<Var> > & args);
+	// 	size_t mapOptionals(Env & env,
+	// 						OS::AutoRef<Scope> sub_scope,
+	// 						OS::AutoRef<Scope> scope,
+	// 						std::vector<OS::GCRef<Var> > & proto,
+	// 						size_t pstart,
+	// 						std::vector<OS::GCRef<Var> > & args,
+	// 						size_t astart);
+	// 	static std::vector<OS::GCRef<Var> > extractRest(Env & env,
+	// 													OS::AutoRef<Scope> scope,
+	// 													std::vector<OS::GCRef<Var> > & args,
+	// 													size_t start);
+	// 	static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
+	// 	std::map<std::string, OS::GCRef<Var> > & keywords();
+	// };
+
+	/**
+	 * 
+	 */
+	class Parameters
+	{
+	public:
+	
+		/**
+		 * 
+		 */
+		class Parameter
+		{
+		private:
+			OS::GCRef<Var> _name;
+			OS::GCRef<Var> _initial;
+		public:
+			Parameter();
+			Parameter(const OS::GCRef<Var> & name);
+			Parameter(const OS::GCRef<Var> & name, const OS::GCRef<Var> & initial);
+			virtual ~Parameter();
+			bool empty() const;
+			OS::GCRef<Var> & name();
+			OS::GCRef<Var> & initial();
+			std::string toString() const;
+		};
+
+	private:
+		std::vector<Parameter> _names;
+		std::vector<Parameter> _optionals;
+		Parameter _rest;
+		std::map<std::string, Parameter> _keywords;
+	public:
+		Parameters();
+		Parameters(const std::vector<Parameter> & names);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const Parameter & rest);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const std::map<std::string, Parameter> & keywords);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const Parameter & rest, const std::map<std::string, Parameter> & keywords);
+		virtual ~Parameters();
+		std::vector<Parameter> & names();
+		std::vector<Parameter> & optionals();
+		Parameter & rest();
+		std::map<std::string, Parameter> & keywords();
+		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, std::vector< OS::GCRef<Var> > & tokens);
+		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens);
+		void nbind(std::vector< OS::GCRef<Var> > & tokens);
+		std::string toString() const;
 	};
 
 	/**

@@ -577,7 +577,10 @@ namespace LISP {
 		if (token.empty()) {
 			throw LispException("empty token");
 		}
-		if (token == "nil") {
+		if (token[0] == ':') {
+			_type = KEYWORD;
+			_keyword = token;
+		} else if (token == "nil") {
 			_type = NIL;
 		} else if (token == "t") {
 			_type = BOOLEAN;
@@ -609,6 +612,8 @@ namespace LISP {
 			return "NIL";
 		case SYMBOL:
 			return "SYMBOL";
+		case KEYWORD:
+			return "KEYWORD";
 		case LIST:
 			return "LIST";
 		case BOOLEAN:
@@ -632,7 +637,7 @@ namespace LISP {
 		default:
 			break;
 		}
-		throw LispException("unknown variable type / " + Text::toString(_type));
+		throw LispException("[getTypeString()] unknown variable type / " + Text::toString(_type));
 	}
 	void Var::typeCheck(int t) const {
 		if (_type != t) {
@@ -643,6 +648,7 @@ namespace LISP {
 	bool Var::isNil() const {return _type == NIL;}
 	bool Var::isList() const {return _type == LIST;}
 	bool Var::isSymbol() const {return _type == SYMBOL;}
+	bool Var::isKeyword() const {return _type == KEYWORD;}
 	bool Var::isBoolean() const {return _type == BOOLEAN;}
 	bool Var::isInteger() const {return _type == INTEGER;}
 	bool Var::isFloat() const {return _type == FLOAT;}
@@ -651,7 +657,18 @@ namespace LISP {
 	bool Var::isFile() const {return _type == FILE;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
 	bool Var::isExtend() const {return _type == EXTEND;}
+	const string & Var::r_symbol() const {typeCheck(SYMBOL); return _symbol;}
+	const string & Var::r_keyword() const {typeCheck(KEYWORD); return _keyword;}
+	const Character & Var::r_character() const {typeCheck(CHARACTER); return _ch;};
+	const string & Var::r_string() const {typeCheck(STRING); return _str;}
+	const vector<_VAR> & Var::r_list() const {typeCheck(LIST); return _lst;}
+	const Boolean & Var::r_boolean() const {typeCheck(BOOLEAN); return _bval;}
+	const Integer & Var::r_integer() const {typeCheck(INTEGER); return _inum;}
+	const Float & Var::r_float() const {typeCheck(FLOAT); return _fnum;}
+	const File & Var::r_file() const {typeCheck(FILE); return _file;}
+	const Func & Var::r_func() const {typeCheck(FUNC); return _func;}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
+	string & Var::r_keyword() {typeCheck(KEYWORD); return _keyword;}
 	Character & Var::r_character() {typeCheck(CHARACTER); return _ch;};
 	string & Var::r_string() {typeCheck(STRING); return _str;}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
@@ -671,9 +688,9 @@ namespace LISP {
 		if (!_procedure.nil()) {
 			return _procedure->proc(env, scope, name, args);
 		}
-		Arguments binder(_func.params()->r_list());
+		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
+		params.bind(env, scope, _func.scope(), args);
 		_func.scope()->parent() = scope;
-		binder.mapArguments(env, _func.scope(), scope, args);
 		return eval(env, _func.scope(), _func.form());
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, vector<_VAR> & args) {
@@ -689,6 +706,8 @@ namespace LISP {
 			return "NIL";
 		case SYMBOL:
 			return _symbol;
+		case KEYWORD:
+			return _keyword;
 		case LIST:
 		{
 			if ((_lst.size() > 1) && _lst[0]->isSymbol()) {
@@ -745,11 +764,11 @@ namespace LISP {
 		default:
 			break;
 		}
-		throw LispException("unknown variable type / " + Text::toString(_type));
+		throw LispException("[toString()] unknown variable type / " + Text::toString(_type));
 	}
 
 	/**
-	 * @brief Arguments
+	 * @brief 
 	 */
 	
 	static void validateArgumentCountMin(vector<_VAR> & args, size_t expect) {
@@ -786,112 +805,226 @@ namespace LISP {
 								+ " / expected : even");
 		}
 	}
-	
-	Arguments::Arguments() {
+
+	/**
+	 * @brief parameters
+	 */
+	Parameters::Parameter::Parameter() {
 	}
-	
-	Arguments::Arguments(vector<_VAR> & proto) : proto(proto) {
+	Parameters::Parameter::Parameter(const _VAR & name)
+		: _name(name) {
 	}
-	
-	Arguments::~Arguments() {
+	Parameters::Parameter::Parameter(const _VAR & name, const _VAR & initial)
+		: _name(name), _initial(initial) {
+	}
+	Parameters::Parameter::~Parameter() {
+	}
+	bool Parameters::Parameter::empty() const {
+		return _name.nil();
+	}
+	_VAR & Parameters::Parameter::name() {
+		return _name;
+	}
+	_VAR & Parameters::Parameter::initial() {
+		return _initial;
+	}
+	string Parameters::Parameter::toString() const {
+		return "{'" + (_name.nil() ? "nil" : _name->toString()) +
+			"' with initial '" + (_initial.nil() ? "nil" : _initial->toString()) + "'}";
 	}
 
-	size_t Arguments::countPartArguments(vector<_VAR> & arr, size_t start) {
-		size_t cnt = start;
-		for (; cnt < arr.size(); cnt++) {
-			if (Text::startsWith(arr[cnt]->r_symbol(), "&")) {
-				break;
-			}
-		}
-		return cnt;
+
+	Parameters::Parameters() {
 	}
-	void Arguments::mapArguments(Env & env,
-								 AutoRef<Scope> sub_scope,
-								 AutoRef<Scope> scope,
-								 vector< _VAR > & args) {
-		size_t ec = countPartArguments(proto, 0);
-		_CHECK_ARGS_MIN_COUNT(args, ec);
-		size_t ai = 0;
-		size_t i = 0;
-		for (; i < ec; i++, ai++) {
-			_VAR val = eval(env, scope, args[ai]);
-			sub_scope->put_sym(proto[i]->r_symbol(), val);
-		}
-		if (i >= proto.size()) {
-			return;
-		}
-		if (proto[i]->r_symbol() == "&optional") {
-			size_t offset = mapOptionals(env, sub_scope, scope, proto, ++i, args, ai);
-			i += offset;
-			ai += offset;
-		}
-		if (i >= proto.size()) {
-			return;
-		}
-		if (proto[i]->r_symbol() == "&rest") {
-			if (i + 1 >= proto.size()) {
-				throw LispException("Rest arguments are needed after &rest");
-			}
-			_VAR val = _HEAP_ALLOC(env, extractRest(env, scope, args, ai));
-			sub_scope->put_sym(proto[i + 1]->r_symbol(), val);
-		}
-		_keywords = extractKeywords(args);
+	Parameters::Parameters(const vector<Parameter> & names)
+		: _names(names) {
 	}
-	size_t Arguments::mapOptionals(Env & env,
-								   AutoRef<Scope> sub_scope,
-								   AutoRef<Scope> scope,
-								   vector<_VAR> & proto,
-								   size_t pstart,
-								   vector<_VAR> & args,
-								   size_t astart)
-	{
-		size_t i = pstart;
-		size_t j = astart;
-		for (; i < proto.size(); i++, j++) {
-			if (proto[i]->isSymbol() && Text::startsWith(proto[i]->r_symbol(), "&")) {
-				break;
-			}
-			string sym;
-			if (proto[i]->isSymbol()) {
-				sym = proto[i]->r_symbol();
-				sub_scope->put_sym(sym, _NIL(env));
-			} else if (proto[i]->isList()) {
-				_CHECK_ARGS_MIN_COUNT(proto[i]->r_list(), 2);
-				sym = proto[i]->r_list()[0]->r_symbol();
-				sub_scope->put_sym(sym, proto[i]->r_list()[1]);
-			}
-			if (j < args.size()) {
-				_VAR val = eval(env, scope, args[j]);
-				sub_scope->put_sym(sym, val);
-			}
-		}
-		return i - pstart;
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals)
+		: _names(names), _optionals(optionals) {
 	}
-	vector<_VAR> Arguments::extractRest(Env & env, AutoRef<Scope> scope, vector<_VAR> & args, size_t start) {
-		vector<_VAR> rest;
-		for (size_t i = start; i < args.size(); i++) {
-			rest.push_back(eval(env, scope, args[i]));
-		}
-		return rest;
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const Parameter & rest)
+		: _names(names), _optionals(optionals), _rest(rest) {
 	}
-	map<string, _VAR> Arguments::extractKeywords(vector<_VAR> & args) {
-		map<string, _VAR> keywords;
-		for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-			if ((*iter)->isSymbol() && Text::startsWith((*iter)->r_symbol(), ":")) {
-				string name = (*iter)->r_symbol();
-				_VAR val;
-				if (iter + 1 != args.end()) {
-					iter++;
-					val = *iter;
-				}
-				keywords[name] = val;
-			}
-		}
-		return keywords;
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const map<string, Parameter> & keywords)
+		: _names(names), _optionals(optionals), _keywords(keywords) {
+	}
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const Parameter & rest, const map<string, Parameter> & keywords)
+		: _names(names), _optionals(optionals), _rest(rest), _keywords(keywords) {
+	}
+	Parameters::~Parameters() {
 	}
 
-	map<string, _VAR> & Arguments::keywords() {
+	vector<Parameters::Parameter> & Parameters::names() {
+		return _names;
+	}
+	vector<Parameters::Parameter> & Parameters::optionals() {
+		return _optionals;
+	}
+	Parameters::Parameter & Parameters::rest() {
+		return _rest;
+	}
+	map<string, Parameters::Parameter> & Parameters::keywords() {
 		return _keywords;
+	}
+
+	static bool s_is_reserved_keyword(const string & token) {
+		vector<string> lst = tokenize("&optional &rest &key");
+		for (vector<string>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
+			if (*iter == token) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static vector<_VAR> s_read_tokens(Iterator<_VAR> & iter) {
+		vector<_VAR> ret;
+		while (iter.has()) {
+			if ((*iter)->isSymbol() && s_is_reserved_keyword((*iter)->r_symbol())) {
+				break;
+			}
+			ret.push_back(*iter++);
+		}
+		return ret;
+	}
+
+	Parameters Parameters::parse(Env & env, AutoRef<Scope> scope, vector<_VAR> & tokens) {
+		Parameters params;
+		Iterator<_VAR> iter(tokens);
+		
+		vector<_VAR> names = s_read_tokens(iter);
+		for (vector<_VAR>::iterator iter = names.begin(); iter != names.end(); iter++) {
+			params.names().push_back(Parameter(*iter));
+		}
+		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&optional") {
+			vector<_VAR> optionals = s_read_tokens(++iter);
+			if (optionals.size() == 0) {
+				throw LispException("&optional without any element");
+			}
+			for (vector<_VAR>::iterator iter = optionals.begin(); iter != optionals.end(); iter++) {
+				if ((*iter)->isList() && (*iter)->r_list().size() == 2) {
+					params.optionals().push_back(Parameter((*iter)->r_list()[0], (*iter)->r_list()[1]));
+				} else {
+					params.optionals().push_back(Parameter(*iter));
+				}
+			}
+		}
+		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&rest") {
+			vector<_VAR> rest = s_read_tokens(++iter);
+			if (rest.size() == 0) {
+				throw LispException("&rest without var name");
+			}
+			if (rest.size() > 1) {
+				throw LispException("&rest can get only 1 var name");
+			}
+			params.rest() = Parameter(rest[0]);
+		}
+		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&key") {
+			vector<_VAR> keys = s_read_tokens(++iter);
+			if (keys.size() == 0) {
+				throw LispException("&key without any element");
+			}
+			for (vector<_VAR>::iterator iter = keys.begin(); iter != keys.end(); iter++) {
+				if ((*iter)->isList() && (*iter)->r_list().size() == 2) {
+					_VAR v = (*iter)->r_list()[0];
+					_VAR i = (*iter)->r_list()[1];
+					params.keywords()[v->r_symbol()] = Parameter(v, i);
+				} else {
+					params.keywords()[(*iter)->r_symbol()] = Parameter(*iter);
+				}
+			}
+		}
+		return params;
+	}
+	
+	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope, vector<_VAR> & tokens) {
+		Iterator<_VAR> tokens_iter(tokens);
+		_CHECK_ARGS_MIN_COUNT(tokens, _names.size());
+		for (vector<Parameter>::iterator iter = _names.begin(); iter != _names.end(); iter++) {
+			_VAR v = eval(env, global_scope, *tokens_iter++);
+			lex_scope->put_sym(iter->name()->r_symbol(), v);
+		}
+
+		for (vector<Parameter>::iterator iter = _optionals.begin(); iter != _optionals.end(); iter++) {
+			_VAR v = (tokens_iter.has() ? eval(env, global_scope, *tokens_iter++) :
+					  (iter->initial().nil() ? _NIL(env) : eval(env, global_scope, iter->initial())));
+			lex_scope->put_sym(iter->name()->r_symbol(), v);
+		}
+
+		if (_rest.empty() == false) {
+			lex_scope->put_sym(_rest.name()->r_symbol(), _NIL(env));
+		}
+
+		for (map<string, Parameter>::iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
+			_VAR v = (iter->second.initial().nil() ?
+					  _NIL(env) : eval(env, global_scope, iter->second.initial()));
+			lex_scope->put_sym(iter->first, v);
+		}
+		
+		if (tokens_iter.has() == false) {
+			return;
+		}
+		
+		vector<_VAR> rest_ret;
+		vector<_VAR> rest(tokens_iter.iter(), tokens.end());
+		for (vector<_VAR>::iterator iter = rest.begin(); iter != rest.end(); iter++) {
+			if ((*iter)->isKeyword()) {
+				if (_keywords.find((*iter)->r_keyword().substr(1)) == _keywords.end()) {
+					throw LispException("Keyword '" + (*iter)->r_keyword() + "' is not provided");
+				}
+				if (iter + 1 == rest.end()) {
+					throw LispException("Unexpected end of tokens / keyword's value is missing");
+				}
+				string n = (*iter)->r_keyword().substr(1);
+				rest_ret.push_back(*iter);
+				_VAR v = eval(env, global_scope, *(++iter));
+				rest_ret.push_back(v);
+				lex_scope->put_sym(n, v);
+			} else {
+				if (_rest.empty()) {
+					throw LispException("&rest is not provided");
+				}
+				_VAR v = eval(env, global_scope, *iter);
+				rest_ret.push_back(v);
+			}
+		}
+
+		if (_rest.empty() == false) {
+			lex_scope->put_sym(_rest.name()->r_symbol(), _HEAP_ALLOC(env, rest_ret));
+		}
+	}
+	
+	void Parameters::nbind(vector<_VAR> & tokens) {
+		// TODO: implement bind without eval
+	}
+
+	string Parameters::toString() const {
+		string ret;
+		ret.append("names: [");
+		for (vector<Parameter>::const_iterator iter = _names.begin(); iter != _names.end(); iter++) {
+			if (iter != _names.begin()) {
+				ret.append(", ");
+			}
+			ret.append(iter->toString());
+		}
+		ret.append("], optionals: [");
+		for (vector<Parameter>::const_iterator iter = _optionals.begin(); iter != _optionals.end(); iter++) {
+			if (iter != _optionals.begin()) {
+				ret.append(", ");
+			}
+			ret.append(iter->toString());
+		}
+		ret.append("], rest: '");
+		ret.append(_rest.toString());
+		ret.append("', keywods: [");
+		for (map<string, Parameter>::const_iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
+			if (iter != _keywords.begin()) {
+				ret.append(", ");
+			}
+			ret.append(iter->second.toString());
+		}
+		ret.append("]");
+		return ret;
 	}
 
 	// ext
@@ -1331,11 +1464,12 @@ namespace LISP {
 		return read_from_tokens(env, iter, end);
 	}
 
-	bool silentsymboleq(_VAR & var, const string & sym) {
-		if (var->isSymbol()) {
-			return var->r_symbol() == sym;
-		}
-		return false;
+	static bool silentsymboleq(const _VAR & var, const string & sym) {
+		return (var->isSymbol() && var->r_symbol() == sym);
+	}
+
+	static bool silentkeywordeq(const _VAR & var, const string & key) {
+		return (var->isKeyword() && var->r_keyword() == key);
 	}
 
 	static _VAR quoty(Env & env, _VAR var) {
@@ -2584,28 +2718,28 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "open");
 		{
-			map<string, _VAR> keywords = Arguments::extractKeywords(args);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
+			Parameters params = Parameters::parse(
+				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))")->r_list());
+			params.bind(env, scope, scope, args);
+			File file = pathname(env, scope->get_sym("fname"))->r_file();
 			const char * flags = "rb+";
-			if (!file.exists()) {
+			if (file.exists() == false) {
 				// does not exists
-				if (_CONTAINS(keywords, ":if-does-not-exist")) {
-					if (keywords[":if-does-not-exist"]->isNil()) {
-						return _NIL(env);
-					} else if (keywords[":if-does-not-exist"]->r_symbol() == ":create") {
-						flags = "wb+";
-					}
+				if (scope->get_sym("if-does-not-exist")->isNil()) {
+					return _NIL(env);
+				} else if (silentkeywordeq(scope->get_sym("if-does-not-exist"), ":error")) {
+					throw LispException("cannot open");
+				} else if (silentkeywordeq(scope->get_sym("if-does-not-exist"), ":create")) {
+					flags = "wb+";
 				}
 			} else {
 				// exists
-				if (_CONTAINS(keywords, ":if-exists")) {
-					if (keywords[":if-exists"]->isNil()) {
-						return _NIL(env);
-					} else if (keywords[":if-exists"]->r_symbol() == ":append") {
-						flags = "ab+";
-					} else if (keywords[":if-exists"]->r_symbol() == ":overwrite") {
-						flags = "wb+";
-					}
+				if (scope->get_sym("if-exists")->isNil()) {
+					return _NIL(env);
+				} else if (silentkeywordeq(scope->get_sym("if-exists"), ":append")) {
+					flags = "ab+";
+				} else if (silentkeywordeq(scope->get_sym("if-exists"), ":overwrite")) {
+					flags = "wb+";
 				}
 			}
 			return _HEAP_ALLOC(env, FileDescriptor(FileStream::s_open(file.getPath(), flags)));

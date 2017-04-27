@@ -197,10 +197,13 @@ static void test_func() {
 		native(env);
 
 		_VAR proto = parse(env, "(a b c)");
-		Arguments args(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -210,10 +213,13 @@ static void test_func() {
 		env = Env();
 		native(env);
 		proto = parse(env, "(a b c &optional x)");
-		args = Arguments(proto->r_list());
+		params = Parameters::parse(env, env.scope(), proto->r_list());
 		input = parse(env, "(1 2 3)");
+
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
 	
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -225,10 +231,13 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x)");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -240,10 +249,13 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -255,10 +267,13 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -270,15 +285,18 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
 		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 4);
-		ASSERT(env.scope()->get_sym("y")->r_list().size(), ==, 0);
+		ASSERT(env.scope()->get_sym("y")->isNil(), ==, true);
 	}
 
 	{
@@ -286,10 +304,13 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
@@ -305,10 +326,13 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(&optional x &rest y)");
-		Arguments args = Arguments(proto->r_list());
+		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
-		args.mapArguments(env, env.scope(), env.scope(), input->r_list());
+		cout << "proto: " << proto->toString() << endl;
+		cout << "input: " << input->toString() << endl;
+
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 1);
 		ASSERT(env.scope()->get_sym("y")->r_list().size(), ==, 6);
 		ASSERT(*env.scope()->get_sym("y")->r_list()[0]->r_integer(), ==, 2);
@@ -368,6 +392,42 @@ static void test_func_more() {
 	ASSERT(err.empty(), ==, false);
 	ASSERT(compile(env, "(funcall (quote hello))")->toString(), ==, "hello");
 	ASSERT(compile(env, "(funcall (function hello))")->toString(), ==, "hello");
+}
+
+static void test_func_params() {
+	Env env;
+	native(env);
+
+	compile(env, "(defun foo (&optional x y &rest r) (list x y r))");
+	ASSERT(compile(env, "(foo)")->r_list()[0]->isNil(), ==, true);
+	ASSERT(compile(env, "(foo)")->r_list()[1]->isNil(), ==, true);
+	ASSERT(compile(env, "(foo)")->r_list()[2]->isNil(), ==, true);
+
+	ASSERT(*compile(env, "(foo 1 2)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(foo 1 2)")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(compile(env, "(foo 1 2)")->r_list()[2]->isNil(), ==, true);
+
+	ASSERT(*compile(env, "(foo 1 2 3)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(foo 1 2 3)")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(foo 1 2 3)")->r_list()[2]->r_list()[0]->r_integer(), ==, 3);
+
+	compile(env, "(defun fxx (&optional x y &rest r &key (a 0) b c) (list x y r a b c))");
+
+	ASSERT(compile(env, "(fxx)")->r_list().size(), ==, 6);
+	ASSERT(compile(env, "(fxx)")->r_list()[0]->isNil(), ==, true);
+	ASSERT(compile(env, "(fxx)")->r_list()[1]->isNil(), ==, true);
+	ASSERT(compile(env, "(fxx)")->r_list()[2]->isNil(), ==, true);
+	ASSERT(*compile(env, "(fxx)")->r_list()[3]->r_integer(), ==, 0);
+	ASSERT(compile(env, "(fxx)")->r_list()[4]->isNil(), ==, true);
+	ASSERT(compile(env, "(fxx)")->r_list()[5]->isNil(), ==, true);
+
+	ASSERT(compile(env, "(fxx 1 2 :b 2)")->r_list().size(), ==, 6);
+	ASSERT(*compile(env, "(fxx 1 2 :b 2)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(fxx 1 2 :b 2)")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(compile(env, "(fxx 1 2 :b 2)")->r_list()[2]->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(fxx 1 2 :b 2)")->r_list()[3]->r_integer(), ==, 0);
+	ASSERT(*compile(env, "(fxx 1 2 :b 2)")->r_list()[4]->r_integer(), ==, 2);
+	ASSERT(compile(env, "(fxx 1 2 :b 2)")->r_list()[5]->isNil(), ==, true);
 }
 
 static void test_procedure() {
@@ -807,6 +867,8 @@ int main(int argc, char *args[]) {
 		test_func();
 		cout << " *** test_func_more()" << endl;
 		test_func_more();
+		cout << " *** test_func_params()" << endl;
+		test_func_params();
 		cout << " *** test_procedure()" << endl;
 		test_procedure();
 		cout << " *** test_macro()" << endl;
