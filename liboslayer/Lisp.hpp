@@ -216,7 +216,6 @@ namespace LISP {
 		bool operator>= (const Character & ch) const;
 	};
 
-
 	/**
 	 * @brief lisp integer
 	 */
@@ -421,6 +420,8 @@ namespace LISP {
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
 		Func(bool macro, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(const OS::GCRef<Var> & doc, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(bool macro, const OS::GCRef<Var> & doc, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
 		virtual ~Func();
 		bool empty() const;
 		bool & macro();
@@ -536,6 +537,7 @@ namespace LISP {
 		OS::AutoRef<Procedure> & r_procedure();
 		FileDescriptor & r_fileDescriptor();
 		OS::AutoRef<Any> & r_ext();
+		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
@@ -561,38 +563,6 @@ namespace LISP {
 		std::vector<std::string> & getCommands();
 		std::string & operator[] (size_t idx);
 	};
-
-	/**
-	 * @brief Arguments
-	 */
-	// class Arguments {
-	// private:
-	// 	std::vector< OS::GCRef<Var> > proto;
-	// 	std::map< std::string, OS::GCRef<Var> > _keywords;
-	// public:
-	// 	Arguments();
-	// 	Arguments(std::vector<OS::GCRef<Var> > & proto);
-	// 	virtual ~Arguments();
-
-	// 	size_t countPartArguments(std::vector<OS::GCRef<Var> > & arr, size_t start);
-	// 	void mapArguments(Env & env,
-	// 					  OS::AutoRef<Scope> sub_scope,
-	// 					  OS::AutoRef<Scope> scope,
-	// 					  std::vector<OS::GCRef<Var> > & args);
-	// 	size_t mapOptionals(Env & env,
-	// 						OS::AutoRef<Scope> sub_scope,
-	// 						OS::AutoRef<Scope> scope,
-	// 						std::vector<OS::GCRef<Var> > & proto,
-	// 						size_t pstart,
-	// 						std::vector<OS::GCRef<Var> > & args,
-	// 						size_t astart);
-	// 	static std::vector<OS::GCRef<Var> > extractRest(Env & env,
-	// 													OS::AutoRef<Scope> scope,
-	// 													std::vector<OS::GCRef<Var> > & args,
-	// 													size_t start);
-	// 	static std::map<std::string, OS::GCRef<Var> > extractKeywords(std::vector<OS::GCRef<Var> > & args);
-	// 	std::map<std::string, OS::GCRef<Var> > & keywords();
-	// };
 
 	/**
 	 * 
@@ -639,7 +609,7 @@ namespace LISP {
 		std::map<std::string, Parameter> & keywords();
 		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, std::vector< OS::GCRef<Var> > & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens);
-		void nbind(std::vector< OS::GCRef<Var> > & tokens);
+		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens, bool proc_eval);
 		std::string toString() const;
 	};
 

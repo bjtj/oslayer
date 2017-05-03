@@ -1,3 +1,4 @@
+#include <cmath>
 #include "Lisp.hpp"
 #include "os.hpp"
 #include "Text.hpp"
@@ -455,6 +456,12 @@ namespace LISP {
 	Func::Func(bool macro, const _VAR & params, const _VAR & form)
 		: _macro(macro), _scope(new Scope), _params(params), _form(form) {
 	}
+	Func::Func(const _VAR & doc, const _VAR & params, const _VAR & form)
+		: _macro(false), _scope(new Scope), _doc(doc), _params(params), _form(form) {
+	}
+	Func::Func(bool macro, const _VAR & doc, const _VAR & params, const _VAR & form)
+		: _macro(macro), _scope(new Scope), _doc(doc), _params(params), _form(form) {
+	}
 	Func::~Func() {
 	}
 	bool Func::empty() const {
@@ -680,6 +687,22 @@ namespace LISP {
 	AutoRef<Procedure> & Var::r_procedure() {typeCheck(FUNC); return _procedure;}
 	FileDescriptor & Var::r_fileDescriptor() {typeCheck(FILE_DESCRIPTOR); return _fd;}
 	AutoRef<Any> & Var::r_ext() {typeCheck(EXTEND); return _ext;}
+	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
+		if (!isFunction()) {
+			throw LispException("Not Function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
+		}
+		if (!_procedure.nil()) {
+			throw LispException("Not Macro");
+		}
+		if (_func.macro() == false) {
+			throw LispException("Not Macro");
+		}
+		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
+		params.bind(env, scope, _func.scope(), args, false);
+		_func.scope()->parent() = scope;
+		return eval(env, _func.scope(), _func.form());
+
+	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
 			throw LispException("not function / name: '" + name->toString() +
@@ -688,8 +711,16 @@ namespace LISP {
 		if (!_procedure.nil()) {
 			return _procedure->proc(env, scope, name, args);
 		}
+
+		if (_func.macro()) {
+			Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
+			params.bind(env, scope, _func.scope(), args, false);
+			_func.scope()->parent() = scope;
+			return eval(env, scope, eval(env, _func.scope(), _func.form()));
+		}
+		
 		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-		params.bind(env, scope, _func.scope(), args);
+		params.bind(env, scope, _func.scope(), args, true);
 		_func.scope()->parent() = scope;
 		return eval(env, _func.scope(), _func.form());
 	}
@@ -743,7 +774,8 @@ namespace LISP {
 		}
 		case FLOAT:
 		{
-			return Text::rtrim(Text::toString(_fnum.raw()), "0");
+			string x = Text::rtrim(Text::toString(_fnum.raw()), "0");
+			return (x[x.size() - 1] == '.' ? x + "0" : x);
 		}
 		case STRING:
 			return unwrap_text(_str);
@@ -936,18 +968,22 @@ namespace LISP {
 		}
 		return params;
 	}
-	
+
 	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope, vector<_VAR> & tokens) {
+		bind(env, global_scope, lex_scope, tokens, true);
+	}
+	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope, vector<_VAR> & tokens, bool proc_eval) {
+#define _PROC_VAR(E,S,T) (proc_eval ? eval(E,S,(T)) : (T))
 		Iterator<_VAR> tokens_iter(tokens);
 		_CHECK_ARGS_MIN_COUNT(tokens, _names.size());
 		for (vector<Parameter>::iterator iter = _names.begin(); iter != _names.end(); iter++) {
-			_VAR v = eval(env, global_scope, *tokens_iter++);
+			_VAR v = _PROC_VAR(env, global_scope, *tokens_iter++);
 			lex_scope->put_sym(iter->name()->r_symbol(), v);
 		}
 
 		for (vector<Parameter>::iterator iter = _optionals.begin(); iter != _optionals.end(); iter++) {
-			_VAR v = (tokens_iter.has() ? eval(env, global_scope, *tokens_iter++) :
-					  (iter->initial().nil() ? _NIL(env) : eval(env, global_scope, iter->initial())));
+			_VAR v = (tokens_iter.has() ? _PROC_VAR(env, global_scope, *tokens_iter++) :
+					  (iter->initial().nil() ? _NIL(env) : _PROC_VAR(env, global_scope, iter->initial())));
 			lex_scope->put_sym(iter->name()->r_symbol(), v);
 		}
 
@@ -957,7 +993,7 @@ namespace LISP {
 
 		for (map<string, Parameter>::iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
 			_VAR v = (iter->second.initial().nil() ?
-					  _NIL(env) : eval(env, global_scope, iter->second.initial()));
+					  _NIL(env) : _PROC_VAR(env, global_scope, iter->second.initial()));
 			lex_scope->put_sym(iter->first, v);
 		}
 		
@@ -977,14 +1013,14 @@ namespace LISP {
 				}
 				string n = (*iter)->r_keyword().substr(1);
 				rest_ret.push_back(*iter);
-				_VAR v = eval(env, global_scope, *(++iter));
+				_VAR v = _PROC_VAR(env, global_scope, *(++iter));
 				rest_ret.push_back(v);
 				lex_scope->put_sym(n, v);
 			} else {
 				if (_rest.empty()) {
 					throw LispException("&rest is not provided");
 				}
-				_VAR v = eval(env, global_scope, *iter);
+				_VAR v = _PROC_VAR(env, global_scope, *iter);
 				rest_ret.push_back(v);
 			}
 		}
@@ -992,10 +1028,7 @@ namespace LISP {
 		if (_rest.empty() == false) {
 			lex_scope->put_sym(_rest.name()->r_symbol(), _HEAP_ALLOC(env, rest_ret));
 		}
-	}
-	
-	void Parameters::nbind(vector<_VAR> & tokens) {
-		// TODO: implement bind without eval
+#undef _PROC_VAR
 	}
 
 	string Parameters::toString() const {
@@ -1107,6 +1140,7 @@ namespace LISP {
 	static void builtin_socket(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
+	static void builtin_macro(Env & env);
 	
 	static string format(Env & env, AutoRef<Scope> scope, const string & fmt, vector<_VAR> & args) {
 		string ret;
@@ -1176,6 +1210,10 @@ namespace LISP {
 		vector<_VAR> ret;
 		ret.push_back(var);
 		return ret;
+	}
+
+	bool numberp(_VAR v) {
+		return (v->isInteger() || v->isFloat());
 	}
 
 	bool zerop(_VAR v) {
@@ -1277,6 +1315,111 @@ namespace LISP {
 			return _HEAP_ALLOC(env, v1->r_float() / v2->r_float());
 		}
 		return _HEAP_ALLOC(env, v1->r_integer() / v2->r_integer());
+	}
+
+	static _VAR _cos(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, cos((*(v->r_integer()))));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, cos((*(v->r_float()))));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _sin(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, sin(*(v->r_integer())));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, sin(*(v->r_float())));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _tan(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, tan(*(v->r_integer())));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, tan(*(v->r_float())));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _acos(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, acos((*(v->r_integer()))));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, acos((*(v->r_float()))));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _asin(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, asin(*(v->r_integer())));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, asin(*(v->r_float())));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _atan(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, atan(*(v->r_integer())));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, atan(*(v->r_float())));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
+	}
+
+	static _VAR _abs(Env & env, _VAR v) {
+		if (numberp(v) == false) {
+			throw LispException("numberp failed");
+		}
+		switch (v->getType()) {
+		case Var::INTEGER:
+			return _HEAP_ALLOC(env, (int)abs(*(v->r_integer())));
+		case Var::FLOAT:
+			return _HEAP_ALLOC(env, abs(*(v->r_float())));
+		default:
+			break;
+		}
+		throw LispException("unknown exception");
 	}
 
 	static _VAR function(Env & env, AutoRef<Scope> scope, const _VAR & var) {
@@ -1569,9 +1712,15 @@ namespace LISP {
 		builtin_socket(env);
 		builtin_system(env);
 		builtin_date(env);
+		builtin_macro(env);
 	}
 
 	void builtin_essential(Env & env) {
+		DECL_NATIVE_BEGIN(env, "eval");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return eval(env, scope, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "boundp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -1579,11 +1728,6 @@ namespace LISP {
 				return _NIL(env);
 			}
 			return _HEAP_ALLOC(env, true);
-		}DECL_NATIVE_END();
-		DECL_NATIVE_BEGIN(env, "symbolp");
-		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
-			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isSymbol());
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "lambda");
 		{
@@ -1597,7 +1741,18 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			args[1]->typeCheck(Var::LIST);
-			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(args[1], args[2])));
+			_VAR lambda_list = args[1];
+			_VAR doc;
+			_VAR form;
+			if (args[2]->getType() == Var::STRING) {
+				_CHECK_ARGS_MIN_COUNT(args, 4);
+				doc = args[2];
+				form = args[3];
+			} else {
+				doc = _NIL(env);
+				form = args[2];
+			}
+			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(doc, lambda_list, form)));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defparameter");
 		{
@@ -1616,17 +1771,21 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setf");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
-			_VAR var = eval(env, scope, args[0]);
-			_VAR other = eval(env, scope, args[1]);
-			if (var->isList() && other->isList()) {
-				for (size_t i = 0; i < var->r_list().size() && i < other->r_list().size(); i++) {
-					(*var->r_list()[i]) = (*other->r_list()[i]);
+			_CHECK_ARGS_EVEN_COUNT(args);
+			_VAR ret = _NIL(env);
+			_FORI_STEP(args, i, 0, 2) {
+				_VAR a = eval(env, scope, args[i + 0]);
+				_VAR b = eval(env, scope, args[i + 1]);
+				if (a->isList() && b->isList()) {
+					for (size_t j = 0; j < a->r_list().size() && j < b->r_list().size(); j++) {
+						(*a->r_list()[j]) = (*b->r_list()[j]);
+					}
+				} else {
+					*a = *b;
 				}
-			} else {
-				*var = *other;
+				ret = a;
 			}
-			return var;
+			return ret;
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setq");
 		{
@@ -1830,7 +1989,7 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "nth");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			size_t idx = (size_t)(*(eval(env, scope, args[0])->r_integer()));
 			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
 			if (idx < lst.size()) {
@@ -1923,18 +2082,29 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defmacro");
 		{
-			// TODO: implement
-			// refer [http://clhs.lisp.se/Body/m_defmac.htm]
-			// throw LispException("not implemeneted");
+			// @refer http://clhs.lisp.se/Body/m_defmac.htm
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			args[1]->typeCheck(Var::LIST);
-			return scope->rput_func(args[0]->r_symbol(),
-									_HEAP_ALLOC(env, Func(true, args[1], args[2])));
+			_VAR lambda_list = args[1];
+			_VAR doc;
+			_VAR form;
+			if (args[2]->getType() == Var::STRING) {
+				_CHECK_ARGS_MIN_COUNT(args, 4);
+				doc = args[2];
+				form = args[3];
+			} else {
+				doc = _NIL(env);
+				form = args[2];
+			}
+			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(true, doc, lambda_list, form)));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "macroexpand");
 		{
-			// TODO: implement
-			throw LispException("not implemeneted");
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			vector<_VAR> vars = eval(env, scope, args[0])->r_list();
+			_CHECK_ARGS_MIN_COUNT(vars, 1);
+			vector<_VAR> xargs(vars.begin() + 1, vars.end());
+			return function(env, scope, vars[0])->expand(env, scope, vars[0], xargs);
 		}DECL_NATIVE_END();
 	}
 
@@ -2530,7 +2700,42 @@ namespace LISP {
 		}DECL_NATIVE_END();
 	}
 	void builtin_mathematic(Env & env) {
-		// TODO: implement
+		env.scope()->put_sym("pi", _HEAP_ALLOC(env, 3.141592653589793));
+		DECL_NATIVE_BEGIN(env, "cos");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _cos(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "sin");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _sin(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "tan");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _tan(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "acos");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _acos(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "asin");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _asin(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "atan");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _atan(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "abs");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			return _abs(env, eval(env, scope, args[0]));
+		}DECL_NATIVE_END();
 	}
 	void builtin_io(Env & env) {
 
@@ -2720,7 +2925,7 @@ namespace LISP {
 		{
 			Parameters params = Parameters::parse(
 				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))")->r_list());
-			params.bind(env, scope, scope, args);
+			params.bind(env, scope, scope, args, true);
 			File file = pathname(env, scope->get_sym("fname"))->r_file();
 			const char * flags = "rb+";
 			if (file.exists() == false) {
@@ -2980,6 +3185,13 @@ namespace LISP {
 			}
 			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc1123(date)));
 		}DECL_NATIVE_END();
+	}
+
+	void builtin_macro(Env & env) {
+		compile(env, "(defmacro incf (x &optional (i 1)) `(setf ,x (+ ,x ,i)))");
+		compile(env, "(defmacro decf (x &optional (i 1)) `(setf ,x (- ,x ,i)))");
+		compile(env, "(defmacro 1+ (x) `(+ ,x 1))");
+		compile(env, "(defmacro 1- (x) `(- ,x 1))");
 	}
 
 	/**
