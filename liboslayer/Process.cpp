@@ -193,11 +193,13 @@ namespace OS {
 		siStartInfo.cb = sizeof(STARTUPINFO); 
 		siStartInfo.hStdError = err_write;
 		siStartInfo.hStdOutput = out_write;
-		siStartInfo.hStdInput = in_read;
+		siStartInfo.hStdInput = in_read;		
 		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+		string _cmd = "cmd /C " + cmd;
 		
 		bSuccess = CreateProcess(NULL, 
-			(LPSTR)cmd.c_str(),
+			(LPSTR)_cmd.c_str(),
 			NULL,          // process security attributes 
 			NULL,          // primary thread security attributes 
 			TRUE,          // handles are inherited 
@@ -210,6 +212,10 @@ namespace OS {
 		if (!bSuccess) {
 			throw Exception("CreateProcess() failed");
 		}
+
+		CloseHandle(err_write);
+		CloseHandle(out_write);
+		CloseHandle(in_read);
 	}
 	HANDLE Process::in() {
 		return in_write;

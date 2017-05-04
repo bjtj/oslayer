@@ -24,9 +24,9 @@ namespace UTIL {
 		int const_initial() const;
 		int & limit();
 		int const_limit() const;
-		bool testInRange(size_t i) const;
-		bool testInLimit(size_t i) const;
-		bool testUnderLimit(size_t i) const;
+		bool testInRange(int i) const;
+		bool testInLimit(int i) const;
+		bool testUnderLimit(int i) const;
 		std::string toString() const;
 	};
 

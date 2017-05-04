@@ -42,13 +42,13 @@ namespace UTIL {
 	int Quantity::const_limit() const {
 		return _limit;
 	}
-	bool Quantity::testInRange(size_t i) const {
+	bool Quantity::testInRange(int i) const {
 		return (i >= const_initial() && testInLimit(i));
 	}
-	bool Quantity::testInLimit(size_t i) const {
+	bool Quantity::testInLimit(int i) const {
 		return (const_limit() < 0 || i <= const_limit());
 	}
-	bool Quantity::testUnderLimit(size_t i) const {
+	bool Quantity::testUnderLimit(int i) const {
 		return (const_limit() < 0 || i < const_limit());
 	}
 	string Quantity::toString() const {
@@ -217,8 +217,8 @@ namespace UTIL {
 				}
 			}
 		} else if (!_charset.empty()) {
-			size_t i = 0;
-			for (; i < text.size() && _quantity.testUnderLimit(i); i++) {
+			int i = 0;
+			for (; i < (int)text.size() && _quantity.testUnderLimit(i); i++) {
 				LOGD(_debug, " @@ CHARSET -- '" << text[i] << "' IN '" << _charset << "'");
 				if (ch_in(text[i], _charset) == (reverse() ? true:false)) {
 					LOGD(_debug, "  >> NOT MEMBER");
@@ -233,13 +233,13 @@ namespace UTIL {
 				}
 			}
 		} else if (_any) {
-			size_t i = 0;
+			int i = 0;
 			AutoRef<Matcher> next;
 			if (getParent()) {
 				next = getParent()->nextMatcher(this);
 			}
 			LOGD(_debug, " @@ [ANY] NEXT MATCHER -- " << (next.nil() == true ? "(nil)" : next->toString()));
-			for (; i < text.size() && _quantity.testUnderLimit(i); i++) {
+			for (; i < (int)text.size() && _quantity.testUnderLimit(i); i++) {
 				LOGD(_debug, " @@ [ANY] TARGET -- " << text.substr(i));
 				if (next.nil() == false && next->match(text.substr(i)).matchType() != MatchType::UNMATCHED) {
 					LOGD(_debug, "  >> break - NEXT MATCHED");

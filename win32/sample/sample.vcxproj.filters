@@ -36,5 +36,8 @@
     <ClCompile Include="..\..\tests\test-event.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\tests\test-regex.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

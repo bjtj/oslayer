@@ -13,11 +13,13 @@
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{62F62888-B617-D1C5-DD02-0CC27E78A455}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -83,6 +85,7 @@
     <ClCompile Include="..\liboslayer\Library.cpp" />
     <ClCompile Include="..\liboslayer\Lisp.cpp" />
     <ClCompile Include="..\liboslayer\Logger.cpp" />
+    <ClCompile Include="..\liboslayer\Mutex.cpp" />
     <ClCompile Include="..\liboslayer\Network.cpp" />
     <ClCompile Include="..\liboslayer\Observer.cpp" />
     <ClCompile Include="..\liboslayer\os.cpp" />
@@ -93,6 +96,7 @@
     <ClCompile Include="..\liboslayer\Regex.cpp" />
     <ClCompile Include="..\liboslayer\SecureSocket.cpp" />
     <ClCompile Include="..\liboslayer\Selector.cpp" />
+    <ClCompile Include="..\liboslayer\Semaphore.cpp" />
     <ClCompile Include="..\liboslayer\Socket.cpp" />
     <ClCompile Include="..\liboslayer\SocketApi.cpp" />
     <ClCompile Include="..\liboslayer\StringElements.cpp" />
@@ -127,6 +131,7 @@
     <ClInclude Include="..\liboslayer\Lisp.hpp" />
     <ClInclude Include="..\liboslayer\Logger.hpp" />
     <ClInclude Include="..\liboslayer\MessageQueue.hpp" />
+    <ClInclude Include="..\liboslayer\Mutex.hpp" />
     <ClInclude Include="..\liboslayer\Network.hpp" />
     <ClInclude Include="..\liboslayer\Object.hpp" />
     <ClInclude Include="..\liboslayer\Observer.hpp" />
@@ -142,6 +147,7 @@
     <ClInclude Include="..\liboslayer\Register.hpp" />
     <ClInclude Include="..\liboslayer\SecureSocket.hpp" />
     <ClInclude Include="..\liboslayer\Selector.hpp" />
+    <ClInclude Include="..\liboslayer\Semaphore.hpp" />
     <ClInclude Include="..\liboslayer\Socket.hpp" />
     <ClInclude Include="..\liboslayer\SocketApi.hpp" />
     <ClInclude Include="..\liboslayer\StringElements.hpp" />

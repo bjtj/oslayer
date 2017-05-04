@@ -48,3 +48,4 @@ Makefile.in
 /world
 
 config.h.in~
+win32/oslayer.VC.db
