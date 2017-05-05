@@ -43,7 +43,7 @@ static void test_process() {
 	}
 	cout << "ERR > " << endl;
 	FileStream err(p.err());
-	while (p.exited() == false && !err.eof()) {
+	while (!err.eof()) {
 		cout << err.readline() << endl;
 	}
 
