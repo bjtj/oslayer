@@ -14,7 +14,6 @@
 #define _CHECK_ARGS_MIN_COUNT(L,C) validateArgumentCountMin(L,C)
 #define _CHECK_ARGS_EXACT_COUNT(L,C) validateArgumentCountExact(L,C)
 #define _CHECK_ARGS_MAX_COUNT(L,C) validateArgumentCountMax(L,C)
-#define _CHECK_ARGS_ODD_COUNT(L) validateArgumentCountOdd(L)
 #define _CHECK_ARGS_EVEN_COUNT(L) validateArgumentCountEven(L)
 #define _EQ_NIL_OR_SYMBOL(A,B) (((A)->isNil() && (B)->isNil()) ||		\
 								(((A)->isNil() == false && (B)->isNil() == false) && \
@@ -822,13 +821,6 @@ namespace LISP {
 		if (args.size() > expect) {
 			throw LispException("Wrong argument count: " + Text::toString(args.size())
 								+ " / expected maximum: " + Text::toString(expect));
-		}
-	}
-
-	static void validateArgumentCountOdd(vector<_VAR> & args) {
-		if (args.size() % 2 == 0) {
-			throw LispException("Wrong argument count: " + Text::toString(args.size())
-								+ " / expected : odd");
 		}
 	}
 

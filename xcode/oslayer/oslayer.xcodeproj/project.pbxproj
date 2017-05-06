@@ -9,6 +9,12 @@
 /* Begin PBXBuildFile section */
 		6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
 		6C9FC74B1C116C7200B292B8 /* DatagramSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */; };
+		E815B9E71EBD4F0E001E8E22 /* AutoLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */; };
+		E815B9E81EBD4F0E001E8E22 /* AutoLock.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */; };
+		E815B9E91EBD4F0E001E8E22 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E31EBD4F0E001E8E22 /* Mutex.cpp */; };
+		E815B9EA1EBD4F0E001E8E22 /* Mutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E31EBD4F0E001E8E22 /* Mutex.cpp */; };
+		E815B9EB1EBD4F0E001E8E22 /* Semaphore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E51EBD4F0E001E8E22 /* Semaphore.cpp */; };
+		E815B9EC1EBD4F0E001E8E22 /* Semaphore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E815B9E51EBD4F0E001E8E22 /* Semaphore.cpp */; };
 		E81F60A51E8DCF260082D294 /* ByteArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81F60A21E8DCF260082D294 /* ByteArray.cpp */; };
 		E81F60A61E8DCF260082D294 /* ByteArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81F60A21E8DCF260082D294 /* ByteArray.cpp */; };
 		E81FE39E1CC78532003D3F15 /* CountDownLatch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E81FE3971CC78532003D3F15 /* CountDownLatch.cpp */; };
@@ -111,6 +117,12 @@
 		6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlParser.hpp; path = ../../liboslayer/XmlParser.hpp; sourceTree = "<group>"; };
 		6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatagramSocket.cpp; path = ../../liboslayer/DatagramSocket.cpp; sourceTree = "<group>"; };
 		6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatagramSocket.hpp; path = ../../liboslayer/DatagramSocket.hpp; sourceTree = "<group>"; };
+		E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoLock.cpp; path = ../../liboslayer/AutoLock.cpp; sourceTree = "<group>"; };
+		E815B9E21EBD4F0E001E8E22 /* AutoLock.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AutoLock.hpp; path = ../../liboslayer/AutoLock.hpp; sourceTree = "<group>"; };
+		E815B9E31EBD4F0E001E8E22 /* Mutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mutex.cpp; path = ../../liboslayer/Mutex.cpp; sourceTree = "<group>"; };
+		E815B9E41EBD4F0E001E8E22 /* Mutex.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Mutex.hpp; path = ../../liboslayer/Mutex.hpp; sourceTree = "<group>"; };
+		E815B9E51EBD4F0E001E8E22 /* Semaphore.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Semaphore.cpp; path = ../../liboslayer/Semaphore.cpp; sourceTree = "<group>"; };
+		E815B9E61EBD4F0E001E8E22 /* Semaphore.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Semaphore.hpp; path = ../../liboslayer/Semaphore.hpp; sourceTree = "<group>"; };
 		E81F60A21E8DCF260082D294 /* ByteArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ByteArray.cpp; path = ../../liboslayer/ByteArray.cpp; sourceTree = "<group>"; };
 		E81F60A31E8DCF260082D294 /* ByteArray.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ByteArray.hpp; path = ../../liboslayer/ByteArray.hpp; sourceTree = "<group>"; };
 		E81F60A41E8DCF260082D294 /* Ref.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Ref.hpp; path = ../../liboslayer/Ref.hpp; sourceTree = "<group>"; };
@@ -247,6 +259,12 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */,
+				E815B9E21EBD4F0E001E8E22 /* AutoLock.hpp */,
+				E815B9E31EBD4F0E001E8E22 /* Mutex.cpp */,
+				E815B9E41EBD4F0E001E8E22 /* Mutex.hpp */,
+				E815B9E51EBD4F0E001E8E22 /* Semaphore.cpp */,
+				E815B9E61EBD4F0E001E8E22 /* Semaphore.hpp */,
 				E8C1D4271E9EECD900AA8905 /* Endian.cpp */,
 				E8C1D4281E9EECD900AA8905 /* Endian.hpp */,
 				E8C1D4291E9EECD900AA8905 /* Event.cpp */,
@@ -418,9 +436,12 @@
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E8C1D42D1E9EECD900AA8905 /* Endian.cpp in Sources */,
 				E8DCAB6E1E4202E7005A1372 /* Network.cpp in Sources */,
+				E815B9EB1EBD4F0E001E8E22 /* Semaphore.cpp in Sources */,
 				E8AC4F631C89C0B600504E50 /* Base64.cpp in Sources */,
 				E89501421C146379009434B1 /* Socket.cpp in Sources */,
+				E815B9E71EBD4F0E001E8E22 /* AutoLock.cpp in Sources */,
 				E86940621D2A66B900192CBB /* DatabaseConnection.cpp in Sources */,
+				E815B9E91EBD4F0E001E8E22 /* Mutex.cpp in Sources */,
 				E824CD7C1DB6CEFE00EA2518 /* File.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E8C1D4311E9EECD900AA8905 /* Thread.cpp in Sources */,
@@ -461,9 +482,12 @@
 				E824CD801DB6CF5600EA2518 /* File.cpp in Sources */,
 				E824CD811DB6CF5600EA2518 /* Library.cpp in Sources */,
 				E8C1D42E1E9EECD900AA8905 /* Endian.cpp in Sources */,
+				E815B9EC1EBD4F0E001E8E22 /* Semaphore.cpp in Sources */,
 				E86940641D2A66ED00192CBB /* DatabaseConnection.cpp in Sources */,
 				E86940651D2A66ED00192CBB /* Uuid.cpp in Sources */,
+				E815B9E81EBD4F0E001E8E22 /* AutoLock.cpp in Sources */,
 				E86940661D2A66ED00192CBB /* Regex.cpp in Sources */,
+				E815B9EA1EBD4F0E001E8E22 /* Mutex.cpp in Sources */,
 				E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */,
 				E86940441D19F9F400192CBB /* Random.cpp in Sources */,
 				E86940451D19F9F400192CBB /* StringElements.cpp in Sources */,
