@@ -3,6 +3,7 @@ lib_LTLIBRARIES = liboslayer.la
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS= \
 	ArgumentParser.hpp \
+	AutoLock.hpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
 	Base64.hpp \
@@ -59,6 +60,8 @@ liboslayerinc_HEADERS= \
 liboslayer_la_SOURCES= \
 	ArgumentParser.cpp \
 	ArgumentParser.hpp \
+	AutoLock.cpp \
+	AutoLock.hpp \
 	AutoRef.cpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \

@@ -88,16 +88,4 @@ namespace OS {
 	void Semaphore::post() const {
         s_sem_post(&handle);
 	}
-
-
-	/**
-     * @breif auto lock
-     */
-    
-    AutoLock::AutoLock(Semaphore & sem) : sem(sem) {
-        sem.wait();
-    }
-    AutoLock::~AutoLock() {
-        sem.post();
-    }
 }

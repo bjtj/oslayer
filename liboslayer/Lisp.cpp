@@ -5,6 +5,7 @@
 #include "Iterator.hpp"
 #include "FileStream.hpp"
 #include "Socket.hpp"
+#include "AutoLock.hpp"
 
 #define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,V) E.alloc(new Var(V))
@@ -425,11 +426,11 @@ namespace LISP {
 		return _heap;
 	}
 	_VAR Env::alloc(Var * var) {
-		AutoLock lock(heap().sem());
+		AutoLock lock(Ref<Semaphore>(&heap().sem()));
 		return heap().alloc(var);
 	}
 	void Env::gc() {
-		AutoLock lock(_heap.sem());
+		AutoLock lock(Ref<Semaphore>(&_heap.sem()));
 		size_t size = _heap.size();
 		unsigned long elapsed = _heap.gc();
 		if (_debug) {
@@ -439,7 +440,7 @@ namespace LISP {
 	void Env::clear() {
 		_scope->clear();
 		gc();
-		AutoLock lock(_heap.sem());
+		AutoLock lock(Ref<Semaphore>(&_heap.sem()));
 		_heap.clear();
 	}
 

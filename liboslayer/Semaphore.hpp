@@ -19,17 +19,6 @@ namespace OS {
 		void wait() const;
 		void post() const;
 	};
-
-	/**
-     * @brief auto lock
-     */
-    class AutoLock {
-    private:
-        Semaphore & sem;
-    public:
-        AutoLock(Semaphore & sem);
-        virtual ~AutoLock();
-    };
 }
 
 #endif

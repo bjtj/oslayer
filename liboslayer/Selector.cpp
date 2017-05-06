@@ -1,4 +1,5 @@
 #include "Selector.hpp"
+#include "AutoLock.hpp"
 
 namespace OS {
 
@@ -178,45 +179,45 @@ namespace OS {
 	SharedSelector::~SharedSelector() {
 	}
 	void SharedSelector::set(int fd, unsigned char flags) {
-		AutoLock lock(semSet);
+		AutoLock lock(Ref<Semaphore>(&semSet));
 		Selector::set(fd, flags);
 	}
 	void SharedSelector::unset(int fd, unsigned char flags) {
-		AutoLock lock(semSet);
+		AutoLock lock(Ref<Semaphore>(&semSet));
 		Selector::unset(fd, flags);
 	}
 	int SharedSelector::select(unsigned long timeout_milli) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::select(timeout_milli);
 	}
 	
 	std::vector<Selection> & SharedSelector::getSelections() {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::getSelections();
 	}
 
 	bool SharedSelector::isReadable(int fd) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isReadable(fd);
 	}
 	bool SharedSelector::isReadable(Selectable & selectable) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isReadable(selectable);
 	}
 	bool SharedSelector::isWritable(int fd) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isWritable(fd);
 	}
 	bool SharedSelector::isWritable(Selectable & selectable) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isWritable(selectable);
 	}
 	bool SharedSelector::isExcept(int fd) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isExcept(fd);
 	}
 	bool SharedSelector::isExcept(Selectable & selectable) {
-		AutoLock lock(semCur);
+		AutoLock lock(Ref<Semaphore>(&semCur));
 		return Selector::isExcept(selectable);
 	}
 }
