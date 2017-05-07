@@ -1131,6 +1131,7 @@ namespace LISP {
 	static void builtin_pathname(Env & env);
 	static void builtin_file(Env & env);
 	static void builtin_socket(Env & env);
+	static void builtin_concurrent(Env & env);
 	static void builtin_system(Env & env);
 	static void builtin_date(Env & env);
 	static void builtin_macro(Env & env);
@@ -1703,6 +1704,7 @@ namespace LISP {
 		builtin_pathname(env);
 		builtin_file(env);
 		builtin_socket(env);
+		builtin_concurrent(env);
 		builtin_system(env);
 		builtin_date(env);
 		builtin_macro(env);
@@ -2961,8 +2963,6 @@ namespace LISP {
 		}DECL_NATIVE_END();
 	}
 	void builtin_socket(Env & env) {
-		// TODO: implement
-
 		DECL_NATIVE_BEGIN(env, "server-open");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
@@ -3042,6 +3042,9 @@ namespace LISP {
 				throw LispException("socket send exception - " + e.message());
 			}
 		}DECL_NATIVE_END();
+	}
+	void builtin_concurrent(Env & env) {
+		// todo: fill it
 	}
 	void builtin_system(Env & env) {
 		DECL_NATIVE_BEGIN(env, "system-type");
