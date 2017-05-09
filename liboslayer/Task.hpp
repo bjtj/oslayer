@@ -8,10 +8,24 @@ namespace UTIL {
 	 */
 	class Task {
 	private:
+		bool _canceled;
 	public:
-		Task() {}
+		Task() : _canceled(false) {}
 		virtual ~Task() {}
-		virtual void doTask() = 0;
+		void reset() {
+			_canceled = false;
+		}
+		virtual void onTask() = 0;
+		virtual void run() {
+			reset();
+			onTask();
+		}
+		void cancel() {
+			_canceled = true;
+		}
+		bool isCanceled() const {
+			return _canceled;
+		}
 	};
 }
 

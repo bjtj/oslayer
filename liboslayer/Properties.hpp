@@ -36,10 +36,11 @@ namespace UTIL {
 	public:
 
 		void clear();
+		bool contains(const std::string & name) const;
 		bool hasProperty(const std::string & name) const;
-		std::string getProperty(const std::string & name);
-		std::string getProperty(const std::string & name, const std::string & def);
-		int getIntegerProperty(const std::string & name, int def = 0);
+		std::string getProperty(const std::string & name) const;
+		std::string getProperty(const std::string & name, const std::string & def) const;
+		int getIntegerProperty(const std::string & name, int def = 0) const;
 		void setProperty(const std::string & name, const std::string & value);
 		void setProperty(const std::string & name, int value);
 		std::vector<std::string> getPropertyNames();

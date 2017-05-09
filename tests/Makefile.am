@@ -17,6 +17,8 @@ check_PROGRAMS = \
 	test-logger \
 	test-iterator \
 	test-library \
+	test-thread-pool \
+	test-task-thread-pool \
 	test-count-down-latch \
 	test-test-suite \
 	test-heap \
@@ -28,8 +30,6 @@ check_PROGRAMS = \
 	test-timer \
 	test-exception \
 	test-message-queue \
-	test-thread-pool \
-	test-task-thread-pool \
 	test-xml \
 	test-string-elements \
 	test-property-map \

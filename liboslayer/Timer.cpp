@@ -66,7 +66,7 @@ namespace UTIL {
 		}
 		
 		if (schedule.testEvent(lastLapseTick, tick_milli())) {
-			task->doTask();
+			task->run();
 			lastLapseTick = schedule.fixedLapseTick(startTick, ++runCount);
 		}
 	}

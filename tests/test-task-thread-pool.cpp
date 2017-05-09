@@ -5,6 +5,9 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
+/**
+ * 
+ */
 class MyTask : public Task {
 private:
 	static Semaphore sem;
@@ -13,9 +16,9 @@ public:
 public:
     MyTask() {}
     virtual ~MyTask() {}
-	virtual void doTask() {
+	virtual void onTask() {
 		sem.wait();
-		cout << "task :: " << count++ << endl;
+		cout << " @@ task :: " << count++ << endl;
 		sem.post();
 	}
 };
@@ -23,6 +26,9 @@ public:
 Semaphore MyTask::sem(1);
 int MyTask::count = 0;
 
+/**
+ * 
+ */
 static void test_task_thread_pool() {
 	TaskThreadPool pool(10);
 
@@ -39,13 +45,16 @@ static void test_task_thread_pool() {
 	ASSERT(MyTask::count, ==, 100);
 }
 
+/**
+ * 
+ */
 class InfiniteTask : public Task {
 private:
 	static bool done;
 public:
 	InfiniteTask() {}
 	virtual ~InfiniteTask() {}
-	virtual void doTask() {
+	virtual void onTask() {
 		while (!done) {
 			idle(10);
 		}
@@ -58,9 +67,11 @@ public:
 
 bool InfiniteTask::done = false;
 
+/**
+ * 
+ */
 static void test_full() {
 
-	string err;
 	unsigned long tick, dur;
 	unsigned long timeout;
 	
@@ -76,34 +87,33 @@ static void test_full() {
 	tick = tick_milli();
 	try {
 		pool.setTask(AutoRef<Task>(new InfiniteTask));
+		throw "unexpected progress";
 	} catch (Exception e) {
-		err = e.toString();
+		cerr << "expected excpetion - " << e.what() << endl;
 	}
 	dur = tick_milli() - tick;
-	ASSERT(err.empty(), ==, false);
 	ASSERT(dur, <, 100);
 
-	err = "";
 	tick = tick_milli();
 	timeout = 1000;
 	try {
 		pool.setTaskWaitIfFullWithTimeout(AutoRef<Task>(new InfiniteTask), timeout);
+		throw "unexpected progress";
 	} catch (Exception e) {
-		err = e.toString();
+		cerr << "expected exception - " << e.what() << endl;
 	}
 	dur = tick_milli() - tick;
-	ASSERT(err.empty(), ==, false);
 	ASSERT(dur, >=, timeout);
 
 	InfiniteTask::setDone();
 
+	cout << "++ [stop]" << endl;
 	pool.stop();
+	cout << "-- [stop]" << endl;
 }
 
 int main(int argc, char *args[]) {
-
 	test_task_thread_pool();
 	test_full();
-    
     return 0;
 }

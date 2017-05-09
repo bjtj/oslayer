@@ -1,42 +1,31 @@
-#ifndef __POOL_HPP__
-#define __POOL_HPP__
+#ifndef __THREAD_POOL_HPP__
+#define __THREAD_POOL_HPP__
 
 #include <deque>
 #include "os.hpp"
+#include "AutoRef.hpp"
+#include "Task.hpp"
 #include "Event.hpp"
 #include "Thread.hpp"
 #include "Observer.hpp"
 #include "Semaphore.hpp"
+#include "Pool.hpp"
 
 namespace UTIL {
-
-	class PoolThread;
-
-	/**
-	 * @brief ThreadMaker
-	 */
-	template<typename T>
-	class InstanceCreator {
-	private:
-	public:
-		InstanceCreator() {}
-		virtual ~InstanceCreator() {}
-
-		virtual T createInstance() = 0;
-		virtual void releaseInstance(T inst) = 0;
-	};
 
 	/**
 	 * @brief PoolThread
 	 */
 	class StatefulThread : public OS::Thread, public Observable {
 	private:
-		OS::Event _evt;
+		OS::AutoRef<OS::Event> _evt;
 		bool _triggered;
 		bool _busy;
+		OS::AutoRef<Task> _task;
 	public:
 		StatefulThread();
 		virtual ~StatefulThread();
+		OS::AutoRef<Task> & task();
 		void preTask();
 		void postTask();
 		bool inBusy();
@@ -53,16 +42,10 @@ namespace UTIL {
 	 */
 	class ThreadPool : public Observer, public Observable {
 	private:
-		OS::Semaphore freeQueueLock;
-		std::deque<StatefulThread*> freeQueue;
-		OS::Semaphore workingQueueLock;
-		std::deque<StatefulThread*> workingQueue;
-		size_t poolSize;
-		InstanceCreator<StatefulThread*> & creator;
-		bool running;
-
+		Pool<StatefulThread> _pool;
+		bool _running;
 	public:
-		ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator);
+		ThreadPool(size_t poolSize);
 		virtual ~ThreadPool();
         void init();
 		void start();

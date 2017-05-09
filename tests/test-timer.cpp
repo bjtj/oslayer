@@ -14,7 +14,7 @@ private:
 public:
     MyTask() {}
     virtual ~MyTask() {}
-	virtual void doTask() {
+	virtual void onTask() {
 		cout << "[" << pin.elapsed() << "] do it!" << endl;
 		ASSERT(pin.elapsed(), >=, 1000);
 	}

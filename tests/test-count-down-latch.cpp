@@ -14,11 +14,11 @@ private:
 	CountDownLatch & startSignal;
 	CountDownLatch & doneSignal;
 public:
-	WorkerTask(CountDownLatch & startSignal, CountDownLatch & doneSignal) : startSignal(startSignal), doneSignal(doneSignal) {}
+	WorkerTask(CountDownLatch & startSignal, CountDownLatch & doneSignal)
+		: startSignal(startSignal), doneSignal(doneSignal) {}
 	virtual ~WorkerTask() {}
-	virtual void doTask() {
+	virtual void onTask() {
 		startSignal.await();
-		cout << "+ do task" << endl;
 		s_count++;
 		doneSignal.countDown();
 	}

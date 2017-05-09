@@ -11,10 +11,14 @@ namespace UTIL {
 	 */
 
 	StatefulThread::StatefulThread()
-		: _triggered(false), _busy(false) {
+		: _evt(new Event), _triggered(false), _busy(false) {
 	}
 	
 	StatefulThread::~StatefulThread() {
+	}
+
+	AutoRef<Task> & StatefulThread::task() {
+		return _task;
 	}
 	
 	void StatefulThread::preTask() {
@@ -37,13 +41,13 @@ namespace UTIL {
 	void StatefulThread::loop() {
 		while (!interrupted()) {
 			bool _cont = false;
-			_evt.lock();
+			_evt->lock();
 			if (!_triggered) {
-				_evt.wait();
+				_evt->wait();
 				_cont = !_triggered;
 			}
 			_triggered = false;
-			_evt.unlock();
+			_evt->unlock();
 			if (_cont) {
 				continue;
 			}
@@ -55,11 +59,17 @@ namespace UTIL {
 	}
 	
 	void StatefulThread::interrupt() {
+		if (_task.nil() == false) {
+			_task->cancel();
+		}
 		Thread::interrupt();
-		_evt.notify();
+		_evt->notify();
 	}
 	
 	void StatefulThread::onTask() {
+		if (_task.nil() == false) {
+			_task->run();
+		}
 	}
 	
 	void StatefulThread::run() {
@@ -68,16 +78,16 @@ namespace UTIL {
 
 	void StatefulThread::wakeup() {
 		_triggered = true;
-		_evt.lock();
-		_evt.notify();
-		_evt.unlock();
+		_evt->lock();
+		_evt->notify();
+		_evt->unlock();
 	}
 
 	/**
 	 *
 	 */
-	ThreadPool::ThreadPool(size_t poolSize, InstanceCreator<StatefulThread*> & creator)
-		: freeQueueLock(1), workingQueueLock(1), poolSize(poolSize), creator(creator), running(false) {
+	ThreadPool::ThreadPool(size_t poolSize)
+		: _pool(poolSize), _running(false) {
 	}
 	
 	ThreadPool::~ThreadPool() {
@@ -85,124 +95,89 @@ namespace UTIL {
 	}
     
     void ThreadPool::init() {
-		workingQueue.clear();
-		freeQueue.clear();
-        for (size_t i = 0; i < poolSize; i++) {
-			StatefulThread * t = creator.createInstance();
-			t->addObserver(this);
-			freeQueue.push_back(t);
-        }
+		deque<StatefulThread*> & qu = _pool.avail_queue();
+		for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
+			(*iter)->addObserver(this);
+		}
     }
 
 	void ThreadPool::start() {
-		if (!running) {
-            init();
-			for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
-				StatefulThread * thread = *iter;
-				thread->start();
+		if (_running == false) {
+			init();
+			_pool.lock_avail();
+			deque<StatefulThread*> & qu = _pool.avail_queue();
+			for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
+				(*iter)->start();
 			}
-			running = true;
+			_pool.unlock_avail();
+			_running = true;
 		}
 	}
 	
 	void ThreadPool::stop() {
-		if (running) {
-			vector<StatefulThread*> lst;
-			workingQueueLock.wait();
-			for (deque<StatefulThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end(); iter++) {
-				StatefulThread * thread = *iter;
+		if (_running == true) {
+			StatefulThread * thread;
+			while ((thread = _pool.dequeue())) {
 				thread->interrupt();
-				lst.push_back(thread);
+				_pool.release(thread);
 			}
-			workingQueueLock.post();
-			for (size_t i = 0; i < lst.size(); i++) {
-				lst[i]->waitTillEnd();
+			deque<StatefulThread*> & qu = _pool.avail_queue();
+			for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
+				(*iter)->interrupt();
+				(*iter)->wait();
 			}
-            for (deque<StatefulThread*>::iterator iter = freeQueue.begin(); iter != freeQueue.end(); iter++) {
-                StatefulThread * thread = *iter;
-                thread->interrupt();
-                thread->wait();
-                creator.releaseInstance(thread);
-            }
-            freeQueue.clear();
-            workingQueue.clear();
-			running = false;
+			_running = false;
 		}
 	}
 
 	void ThreadPool::collectIdleThreads() {
-		workingQueueLock.wait();
-		for (deque<StatefulThread*>::iterator iter = workingQueue.begin(); iter != workingQueue.end();) {
-			StatefulThread * thread = *iter;
-			if (!thread->inBusy()) {
-				iter = workingQueue.erase(iter);
-				notifyObservers(thread);
-				release(thread);
+		_pool.lock_work();
+		deque<StatefulThread*> & qu = _pool.work_queue();
+		for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end();) {
+			if ((*iter)->inBusy() == false) {
+				notifyObservers(*iter);
+				_pool.release(*iter);
+				iter = qu.erase(iter);
 			} else {
 				iter++;
 			}
 		}
-		workingQueueLock.post();
+		_pool.unlock_work();
 	}
 
 	void ThreadPool::collectThread(StatefulThread * thread) {
-		workingQueueLock.wait();
-		if (find(workingQueue.begin(), workingQueue.end(), thread) != workingQueue.end()) {
-			workingQueue.erase(find(workingQueue.begin(), workingQueue.end(), thread));
-		}
+		_pool.rest(thread);
 		notifyObservers(thread);
-		release(thread);
-		workingQueueLock.post();
+		_pool.release(thread);
 	}
 
 	StatefulThread * ThreadPool::acquire() {
-		freeQueueLock.wait();
-		StatefulThread * thread = freeQueue.size() > 0 ? freeQueue.front() : NULL;
-		if (thread) {
-			freeQueue.pop_front();
-		}
-		freeQueueLock.post();
-
-		return thread;
+		return _pool.acquire();
 	}
     
 	void ThreadPool::release(StatefulThread * thread) {
-		freeQueueLock.wait();
-		if (std::find(freeQueue.begin(), freeQueue.end(), thread) == freeQueue.end()) {
-			freeQueue.push_back(thread);
-		}
-		freeQueueLock.post();
+		_pool.release(thread);
 	}
     
 	void ThreadPool::enqueue(StatefulThread * thread) {
-		workingQueueLock.wait();
-		if (find(workingQueue.begin(), workingQueue.end(), thread) == workingQueue.end()) {
-			workingQueue.push_back(thread);
-		}
+		_pool.enqueue(thread);
 		thread->wakeup();
-		workingQueueLock.post();
 	}
     
 	StatefulThread * ThreadPool::dequeue() {
-		workingQueueLock.wait();
-		StatefulThread * thread = workingQueue.size() > 0 ? workingQueue.front() : NULL;
-		if (thread) {
-			workingQueue.pop_front();
-		}
-		workingQueueLock.post();
-		return thread;
+		return _pool.dequeue();
 	}
 
 	size_t ThreadPool::freeCount() {
-		return freeQueue.size();
+		return _pool.available();
 	}
 	
 	size_t ThreadPool::workingCount() {
-		return workingQueue.size();
+		return _pool.busy();
 	}
 	
 	size_t ThreadPool::capacity() {
-		return poolSize;
+		return _pool.size();
 	}
 	
 	void ThreadPool::onUpdate(Observable * target) {

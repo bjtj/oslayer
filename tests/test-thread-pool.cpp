@@ -8,47 +8,20 @@ using namespace std;
 using namespace OS;
 using namespace UTIL;
 
-class WorkerThread : public StatefulThread {
-private:
-	AutoRef<Task> task;
-public:
-    WorkerThread() {}
-	virtual ~WorkerThread() {}
-	void setTask(AutoRef<Task> task) {
-		this->task = task;
-	}
-	virtual void onTask() {
-		task->doTask();
-	}
-};
-
-
-class WorkerInstanceCreator : public InstanceCreator<StatefulThread*> {
-private:
-public:
-    WorkerInstanceCreator() {}
-    virtual ~WorkerInstanceCreator() {}
-	virtual StatefulThread * createInstance() {
-		return new WorkerThread;
-	}
-	virtual void releaseInstance(StatefulThread * instance) {
-		delete instance;
-	}
-};
-
-static WorkerInstanceCreator s_creator;
-
+/**
+ * 
+ */
 class WorkerThreadPool : public ThreadPool {
 private:
 public:
-    WorkerThreadPool(size_t count) :  ThreadPool(count, s_creator) {}
+    WorkerThreadPool(size_t count) :  ThreadPool(count) {}
     virtual ~WorkerThreadPool() {}
 	void setTask(AutoRef<Task> task) {
-		WorkerThread * thread = NULL;
-		while ((thread = (WorkerThread*)acquire()) == NULL) {
+		StatefulThread * thread;
+		while ((thread = acquire()) == NULL) {
 			idle(10);
 		}
-		thread->setTask(task);
+		thread->task() = task;
 		enqueue(thread);
 	}
 };
@@ -61,9 +34,9 @@ private:
 public:
     WorkerTask() {}
     virtual ~WorkerTask() {}
-	virtual void doTask() {
+	virtual void onTask() {
 		sem.wait();
-		cout << "task :: " << count++ << endl;
+		cout << " @@ task :: " << count++ << endl;
 		sem.post();
 	}
 };
@@ -71,12 +44,17 @@ public:
 int WorkerTask::count = 0;
 Semaphore WorkerTask::sem(1);
 
+/**
+ * 
+ */
 class WorkerThreadObserver : public Observer {
 private:
 	int count;
 public:
-	WorkerThreadObserver() : count(0) {}
-	virtual ~WorkerThreadObserver() {}
+	WorkerThreadObserver()
+		: count(0) {}
+	virtual ~WorkerThreadObserver()
+		{}
 	virtual void onUpdate(Observable * target) {
 		count--;
 	}
@@ -87,7 +65,7 @@ public:
 
 
 static void test_thread_pool() {
-	
+
 	WorkerThreadPool pool(5);
 	pool.start();
 
@@ -98,6 +76,7 @@ static void test_thread_pool() {
 	ASSERT(pool.workingCount(), ==, 0);
 
 	for (int i = 0; i < 100; i++) {
+		cout << (i+1) << " try" << endl;
 		pool.setTask(AutoRef<Task>(new WorkerTask));
 	}
 
@@ -106,10 +85,12 @@ static void test_thread_pool() {
 	ASSERT(pool.freeCount(), ==, 5);
 	ASSERT(pool.workingCount(), ==, 0);
 
+	cout << "++ [stop]" << endl;
 	pool.stop();
+	cout << "-- [stop]" << endl;
 
 	ASSERT(WorkerTask::count, ==, 100);
-	ASSERT(pool.freeCount(), ==, 0);
+	ASSERT(pool.freeCount(), ==, 5);
 	ASSERT(pool.workingCount(), ==, 0);
 
 	ASSERT(observer.getCount(), ==, -100);

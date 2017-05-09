@@ -8,20 +8,6 @@
 namespace UTIL {
 
 	/**
-	 * @brief task thread
-	 */
-	class TaskThread : public StatefulThread {
-	private:
-		OS::AutoRef<Task> task;
-	public:
-		TaskThread();
-		virtual ~TaskThread();
-		void setTask(OS::AutoRef<Task> task);
-		virtual void onTask();
-	};
-
-
-	/**
 	 * @brief task trhead pool
 	 */
 	class TaskThreadPool : public ThreadPool {

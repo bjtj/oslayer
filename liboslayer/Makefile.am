@@ -29,6 +29,7 @@ liboslayerinc_HEADERS= \
 	Network.hpp \
 	Object.hpp \
 	Observer.hpp \
+	Pool.hpp \
 	Process.hpp \
 	Properties.hpp \
 	PropertyMap.hpp \
@@ -104,6 +105,7 @@ liboslayer_la_SOURCES= \
 	Object.hpp \
 	Observer.cpp \
 	Observer.hpp \
+	Pool.hpp \
 	Process.cpp \
 	Process.hpp \
 	Properties.cpp \

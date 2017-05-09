@@ -94,22 +94,31 @@ namespace UTIL {
 		return ret;
 	}
 
+	bool Properties::contains(const string & name) const {
+		return _props.contains(name);
+	}
+
 	bool Properties::hasProperty(const string & name) const {
 		return _props.contains(name);
 	}
 
-	string Properties::getProperty(const string & name) {
-		return _props[name];
+	string Properties::getProperty(const string & name) const {
+		for (size_t i = 0; i < _props.size(); i++) {
+			if (_props[i].key() == name) {
+				return _props[i].value();
+			}
+		}
+		return "";
 	}
-	string Properties::getProperty(const string & name, const string & def) {
+	string Properties::getProperty(const string & name, const string & def) const {
 		if (!_props.contains(name)) {
 			return def;
 		}
-		return _props[name];
+		return getProperty(name);
 	}
 
-	int Properties::getIntegerProperty(const std::string & name, int def) {
-		if (getProperty(name).empty()) {
+	int Properties::getIntegerProperty(const std::string & name, int def) const {
+		if (!_props.contains(name)) {
 			return def;
 		}
 		return Text::toInt(getProperty(name));

@@ -7,6 +7,7 @@
 #include "os.hpp"
 #include "Semaphore.hpp"
 #include "Thread.hpp"
+#include "Task.hpp"
 
 namespace UTIL {
 
@@ -35,12 +36,11 @@ namespace UTIL {
 	/**
 	 * @brief
 	 */
-	class TimerTask {
+	class TimerTask : public Task {
 	private:
 	public:
 		TimerTask();
 		virtual ~TimerTask();
-		virtual void doTask() = 0;
 	};
 
 	/**
