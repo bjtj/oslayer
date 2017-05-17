@@ -2118,6 +2118,11 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isSymbol());
 		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "keywordp");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isKeyword());
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "listp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
