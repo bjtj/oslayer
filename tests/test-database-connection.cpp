@@ -13,6 +13,41 @@ using namespace OS;
 using namespace UTIL;
 
 /**
+ * 
+ */
+class SqliteResultSet : public ResultSet {
+private:
+	vector<string> _columns;
+	vector< vector<string> > _rows;
+	int _row;
+public:
+    SqliteResultSet() : _row(-1) {
+	}
+    virtual ~SqliteResultSet() {
+	}
+	vector<string> & columns() {
+		return _columns;
+	}
+	vector< vector<string> > & rows() {
+		return _rows;
+	}
+	size_t size() {
+		return _rows.size();
+	}
+	bool next() {
+		_row++;
+		return (_row < size());
+	}
+	string getString(size_t idx) {
+		return _rows[_row][idx];
+	}
+	string getString(const std::string & column) {
+		return "";
+	}
+};
+
+
+/**
  * @brief 
  */
 class Sqlite3PreparedStatement : public PreparedStatement {
@@ -47,7 +82,7 @@ bool Sqlite3PreparedStatement::execute() {
 }
 AutoRef<ResultSet> Sqlite3PreparedStatement::executeQuery() {
 	char * err_msg = NULL;
-	AutoRef<ResultSet> rs(new ResultSet);
+	AutoRef<ResultSet> rs(new SqliteResultSet);
 	int ret = sqlite3_exec(_db, sql().c_str(), cb_query_handler, &rs, &err_msg);
 	if (ret != SQLITE_OK) {
 		string err(err_msg);
@@ -62,11 +97,11 @@ AutoRef<ResultSet> Sqlite3PreparedStatement::executeStep() {
 }
 
 int Sqlite3PreparedStatement::cb_query_handler(void * user, int argc, char ** args, char ** cols) {
-	ResultSet * rs = (ResultSet*)user;
-	if (rs->cols().empty()) {
-		rs->cols() = Text::toVector(argc, cols);
+	SqliteResultSet * rs = (SqliteResultSet*)user;
+	if (rs->columns().empty()) {
+		rs->columns() = Text::toVector(argc, cols);
 	}
-	rs->append(Text::toVector(argc, args));
+	rs->rows().push_back(Text::toVector(argc, args));
 	return 0;
 }
 
