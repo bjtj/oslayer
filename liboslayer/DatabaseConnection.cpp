@@ -10,60 +10,23 @@ namespace UTIL {
 	 * @brief 
 	 */
 
-	ResultSet::Row::Row() {
-	}
-	ResultSet::Row::Row(const vector<string> & row) : _row(row) {
-	}
-	ResultSet::Row::~Row() {
-	}
-	size_t ResultSet::Row::size() {
-		return _row.size();
-	}
-	string & ResultSet::Row::operator[] (size_t idx) {
-		return _row[idx];
-	}
-
-	/**
-	 * @brief 
-	 */
-	
-	ResultSet::ResultSet() : _row(-1) {
+	ResultSet::ResultSet() {
 	}
 	ResultSet::~ResultSet() {
 	}
-
-	vector<string> & ResultSet::cols() {
-		return _cols;
-	}
-
-	void ResultSet::append(const vector<string> & strs) {
-		_rows.push_back(Row(strs));
-	}
-
 	size_t ResultSet::size() {
-		return _rows.size();
+		throw NotImplementedException("size()");
 	}
-
-	ResultSet::Row & ResultSet::operator[] (size_t idx) {
-		return _rows[idx];
-	}
-
 	bool ResultSet::next() {
-		return ((size_t)++_row < _rows.size());
+		throw NotImplementedException("next()");
+	}
+	string ResultSet::getString(size_t idx) {
+		throw NotImplementedException("getString()");
+	}
+	string ResultSet::getString(const string & column) {
+		throw NotImplementedException("getString()");
 	}
 
-	string ResultSet::getString(size_t idx) {
-		return _rows[_row][idx];
-	}
-	
-	string ResultSet::getString(const std::string & column) {
-		for (size_t i = 0; i < _cols.size(); i++) {
-			if (_cols[i] == column) {
-				return _rows[_row][i];
-			}
-		}
-		throw Exception("no column name found - '" + column + "'");
-	}
 
 	/**
 	 * @brief 
@@ -76,12 +39,64 @@ namespace UTIL {
 	string & PreparedStatement::sql() {
 		return _sql;
 	}
+	bool PreparedStatement::execute() {
+		throw NotImplementedException("execute()");
+	}
+	AutoRef<ResultSet> PreparedStatement::executeQuery() {
+		throw NotImplementedException("executeQuery()");
+	}
+	size_t PreparedStatement::executeUpdate() {
+		throw NotImplementedException("executeUpdate()");
+	}
+	void PreparedStatement::setString(size_t idx, const string & str) {
+		throw NotImplementedException("setString()");
+	}
+	void PreparedStatement::setInteger(size_t idx, const int & str) {
+		throw NotImplementedException("setInteger()");
+	}
+	void PreparedStatement::setLong(size_t idx, const long & str) {
+		throw NotImplementedException("setLong()");
+	}
 
 	/**
 	 * @brief 
 	 */
 	
-	DatabaseConnection::DatabaseConnection() {}
-	DatabaseConnection::~DatabaseConnection() {}
-	
+	DatabaseConnection::DatabaseConnection() {
+	}
+	DatabaseConnection::~DatabaseConnection() {
+	}
+	string DatabaseConnection::getDriverName() {
+		throw NotImplementedException("getDriverName()");
+	}
+	void DatabaseConnection::connect(const string & url) {
+		throw NotImplementedException("connect()");
+	}
+	void DatabaseConnection::connect(const string & url, const string & username, const string & password) {
+		throw NotImplementedException("connect()");
+	}
+	void DatabaseConnection::disconnect() {
+		throw NotImplementedException("disconnect()");
+	}
+	void DatabaseConnection::setSchema(const string & schema) {
+		throw NotImplementedException("setSchema()");
+	}
+	AutoRef<PreparedStatement> DatabaseConnection::prepareStatement(const string & sql) {
+		throw NotImplementedException("prepareStatement()");
+	}
+	bool DatabaseConnection::getAutoCommit() {
+		throw NotImplementedException("getAutoCommit()");
+	}
+	void DatabaseConnection::setAutoCommit(bool autoCommit) {
+		throw NotImplementedException("setAutoCommit()");
+	}
+	void DatabaseConnection::beginTransaction() {
+		throw NotImplementedException("beginTransaction()");
+	}
+	void DatabaseConnection::commit() {
+		throw NotImplementedException("commit()");
+	}
+	void DatabaseConnection::rollback() {
+		throw NotImplementedException("rollback()");
+	}
 }

@@ -1724,6 +1724,15 @@ namespace LISP {
 			}
 			return _HEAP_ALLOC(env, true);
 		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "fboundp");
+		{
+			// TODO: to global scope
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			if (scope->rsearch_func(eval(env, scope, args[0])->r_symbol()).nil()) {
+				return _NIL(env);
+			}
+			return _HEAP_ALLOC(env, true);
+		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "lambda");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
