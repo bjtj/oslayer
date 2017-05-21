@@ -196,6 +196,7 @@
 		E8B1613F1BFDF8DA002D68C7 /* ThreadPool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ThreadPool.hpp; path = ../../liboslayer/ThreadPool.hpp; sourceTree = "<group>"; };
 		E8B1615E1C0054D4002D68C7 /* AutoRef.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = AutoRef.cpp; path = ../../liboslayer/AutoRef.cpp; sourceTree = "<group>"; };
 		E8B1615F1C0054D4002D68C7 /* AutoRef.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = AutoRef.hpp; path = ../../liboslayer/AutoRef.hpp; sourceTree = "<group>"; };
+		E8B4F3791EC289DF0092FB74 /* Pool.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Pool.hpp; path = ../../liboslayer/Pool.hpp; sourceTree = "<group>"; };
 		E8C1D4271E9EECD900AA8905 /* Endian.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Endian.cpp; path = ../../liboslayer/Endian.cpp; sourceTree = "<group>"; };
 		E8C1D4281E9EECD900AA8905 /* Endian.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Endian.hpp; path = ../../liboslayer/Endian.hpp; sourceTree = "<group>"; };
 		E8C1D4291E9EECD900AA8905 /* Event.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Event.cpp; path = ../../liboslayer/Event.cpp; sourceTree = "<group>"; };
@@ -259,6 +260,7 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E8B4F3791EC289DF0092FB74 /* Pool.hpp */,
 				E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */,
 				E815B9E21EBD4F0E001E8E22 /* AutoLock.hpp */,
 				E815B9E31EBD4F0E001E8E22 /* Mutex.cpp */,
