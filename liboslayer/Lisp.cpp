@@ -6,6 +6,7 @@
 #include "FileStream.hpp"
 #include "Socket.hpp"
 #include "AutoLock.hpp"
+#include "Process.hpp"
 
 #define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,V) E.alloc(new Var(V))
@@ -3083,6 +3084,22 @@ namespace LISP {
             return _HEAP_ALLOC(env, ret);
 #endif
 		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "run-process");
+		{
+            _CHECK_ARGS_MIN_COUNT(args, 1);
+			Process p(eval(env, scope, args[0])->toString());
+			p.start();
+			FileStream out(p.out());
+			string o;
+			while (!out.eof()) {
+				o.append(out.readline());
+				o.append("\n");
+			}
+			p.wait();
+			// int ret = p.exitCode();
+			p.close();
+            return _HEAP_ALLOC(env, wrap_text(o));
+		}DECL_NATIVE_END();		
 		DECL_NATIVE_BEGIN(env, "load");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
