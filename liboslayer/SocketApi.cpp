@@ -1,4 +1,5 @@
 #include "SocketApi.hpp"
+#include "Text.hpp"
 
 namespace OS {
 
@@ -157,6 +158,10 @@ namespace OS {
 			return false;
 		}
 		return true;
+	}
+
+	string InetAddress::toString() const {
+		return getHost() + ":" + UTIL::Text::toString(getPort());
 	}
 
 	/* Socket Address */

@@ -63,6 +63,8 @@ namespace OS {
 
 		bool valid();
 
+		std::string toString() const;
+
 	private:
 		static addrinfo * getAddressInfo(const char * node, const char * service, struct addrinfo * hints);
 	public:
