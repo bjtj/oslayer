@@ -1318,7 +1318,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, cos((*(v->r_integer()))));
+			return _HEAP_ALLOC(env, cos((double)(*(v->r_integer()))));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, cos((*(v->r_float()))));
 		default:
@@ -1333,7 +1333,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, sin(*(v->r_integer())));
+			return _HEAP_ALLOC(env, sin((double)*(v->r_integer())));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, sin(*(v->r_float())));
 		default:
@@ -1348,7 +1348,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, tan(*(v->r_integer())));
+			return _HEAP_ALLOC(env, tan((double)*(v->r_integer())));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, tan(*(v->r_float())));
 		default:
@@ -1363,7 +1363,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, acos((*(v->r_integer()))));
+			return _HEAP_ALLOC(env, acos((double)(*(v->r_integer()))));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, acos((*(v->r_float()))));
 		default:
@@ -1378,7 +1378,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, asin(*(v->r_integer())));
+			return _HEAP_ALLOC(env, asin((double)*(v->r_integer())));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, asin(*(v->r_float())));
 		default:
@@ -1393,7 +1393,7 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, atan(*(v->r_integer())));
+			return _HEAP_ALLOC(env, atan((double)*(v->r_integer())));
 		case Var::FLOAT:
 			return _HEAP_ALLOC(env, atan(*(v->r_float())));
 		default:

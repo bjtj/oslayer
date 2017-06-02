@@ -126,6 +126,9 @@
     <ClCompile Include="..\liboslayer\Semaphore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\liboslayer\AutoLock.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\os.hpp">
@@ -285,6 +288,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\Semaphore.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\AutoLock.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\Pool.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

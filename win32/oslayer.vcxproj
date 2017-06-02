@@ -19,7 +19,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -72,6 +71,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\liboslayer\ArgumentParser.cpp" />
+    <ClCompile Include="..\liboslayer\AutoLock.cpp" />
     <ClCompile Include="..\liboslayer\AutoRef.cpp" />
     <ClCompile Include="..\liboslayer\Base64.cpp" />
     <ClCompile Include="..\liboslayer\ByteArray.cpp" />
@@ -111,6 +111,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\ArgumentParser.hpp" />
+    <ClInclude Include="..\liboslayer\AutoLock.hpp" />
     <ClInclude Include="..\liboslayer\AutoRef.hpp" />
     <ClInclude Include="..\liboslayer\AutoRelease.hpp" />
     <ClInclude Include="..\liboslayer\Base64.hpp" />
@@ -137,6 +138,7 @@
     <ClInclude Include="..\liboslayer\Observer.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\platform.hpp" />
+    <ClInclude Include="..\liboslayer\Pool.hpp" />
     <ClInclude Include="..\liboslayer\Process.hpp" />
     <ClInclude Include="..\liboslayer\Properties.hpp" />
     <ClInclude Include="..\liboslayer\DatagramSocket.hpp" />
