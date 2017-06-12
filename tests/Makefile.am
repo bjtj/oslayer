@@ -34,6 +34,7 @@ check_PROGRAMS = \
 	test-string-elements \
 	test-property-map \
 	test-database-connection \
+	test-mysqlclient-database-connector \
 	test-socket \
 	test-echo-server-client \
 	test-datagramsocket \
@@ -76,6 +77,7 @@ test_xml_SOURCES=test-xml.cpp
 test_string_elements_SOURCES=test-string-elements.cpp
 test_property_map_SOURCES=test-property-map.cpp
 test_database_connection_SOURCES=test-database-connection.cpp
+test_mysqlclient_database_connector_SOURCES=test-mysqlclient-database-connector.cpp
 test_socket_SOURCES=test-socket.cpp
 test_echo_server_client_SOURCES=test-echo-server-client.cpp
 test_datagramsocket_SOURCES=test-datagramsocket.cpp
@@ -90,8 +92,8 @@ test_secure_socket_SOURCES=test-secure-socket.cpp
 endif
 
 AM_CPPFLAGS=-I$(top_srcdir)
-AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\""
-AM_LDFLAGS=$(PTHREAD_CFLAGS)
+AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\"" $(LIBMYSQLCLIENT_CFLAGS)
+AM_LDFLAGS=$(PTHREAD_CFLAGS) $(LIBMYSQLCLIENT_LIBS)
 LDADD=../liboslayer/liboslayer.la
 
 EXTRA_DIST=data/cert.pem data/key.pem

@@ -80,6 +80,14 @@ if test $ac_cv_func_sqlite3_open = no; then
    AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the 'sqlite3_open' function.])])
 fi
 
+
+AC_ARG_WITH([mysqlclient], AS_HELP_STRING([--with-mysqlclient], [Build with the MYSQLCLIENT library]))
+
+AS_IF([test "x$with_mysqlclient" = "xyes"], [
+   PKG_CHECK_MODULES([LIBMYSQLCLIENT], [mysqlclient],
+   AC_DEFINE(HAVE_MYSQLCLIENT, 1, [Define to 1 if you have the MYSQLCLIENT library.]))
+])
+
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile

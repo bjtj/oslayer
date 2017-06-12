@@ -33,6 +33,13 @@ build() {
 	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl && make && make install
 }
 
+build_with_mysqlclient() {
+	mkdir -p $DIR_BUILD
+	mkdir -p $DIR_WORLD
+	cd $DIR_BUILD
+	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl --with-mysqlclient && make && make install
+}
+
 build32() {
 	mkdir -p $DIR_BUILD
 	mkdir -p $DIR_WORLD
@@ -64,6 +71,10 @@ case $OPT in
 		reconf_if_need
 		build
 		;;
+	build-with-mysqlclient)
+		reconf_if_need
+		build_with_mysqlclient
+		;;
 	build32)
 		reconf_if_need
 		build32
@@ -81,6 +92,10 @@ case $OPT in
 		;;
 	check)
 		build
+		check
+		;;
+	check-with-mysqlclient)
+		build_with_mysqlclient
 		check
 		;;
 	check-valgrind)
