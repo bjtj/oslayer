@@ -18,10 +18,12 @@ namespace UTIL {
 	public:
 		ResultSet();
 		virtual ~ResultSet();
-		size_t size();
-		bool next();
-		std::string getString(size_t idx);
-		std::string getString(const std::string & column);
+		virtual bool next();
+		virtual void close();
+		virtual int fieldCount();
+		virtual std::string fieldName(size_t idx);
+		virtual std::string getString(size_t idx);
+		virtual std::string getString(const std::string & column);
 	};
 
 	/**
@@ -53,7 +55,9 @@ namespace UTIL {
 		virtual void connect(const std::string & url);
 		virtual void connect(const std::string & url, const std::string & username, const std::string & password);
 		virtual void disconnect();
-		virtual void setSchema(const std::string & schema);
+		virtual OS::AutoRef<ResultSet> query(const std::string & sql);
+		virtual size_t queryUpdate(const std::string & sql);
+		virtual size_t lastInsertId();
 		virtual OS::AutoRef<PreparedStatement> prepareStatement(const std::string & sql);
 		virtual bool getAutoCommit();
 		virtual void setAutoCommit(bool autoCommit);

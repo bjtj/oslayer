@@ -14,17 +14,23 @@ namespace UTIL {
 	}
 	ResultSet::~ResultSet() {
 	}
-	size_t ResultSet::size() {
-		throw NotImplementedException("size()");
-	}
 	bool ResultSet::next() {
 		throw NotImplementedException("next()");
 	}
+	void ResultSet::close() {
+		throw NotImplementedException("close()");
+	}
+	int ResultSet::fieldCount() {
+		throw NotImplementedException("fieldCount()");
+	}
+	string ResultSet::fieldName(size_t idx) {
+		throw NotImplementedException("fieldName(idx)");
+	}
 	string ResultSet::getString(size_t idx) {
-		throw NotImplementedException("getString()");
+		throw NotImplementedException("getString(idx)");
 	}
 	string ResultSet::getString(const string & column) {
-		throw NotImplementedException("getString()");
+		throw NotImplementedException("getString(column)");
 	}
 
 
@@ -78,8 +84,14 @@ namespace UTIL {
 	void DatabaseConnection::disconnect() {
 		throw NotImplementedException("disconnect()");
 	}
-	void DatabaseConnection::setSchema(const string & schema) {
-		throw NotImplementedException("setSchema()");
+	AutoRef<ResultSet> DatabaseConnection::query(const string & sql) {
+		throw NotImplementedException("query()");
+	}
+	size_t DatabaseConnection::queryUpdate(const string & sql) {
+		throw NotImplementedException("queryUpdate()");
+	}
+	size_t DatabaseConnection::lastInsertId() {
+		throw NotImplementedException("lastInsertId()");
 	}
 	AutoRef<PreparedStatement> DatabaseConnection::prepareStatement(const string & sql) {
 		throw NotImplementedException("prepareStatement()");
