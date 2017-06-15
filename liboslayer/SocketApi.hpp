@@ -2,6 +2,7 @@
 #define __SOCKET_API_HPP__
 
 #include "os.hpp"
+#include "ByteArray.hpp"
 
 namespace OS {
 
@@ -192,16 +193,15 @@ namespace OS {
 	 */
 	class DatagramPacket {
 	private:
-		char * data;
-		size_t size;
+		UTIL::ByteArray _array;
 		size_t position;
 		size_t length;
 		InetAddress remoteAddr;
         
 	public:
-		DatagramPacket(char * data, size_t size);
-		DatagramPacket(char * data, size_t size, const InetAddress & remoteAddr);
-		DatagramPacket(char * data, size_t size, const std::string & host, int port);
+		DatagramPacket(size_t size);
+		DatagramPacket(size_t size, const InetAddress & remoteAddr);
+		DatagramPacket(size_t size, const std::string & host, int port);
 		virtual ~DatagramPacket();
 		void clear();
 		char * getData();

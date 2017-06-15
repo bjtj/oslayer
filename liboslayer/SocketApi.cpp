@@ -363,18 +363,18 @@ namespace OS {
 	 * Datagram Packet
 	 */
 
-	DatagramPacket::DatagramPacket(char * data, size_t size)
-		: data(data), size(size), position(0), length(0) {
+	DatagramPacket::DatagramPacket(size_t size)
+		: _array(size), position(0), length(0) {
         System::getInstance();
 	}
 
-	DatagramPacket::DatagramPacket(char * data, size_t size, const InetAddress & remoteAddr)
-		: data(data), size(size), position(0), length(0), remoteAddr(remoteAddr) {
+	DatagramPacket::DatagramPacket(size_t size, const InetAddress & remoteAddr)
+		: _array(size), position(0), length(0), remoteAddr(remoteAddr) {
 		System::getInstance();
 	}
 	
-	DatagramPacket::DatagramPacket(char * data, size_t size, const string & host, int port)
-		: data(data), size(size), position(0), length(0), remoteAddr(host, port) {
+	DatagramPacket::DatagramPacket(size_t size, const string & host, int port)
+		: _array(size), position(0), length(0), remoteAddr(host, port) {
 		System::getInstance();
 	}
 
@@ -382,17 +382,17 @@ namespace OS {
 	}
 
 	void DatagramPacket::clear() {
-		memset(data, 0, size);
+		_array.set(0);
 		position = 0;
 		length = 0;
 	}
 
 	char * DatagramPacket::getData() {
-		return data;
+		return _array.array();
 	}
     
     const char * DatagramPacket::getData() const {
-        return data;
+		return _array.const_array();
     }
 
     size_t DatagramPacket::getLength() const {
@@ -400,7 +400,7 @@ namespace OS {
     }
 
     size_t DatagramPacket::getSize() const {
-        return size;
+		return _array.size();
     }
 	
 	void DatagramPacket::write(const unsigned char i8) {
@@ -420,12 +420,12 @@ namespace OS {
 	}
 	
 	void DatagramPacket::write(const char * data, size_t size) {
-		if (this->size < position + size) {
+		if (_array.size() < position + size) {
 			throw BufferOverflowException("buffer overflowed", -1, 0);
 		}
-		memcpy(this->data + position, data, size);
+		_array.copy(position, data, size);
 		position += size;
-		setLength(position + size);
+		setLength(position);
 	}
 	
 	void DatagramPacket::write(const string & data) {
