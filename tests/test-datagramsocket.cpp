@@ -18,8 +18,7 @@ public:
 	virtual void run() {
 		printf("Server started\n");
 		DatagramSocket socket(port);
-		char data[1024] = {0,};
-		DatagramPacket packet(data, sizeof(data));
+		DatagramPacket packet(1024);
 		socket.recv(packet);
 		printf("length: %ld\n", packet.getLength());
 		printf("data: %s\n", packet.getData());
@@ -49,8 +48,7 @@ public:
 	}
 	virtual void test() {
 		DatagramSocket socket;
-		char data[1024] = {0,};
-		DatagramPacket packet(data, sizeof(data), "127.0.0.1", 8080);
+		DatagramPacket packet(1024, "127.0.0.1", 8080);
 		packet.write("hello");
 		packet.write(" world");
 		socket.send(packet);
