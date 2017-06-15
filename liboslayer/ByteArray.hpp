@@ -28,7 +28,7 @@ namespace UTIL {
 		ByteArray();
 		ByteArray(size_t size);
 		ByteArray(size_t size, char init);
-		ByteArray(char * array, size_t size);
+		ByteArray(const char * array, size_t size);
 		ByteArray(const ByteArray & other);
 		virtual ~ByteArray();
 	private:

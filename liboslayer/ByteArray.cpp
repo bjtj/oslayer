@@ -17,7 +17,7 @@ namespace UTIL {
 		_alloc(size);
 		set(init);
 	}
-	ByteArray::ByteArray(char * array, size_t size) {
+	ByteArray::ByteArray(const char * array, size_t size) {
 		_alloc(size);
 		copy(array, size);
 	}
