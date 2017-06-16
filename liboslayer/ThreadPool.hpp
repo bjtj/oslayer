@@ -44,6 +44,7 @@ namespace UTIL {
 	private:
 		Pool<StatefulThread> _pool;
 		bool _running;
+		bool _finishing;
 	public:
 		ThreadPool(size_t poolSize);
 		virtual ~ThreadPool();
@@ -59,6 +60,7 @@ namespace UTIL {
 		size_t freeCount();
 		size_t workingCount();
 		size_t capacity();
+		bool finishing() const;
 		virtual void onUpdate(Observable * target);
 	};
 }

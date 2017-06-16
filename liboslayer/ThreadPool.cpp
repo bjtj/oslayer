@@ -87,7 +87,7 @@ namespace UTIL {
 	 *
 	 */
 	ThreadPool::ThreadPool(size_t poolSize)
-		: _pool(poolSize), _running(false) {
+		: _pool(poolSize), _running(false), _finishing(false) {
 	}
 	
 	ThreadPool::~ThreadPool() {
@@ -95,6 +95,7 @@ namespace UTIL {
 	}
     
     void ThreadPool::init() {
+		_finishing = false;
 		deque<StatefulThread*> & qu = _pool.avail_queue();
 		for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
 			(*iter)->addObserver(this);
@@ -116,6 +117,7 @@ namespace UTIL {
 	
 	void ThreadPool::stop() {
 		if (_running == true) {
+			_finishing = true;
 			StatefulThread * thread;
 			while ((thread = _pool.dequeue())) {
 				thread->interrupt();
@@ -179,8 +181,15 @@ namespace UTIL {
 	size_t ThreadPool::capacity() {
 		return _pool.size();
 	}
+
+	bool ThreadPool::finishing() const {
+		return _finishing;
+	}
 	
 	void ThreadPool::onUpdate(Observable * target) {
+		if (_finishing) {
+			return;
+		}
 		StatefulThread * t = (StatefulThread*)target;
 		collectThread(t);
 	}
