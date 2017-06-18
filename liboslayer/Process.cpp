@@ -143,7 +143,6 @@ namespace OS {
 
 #elif defined(USE_MS_WIN)
 
-
 	// win32
 
 	Process::Process(const string & cmd)

@@ -3093,10 +3093,12 @@ namespace LISP {
 			string o;
 			while (!out.eof()) {
 				o.append(out.readline());
+				if (out.eof()) {
+					break;
+				}
 				o.append("\n");
 			}
 			p.wait();
-			// int ret = p.exitCode();
 			p.close();
             return _HEAP_ALLOC(env, wrap_text(o));
 		}DECL_NATIVE_END();		
