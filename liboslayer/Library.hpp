@@ -45,19 +45,19 @@ namespace OS {
 		};
 
 	private:
-		LIB_HANDLE handle;
-		std::string path;
-		std::string name;
+		LIB_HANDLE _handle;
+		std::string _path;
+		std::string _name;
 	public:
 		Library(const std::string & name);
 		Library(const std::string & path, const std::string & name);
 		virtual ~Library();
-		void load(const std::string & path, const std::string & name);
+		void load();
 		void close();
-		std::string & getPath();
-		std::string & getName();
-		LIB_HANDLE getHandle();
-		Symbol getSymbol(const std::string & sym);
+		std::string & path();
+		std::string & name();
+		LIB_HANDLE & handle();
+		Symbol symbol(const std::string & sym);
 	};	
 }
 

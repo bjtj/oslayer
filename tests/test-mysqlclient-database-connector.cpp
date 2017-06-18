@@ -5,21 +5,15 @@
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/os.hpp>
 #include <liboslayer/DatabaseConnection.hpp>
-
-#if (HAVE_MYSQLCLIENT == 1)
 #include <mysql.h>
-#endif
-
-#define DB_USER "user"
-#define DB_PASS "pass"
-#define DB_NAME "my_db"
 
 using namespace std;
 using namespace OS;
 using namespace UTIL;
 
-#if (HAVE_MYSQLCLIENT == 1)
-
+/**
+ * 
+ */
 class MysqlClientResultSet : public ResultSet {
 private:
 	MYSQL_RES * _res;
@@ -50,7 +44,9 @@ public:
 	}
 };
 
-
+/**
+ * 
+ */
 class MysqlDatabaseConnection : public DatabaseConnection {
 private:
 	MYSQL * _real_conn, _conn;
@@ -62,13 +58,10 @@ public:
 	virtual string getDriverName() {
 		return "mysqlclient";
 	}
-	virtual void connect(const string & url) {
-		connect(url, DB_USER, DB_PASS);
-	}
-	virtual void connect(const string & url, const string & username, const string & password) {
+	virtual void connect(const string & hostname, int port, const string & username, const string & password, const string & dbname) {
 		mysql_init(&_conn);
-		_real_conn = mysql_real_connect(&_conn, url.c_str(), username.c_str(), password.c_str(),
-										DB_NAME, 3306, (char*)NULL, 0);
+		_real_conn = mysql_real_connect(&_conn, hostname.c_str(), username.c_str(), password.c_str(),
+										dbname.c_str(), port, (char*)NULL, 0);
 		if (_real_conn == NULL) {
 			throw "mysql_real_connect() failed";
 		}
@@ -94,19 +87,21 @@ public:
 	}
 };
 
-#endif
-
 /**
  * 
  */
 class MysqlClientTestCase : public TestCase {
+private:
+	string username;
+	string password;
+	string dbname;
 public:
-    MysqlClientTestCase() : TestCase("mysql-client-test-case") {
+    MysqlClientTestCase(const string & username, const string & password, const string & dbname)
+		: TestCase("mysql-client-test-case"), username(username), password(password), dbname(dbname) {
 	}
     virtual ~MysqlClientTestCase() {
 	}
 	virtual void test() {
-#if (HAVE_MYSQLCLIENT == 1)
 		// connect
 		// create table
 		// insert
@@ -124,7 +119,7 @@ public:
 		// );
 
 		MysqlDatabaseConnection conn;
-		conn.connect("localhost", DB_USER, DB_PASS);
+		conn.connect("localhost", 3306, username, password, dbname);
 
 		AutoRef<ResultSet> result = conn.query("select * from address");
 		cout << "[";
@@ -145,7 +140,6 @@ public:
 		cout << "insert result: " << ret << endl;
 
 		conn.disconnect();
-#endif
 	}
 };
 
@@ -154,8 +148,15 @@ public:
  */
 int main(int argc, char *argv[])
 {
+
+	string username = "user";
+	string password = "pass";
+	string dbname = "test";
+	
 	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new MysqlClientTestCase));
+	if (false) {
+		ts.addTestCase(AutoRef<TestCase>(new MysqlClientTestCase(username, password, dbname)));
+	}
 
 	TestReport report(ts.testAll());
 	report.validate();

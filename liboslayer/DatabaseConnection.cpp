@@ -75,10 +75,7 @@ namespace UTIL {
 	string DatabaseConnection::getDriverName() {
 		throw NotImplementedException("getDriverName()");
 	}
-	void DatabaseConnection::connect(const string & url) {
-		throw NotImplementedException("connect()");
-	}
-	void DatabaseConnection::connect(const string & url, const string & username, const string & password) {
+	void DatabaseConnection::connect(const string & hostname, int port, const string & username, const string & password, const std::string & dbname) {
 		throw NotImplementedException("connect()");
 	}
 	void DatabaseConnection::disconnect() {

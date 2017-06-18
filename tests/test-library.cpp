@@ -16,7 +16,8 @@ public:
 	virtual void test() {
 		try {
 			Library lib(DATA_PATH, "hello");
-			((void (*)(void))*lib.getSymbol("hello"))();
+			lib.load();
+			((void (*)(void))*lib.symbol("hello"))();
 		} catch (Exception e) {
 			cerr << e.toString() << endl;
 		}

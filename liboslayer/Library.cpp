@@ -62,26 +62,24 @@ namespace OS {
 #endif
 	}
 
-	Library::Library(const string & name) : path("./"), name(name) {
-		load(path, name);
+	Library::Library(const string & name) : _path("./"), _name(name) {
 	}
-	Library::Library(const string & path, const string & name) : path(path), name(name) {
-		load(path, name);
+	Library::Library(const string & path, const string & name) : _path(path), _name(name) {
 	}
 	Library::~Library() {
 		close();
 	}
-	void Library::load(const string & path, const string & name) {
-		string fullpath = File::mergePaths(path, s_to_lib_name(name));
+	void Library::load() {
+		string fullpath = File::mergePaths(_path, s_to_lib_name(_name));
 #if defined(USE_UNIX_STD)
-		handle = dlopen(fullpath.c_str(), RTLD_LAZY);
-		if (!handle) {
+		_handle = dlopen(fullpath.c_str(), RTLD_LAZY);
+		if (!_handle) {
 			throw Exception("dlopen() failed");
 		}
 		dlerror();
 #elif defined(USE_MS_WIN)
-		handle = LoadLibrary(fullpath.c_str());
-		if (!handle) {
+		_handle = LoadLibrary(fullpath.c_str());
+		if (!_handle) {
 			throw Exception("LoadLibrary() failed");
 		}
 #else
@@ -90,37 +88,37 @@ namespace OS {
 	}
 	void Library::close() {
 #if defined(USE_UNIX_STD)
-		if (handle) {
-			dlclose(handle);
-			handle = NULL;
+		if (_handle) {
+			dlclose(_handle);
+			_handle = NULL;
 		}
 #elif defined(USE_MS_WIN)
-		if (handle) {
-			FreeLibrary(handle);
-			handle = NULL;
+		if (_handle) {
+			FreeLibrary(_handle);
+			_handle = NULL;
 		}
 #else
 		throw NotImplementedException("Not implemeneted - free library");
 #endif
 	}
-	string & Library::getPath() {
-		return path;
+	string & Library::path() {
+		return _path;
 	}
-	string & Library::getName() {
-		return name;
+	string & Library::name() {
+		return _name;
 	}
-	LIB_HANDLE Library::getHandle() {
-		return handle;
+	LIB_HANDLE & Library::handle() {
+		return _handle;
 	}
-	Library::Symbol Library::getSymbol(const string & sym) {
+	Library::Symbol Library::symbol(const string & sym) {
 #if defined(USE_UNIX_STD)
-		SYM_HANDLE ret = dlsym(handle, sym.c_str());
+		SYM_HANDLE ret = dlsym(_handle, sym.c_str());
 		if (!ret) {
 			throw Exception("dlsym() failed");
 		}
 		return Library::Symbol(ret);
 #elif defined(USE_MS_WIN)
-		SYM_HANDLE ret = GetProcAddress(handle, sym.c_str());
+		SYM_HANDLE ret = GetProcAddress(_handle, sym.c_str());
 		if (!ret) {
 			throw Exception("dlsym() failed");
 		}

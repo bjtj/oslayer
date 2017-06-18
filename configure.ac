@@ -63,12 +63,12 @@ fi
 # openssl
 AC_ARG_ENABLE([openssl],
 	[AS_HELP_STRING([--enable-openssl], [enable openssl build @<:@default: no@:>@])],
-	[enable_openssl=${enableval}], [enable_openssl=no])
+		[enable_openssl=${enableval}], [enable_openssl=no])
 
 if test "x$enable_openssl" = "xyes"; then
   if test $ac_cv_func_SSL_library_init = no; then
     AC_CHECK_LIB(ssl, SSL_library_init, [LIBS="-lssl -lcrypto $LIBS"
-    AC_DEFINE(HAVE_OPENSSL, 1, [Define to 1 if you have the 'SSL_library_init' function.])])
+    	AC_DEFINE(HAVE_OPENSSL, 1, [Define to 1 if you have the 'SSL_library_init' function.])])
   fi
 fi
 
@@ -77,17 +77,15 @@ AM_CONDITIONAL([SUPPORT_OPENSSL], [test x$enable_openssl = xyes])
 # sqlite3
 if test $ac_cv_func_sqlite3_open = no; then
    AC_CHECK_LIB(sqlite3, sqlite3_open, [LIBS="-lsqlite3 $LIBS"
-   AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the 'sqlite3_open' function.])])
+   					AC_DEFINE(HAVE_SQLITE3,1,[Define to 1 if you have the 'sqlite3_open' function.])])
 fi
 
+# mysqlclient
+PKG_CHECK_MODULES([LIBMYSQLCLIENT],[mysqlclient],[HAVE_PKG_MYSQLCLIENT=1],[HAVE_PKG_MYSQLCLIENT=0])
+AS_IF([test "x$HAVE_PKG_MYSQLCLIENT" = x1], [AC_DEFINE([HAVE_MYSQLCLIENT],1,[support mysqlclient])])
+AM_CONDITIONAL([SUPPORT_MYSQLCLIENT], [test "x$HAVE_PKG_MYSQLCLIENT" = x1])
 
-AC_ARG_WITH([mysqlclient], AS_HELP_STRING([--with-mysqlclient], [Build with the MYSQLCLIENT library]))
-
-AS_IF([test "x$with_mysqlclient" = "xyes"], [
-   PKG_CHECK_MODULES([LIBMYSQLCLIENT], [mysqlclient],
-   AC_DEFINE(HAVE_MYSQLCLIENT, 1, [Define to 1 if you have the MYSQLCLIENT library.]))
-])
-
+#
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile

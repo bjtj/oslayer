@@ -34,7 +34,6 @@ check_PROGRAMS = \
 	test-string-elements \
 	test-property-map \
 	test-database-connection \
-	test-mysqlclient-database-connector \
 	test-socket \
 	test-echo-server-client \
 	test-datagramsocket \
@@ -45,6 +44,10 @@ check_PROGRAMS = \
 
 if SUPPORT_OPENSSL
 check_PROGRAMS += test-secure-socket
+endif
+
+if SUPPORT_MYSQLCLIENT
+check_PROGRAMS += test-mysqlclient-database-connector
 endif
 
 test_os_SOURCES=test-os.cpp

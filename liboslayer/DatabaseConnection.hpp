@@ -52,8 +52,7 @@ namespace UTIL {
 		DatabaseConnection();
 		virtual ~DatabaseConnection();
 		virtual std::string getDriverName();
-		virtual void connect(const std::string & url);
-		virtual void connect(const std::string & url, const std::string & username, const std::string & password);
+		virtual void connect(const std::string & hostname, int port, const std::string & username, const std::string & password, const std::string & dbname);
 		virtual void disconnect();
 		virtual OS::AutoRef<ResultSet> query(const std::string & sql);
 		virtual size_t queryUpdate(const std::string & sql);
