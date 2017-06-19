@@ -124,9 +124,14 @@ namespace UTIL {
 				_pool.release(thread);
 			}
 			deque<StatefulThread*> & qu = _pool.avail_queue();
-			for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
+			// TODO: WIN32 have problem in this code - 'deque iterator not incrementable'
+			/*for (deque<StatefulThread*>::iterator iter = qu.begin(); iter != qu.end(); iter++) {
 				(*iter)->interrupt();
 				(*iter)->wait();
+			}*/
+			for (size_t i = 0; i < qu.size(); i++) {
+				qu[i]->interrupt();
+				qu[i]->wait();
 			}
 			_running = false;
 		}
