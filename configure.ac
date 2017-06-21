@@ -89,6 +89,7 @@ AM_CONDITIONAL([SUPPORT_MYSQLCLIENT], [test "x$HAVE_PKG_MYSQLCLIENT" = x1])
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile
+				 ext/Makefile
 				 tests/Makefile
 				 oslayer.pc])
 AC_OUTPUT
