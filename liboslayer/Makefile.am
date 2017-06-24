@@ -11,6 +11,7 @@ liboslayerinc_HEADERS= \
 	Condition.hpp \
 	CountDownLatch.hpp \
 	DatabaseConnection.hpp \
+	DatabaseDriver.hpp \
 	DatagramSocket.hpp \
 	Date.hpp \
 	Endian.hpp \
@@ -76,6 +77,8 @@ liboslayer_la_SOURCES= \
 	CountDownLatch.hpp \
 	DatabaseConnection.cpp \
 	DatabaseConnection.hpp \
+	DatabaseDriver.cpp \
+	DatabaseDriver.hpp \
 	DatagramSocket.cpp \
 	DatagramSocket.hpp \
 	Date.cpp \

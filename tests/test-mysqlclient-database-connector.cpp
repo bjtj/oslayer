@@ -6,6 +6,7 @@
 #include <liboslayer/os.hpp>
 #include <liboslayer/Library.hpp>
 #include <liboslayer/DatabaseConnection.hpp>
+#include <liboslayer/DatabaseDriver.hpp>
 
 using namespace std;
 using namespace OS;
@@ -42,11 +43,9 @@ public:
 		//   tel varchar(25) default NULL
 		// );
 
-		// MysqlDatabaseConnection conn;
-
-		Library lib("../ext/.libs/", "mysqlconnector");
-		lib.load();
-		DatabaseConnection * conn = ((DatabaseConnection*(*)(void))*lib.symbol("get_connector"))();
+		DatabaseDriver & driver = DatabaseDriver::instance();
+		driver.load("mysql", AutoRef<Library>(new Library("../ext/.libs/", "mysqlconnector")));
+		AutoRef<DatabaseConnection> conn = driver.getConnection("mysql");
 		conn->connect("localhost", 3306, username, password, dbname);
 
 		AutoRef<ResultSet> result = conn->query("select * from address");
@@ -68,7 +67,6 @@ public:
 		cout << "insert result: " << ret << endl;
 
 		conn->disconnect();
-		delete conn;
 	}
 };
 

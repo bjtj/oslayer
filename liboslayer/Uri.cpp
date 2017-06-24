@@ -121,5 +121,28 @@ namespace UTIL {
 	string & Uri::fragment() {
 		return _fragment;
 	}
-
+	string Uri::scheme() const {
+		return _scheme;
+	}
+	string Uri::username() const {
+		return _username;
+	}
+	string Uri::password() const {
+		return _password;
+	}
+	string Uri::hostname() const {
+		return _hostname;
+	}
+	int Uri::port() const {
+		return _port;
+	}
+	string Uri::path() const {
+		return _path;
+	}
+	string Uri::query() const {
+		return _query;
+	}
+	string Uri::fragment() const {
+		return _fragment;
+	}
 }

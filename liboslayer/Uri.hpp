@@ -27,6 +27,14 @@ namespace UTIL {
 		std::string & path();
 		std::string & query();
 		std::string & fragment();
+		std::string scheme() const;
+		std::string username() const;
+		std::string password() const;
+		std::string hostname() const;
+		int port() const;
+		std::string path() const;
+		std::string query() const;
+		std::string fragment() const;
 	};
 
 
