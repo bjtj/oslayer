@@ -55,6 +55,7 @@ liboslayerinc_HEADERS= \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
+	Uri.hpp \
 	os.hpp \
 	platform.hpp
 
@@ -149,6 +150,8 @@ liboslayer_la_SOURCES= \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
+	Uri.cpp \
+	Uri.hpp \
 	os.cpp \
 	os.hpp \
 	platform.hpp

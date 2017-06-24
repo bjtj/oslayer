@@ -102,10 +102,14 @@ namespace UTIL {
 			cerr << " [Exception]: " << e.toString() << endl;
 			result.setResult(false);
 			result.setMessage(e.toString());
-		} catch (...) {
-			cerr << " [unknown exception]" << endl;
+		} catch (const string & str) {
+			cerr << " [exception] " << str << endl;
 			result.setResult(false);
-			result.setMessage("unknown exception");
+			result.setMessage("exception - " + str);
+		} catch (const char * str) {
+			cerr << " [exception] " << str << endl;
+			result.setResult(false);
+			result.setMessage("exception - " + string(str));
 		}
 		testCase->tearDown();
 		cout << endl;
