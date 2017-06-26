@@ -5,11 +5,14 @@ namespace UTIL {
 	using namespace std;
 	using namespace OS;
 
+	DatabaseDriver DatabaseDriver::_instance;
+
 	DatabaseDriver::DatabaseDriver() {
 	}
 	DatabaseDriver::~DatabaseDriver() {
 	}
 	DatabaseDriver & DatabaseDriver::instance() {
+		return _instance;
 	}
 	void DatabaseDriver::load(const std::string & name, const AutoRef<Library> & lib) {
 		lib->load();
