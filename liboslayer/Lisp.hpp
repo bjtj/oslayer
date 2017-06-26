@@ -150,10 +150,11 @@ namespace LISP {
 	/**
 	 * @brief any
 	 */
-	class Any {
+	class Ext {
 	public:
-		Any() {}
-		virtual ~Any() {}
+		Ext() {/**/}
+		virtual ~Ext() {/**/}
+		virtual std::string toString() const = 0;
 	};
 
 
@@ -450,7 +451,7 @@ namespace LISP {
 		const static int FUNC = 9;
 		const static int FILE = 10;
 		const static int FILE_DESCRIPTOR = 11;
-		const static int EXTEND = 100;
+		const static int EXTENTION = 100;
 		
 	private:
 		static bool _debug;
@@ -467,7 +468,7 @@ namespace LISP {
 		OS::AutoRef<Procedure> _procedure;
 		OS::File _file;
 		FileDescriptor _fd;
-		OS::AutoRef<Any> _ext;
+		OS::AutoRef<Ext> _ext;
 		
 	public:
 		explicit Var();
@@ -489,7 +490,7 @@ namespace LISP {
 		explicit Var(OS::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
 		explicit Var(const FileDescriptor & fd);
-		explicit Var(OS::AutoRef<Any> ext);
+		explicit Var(OS::AutoRef<Ext> ext);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -511,7 +512,7 @@ namespace LISP {
 		bool isFunction() const;
 		bool isFile() const;
 		bool isFileDescriptor() const;
-		bool isExtend() const;
+		bool isExtention() const;
 
 		const std::string & r_symbol() const;
 		const std::string & r_keyword() const;
@@ -536,7 +537,7 @@ namespace LISP {
 		Func & r_func();
 		OS::AutoRef<Procedure> & r_procedure();
 		FileDescriptor & r_fileDescriptor();
-		OS::AutoRef<Any> & r_ext();
+		OS::AutoRef<Ext> & r_ext();
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
