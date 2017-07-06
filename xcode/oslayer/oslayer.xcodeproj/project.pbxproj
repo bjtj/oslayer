@@ -29,6 +29,10 @@
 		E824CD7F1DB6CF5600EA2518 /* Date.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E824CD741DB6CEFE00EA2518 /* Date.cpp */; };
 		E824CD801DB6CF5600EA2518 /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E824CD761DB6CEFE00EA2518 /* File.cpp */; };
 		E824CD811DB6CF5600EA2518 /* Library.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E824CD781DB6CEFE00EA2518 /* Library.cpp */; };
+		E846C7881F0E753200F7EA38 /* DatabaseDriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */; };
+		E846C7891F0E753200F7EA38 /* DatabaseDriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */; };
+		E846C78A1F0E753200F7EA38 /* Uri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7861F0E753200F7EA38 /* Uri.cpp */; };
+		E846C78B1F0E753200F7EA38 /* Uri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7861F0E753200F7EA38 /* Uri.cpp */; };
 		E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
 		E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
 		E86940391D19F97100192CBB /* ArgumentParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940301D19F97100192CBB /* ArgumentParser.cpp */; };
@@ -139,6 +143,10 @@
 		E824CD771DB6CEFE00EA2518 /* File.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = File.hpp; path = ../../liboslayer/File.hpp; sourceTree = "<group>"; };
 		E824CD781DB6CEFE00EA2518 /* Library.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Library.cpp; path = ../../liboslayer/Library.cpp; sourceTree = "<group>"; };
 		E824CD791DB6CEFE00EA2518 /* Library.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Library.hpp; path = ../../liboslayer/Library.hpp; sourceTree = "<group>"; };
+		E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatabaseDriver.cpp; path = ../../liboslayer/DatabaseDriver.cpp; sourceTree = "<group>"; };
+		E846C7851F0E753200F7EA38 /* DatabaseDriver.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatabaseDriver.hpp; path = ../../liboslayer/DatabaseDriver.hpp; sourceTree = "<group>"; };
+		E846C7861F0E753200F7EA38 /* Uri.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Uri.cpp; path = ../../liboslayer/Uri.cpp; sourceTree = "<group>"; };
+		E846C7871F0E753200F7EA38 /* Uri.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Uri.hpp; path = ../../liboslayer/Uri.hpp; sourceTree = "<group>"; };
 		E84737DC1C1D387F008350CD /* platform.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = platform.hpp; path = ../../liboslayer/platform.hpp; sourceTree = "<group>"; };
 		E84DE9A41D901A2100EE539A /* Condition.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Condition.hpp; path = ../../liboslayer/Condition.hpp; sourceTree = "<group>"; };
 		E85690101D560E9100F7517B /* Heap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Heap.hpp; path = ../../liboslayer/Heap.hpp; sourceTree = "<group>"; };
@@ -260,6 +268,10 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */,
+				E846C7851F0E753200F7EA38 /* DatabaseDriver.hpp */,
+				E846C7861F0E753200F7EA38 /* Uri.cpp */,
+				E846C7871F0E753200F7EA38 /* Uri.hpp */,
 				E8B4F3791EC289DF0092FB74 /* Pool.hpp */,
 				E815B9E11EBD4F0E001E8E22 /* AutoLock.cpp */,
 				E815B9E21EBD4F0E001E8E22 /* AutoLock.hpp */,
@@ -435,6 +447,7 @@
 				E88A80041CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
 				E81FE3A01CC78532003D3F15 /* Observer.cpp in Sources */,
 				E88A80021CB4453F00241D44 /* FileStream.cpp in Sources */,
+				E846C7881F0E753200F7EA38 /* DatabaseDriver.cpp in Sources */,
 				E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */,
 				E8C1D42D1E9EECD900AA8905 /* Endian.cpp in Sources */,
 				E8DCAB6E1E4202E7005A1372 /* Network.cpp in Sources */,
@@ -443,6 +456,7 @@
 				E89501421C146379009434B1 /* Socket.cpp in Sources */,
 				E815B9E71EBD4F0E001E8E22 /* AutoLock.cpp in Sources */,
 				E86940621D2A66B900192CBB /* DatabaseConnection.cpp in Sources */,
+				E846C78A1F0E753200F7EA38 /* Uri.cpp in Sources */,
 				E815B9E91EBD4F0E001E8E22 /* Mutex.cpp in Sources */,
 				E824CD7C1DB6CEFE00EA2518 /* File.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
@@ -481,6 +495,7 @@
 				E8DCAB701E420356005A1372 /* Network.cpp in Sources */,
 				E8DCAB711E420356005A1372 /* SocketApi.cpp in Sources */,
 				E824CD7F1DB6CF5600EA2518 /* Date.cpp in Sources */,
+				E846C7891F0E753200F7EA38 /* DatabaseDriver.cpp in Sources */,
 				E824CD801DB6CF5600EA2518 /* File.cpp in Sources */,
 				E824CD811DB6CF5600EA2518 /* Library.cpp in Sources */,
 				E8C1D42E1E9EECD900AA8905 /* Endian.cpp in Sources */,
@@ -489,6 +504,7 @@
 				E86940651D2A66ED00192CBB /* Uuid.cpp in Sources */,
 				E815B9E81EBD4F0E001E8E22 /* AutoLock.cpp in Sources */,
 				E86940661D2A66ED00192CBB /* Regex.cpp in Sources */,
+				E846C78B1F0E753200F7EA38 /* Uri.cpp in Sources */,
 				E815B9EA1EBD4F0E001E8E22 /* Mutex.cpp in Sources */,
 				E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */,
 				E86940441D19F9F400192CBB /* Random.cpp in Sources */,
