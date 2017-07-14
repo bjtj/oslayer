@@ -413,7 +413,7 @@ namespace LISP {
 	class Func {
 	private:
 		bool _macro;
-		OS::AutoRef<Scope> _scope;
+		OS::AutoRef<Scope> _closure_scope;
 		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
 		OS::GCRef<Var> _form;
@@ -427,7 +427,7 @@ namespace LISP {
 		bool empty() const;
 		bool & macro();
 		bool macro() const;
-		OS::AutoRef<Scope> & scope();
+		OS::AutoRef<Scope> & closure_scope();
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & form();

@@ -449,19 +449,19 @@ namespace LISP {
 	 */
 
 	Func::Func()
-		: _macro(false), _scope(new Scope) {
+		: _macro(false), _closure_scope(new Scope) {
 	}
 	Func::Func(const _VAR & params, const _VAR & form)
-		: _macro(false), _scope(new Scope), _params(params), _form(form) {
+		: _macro(false), _closure_scope(new Scope), _params(params), _form(form) {
 	}
 	Func::Func(bool macro, const _VAR & params, const _VAR & form)
-		: _macro(macro), _scope(new Scope), _params(params), _form(form) {
+		: _macro(macro), _closure_scope(new Scope), _params(params), _form(form) {
 	}
 	Func::Func(const _VAR & doc, const _VAR & params, const _VAR & form)
-		: _macro(false), _scope(new Scope), _doc(doc), _params(params), _form(form) {
+		: _macro(false), _closure_scope(new Scope), _doc(doc), _params(params), _form(form) {
 	}
 	Func::Func(bool macro, const _VAR & doc, const _VAR & params, const _VAR & form)
-		: _macro(macro), _scope(new Scope), _doc(doc), _params(params), _form(form) {
+		: _macro(macro), _closure_scope(new Scope), _doc(doc), _params(params), _form(form) {
 	}
 	Func::~Func() {
 	}
@@ -474,8 +474,8 @@ namespace LISP {
 	bool Func::macro() const {
 		return _macro;
 	}
-	AutoRef<Scope> & Func::scope() {
-		return _scope;
+	AutoRef<Scope> & Func::closure_scope() {
+		return _closure_scope;
 	}
 	_VAR & Func::doc() {
 		return _doc;
@@ -699,9 +699,9 @@ namespace LISP {
 			throw LispException("Not Macro");
 		}
 		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-		params.bind(env, scope, _func.scope(), args, false);
-		_func.scope()->parent() = scope;
-		return eval(env, _func.scope(), _func.form());
+		params.bind(env, scope, _func.closure_scope(), args, false);
+		_func.closure_scope()->parent() = scope;
+		return eval(env, _func.closure_scope(), _func.form());
 
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
@@ -712,18 +712,19 @@ namespace LISP {
 		if (!_procedure.nil()) {
 			return _procedure->proc(env, scope, name, args);
 		}
-
-		if (_func.macro()) {
-			Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-			params.bind(env, scope, _func.scope(), args, false);
-			_func.scope()->parent() = scope;
-			return eval(env, scope, eval(env, _func.scope(), _func.form()));
-		}
-		
 		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-		params.bind(env, scope, _func.scope(), args, true);
-		_func.scope()->parent() = scope;
-		return eval(env, _func.scope(), _func.form());
+		if (_func.macro()) {
+			params.bind(env, scope, _func.closure_scope(), args, false);
+			// _func.closure_scope()->parent() = scope;
+			// return eval(env, scope, eval(env, _func.closure_scope(), _func.form()));
+			AutoRef<Scope> local_scope(new Scope(*_func.closure_scope()));
+			local_scope->parent() = scope;
+			return eval(env, scope, eval(env, local_scope, _func.form()));
+		}
+		params.bind(env, scope, _func.closure_scope(), args, true);
+		AutoRef<Scope> local_scope(new Scope(*_func.closure_scope()));
+		local_scope->parent() = scope;
+		return eval(env, local_scope, _func.form());
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, vector<_VAR> & args) {
 		if (!_procedure.nil()) {
@@ -1747,7 +1748,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			args[0]->typeCheck(Var::LIST);
 			Func func(args[0], args[1]);
-			func.scope()->registries() = scope->registries();
+			func.closure_scope()->registries() = scope->registries();
 			return _HEAP_ALLOC(env, func);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defun");

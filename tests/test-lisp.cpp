@@ -845,6 +845,26 @@ static void test_throw() {
 	ASSERT(compile(env, cmd)->r_symbol(), ==, "outer-catch");
 }
 
+static void test_recursive() {
+	Env env;
+	native(env);
+	compile(env, "(defun factorial (n) (if (<= n 1) n (* n (factorial (- n 1)))))");
+	ASSERT(*compile(env, "(factorial 4)")->r_integer(), ==, 24);
+	compile(env, "(defmacro fact (n) `(if (<= ,n 1) ,n (* ,n (fact (- ,n 1)))))");
+	ASSERT(*compile(env, "(fact 4)")->r_integer(), ==, 24);
+}
+
+static void test_closure() {
+	Env env;
+	native(env);
+	compile(env, "(defun foo (n) (lambda (i) (incf n i)))");
+	compile(env, "(defparameter x (foo 1))");
+	ASSERT(*compile(env, "(funcall x 1)")->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(funcall x 1)")->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(funcall x 1)")->r_integer(), ==, 4);
+	ASSERT(*compile(env, "(funcall x 1)")->r_integer(), ==, 5);
+}
+
 int main(int argc, char *args[]) {
 
 	// Env::setDebug(true);
@@ -907,6 +927,10 @@ int main(int argc, char *args[]) {
 		test_block();
 		cout << " *** test_throw()" << endl;
 		test_throw();
+		cout << " *** test_recursive()" << endl;
+		test_recursive();
+		cout << " *** test_closure()" << endl;
+		test_closure();
 	} catch (LispException & e) {
 		cout << e.toString() << endl;
 		exit(1);
