@@ -60,6 +60,9 @@ public:
 			throw "mysql_real_connect() failed";
 		}
 	}
+	virtual bool isConnected() {
+		return (_real_conn != NULL);
+	}
 	virtual AutoRef<ResultSet> query(const string & statement) {
 		if (mysql_query(_real_conn, statement.c_str()) != 0) {
 			throw "mysql_query() failed";

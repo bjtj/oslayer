@@ -81,6 +81,9 @@ namespace UTIL {
 	void DatabaseConnection::disconnect() {
 		throw NotImplementedException("disconnect()");
 	}
+	bool DatabaseConnection::isConnected() {
+		throw NotImplementedException("isConnected()");
+	}
 	AutoRef<ResultSet> DatabaseConnection::query(const string & sql) {
 		throw NotImplementedException("query()");
 	}

@@ -7,6 +7,8 @@
 #include "Socket.hpp"
 #include "AutoLock.hpp"
 #include "Process.hpp"
+#include "DatabaseDriver.hpp"
+#include "DatabaseConnection.hpp"
 
 #define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,V) E.alloc(new Var(V))
@@ -44,6 +46,8 @@ namespace LISP {
 	using namespace std;
 	using namespace OS;
 	using namespace UTIL;
+
+	static string printVar(_VAR var);
 
 	static string _to_string(_VAR var) {
 		if (var.nil()) {
@@ -757,7 +761,7 @@ namespace LISP {
 				if (iter != _lst.begin()) {
 					ret += " ";
 				}
-				ret += (*iter)->toString();
+				ret += printVar(*iter);
 			}
 			ret += ")";
 			return ret;
@@ -787,7 +791,6 @@ namespace LISP {
 				return "#<COMPILED FUNCTION " + _procedure->name() + ">";
 			}
 			return _func.toString();
-			// return "#<FUNCTION>";
 		}
 		case FILE:
 			return "#p\"" + _file.getPath() + "\"";
@@ -1124,6 +1127,74 @@ namespace LISP {
 		}
 	};
 
+	/**
+	 *
+	 */
+	class LispDatabaseConnection : public Ext {
+	private:
+		AutoRef<DatabaseConnection> _conn;
+	public:
+		LispDatabaseConnection(AutoRef<DatabaseConnection> conn)
+			: _conn(conn) {
+		}
+		virtual ~LispDatabaseConnection() {
+		}
+
+		void connect(const string & host, int port, const string & username, const string & password, const string & dbname) {
+			_conn->connect(host, port, username, password, dbname);
+		}
+
+		void disconnect() {
+			if (_conn->isConnected() == false) {
+				throw LispException("Not connected yet");
+			}
+			_conn->disconnect();
+		}
+
+		AutoRef<ResultSet> query(const string & sql) {
+			if (_conn->isConnected() == false) {
+				throw LispException("Not connected yet");
+			}
+			return _conn->query(sql);
+		}
+
+		int queryUpdate(const string & sql) {
+			if (_conn->isConnected() == false) {
+				throw LispException("Not connected yet");
+			}
+			return _conn->queryUpdate(sql);
+		}
+
+		virtual string toString() const {
+			return "LispDatabaseConnection";
+		}			
+	};
+
+	/**
+	 *
+	 */
+	class LispResultSet : public Ext {
+	private:
+		AutoRef<ResultSet> _resultSet;
+	public:
+		LispResultSet(AutoRef<ResultSet> resultSet)
+			: _resultSet(resultSet) {
+		}
+		virtual ~LispResultSet() {
+		}
+		bool next() {
+			return _resultSet->next();
+		}
+		int fieldCount() {
+			return _resultSet->fieldCount();
+		}
+		string getString(int i) {
+			return _resultSet->getString(i);
+		}
+		virtual string toString() const {
+			return "LispResultSet";
+		}
+	};
 
 	// built-in
 	static void builtin_essential(Env & env);
@@ -3233,12 +3304,66 @@ namespace LISP {
 	}
 
 	void builtin_db(Env & env) {
-		// TODO: db interface
-		// db:connect
-		// db:disconnect
-		// db:query
-		// db:fetch
-		// db:update
+		DECL_NATIVE_BEGIN(env, "db:load");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			string path = eval(env, scope, args[0])->toString();
+			string name = eval(env, scope, args[1])->toString();
+			DatabaseDriver::instance().load(name, AutoRef<Library>(new Library(path, name)));
+			return _HEAP_ALLOC(env, name);
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:connect");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 6);
+			string name = eval(env, scope, args[0])->toString();
+			string hostname = eval(env, scope, args[1])->toString();
+			int port = (int)eval(env, scope, args[2])->r_integer().getInteger();
+			string username = eval(env, scope, args[3])->toString();
+			string password = eval(env, scope, args[4])->toString();
+			string dbname = eval(env, scope, args[5])->toString();
+			LispDatabaseConnection * conn = new LispDatabaseConnection(DatabaseDriver::instance().getConnection(name));
+			conn->connect(hostname, port, username, password, dbname);
+			return _HEAP_ALLOC(env, AutoRef<Ext>(conn));
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:disconnect");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			conn->disconnect();
+			return _NIL(env);
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:query");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			string sql = eval(env, scope, args[1])->toString();
+			return _HEAP_ALLOC(env, AutoRef<Ext>(new LispResultSet(conn->query(sql))));
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:fetch");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			LispResultSet * resultSet = ((LispResultSet *)&eval(env, scope, args[0])->r_ext());
+			if (resultSet->next() == false) {
+				return _NIL(env);
+			}
+			vector<_VAR> row;
+			for (int i = 0; i < resultSet->fieldCount(); i++) {
+				row.push_back(_HEAP_ALLOC(env, wrap_text(resultSet->getString(i))));
+			}
+			return _HEAP_ALLOC(env, row);
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:update");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 2);
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			string sql = eval(env, scope, args[1])->toString();
+			return _HEAP_ALLOC(env, conn->queryUpdate(sql));
+		}DECL_NATIVE_END();
 	}
 
 	/**
@@ -3365,7 +3490,7 @@ namespace LISP {
 		return commands[idx];
 	}
 
-	string printVar(_VAR var) {
+	static string printVar(_VAR var) {
 		if (var->isString()) {
 			return var->r_string();
 		}

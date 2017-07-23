@@ -54,6 +54,7 @@ namespace UTIL {
 		virtual std::string getDriverName();
 		virtual void connect(const std::string & hostname, int port, const std::string & username, const std::string & password, const std::string & dbname);
 		virtual void disconnect();
+		virtual bool isConnected();
 		virtual OS::AutoRef<ResultSet> query(const std::string & sql);
 		virtual size_t queryUpdate(const std::string & sql);
 		virtual size_t lastInsertId();
