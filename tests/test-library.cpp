@@ -15,7 +15,7 @@ public:
 	}
 	virtual void test() {
 		try {
-			Library lib(DATA_PATH, "hello");
+			Library lib(DATA_PATH"/.libs", "hello");
 			lib.load();
 			((void (*)(void))*lib.symbol("hello"))();
 		} catch (Exception e) {

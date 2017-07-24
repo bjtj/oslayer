@@ -1,5 +1,7 @@
 @VALGRIND_CHECK_RULES@
 
+SUBDIRS=data
+
 TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
@@ -97,8 +99,6 @@ test_secure_socket_SOURCES=test-secure-socket.cpp
 endif
 
 AM_CPPFLAGS=-I$(top_srcdir)
-AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(srcdir)/data\"" $(LIBMYSQLCLIENT_CFLAGS)
+AM_CXXFLAGS=$(PTHREAD_CXXFLAGS) -DDATA_PATH="\"$(builddir)/data\"" $(LIBMYSQLCLIENT_CFLAGS)
 AM_LDFLAGS=$(PTHREAD_CFLAGS) $(LIBMYSQLCLIENT_LIBS)
 LDADD=../liboslayer/liboslayer.la
-
-EXTRA_DIST=data/cert.pem data/key.pem

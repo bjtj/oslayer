@@ -76,7 +76,8 @@ private:
 	string certPath;
 	string keyPath;
 public:
-	SecureSocketConnectionTestCase(int port, const string & certPath, const string & keyPath) : TestCase("SecureSocketConnectionTestCase"), serverThread(NULL), port(port), certPath(certPath), keyPath(keyPath) {}
+	SecureSocketConnectionTestCase(const string & name, int port, const string & certPath, const string & keyPath)
+		: TestCase(name), serverThread(NULL), port(port), certPath(certPath), keyPath(keyPath) {}
 	virtual ~SecureSocketConnectionTestCase() {}
 	virtual void setUp(TestEnvironment & env) {
 		serverThread = new SecureServerThread(port, certPath, keyPath);
@@ -111,7 +112,8 @@ public:
 
 class SecureSocketVerifiationTestCase : public SecureSocketConnectionTestCase {
 public:
-	SecureSocketVerifiationTestCase(int port, const string & certPath, const string & keyPath) : SecureSocketConnectionTestCase(port, certPath, keyPath) {
+	SecureSocketVerifiationTestCase(const string & name, int port, const string & certPath, const string & keyPath)
+		: SecureSocketConnectionTestCase(name, port, certPath, keyPath) {
 	}
 	virtual ~SecureSocketVerifiationTestCase() {}
 	virtual void test() {
@@ -123,9 +125,8 @@ public:
 			client.connect();
 			client.recv(buffer, sizeof(buffer));
 			ASSERT(string(buffer), ==, "hello");
-			
 		} catch (Exception & e) {
-			cerr << e.toString() << endl;
+			cerr << "expected exception: " << e.toString() << endl;
 			err = e.toString();
 		}
 
@@ -144,8 +145,8 @@ int main(int argc, char *args[]) {
 	cout << "OpenSSL Ver. " << SecureContext::getOpenSSLVersion() << endl;
 
 	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new SecureSocketConnectionTestCase(port, certPath, keyPath)));
-	ts.addTestCase(AutoRef<TestCase>(new SecureSocketVerifiationTestCase(port, certPath, keyPath)));
+	ts.addTestCase(AutoRef<TestCase>(new SecureSocketConnectionTestCase("SecureSocketConnectionTestCase", port, certPath, keyPath)));
+	ts.addTestCase(AutoRef<TestCase>(new SecureSocketVerifiationTestCase("SecureSocketVerificationTestCase", port, certPath, keyPath)));
 	TestReport report(ts.testAll());
 	ASSERT(report.failed(), ==, 0);
     

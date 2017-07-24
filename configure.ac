@@ -85,12 +85,16 @@ PKG_CHECK_MODULES([LIBMYSQLCLIENT],[mysqlclient],[HAVE_PKG_MYSQLCLIENT=1],[HAVE_
 AS_IF([test "x$HAVE_PKG_MYSQLCLIENT" = x1], [AC_DEFINE([HAVE_MYSQLCLIENT],1,[support mysqlclient])])
 AM_CONDITIONAL([SUPPORT_MYSQLCLIENT], [test "x$HAVE_PKG_MYSQLCLIENT" = x1])
 
+AC_CONFIG_LINKS([tests/data/cert.pem:tests/data/cert.pem])
+AC_CONFIG_LINKS([tests/data/key.pem:tests/data/key.pem])
+
 #
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile
 				 ext/Makefile
 				 tests/Makefile
+				 tests/data/Makefile
 				 oslayer.pc])
 AC_OUTPUT
 
