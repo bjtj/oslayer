@@ -719,8 +719,6 @@ namespace LISP {
 		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
 		if (_func.macro()) {
 			params.bind(env, scope, _func.closure_scope(), args, false);
-			// _func.closure_scope()->parent() = scope;
-			// return eval(env, scope, eval(env, _func.closure_scope(), _func.form()));
 			AutoRef<Scope> local_scope(new Scope(*_func.closure_scope()));
 			local_scope->parent() = scope;
 			return eval(env, scope, eval(env, local_scope, _func.form()));
