@@ -11,7 +11,7 @@ namespace UTIL {
 	DECL_NAMED_EXCEPTION(DatabaseException);
 	
 	/**
-	 * @brief 
+	 * @brief ResultSet
 	 */
 	class ResultSet {
 	private:
@@ -27,7 +27,7 @@ namespace UTIL {
 	};
 
 	/**
-	 * @brief 
+	 * @brief PreparedStatement
 	 */
 	class PreparedStatement {
 	private:
@@ -45,7 +45,7 @@ namespace UTIL {
 	};
 
 	/**
-	 * @brief 
+	 * @brief DatabaseConnection
 	 */
 	class DatabaseConnection {
 	public:
