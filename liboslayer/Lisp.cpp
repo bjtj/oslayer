@@ -1160,7 +1160,7 @@ namespace LISP {
 			if (_conn->isConnected() == false) {
 				throw LispException("Not connected yet");
 			}
-			return _conn->queryUpdate(sql);
+			return (int)_conn->queryUpdate(sql);
 		}
 
 		virtual string toString() const {
