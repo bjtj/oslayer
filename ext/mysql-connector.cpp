@@ -57,7 +57,7 @@ public:
 		_real_conn = mysql_real_connect(&_conn, hostname.c_str(), username.c_str(), password.c_str(),
 										dbname.c_str(), port, (char*)NULL, 0);
 		if (_real_conn == NULL) {
-			throw "mysql_real_connect() failed";
+			throw DatabaseException("mysql_real_connect() failed");
 		}
 	}
 	virtual bool isConnected() {
@@ -65,13 +65,13 @@ public:
 	}
 	virtual AutoRef<ResultSet> query(const string & statement) {
 		if (mysql_query(_real_conn, statement.c_str()) != 0) {
-			throw "mysql_query() failed";
+			throw DatabaseException("mysql_query() failed");
 		}
 		return AutoRef<ResultSet>(new MysqlClientResultSet(mysql_store_result(_real_conn)));
 	}
 	virtual size_t queryUpdate(const string & statement) {
 		if (mysql_query(_real_conn, statement.c_str()) != 0) {
-			throw "mysql_query() failed";
+			throw DatabaseException("mysql_query() failed");
 		}
 		return mysql_affected_rows(_real_conn);
 	}
