@@ -3304,7 +3304,7 @@ namespace LISP {
 	void builtin_db(Env & env) {
 		DECL_NATIVE_BEGIN(env, "db:load");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			string path = eval(env, scope, args[0])->toString();
 			string name = eval(env, scope, args[1])->toString();
 			DatabaseDriver::instance().load(name, AutoRef<Library>(new Library(path, name)));
@@ -3313,7 +3313,7 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "db:connect");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 6);
+			_CHECK_ARGS_EXACT_COUNT(args, 6);
 			string name = eval(env, scope, args[0])->toString();
 			string hostname = eval(env, scope, args[1])->toString();
 			int port = (int)eval(env, scope, args[2])->r_integer().getInteger();
@@ -3327,7 +3327,7 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "db:disconnect");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
 			conn->disconnect();
 			return _NIL(env);
@@ -3335,7 +3335,7 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "db:query");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
 			string sql = eval(env, scope, args[1])->toString();
 			return _HEAP_ALLOC(env, AutoRef<Ext>(new LispResultSet(conn->query(sql))));
@@ -3343,7 +3343,7 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "db:fetch");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			LispResultSet * resultSet = ((LispResultSet *)&eval(env, scope, args[0])->r_ext());
 			if (resultSet->next() == false) {
 				return _NIL(env);
@@ -3357,10 +3357,17 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "db:update");
 		{
-			_CHECK_ARGS_MIN_COUNT(args, 2);
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
 			string sql = eval(env, scope, args[1])->toString();
 			return _HEAP_ALLOC(env, conn->queryUpdate(sql));
+		}DECL_NATIVE_END();
+
+		DECL_NATIVE_BEGIN(env, "db:escape");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			string sql = eval(env, scope, args[0])->toString();
+			return _HEAP_ALLOC(env, wrap_text(Text::replaceAll(sql, "'", "\\'")));
 		}DECL_NATIVE_END();
 	}
 
