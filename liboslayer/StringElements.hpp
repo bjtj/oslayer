@@ -156,6 +156,9 @@ namespace UTIL {
 		void append(const LinkedStringMap & m);
 		void append(const std::map<std::string, std::string> & m);
 		void erase(const std::string & key);
+		void eraseAll(const std::string & key);
+		void eraseIgnoreCase(const std::string & key);
+		void eraseAllIgnoreCase(const std::string & key);
 		std::map<std::string, std::string> to_first_map(const std::string & def) const;
 		std::map<std::string, std::string> to_join_map(const std::string & glue) const;
 		StringList & operator[] (const std::string & key);

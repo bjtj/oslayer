@@ -338,6 +338,35 @@ namespace UTIL {
 			}
 		}
 	}
+	void LinkedStringListMap::eraseAll(const string & key) {
+		for (vector< Named<StringList> >::iterator iter = _elements.begin();
+			 iter != _elements.end();) {
+			if (iter->name() == key) {
+				iter = _elements.erase(iter);
+			} else {
+				iter++;
+			}
+		}
+	}
+	void LinkedStringListMap::eraseIgnoreCase(const string & key) {
+		for (vector< Named<StringList> >::iterator iter = _elements.begin();
+			 iter != _elements.end(); iter++) {
+			if (Text::equalsIgnoreCase(iter->name(), key)) {
+				_elements.erase(iter);
+				return;
+			}
+		}
+	}
+	void LinkedStringListMap::eraseAllIgnoreCase(const string & key) {
+		for (vector< Named<StringList> >::iterator iter = _elements.begin();
+			 iter != _elements.end();) {
+			if (Text::equalsIgnoreCase(iter->name(), key)) {
+				iter = _elements.erase(iter);
+			} else {
+				iter++;
+			}
+		}
+	}
 	map<string, string> LinkedStringListMap::to_first_map(const string & def) const {
 		map<string, string> m;
 		for (vector< Named<StringList> >::const_iterator iter = _elements.begin();

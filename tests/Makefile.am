@@ -6,6 +6,7 @@ TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
 	test-os \
+	test-file \
 	test-ref \
 	test-date \
 	test-base64 \
@@ -54,6 +55,7 @@ check_PROGRAMS += test-mysqlclient-database-connector
 endif
 
 test_os_SOURCES=test-os.cpp
+test_file_SOURCES=test-file.cpp
 test_ref_SOURCES=test-ref.cpp
 test_date_SOURCES=test-date.cpp
 test_base64_SOURCES=test-base64.cpp
