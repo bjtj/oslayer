@@ -25,7 +25,7 @@ public:
 		return mysql_num_fields(_res);
 	}
 	virtual string fieldName(size_t idx) {
-		return string(mysql_fetch_field_direct(_res, idx)->name);
+		return string(mysql_fetch_field_direct(_res, (unsigned int)idx)->name);
 	}
 	virtual string getString(size_t idx) {
 		return _row[idx];
