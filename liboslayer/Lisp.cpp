@@ -3299,6 +3299,7 @@ namespace LISP {
 		compile(env, "(defmacro decf (x &optional (i 1)) `(setf ,x (- ,x ,i)))");
 		compile(env, "(defmacro 1+ (x) `(+ ,x 1))");
 		compile(env, "(defmacro 1- (x) `(- ,x 1))");
+		compile(env, "(defmacro cadr (x) `(car (cdr ,x)))");
 	}
 
 	void builtin_db(Env & env) {
