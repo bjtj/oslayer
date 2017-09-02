@@ -355,6 +355,9 @@ namespace LISP {
 			testFd();
 			return feof(_fd) ? true : false;
 		}
+		int read() {
+			return fgetc(_fd);
+		}
 		std::string readline() {
 			testFd();
 			char buffer[1024] = {0,};

@@ -2839,11 +2839,11 @@ namespace LISP {
 				return _HEAP_ALLOC(env, true);
 			}
 			BufferedCommandReader reader;
-			while (!fd.eof() && reader.read(fd.readline() + "\n") < 1) {}
+			while (!fd.eof() && reader.read(string(1, (char)fd.read())) < 1) {}
                 
 			vector<string> commands = reader.getCommands();
 			for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-				ret = compile(env, *iter);
+				ret = parse(env, *iter);
 				env.gc();
 			}
 			return ret;
