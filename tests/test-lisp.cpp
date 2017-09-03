@@ -789,14 +789,14 @@ static void test_load() {
 	compile(env, "(system \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *temp* 1)\" out) (close out))");
-	compile(env, "(let ((in (open \"code.lsp\"))) (read in) (close in))");
+	compile(env, "(let ((in (open \"code.lsp\"))) (eval (read in)) (close in))");
 	ASSERT(*compile(env, "*temp*")->r_integer(), ==, 1);
 
 	//
 	compile(env, "(system \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *a* \" out) (write-line \"1)\" out) (close out))");
-	compile(env, "(let ((in (open \"code.lsp\"))) (read in) (close in))");
+	compile(env, "(let ((in (open \"code.lsp\"))) (eval (read in)) (close in))");
 	ASSERT(*compile(env, "*a*")->r_integer(), ==, 1);
 
 	//
