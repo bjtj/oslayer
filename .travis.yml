@@ -10,4 +10,4 @@ before_install:
 before_script:
   - autoreconf -i
 
-script: "./configure --enable-openssl && make && make check"
+script: "./configure --enable-openssl --disable-silent-rules && make && make check"
