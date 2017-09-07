@@ -62,8 +62,8 @@ fi
 
 # openssl
 AC_ARG_ENABLE([openssl],
-	[AS_HELP_STRING([--enable-openssl], [enable openssl build @<:@default: no@:>@])],
-		[enable_openssl=${enableval}], [enable_openssl=no])
+  [AS_HELP_STRING([--enable-openssl], [enable openssl build @<:@default: no@:>@])],
+    [enable_openssl=${enableval}], [enable_openssl=no])
 
 if test "x$enable_openssl" = "xyes"; then
   if test $ac_cv_func_SSL_library_init = no; then
@@ -75,9 +75,15 @@ fi
 AM_CONDITIONAL([SUPPORT_OPENSSL], [test x$enable_openssl = xyes])
 
 # sqlite3
-if test $ac_cv_func_sqlite3_open = no; then
-   AC_CHECK_LIB(sqlite3, sqlite3_open, [LIBS="-lsqlite3 $LIBS"
-   					AC_DEFINE(HAVE_SQLITE3,1,[Define to 1 if you have the 'sqlite3_open' function.])])
+AC_ARG_ENABLE([sqlite3],
+  [AS_HELP_STRING([--enable-sqlite3], [enable sqlite3 build @<:@default: no@:>@])]
+    [enable_sqlite3=${enableval}], [enable_sqlite=no])
+
+if test "x$enable_sqlite3" = "xyes"; then
+  if test $ac_cv_func_sqlite3_open = no; then
+    AC_CHECK_LIB(sqlite3, sqlite3_open, [LIBS="-lsqlite3 $LIBS"
+      AC_DEFINE(HAVE_SQLITE3, 1, [Define to 1 if you have the 'sqlite3_open' function.])])
+  fi
 fi
 
 # mysqlclient
