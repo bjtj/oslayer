@@ -1494,6 +1494,9 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
+	/**
+	 * get function
+	 */
 	static _VAR function(Env & env, AutoRef<Scope> scope, const _VAR & var) {
 		if (var->isFunction()) {
 			return var;
@@ -1822,20 +1825,32 @@ namespace LISP {
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defun");
 		{
+			/*
+			 * desc: delcare function
+			 */
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			args[1]->typeCheck(Var::LIST);
 			_VAR lambda_list = args[1];
 			_VAR doc;
-			_VAR form;
+			vector<_VAR> form;
+			form.push_back(_HEAP_ALLOC(env, "progn"));
+			size_t from = 0;
 			if (args[2]->getType() == Var::STRING) {
 				_CHECK_ARGS_MIN_COUNT(args, 4);
 				doc = args[2];
-				form = args[3];
+				from = 3;
 			} else {
 				doc = _NIL(env);
-				form = args[2];
+				from = 2;
 			}
-			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(doc, lambda_list, form)));
+			for (size_t i = from; i < args.size(); i++) {
+				form.push_back(args[i]);
+			}
+			// vector<_VAR> progn_form;
+			// progn_form.push_back(_HEAP_ALLOC(env, "progn"));
+			// progn_form.push_back(_HEAP_ALLOC(env, form));
+			return scope->rput_func(args[0]->r_symbol(),
+									_HEAP_ALLOC(env, Func(doc, lambda_list, _HEAP_ALLOC(env, form))));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defparameter");
 		{
