@@ -400,6 +400,70 @@ namespace LISP {
 	bool Character::operator>= (const Character & ch) const {
 		return _ch >= ch._ch;
 	}
+
+
+	/**
+	 * 
+	 */
+	FileDescriptor::FileDescriptor()
+		: AutoCloseable<Closeable>(this), _fd(NULL) {
+	}
+	FileDescriptor::FileDescriptor(bool autoclose)
+		: AutoCloseable<Closeable>(this, autoclose), _fd(NULL) {
+	}
+	FileDescriptor::FileDescriptor(FILE * _fd)
+		: AutoCloseable<Closeable>(this), _fd(_fd) {
+	}
+	FileDescriptor::FileDescriptor(FILE * _fd, bool autoclose)
+		: AutoCloseable<Closeable>(this, autoclose), _fd(_fd) {
+	}
+	FileDescriptor::~FileDescriptor() {
+	}
+	FILE * FileDescriptor::fd() {
+		return _fd;
+	}
+	void FileDescriptor::testFd() {
+		if (!_fd) {
+			throw LispException("file descriptor - nil");
+		}
+	}
+	bool FileDescriptor::eof() {
+		testFd();
+		return feof(_fd) ? true : false;
+	}
+	int FileDescriptor::read() {
+		return fgetc(_fd);
+	}
+	string FileDescriptor::readline() {
+		testFd();
+		char buffer[1024] = {0,};
+		if (fgets(buffer, sizeof(buffer), _fd)) {
+			if (buffer[strlen(buffer) - 1] == '\n') {
+				buffer[strlen(buffer) - 1] = '\0';
+			}
+		}
+		return string(buffer);
+	}
+	void FileDescriptor::write(const string & data) {
+		testFd();
+		fputs(data.c_str(), _fd);
+	}
+	size_t FileDescriptor::position() {
+		long pos = ftell(_fd);
+		if (pos < 0) {
+			throw LispException("ftell() error");
+		}
+		return (size_t)pos;
+	}
+	void FileDescriptor::position(size_t seek) {
+		fseek(_fd, seek, SEEK_SET);
+	}
+	void FileDescriptor::close() {
+		if (_fd) {
+			fclose(_fd);
+			_fd = NULL;
+		}
+	}
 	
 	/**
 	 * @brief Env
@@ -565,11 +629,11 @@ namespace LISP {
 	Var::Var(File & file) : _type(FILE), _file(file) {
 		_trace("init - File");
 	}
-	Var::Var(const FileDescriptor & fd) : _type(FILE_DESCRIPTOR), _fd(fd) {
+	Var::Var(AutoRef<FileDescriptor> fd) : _type(FILE_DESCRIPTOR), _fd(fd) {
 		_trace("init - FileDescriptor");
 	}
-	Var::Var(AutoRef<Ext> ext) : _type(EXTENTION), _ext(ext) {
-		_trace("init - Extention");
+	Var::Var(AutoRef<LispExtension> ext) : _type(EXTENSION), _ext(ext) {
+		_trace("init - Extension");
 	}
 	Var::~Var() {
 		_trace("deinit");
@@ -644,8 +708,8 @@ namespace LISP {
 			return "FILE";
 		case FILE_DESCRIPTOR:
 			return "FILE DESCRIPTOR";
-		case EXTENTION:
-			return "EXTENTION";
+		case EXTENSION:
+			return "EXTENSION";
 		default:
 			break;
 		}
@@ -668,7 +732,7 @@ namespace LISP {
 	bool Var::isFunction() const {return _type == FUNC;}
 	bool Var::isFile() const {return _type == FILE;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
-	bool Var::isExtention() const {return _type == EXTENTION;}
+	bool Var::isExtension() const {return _type == EXTENSION;}
 	const string & Var::r_symbol() const {typeCheck(SYMBOL); return _symbol;}
 	const string & Var::r_keyword() const {typeCheck(KEYWORD); return _keyword;}
 	const Character & Var::r_character() const {typeCheck(CHARACTER); return _ch;};
@@ -690,8 +754,8 @@ namespace LISP {
 	File & Var::r_file() {typeCheck(FILE); return _file;}
 	Func & Var::r_func() {typeCheck(FUNC); return _func;}
 	AutoRef<Procedure> & Var::r_procedure() {typeCheck(FUNC); return _procedure;}
-	FileDescriptor & Var::r_fileDescriptor() {typeCheck(FILE_DESCRIPTOR); return _fd;}
-	AutoRef<Ext> & Var::r_ext() {typeCheck(EXTENTION); return _ext;}
+	AutoRef<FileDescriptor> & Var::r_fileDescriptor() {typeCheck(FILE_DESCRIPTOR); return _fd;}
+	AutoRef<LispExtension> & Var::r_ext() {typeCheck(EXTENSION); return _ext;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
 			throw LispException("Not Function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
@@ -794,8 +858,8 @@ namespace LISP {
 			return "#p\"" + _file.getPath() + "\"";
 		case FILE_DESCRIPTOR:
 			return "#<FD>";
-		case EXTENTION:
-			return "#<EXTENTION:" + _ext->toString() + ">";
+		case EXTENSION:
+			return "#<EXTENSION:" + _ext->toString() + ">";
 		default:
 			break;
 		}
@@ -1061,7 +1125,7 @@ namespace LISP {
 	/**
 	 * @brief Server
 	 */
-	class LispServerSocket : public Ext {
+	class LispServerSocket : public LispExtension {
 	private:
 		ServerSocket _server;
 	public:
@@ -1087,7 +1151,7 @@ namespace LISP {
 	/**
 	 * @brief socket
 	 */
-	class LispSocket : public Ext {
+	class LispSocket : public LispExtension {
 	private:
 		AutoRef<Socket> _socket;
 	public:
@@ -1128,7 +1192,7 @@ namespace LISP {
 	/**
 	 *
 	 */
-	class LispDatabaseConnection : public Ext {
+	class LispDatabaseConnection : public LispExtension {
 	private:
 		AutoRef<DatabaseConnection> _conn;
 	public:
@@ -1171,7 +1235,7 @@ namespace LISP {
 	/**
 	 *
 	 */
-	class LispResultSet : public Ext {
+	class LispResultSet : public LispExtension {
 	private:
 		AutoRef<ResultSet> _resultSet;
 	public:
@@ -2842,19 +2906,21 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, FileDescriptor(stdout)));
-		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, FileDescriptor(stdin)));
+		env.scope()->put_sym("*standard-output*",
+							 _HEAP_ALLOC(env, AutoRef<FileDescriptor>(new FileDescriptor(stdout, false))));
+		env.scope()->put_sym("*standard-input*",
+							 _HEAP_ALLOC(env, AutoRef<FileDescriptor>(new FileDescriptor(stdin, false))));
 
 		DECL_NATIVE_BEGIN(env, "read");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR ret = _NIL(env);
-			FileDescriptor fd = eval(env, scope, args[0])->r_fileDescriptor();
-			if (fd.eof()) {
+			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
+			if (fd->eof()) {
 				return _HEAP_ALLOC(env, true);
 			}
 			BufferedCommandReader reader;
-			while (!fd.eof() && reader.read(string(1, (char)fd.read())) < 1) {}
+			while (!fd->eof() && reader.read(string(1, (char)fd->read())) < 1) {}
                 
 			vector<string> commands = reader.getCommands();
 			for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
@@ -2867,46 +2933,46 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "read-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = eval(env, scope, args[0])->r_fileDescriptor();
-			if (fd.eof()) {
+			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
+			if (fd->eof()) {
 				return _HEAP_ALLOC(env, true);
 			}
-			string line = fd.readline();
+			string line = fd->readline();
 			return _HEAP_ALLOC(env, wrap_text(line));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd.write(msg);
-			fd.write("\n");
+			fd->write(msg);
+			fd->write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd.write(msg);
+			fd->write(msg);
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd.write(msg);
-			fd.write("\n");
+			fd->write(msg);
+			fd->write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 	}
@@ -3050,23 +3116,24 @@ namespace LISP {
 					flags = "wb+";
 				}
 			}
-			return _HEAP_ALLOC(env, FileDescriptor(FileStream::s_open(file.getPath(), flags)));
+			return _HEAP_ALLOC(env, AutoRef<FileDescriptor>(
+								   new FileDescriptor(FileStream::s_open(file.getPath(), flags))));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "file-position");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor fd = eval(env, scope, args[0])->r_fileDescriptor();
+			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (args.size() > 1) {
-				fd.position((size_t)*eval(env, scope, args[1])->r_integer());
+				fd->position((size_t)*eval(env, scope, args[1])->r_integer());
 			}
-			return _HEAP_ALLOC(env, Integer((long long)fd.position()));
+			return _HEAP_ALLOC(env, Integer((long long)fd->position()));
 				
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "close");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			eval(env, scope, args[0])->r_fileDescriptor().close();
+			eval(env, scope, args[0])->r_fileDescriptor()->close();
 			return _NIL(env);
 		}DECL_NATIVE_END();
 	}
@@ -3075,7 +3142,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			int port = (int)eval(env, scope, args[0])->r_integer().raw();
-			return _HEAP_ALLOC(env, AutoRef<Ext>(new LispServerSocket(port)));
+			return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispServerSocket(port)));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "connect");
@@ -3086,7 +3153,7 @@ namespace LISP {
 			try {
 				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)port->r_integer().raw())));
 				socket->connect();
-				return _HEAP_ALLOC(env, AutoRef<Ext>(new LispSocket(socket)));
+				return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispSocket(socket)));
 			} catch (Exception e) {
 				throw LispException("socket connect exception - " + e.message());
 			}
@@ -3096,10 +3163,10 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			_VAR serv = eval(env, scope, args[0]);
-			AutoRef<Ext> ext = serv->r_ext();
+			AutoRef<LispExtension> ext = serv->r_ext();
 			LispServerSocket * server = ((LispServerSocket*)&ext);
 			try {
-				return _HEAP_ALLOC(env, AutoRef<Ext>(new LispSocket(server->accept())));
+				return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispSocket(server->accept())));
 			} catch (Exception e) {
 				throw LispException("socket accept exception - " + e.message());
 			}
@@ -3114,7 +3181,7 @@ namespace LISP {
 			if (args.size() == 2) {
 				err = eval(env, scope, args[1]);
 			}
-			AutoRef<Ext> ext = sock->r_ext();
+			AutoRef<LispExtension> ext = sock->r_ext();
 			LispSocket * socket = ((LispSocket*)&ext);
 			char d;
 			try {
@@ -3133,7 +3200,7 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			_VAR sock = eval(env, scope, args[0]);
 			_VAR data = eval(env, scope, args[1]);
-			AutoRef<Ext> ext = sock->r_ext();
+			AutoRef<LispExtension> ext = sock->r_ext();
 			LispSocket * socket = ((LispSocket*)&ext);
 			int cnt = 0;
 			try {
@@ -3338,7 +3405,7 @@ namespace LISP {
 			string dbname = eval(env, scope, args[5])->toString();
 			LispDatabaseConnection * conn = new LispDatabaseConnection(DatabaseDriver::instance().getConnection(name));
 			conn->connect(hostname, port, username, password, dbname);
-			return _HEAP_ALLOC(env, AutoRef<Ext>(conn));
+			return _HEAP_ALLOC(env, AutoRef<LispExtension>(conn));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "db:disconnect");
@@ -3354,7 +3421,7 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
 			string sql = eval(env, scope, args[1])->toString();
-			return _HEAP_ALLOC(env, AutoRef<Ext>(new LispResultSet(conn->query(sql))));
+			return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispResultSet(conn->query(sql))));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "db:fetch");

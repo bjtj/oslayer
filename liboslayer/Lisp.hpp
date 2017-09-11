@@ -148,17 +148,6 @@ namespace LISP {
 	};
 
 	/**
-	 * @brief any
-	 */
-	class Ext {
-	public:
-		Ext() {/**/}
-		virtual ~Ext() {/**/}
-		virtual std::string toString() const = 0;
-	};
-
-
-	/**
 	 * @brief boolean
 	 */
 	class Boolean {
@@ -336,58 +325,66 @@ namespace LISP {
 	};
 
 	/**
+	 * closeable
+	 */
+	class Closeable {
+	public:
+		Closeable() {}
+		virtual ~Closeable() {}
+		virtual void close() = 0;
+	};
+
+	/**
+	 * auto closeable
+	 */
+	template<typename T>
+	class AutoCloseable {
+	private:
+		Closeable * _closeable;
+		bool _autoclose;
+	public:
+		AutoCloseable(T * closeable)
+			: _closeable((Closeable*)closeable), _autoclose(true) {}
+		AutoCloseable(T * closeable, bool autoclose)
+			: _closeable((Closeable*)closeable), _autoclose(autoclose) {}
+		virtual ~AutoCloseable() {
+			if (_autoclose) {
+				_closeable->close();
+			}
+		}
+	};
+
+	/**
 	 * @brief lisp file descriptor
 	 */
-	class FileDescriptor {
+	class FileDescriptor : public Closeable, public AutoCloseable<Closeable> {
 	private:
 		FILE * _fd;
 	public:
-		FileDescriptor() : _fd(NULL) {}
-		FileDescriptor(FILE * _fd) : _fd(_fd) {}
-		virtual ~FileDescriptor() {}
-		FILE * fd() {return _fd;}
-		void testFd() {
-			if (!_fd) {
-				throw LispException("nil file descriptor");
-			}
-		}
-		bool eof() {
-			testFd();
-			return feof(_fd) ? true : false;
-		}
-		int read() {
-			return fgetc(_fd);
-		}
-		std::string readline() {
-			testFd();
-			char buffer[1024] = {0,};
-			if (fgets(buffer, sizeof(buffer), _fd)) {
-				if (buffer[strlen(buffer) - 1] == '\n') {
-					buffer[strlen(buffer) - 1] = '\0';
-				}
-			}
-			return std::string(buffer);
-		}
-		void write(const std::string & data) {
-			testFd();
-			fputs(data.c_str(), _fd);
-		}
-		size_t position() {
-			long pos = ftell(_fd);
-			if (pos < 0) {
-				throw LispException("ftell() error");
-			}
-			return (size_t)pos;
-		}
-		void position(size_t seek) {
-			fseek(_fd, seek, SEEK_SET);
-		}
-		void close() {
-			if (_fd) {
-				fclose(_fd);
-				_fd = NULL;
-			}
-		}
+		FileDescriptor();
+		FileDescriptor(bool autoclose);
+		FileDescriptor(FILE * _fd);
+		FileDescriptor(FILE * _fd, bool autoclose);
+		virtual ~FileDescriptor();
+		FILE * fd();
+		void testFd();
+		bool eof();
+		int read();
+		std::string readline();
+		void write(const std::string & data);
+		size_t position();
+		void position(size_t seek);
+		virtual void close();
+	};
+
+	/**
+	 * @brief lisp extension type
+	 */
+	class LispExtension {
+	public:
+		LispExtension() {/**/}
+		virtual ~LispExtension() {/**/}
+		virtual std::string toString() const = 0;
 	};
 
 	/**
@@ -454,7 +451,7 @@ namespace LISP {
 		const static int FUNC = 9;
 		const static int FILE = 10;
 		const static int FILE_DESCRIPTOR = 11;
-		const static int EXTENTION = 100;
+		const static int EXTENSION = 100;
 		
 	private:
 		static bool _debug;
@@ -470,8 +467,8 @@ namespace LISP {
 		Func _func;
 		OS::AutoRef<Procedure> _procedure;
 		OS::File _file;
-		FileDescriptor _fd;
-		OS::AutoRef<Ext> _ext;
+		OS::AutoRef<FileDescriptor> _fd;
+		OS::AutoRef<LispExtension> _ext;
 		
 	public:
 		explicit Var();
@@ -492,8 +489,8 @@ namespace LISP {
 		explicit Var(const Func & func);
 		explicit Var(OS::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
-		explicit Var(const FileDescriptor & fd);
-		explicit Var(OS::AutoRef<Ext> ext);
+		explicit Var(OS::AutoRef<FileDescriptor> fd);
+		explicit Var(OS::AutoRef<LispExtension> ext);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -515,7 +512,7 @@ namespace LISP {
 		bool isFunction() const;
 		bool isFile() const;
 		bool isFileDescriptor() const;
-		bool isExtention() const;
+		bool isExtension() const;
 
 		const std::string & r_symbol() const;
 		const std::string & r_keyword() const;
@@ -539,8 +536,8 @@ namespace LISP {
 		OS::File & r_file();
 		Func & r_func();
 		OS::AutoRef<Procedure> & r_procedure();
-		FileDescriptor & r_fileDescriptor();
-		OS::AutoRef<Ext> & r_ext();
+		OS::AutoRef<FileDescriptor> & r_fileDescriptor();
+		OS::AutoRef<LispExtension> & r_ext();
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
