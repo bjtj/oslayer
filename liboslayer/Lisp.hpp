@@ -133,9 +133,31 @@ namespace LISP {
 	};
 
 	/**
+	 * 
+	 */
+	class Object {
+	private:
+	public:
+		Object() {}
+		virtual ~Object() {}
+		virtual int type() {
+			return 0;
+		}
+		virtual std::string description() {
+			return "<top object>";
+		}
+		virtual std::string type_str() {
+			return "<object>";
+		}
+		virtual std::string toString() const {
+			return "<lisp::object>";
+		}
+	};
+
+	/**
 	 * @brief procedure (built-in function)
 	 */
-	class Procedure {
+	class Procedure : public Object {
 	private:
 		std::string _name;
 		OS::GCRef<Var> _doc;
@@ -150,7 +172,7 @@ namespace LISP {
 	/**
 	 * @brief boolean
 	 */
-	class Boolean {
+	class Boolean : public Object {
 	private:
 		bool _val;
 	public:
@@ -168,7 +190,7 @@ namespace LISP {
 	 * @brief character
 	 * @ref http://clhs.lisp.se/Body/c_charac.htm
 	 */
-	class Character {
+	class Character : public Object {
 	private:
 		int _ch;
 		std::string _name;
@@ -209,7 +231,7 @@ namespace LISP {
 	/**
 	 * @brief lisp integer
 	 */
-    class Integer {
+    class Integer : public Object {
     private:
         long long num;
     public:
@@ -271,7 +293,7 @@ namespace LISP {
 	/**
 	 * @brief lisp float
 	 */
-	class Float {
+	class Float : public Object {
 	private:
 		double num;
 	public:
@@ -357,7 +379,7 @@ namespace LISP {
 	/**
 	 * @brief lisp file descriptor
 	 */
-	class FileDescriptor : public Closeable, public AutoCloseable<Closeable> {
+	class FileDescriptor : public Object, public Closeable, public AutoCloseable<Closeable> {
 	private:
 		FILE * _fd;
 	public:
@@ -380,11 +402,10 @@ namespace LISP {
 	/**
 	 * @brief lisp extension type
 	 */
-	class LispExtension {
+	class LispExtension : public Object {
 	public:
 		LispExtension() {/**/}
 		virtual ~LispExtension() {/**/}
-		virtual std::string toString() const = 0;
 	};
 
 	/**
@@ -395,6 +416,7 @@ namespace LISP {
 		static bool _debug;
 		OS::AutoRef<Scope> _scope;
 		OS::SharedHeap<Var> _heap;
+		std::string _last_command;
 	public:
 		Env();
 		virtual ~Env();
@@ -405,12 +427,13 @@ namespace LISP {
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
 		void clear();
+		std::string & last_command();
 	};
 
 	/**
 	 * @brief func
 	 */
-	class Func {
+	class Func : public Object {
 	private:
 		bool _macro;
 		OS::AutoRef<Scope> _closure_scope;
