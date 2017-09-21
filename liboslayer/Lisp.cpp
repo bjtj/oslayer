@@ -25,6 +25,10 @@
 #define _FORI(L,I,F) for (size_t I = (F); I < (L).size(); I++)
 #define _FORI_STEP(L,I,F,S) for (size_t I = (F); I < (L).size(); I += (S))
 
+#define _CHAR(V) (V->r_character().raw())
+#define _INT(V) (V->r_integer().raw())
+#define _FLOAT(V) (V->r_float().raw())
+
 #define DECL_NATIVE_BEGIN(ENV,NAME)								\
 	do {														\
 	Env & _E = ENV;												\
@@ -1310,7 +1314,7 @@ namespace LISP {
 				if (var->isInteger()) {
 					num = var->toString();
 				} else if (var->isFloat()) {
-					num = Text::format("%.2lf", *var->r_float());
+					num = Text::format("%.2lf", _FLOAT(var));
 				} else {
 					throw LispException("wrong format '~$' - '" + var->toString() + "'");
 				}
@@ -1366,7 +1370,7 @@ namespace LISP {
 
 	_VAR toFloat(Env & env, _VAR v) {
 		if (v->isInteger()) {
-			return _HEAP_ALLOC(env, (double)(*v->r_integer()));
+			return _HEAP_ALLOC(env, (double)(_INT(v)));
 		}
 		return v;
 	}
@@ -1462,9 +1466,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, cos((double)(*(v->r_integer()))));
+			return _HEAP_ALLOC(env, cos((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, cos((*(v->r_float()))));
+			return _HEAP_ALLOC(env, cos(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1477,9 +1481,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, sin((double)*(v->r_integer())));
+			return _HEAP_ALLOC(env, sin((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, sin(*(v->r_float())));
+			return _HEAP_ALLOC(env, sin(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1492,9 +1496,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, tan((double)*(v->r_integer())));
+			return _HEAP_ALLOC(env, tan((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, tan(*(v->r_float())));
+			return _HEAP_ALLOC(env, tan(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1507,9 +1511,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, acos((double)(*(v->r_integer()))));
+			return _HEAP_ALLOC(env, acos((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, acos((*(v->r_float()))));
+			return _HEAP_ALLOC(env, acos(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1522,9 +1526,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, asin((double)*(v->r_integer())));
+			return _HEAP_ALLOC(env, asin((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, asin(*(v->r_float())));
+			return _HEAP_ALLOC(env, asin(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1537,9 +1541,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, atan((double)*(v->r_integer())));
+			return _HEAP_ALLOC(env, atan((double)_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, atan(*(v->r_float())));
+			return _HEAP_ALLOC(env, atan(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1552,9 +1556,9 @@ namespace LISP {
 		}
 		switch (v->getType()) {
 		case Var::INTEGER:
-			return _HEAP_ALLOC(env, (int)abs(*(v->r_integer())));
+			return _HEAP_ALLOC(env, (int)abs(_INT(v)));
 		case Var::FLOAT:
-			return _HEAP_ALLOC(env, abs(*(v->r_float())));
+			return _HEAP_ALLOC(env, abs(_FLOAT(v)));
 		default:
 			break;
 		}
@@ -1825,7 +1829,7 @@ namespace LISP {
 			_VAR & cmd = lv[0];
 			vector<_VAR> args(lv.begin() + 1, lv.end());
 			if (silentsymboleq(cmd, "quit")) {
-				throw ExitLispException((args.size() > 0 ? (int)*eval(env, scope, args[0])->r_integer() : 0));
+				throw ExitLispException((args.size() > 0 ? (int)_INT(eval(env, scope, args[0])) : 0));
 			} else {
 				_VAR func = function(env, scope, cmd);
 				return func->proc(env, scope, cmd, args);
@@ -2155,7 +2159,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "nth");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
-			size_t idx = (size_t)(*(eval(env, scope, args[0])->r_integer()));
+			size_t idx = (size_t)_INT(eval(env, scope, args[0]));
 			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
 			if (idx < lst.size()) {
 				return lst[idx];
@@ -2165,7 +2169,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "nthcdr");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			size_t idx = (size_t)(*eval(env, scope, args[0])->r_integer());
+			size_t idx = (size_t)_INT(eval(env, scope, args[0]));
 			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
 			if (idx < lst.size()) {
 				vector<_VAR> rest;
@@ -2586,12 +2590,12 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "code-char");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			return _HEAP_ALLOC(env, Character((char)eval(env, scope, args[0])->r_integer().raw()));
+			return _HEAP_ALLOC(env, Character((char)_INT(eval(env, scope, args[0]))));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-int");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_character().raw());
+			return _HEAP_ALLOC(env, _CHAR(eval(env, scope, args[0])));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "char-code-limit");
 		{
@@ -3128,7 +3132,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (args.size() > 1) {
-				fd->position((size_t)*eval(env, scope, args[1])->r_integer());
+				fd->position((size_t)_INT(eval(env, scope, args[1])));
 			}
 			return _HEAP_ALLOC(env, Integer((long long)fd->position()));
 				
@@ -3144,7 +3148,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "server-open");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			int port = (int)eval(env, scope, args[0])->r_integer().raw();
+			int port = (int)_INT(eval(env, scope, args[0]));
 			return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispServerSocket(port)));
 		}DECL_NATIVE_END();
 
@@ -3154,7 +3158,7 @@ namespace LISP {
 			_VAR host = eval(env, scope, args[0]);
 			_VAR port = eval(env, scope, args[1]);
 			try {
-				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)port->r_integer().raw())));
+				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)_INT(port))));
 				socket->connect();
 				return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispSocket(socket)));
 			} catch (Exception e) {
@@ -3312,7 +3316,7 @@ namespace LISP {
 			// TODO: apply specific zone - eval args[1]
 			// TODO: (decode-universal-time 0 0) - expect 0, 0, 0, 1, 1, 1900, 0, false, 0
 			osl_time_t time = {0,};
-			time.sec = (unsigned long)*eval(env, scope, args[0])->r_integer();
+			time.sec = (unsigned long)_INT(eval(env, scope, args[0]));
 			time = osl_network_time_to_system_time(time);
 			Date date(time);
 			vector<_VAR> ret;
@@ -3333,14 +3337,14 @@ namespace LISP {
 			// TODO: (encode-universal-time 0 0 0 1 1 1900 0) -> expect 0
 			_CHECK_ARGS_MIN_COUNT(args, 6);
 			Date date = Date::now();
-			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
-			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
-			date.setHour((int)*eval(env, scope, args[2])->r_integer());
-			date.setDay((int)*eval(env, scope, args[3])->r_integer());
-			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
-			date.setYear((int)*eval(env, scope, args[5])->r_integer());
+			date.setSecond((int)_INT(eval(env, scope, args[0])));
+			date.setMinute((int)_INT(eval(env, scope, args[1])));
+			date.setHour((int)_INT(eval(env, scope, args[2])));
+			date.setDay((int)_INT(eval(env, scope, args[3])));
+			date.setMonth((int)((_INT(eval(env, scope, args[4]))) - 1));
+			date.setYear((int)_INT(eval(env, scope, args[5])));
 			if (args.size() > 6) {
-				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
+				date.setGmtOffset((int)_INT(eval(env, scope, args[6])));
 			}
 			return _HEAP_ALLOC(env, (long long)osl_system_time_to_network_time(date.getTime()).sec);
 		}DECL_NATIVE_END();
@@ -3349,14 +3353,14 @@ namespace LISP {
 			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
 			_CHECK_ARGS_MIN_COUNT(args, 6);
 			Date date = Date::now();
-			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
-			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
-			date.setHour((int)*eval(env, scope, args[2])->r_integer());
-			date.setDay((int)*eval(env, scope, args[3])->r_integer());
-			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
-			date.setYear((int)*eval(env, scope, args[5])->r_integer());
+			date.setSecond((int)_INT(eval(env, scope, args[0])));
+			date.setMinute((int)_INT(eval(env, scope, args[1])));
+			date.setHour((int)_INT(eval(env, scope, args[2])));
+			date.setDay((int)_INT(eval(env, scope, args[3])));
+			date.setMonth((int)((_INT(eval(env, scope, args[4]))) - 1));
+			date.setYear((int)_INT(eval(env, scope, args[5])));
 			if (args.size() > 6) {
-				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
+				date.setGmtOffset((int)_INT(eval(env, scope, args[6])));
 			}
 			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc8601(date)));
 		}DECL_NATIVE_END();
@@ -3366,14 +3370,14 @@ namespace LISP {
 			// Arguments: seconds, minutes, hours, dates, month and year (gmt offset)
 			_CHECK_ARGS_MIN_COUNT(args, 6);
 			Date date = Date::now();
-			date.setSecond((int)*eval(env, scope, args[0])->r_integer());
-			date.setMinute((int)*eval(env, scope, args[1])->r_integer());
-			date.setHour((int)*eval(env, scope, args[2])->r_integer());
-			date.setDay((int)*eval(env, scope, args[3])->r_integer());
-			date.setMonth((int)((*eval(env, scope, args[4])->r_integer()) - 1));
-			date.setYear((int)*eval(env, scope, args[5])->r_integer());
+			date.setSecond((int)_INT(eval(env, scope, args[0])));
+			date.setMinute((int)_INT(eval(env, scope, args[1])));
+			date.setHour((int)_INT(eval(env, scope, args[2])));
+			date.setDay((int)_INT(eval(env, scope, args[3])));
+			date.setMonth((int)((_INT(eval(env, scope, args[4]))) - 1));
+			date.setYear((int)_INT(eval(env, scope, args[5])));
 			if (args.size() > 6) {
-				date.setGmtOffset((int)*eval(env, scope, args[6])->r_integer());
+				date.setGmtOffset((int)_INT(eval(env, scope, args[6])));
 			}
 			return _HEAP_ALLOC(env, wrap_text(Date::formatRfc1123(date)));
 		}DECL_NATIVE_END();
@@ -3402,7 +3406,7 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 6);
 			string name = eval(env, scope, args[0])->toString();
 			string hostname = eval(env, scope, args[1])->toString();
-			int port = (int)eval(env, scope, args[2])->r_integer().getInteger();
+			int port = (int)_INT(eval(env, scope, args[2]));
 			string username = eval(env, scope, args[3])->toString();
 			string password = eval(env, scope, args[4])->toString();
 			string dbname = eval(env, scope, args[5])->toString();

@@ -138,8 +138,13 @@ namespace LISP {
 	class Object {
 	private:
 	public:
-		Object() {}
-		virtual ~Object() {}
+		Object() {
+		}
+		virtual ~Object() {
+		}
+		virtual void * native_ptr() {
+			return NULL;
+		}
 		virtual int type() {
 			return 0;
 		}
@@ -148,6 +153,9 @@ namespace LISP {
 		}
 		virtual std::string type_str() {
 			return "<object>";
+		}
+		virtual void call(OS::AutoRef<Object> out, const std::string & cmd, std::vector< OS::AutoRef<Object> > & args) {
+			throw LispException("no operation implemented - '" + cmd + "'");
 		}
 		virtual std::string toString() const {
 			return "<lisp::object>";
@@ -547,7 +555,6 @@ namespace LISP {
 		const Float & r_float() const;
 		const OS::File & r_file() const;
 		const Func & r_func() const;
-		
 		std::string & r_symbol();
 		std::string & r_keyword();
 		Character & r_character();
@@ -561,6 +568,7 @@ namespace LISP {
 		OS::AutoRef<Procedure> & r_procedure();
 		OS::AutoRef<FileDescriptor> & r_fileDescriptor();
 		OS::AutoRef<LispExtension> & r_ext();
+
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
