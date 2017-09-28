@@ -18,6 +18,8 @@
 namespace LISP {
 
 	/**/
+	class Integer;
+	class Float;
 	class Env;
 	class Func;
 	class Var;
@@ -152,9 +154,9 @@ namespace LISP {
 			return "<top object>";
 		}
 		virtual std::string type_str() {
-			return "<object>";
+			return "BaseObject";
 		}
-		virtual void call(OS::AutoRef<Object> out, const std::string & cmd, std::vector< OS::AutoRef<Object> > & args) {
+		virtual OS::AutoRef<Object> call(const std::string & cmd, std::vector< OS::AutoRef<Object> > & args) {
 			throw LispException("no operation implemented - '" + cmd + "'");
 		}
 		virtual std::string toString() const {
@@ -184,14 +186,14 @@ namespace LISP {
 	private:
 		bool _val;
 	public:
-		Boolean() : _val(false) {}
-		Boolean(bool val) : _val(val) {}
-		virtual ~Boolean() {}
-		bool & val() { return _val; }
-		bool val() const { return _val; }
-		bool & operator* () {return _val;}
-		Boolean & operator= (bool val) { _val = val;  return *this; }
-		std::string toString() const { return (_val ? "T" : "NIL"); }
+		Boolean();
+		Boolean(bool val);
+		virtual ~Boolean();
+		bool & val();
+		bool val() const;
+		bool & operator* ();
+		Boolean & operator= (bool val);
+		virtual std::string toString() const;
 	};
 
 	/**
@@ -237,121 +239,131 @@ namespace LISP {
 	};
 
 	/**
+	 * @brief lisp number
+	 */
+	class Number : public Object {
+	public:
+		Number();
+		virtual ~Number();
+	};
+
+	/**
 	 * @brief lisp integer
 	 */
-    class Integer : public Object {
+    class Integer : public Number {
     private:
         long long num;
     public:
-        Integer() : num(0) {}
-		Integer(short num) : num(num) {}
-		Integer(int num) : num(num) {}
-		Integer(long num) : num(num) {}
-        Integer(long long num) : num(num) {}
-        virtual ~Integer() {}
-
-		static bool isIntegerString(const std::string & istr) {
-			size_t f = 0;
-			if (*istr.begin() == '-' || *istr.begin() == '+') {
-				f = 1;
-			}
-			return (istr.length() - f > 0) &&
-				(istr.find_first_not_of("0123456789", f) == std::string::npos);
-		}
-
-		static long long toInteger(const std::string & istr) {
-			size_t f = (*istr.begin() == '-' || *istr.begin() == '+') ? 1 : 0;
-			bool negative = (*istr.begin() == '-');
-			long long n = 0;
-			for (size_t i = f; i < istr.length(); i++) {
-				n *= 10;
-				n += istr[i] - '0';
-			}
-			return (negative ? -n : n);
-		}
-
-		bool zerop() const { return num == 0; }
-		bool oddp() const { return (num != 0 && num % 2 != 0); }
-		bool evenp() const { return (num == 0 || num % 2 == 0); }
-
-		long long raw() const {return num;}
-		
-        long long & operator* () {return num;}
-        long long getInteger() const {return num;}
-        Integer & operator+=(const Integer & other) {num += other.num; return *this;}
-        Integer & operator-=(const Integer & other) {num -= other.num; return *this;}
-        Integer & operator*=(const Integer & other) {num *= other.num; return *this;}
-        Integer & operator/=(const Integer & other) {num /= other.num; return *this;}
-		Integer & operator%=(const Integer & other) {num %= other.num; return *this;}
-        
-        Integer operator+ (const Integer & other) const {return Integer(num + other.num);}
-        Integer operator- (const Integer & other) const {return Integer(num - other.num);}
-        Integer operator* (const Integer & other) const {return Integer(num * other.num);}
-        Integer operator/ (const Integer & other) const {return Integer(num / other.num);}
-		Integer operator% (const Integer & other) const {return Integer(num % other.num);}
-
-		bool operator> (const Integer & other) const {return num > other.num;}
-		bool operator< (const Integer & other) const {return num < other.num;}
-		bool operator>= (const Integer & other) const {return num >= other.num;}
-		bool operator<= (const Integer & other) const {return num <= other.num;}
-        bool operator== (const Integer & other) const {return num == other.num;}
-        bool operator!= (const Integer & other) const {return num != other.num;}
+        Integer();
+		Integer(short num);
+		Integer(int num);
+		Integer(long num);
+        Integer(long long num);
+        virtual ~Integer();
+		static bool isIntegerString(const std::string & istr);
+		static long long toInteger(const std::string & istr);
+		bool zero_p() const;
+		bool odd_p() const;
+		bool even_p() const;
+		long long raw() const;
+        long long & operator* ();
+        long long getInteger() const;
+        Integer & operator+= (const Integer & other);
+        Integer & operator-= (const Integer & other);
+        Integer & operator*= (const Integer & other);
+        Integer & operator/= (const Integer & other);
+		Integer & operator%= (const Integer & other);
+        Integer operator+ (const Integer & other) const;
+        Integer operator- (const Integer & other) const;
+        Integer operator* (const Integer & other) const;
+        Integer operator/ (const Integer & other) const;
+		Integer operator% (const Integer & other) const;
+		bool operator> (const Integer & other) const;
+		bool operator< (const Integer & other) const;
+		bool operator>= (const Integer & other) const;
+		bool operator<= (const Integer & other) const;
+        bool operator== (const Integer & other) const;
+        bool operator!= (const Integer & other) const;
+		Float operator+ (const Float & other) const;
+        Float operator- (const Float & other) const;
+        Float operator* (const Float & other) const;
+        Float operator/ (const Float & other) const;
+		bool operator> (const Float & other) const;
+		bool operator< (const Float & other) const;
+		bool operator>= (const Float & other) const;
+		bool operator<= (const Float & other) const;
+        bool operator== (const Float & other) const;
+        bool operator!= (const Float & other) const;
+		virtual std::string toString() const;
     };
 
 	/**
 	 * @brief lisp float
 	 */
-	class Float : public Object {
+	class Float : public Number {
 	private:
 		double num;
 	public:
-		Float() : num(0.f) {}
-		Float(float num) : num((double)num) {}
-		Float(double num) : num(num) {}
-		virtual ~Float() {}
+		Float();
+		Float(float num);
+		Float(double num);
+		Float(const Integer & inum);
+		virtual ~Float();
+		static bool isFloatString(const std::string & istr);
+		static double toFloat(const std::string & istr);
+		bool zero_p() const;
+		double raw() const;
+		double & operator* ();
+        Float & operator+= (const Float & other);
+        Float & operator-= (const Float & other);
+        Float & operator*= (const Float & other);
+        Float & operator/= (const Float & other);
+        Float operator+ (const Float & other) const;
+        Float operator- (const Float & other) const;
+        Float operator* (const Float & other) const;
+        Float operator/ (const Float & other) const;
+		bool operator> (const Float & other) const;
+		bool operator< (const Float & other) const;
+		bool operator>= (const Float & other) const;
+		bool operator<= (const Float & other) const;
+        bool operator== (const Float & other) const;
+        bool operator!= (const Float & other) const;
+		Float operator+ (const Integer & other) const;
+        Float operator- (const Integer & other) const;
+        Float operator* (const Integer & other) const;
+        Float operator/ (const Integer & other) const;
+		bool operator> (const Integer & other) const;
+		bool operator< (const Integer & other) const;
+		bool operator>= (const Integer & other) const;
+		bool operator<= (const Integer & other) const;
+        bool operator== (const Integer & other) const;
+        bool operator!= (const Integer & other) const;
+		virtual std::string toString() const;
+	};
 
-		static bool isFloatString(const std::string & istr) {
-			std::string n = istr;
-			if (*istr.begin() == '-' || *istr.begin() == '+') {
-				n = n.substr(1);
-			}
-			if (n.find_first_not_of("0123456789.") != std::string::npos) {
-				return false;
-			}
-			if (n.find(".") == std::string::npos) {
-				return false;
-			}
-			if (n.find(".", n.find(".") + 1) != std::string::npos) {
-				return false;
-			}
-			return true;
-		}
-
-		static double toFloat(const std::string & istr) {
-			return (double)atof(istr.c_str());
-		}
-
-		bool zerop() const { return num == 0; }
-
-		double raw() const {return num;}
-
-		double & operator* () {return num;}
-        Float & operator+=(const Float & other) {num += other.num; return *this;}
-        Float & operator-=(const Float & other) {num -= other.num; return *this;}
-        Float & operator*=(const Float & other) {num *= other.num; return *this;}
-        Float & operator/=(const Float & other) {num /= other.num; return *this;}
-        
-        Float operator+ (const Float & other) const {return Float(num + other.num);}
-        Float operator- (const Float & other) const {return Float(num - other.num);}
-        Float operator* (const Float & other) const {return Float(num * other.num);}
-        Float operator/ (const Float & other) const {return Float(num / other.num);}
-
-		bool operator> (const Float & other) const {return num > other.num;}
-		bool operator< (const Float & other) const {return num < other.num;}
-		bool operator>= (const Float & other) const {return num >= other.num;}
-		bool operator<= (const Float & other) const {return num <= other.num;}
-        bool operator== (const Float & other) const {return num == other.num;}
-        bool operator!= (const Float & other) const {return num != other.num;}
+	/**
+	 * 
+	 */
+	class Pathname : public Object {
+	private:
+		OS::File _file;
+	public:
+		Pathname();
+		Pathname(const OS::File & file);
+		virtual ~Pathname();
+		OS::File & file();
+		std::string basename_without_ext();
+		std::string ext();
+		std::string path();
+		std::string dirname();
+		std::string basename();
+		bool exists();
+		bool is_dir();
+		bool is_file();
+		long long size();
+		OS::osl_time_t creation_time();
+		OS::osl_time_t last_modified_time();
+		virtual std::string toString() const;
 	};
 
 	/**
@@ -405,6 +417,7 @@ namespace LISP {
 		size_t position();
 		void position(size_t seek);
 		virtual void close();
+		virtual std::string toString() const;
 	};
 
 	/**
@@ -480,8 +493,9 @@ namespace LISP {
 		const static int FLOAT = 7;
 		const static int STRING = 8;
 		const static int FUNC = 9;
-		const static int FILE = 10;
+		const static int PATHNAME = 10;
 		const static int FILE_DESCRIPTOR = 11;
+		const static int OBJECT = 12;
 		const static int EXTENSION = 100;
 		
 	private:
@@ -491,14 +505,10 @@ namespace LISP {
 		std::string _keyword;
 		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
-		Boolean _bval;
 		Character _ch;
-        Integer _inum;
-		Float _fnum;
 		Func _func;
 		OS::AutoRef<Procedure> _procedure;
-		OS::File _file;
-		OS::AutoRef<FileDescriptor> _fd;
+		OS::AutoRef<Object> _obj;
 		OS::AutoRef<LispExtension> _ext;
 		
 	public:
@@ -520,7 +530,10 @@ namespace LISP {
 		explicit Var(const Func & func);
 		explicit Var(OS::AutoRef<Procedure> procedure);
 		explicit Var(OS::File & file);
-		explicit Var(OS::AutoRef<FileDescriptor> fd);
+		explicit Var(Pathname & pathname);
+		explicit Var(std::FILE * fd);
+		explicit Var(std::FILE * fd, bool autoclose);
+		explicit Var(OS::AutoRef<Object> obj);
 		explicit Var(OS::AutoRef<LispExtension> ext);
 		virtual ~Var();
 
@@ -537,12 +550,14 @@ namespace LISP {
 		bool isKeyword() const;
 		bool isSymbol() const;
 		bool isBoolean() const;
+		bool isNumber() const;
 		bool isInteger() const;
 		bool isFloat() const;
 		bool isString() const;
 		bool isFunction() const;
-		bool isFile() const;
+		bool isPathname() const;
 		bool isFileDescriptor() const;
+		bool isObject() const;
 		bool isExtension() const;
 
 		const std::string & r_symbol() const;
@@ -553,7 +568,7 @@ namespace LISP {
 		const Boolean & r_boolean() const;
 		const Integer & r_integer() const;
 		const Float & r_float() const;
-		const OS::File & r_file() const;
+		const Pathname & r_pathname() const;
 		const Func & r_func() const;
 		std::string & r_symbol();
 		std::string & r_keyword();
@@ -563,15 +578,34 @@ namespace LISP {
 		Boolean & r_boolean();
 		Integer & r_integer();
 		Float & r_float();
-		OS::File & r_file();
+		Pathname & r_pathname();
 		Func & r_func();
 		OS::AutoRef<Procedure> & r_procedure();
-		OS::AutoRef<FileDescriptor> & r_fileDescriptor();
+		FileDescriptor & r_fileDescriptor();
+		OS::AutoRef<Object> & r_obj();
 		OS::AutoRef<LispExtension> & r_ext();
 
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+
+		void numberCheck() const;
+		void numberOperationCheck(const Var & other) const;
+		Var & operator+= (const Integer & inum);
+		Var & operator-= (const Integer & inum);
+		Var & operator*= (const Integer & inum);
+		Var & operator/= (const Integer & inum);
+		Var & operator+= (const Float & fnum);
+		Var & operator-= (const Float & fnum);
+		Var & operator*= (const Float & fnum);
+		Var & operator/= (const Float & fnum);
+		bool operator> (const Var & other) const;
+		bool operator< (const Var & other) const;
+		bool operator>= (const Var & other) const;
+		bool operator<= (const Var & other) const;
+        bool operator== (const Var & other) const;
+        bool operator!= (const Var & other) const;
+		
 		std::string toString() const;
 	};
 

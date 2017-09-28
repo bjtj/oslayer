@@ -1,3 +1,4 @@
+
 #include <cmath>
 #include "Lisp.hpp"
 #include "os.hpp"
@@ -11,7 +12,7 @@
 #include "DatabaseConnection.hpp"
 
 #define _CONTAINS(M,E) (M.find(E) != M.end())
-#define _HEAP_ALLOC(E,V) E.alloc(new Var(V))
+#define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
 #define _NIL(e) _HEAP_ALLOC(e,"nil")
 #define _CHECK_ARGS_MIN_COUNT(L,C) validateArgumentCountMin(L,C)
@@ -290,6 +291,28 @@ namespace LISP {
 	_VAR & Procedure::doc() {
 		return _doc;
 	}
+	Boolean::Boolean() : _val(false) {
+	}
+	Boolean::Boolean(bool val) : _val(val) {
+	}
+	Boolean::~Boolean() {
+	}
+	bool & Boolean::val() {
+		return _val;
+	}
+	bool Boolean::val() const {
+		return _val;
+	}
+	bool & Boolean::operator* () {
+		return _val;
+	}
+	Boolean & Boolean::operator= (bool val) {
+		_val = val;
+		return *this;
+	}
+	string Boolean::toString() const {
+		return (_val ? "T" : "NIL");
+	}
 
 	/**
 	 * 
@@ -405,6 +428,328 @@ namespace LISP {
 		return _ch >= ch._ch;
 	}
 
+	/**
+	 * 
+	 */
+
+	Number::Number() {
+	}
+	Number::~Number() {
+	}
+
+	/**
+	 * 
+	 */
+	
+	Integer::Integer() : num(0) {
+	}
+	Integer::Integer(short num) : num(num) {
+	}
+	Integer::Integer(int num) : num(num) {
+	}
+	Integer::Integer(long num) : num(num) {
+	}
+	Integer::Integer(long long num) : num(num) {
+	}
+	Integer::~Integer() {
+	}
+
+	bool Integer::isIntegerString(const string & istr) {
+		size_t f = 0;
+		if (*istr.begin() == '-' || *istr.begin() == '+') {
+			f = 1;
+		}
+		return (istr.length() - f > 0) &&
+			(istr.find_first_not_of("0123456789", f) == string::npos);
+	}
+
+	long long Integer::toInteger(const string & istr) {
+		size_t f = (*istr.begin() == '-' || *istr.begin() == '+') ? 1 : 0;
+		bool negative = (*istr.begin() == '-');
+		long long n = 0;
+		for (size_t i = f; i < istr.length(); i++) {
+			n *= 10;
+			n += istr[i] - '0';
+		}
+		return (negative ? -n : n);
+	}
+	bool Integer::zero_p() const {
+		return num == 0; 
+	}
+	bool Integer::odd_p() const {
+		// https://stackoverflow.com/a/5700938/5676460
+		return ((num & 1) == 1);
+	}
+	bool Integer::even_p() const {
+		return ((num & 1) == 0);
+	}
+	long long Integer::raw() const {
+		return num;
+	}
+	long long & Integer::operator* () {
+		return num;
+	}
+	long long Integer::getInteger() const {
+		return num;
+	}
+	Integer & Integer::operator+= (const Integer & other) {
+		num += other.num;
+		return *this;
+	}
+	Integer & Integer::operator-= (const Integer & other) {
+		num -= other.num;
+		return *this;
+	}
+	Integer & Integer::operator*= (const Integer & other) {
+		num *= other.num;
+		return *this;
+	}
+	Integer & Integer::operator/= (const Integer & other) {
+		num /= other.num;
+		return *this;
+	}
+	Integer & Integer::operator%= (const Integer & other) {
+		num %= other.num;
+		return *this;
+	}
+	Integer Integer::operator+ (const Integer & other) const {
+		return Integer(num + other.num);
+	}
+	Integer Integer::operator- (const Integer & other) const {
+		return Integer(num - other.num);
+	}
+	Integer Integer::operator* (const Integer & other) const {
+		return Integer(num * other.num);
+	}
+	Integer Integer::operator/ (const Integer & other) const {
+		return Integer(num / other.num);
+	}
+	Integer Integer::operator% (const Integer & other) const {
+		return Integer(num % other.num);
+	}
+	bool Integer::operator> (const Integer & other) const {
+		return num > other.num;
+	}
+	bool Integer::operator< (const Integer & other) const {
+		return num < other.num;
+	}
+	bool Integer::operator>= (const Integer & other) const {
+		return num >= other.num;
+	}
+	bool Integer::operator<= (const Integer & other) const {
+		return num <= other.num;
+	}
+	bool Integer::operator== (const Integer & other) const {
+		return num == other.num;
+	}
+	bool Integer::operator!= (const Integer & other) const {
+		return num != other.num;
+	}
+	Float Integer::operator+ (const Float & other) const {
+		return Float((double)num) + other;
+	}
+	Float Integer::operator- (const Float & other) const {
+		return Float((double)num) - other;
+	}
+	Float Integer::operator* (const Float & other) const {
+		return Float((double)num) * other;
+	}
+	Float Integer::operator/ (const Float & other) const {
+		return Float((double)num) / other;
+	}
+	bool Integer::operator> (const Float & other) const {
+		return Float((double)num) > other;
+	}
+	bool Integer::operator< (const Float & other) const {
+		return Float((double)num) < other;
+	}
+	bool Integer::operator>= (const Float & other) const {
+		return Float((double)num) >= other;
+	}
+	bool Integer::operator<= (const Float & other) const {
+		return Float((double)num) <= other;
+	}
+	bool Integer::operator== (const Float & other) const {
+		return Float((double)num) == other;
+	}
+	bool Integer::operator!= (const Float & other) const {
+		return Float((double)num) != other;
+	}
+	string Integer::toString() const {
+		return Text::toString(num);
+	}
+
+	/**
+	 * 
+	 */
+
+	Float::Float() : num(0.f) {
+	}
+	Float::Float(float num) : num((double)num) {
+	}
+	Float::Float(double num) : num(num) {
+	}
+	Float::Float(const Integer & inum) : num((double)inum.raw()) {
+	}
+	Float::~Float() {
+	}
+	bool Float::isFloatString(const string & istr) {
+		string n = istr;
+		if (*istr.begin() == '-' || *istr.begin() == '+') {
+			n = n.substr(1);
+		}
+		if (n.find_first_not_of("0123456789.") != string::npos) {
+			return false;
+		}
+		if (n.find(".") == string::npos) {
+			return false;
+		}
+		if (n.find(".", n.find(".") + 1) != string::npos) {
+			return false;
+		}
+		return true;
+	}
+	double Float::toFloat(const string & istr) {
+		return (double)atof(istr.c_str());
+	}
+	bool Float::zero_p() const {
+		return num == 0; 
+	}
+	double Float::raw() const {
+		return num;
+	}
+	double & Float::operator* () {
+		return num;
+	}
+	Float & Float::operator+= (const Float & other) {
+		num += other.num;
+		return *this;
+	}
+	Float & Float::operator-= (const Float & other) {
+		num -= other.num;
+		return *this;
+	}
+	Float & Float::operator*= (const Float & other) {
+		num *= other.num;
+		return *this;
+	}
+	Float & Float::operator/= (const Float & other) {
+		num /= other.num;
+		return *this;
+	}
+	Float Float::operator+ (const Float & other) const {
+		return Float(num + other.num);
+	}
+	Float Float::operator- (const Float & other) const {
+		return Float(num - other.num);
+	}
+	Float Float::operator* (const Float & other) const {
+		return Float(num * other.num);
+	}
+	Float Float::operator/ (const Float & other) const {
+		return Float(num / other.num);
+	}
+	bool Float::operator> (const Float & other) const {
+		return num > other.num;
+	}
+	bool Float::operator< (const Float & other) const {
+		return num < other.num;
+	}
+	bool Float::operator>= (const Float & other) const {
+		return num >= other.num;
+	}
+	bool Float::operator<= (const Float & other) const {
+		return num <= other.num;
+	}
+	bool Float::operator== (const Float & other) const {
+		return num == other.num;
+	}
+	bool Float::operator!= (const Float & other) const {
+		return num != other.num;
+	}
+	Float Float::operator+ (const Integer & other) const {
+		return *this + Float(other);
+	}
+	Float Float::operator- (const Integer & other) const {
+		return *this - Float(other);
+	}
+	Float Float::operator* (const Integer & other) const {
+		return *this * Float(other);
+	}
+	Float Float::operator/ (const Integer & other) const {
+		return *this / Float(other);
+	}
+	bool Float::operator> (const Integer & other) const {
+		return *this > Float(other);
+	}
+	bool Float::operator< (const Integer & other) const {
+		return *this < Float(other);
+	}
+	bool Float::operator>= (const Integer & other) const {
+		return *this >= Float(other);
+	}
+	bool Float::operator<= (const Integer & other) const {
+		return *this <= Float(other);
+	}
+	bool Float::operator== (const Integer & other) const {
+		return *this == Float(other);
+	}
+	bool Float::operator!= (const Integer & other) const {
+		return *this != Float(other);
+	}
+	string Float::toString() const {
+		string x = Text::rtrim(Text::toString(num), "0");
+		return (x[x.size() - 1] == '.' ? x + "0" : x);
+	}
+
+	/**
+	 * 
+	 */
+	Pathname::Pathname() {
+	}
+	Pathname::Pathname(const File & file) : _file(file) {
+	}
+	Pathname::~Pathname() {
+	}
+	File & Pathname::file() {
+		return _file;
+	}
+	string Pathname::basename_without_ext() {
+		return _file.getFileNameWithoutExtension();
+	}
+	string Pathname::ext() {
+		return _file.getExtension();
+	}
+	string Pathname::path() {
+		return _file.getPath();
+	}
+	string Pathname::dirname() {
+		return _file.getDirectory();
+	}
+	string Pathname::basename() {
+		return _file.getFileName();
+	}
+	bool Pathname::exists() {
+		return _file.exists();
+	}
+	bool Pathname::is_dir() {
+		return _file.isDirectory();
+	}
+	bool Pathname::is_file() {
+		return _file.isFile();
+	}
+	long long Pathname::size() {
+		return _file.getSize();
+	}
+	osl_time_t Pathname::creation_time() {
+		return _file.creationTime();
+	}
+	osl_time_t Pathname::last_modified_time(){
+		return _file.lastModifiedTime();
+	}
+	string Pathname::toString() const {
+		return "#p\"" + _file.getPath() + "\"";
+	}
 
 	/**
 	 * 
@@ -467,6 +812,11 @@ namespace LISP {
 			fclose(_fd);
 			_fd = NULL;
 		}
+	}
+	string FileDescriptor::toString() const {
+		char str[256] = {0,};
+		snprintf(str, sizeof(str), "#<FD:0x%p>", _fd);
+		return string(str);
 	}
 	
 	/**
@@ -588,13 +938,13 @@ namespace LISP {
 	Var::Var(vector<_VAR> lst) : _type(LIST), _lst(lst) {
 		_trace("init - list");
 	}
-	Var::Var(bool bval) : _type(BOOLEAN), _bval(bval) {
+	Var::Var(bool bval) : _type(BOOLEAN), _obj(new Boolean(bval)) {
 		if (!bval) {
 			_type = NIL;
 		}
 		_trace("init - bool");
 	}
-	Var::Var(const Boolean & bval) : _type(BOOLEAN), _bval(bval) {
+	Var::Var(const Boolean & bval) : _type(BOOLEAN), _obj(new Boolean(bval)) {
 		if (!bval.val()) {
 			_type = NIL;
 		}
@@ -603,28 +953,28 @@ namespace LISP {
 	Var::Var(const Character & ch) : _type(CHARACTER), _ch(ch) {
 		_trace("init - character");
 	}
-	Var::Var(short inum) : _type(INTEGER), _inum(inum) {
+	Var::Var(short inum) : _type(INTEGER), _obj(new Integer(inum)) {
 		_trace("init - short");
 	}
-	Var::Var(int inum) : _type(INTEGER), _inum(inum) {
+	Var::Var(int inum) : _type(INTEGER), _obj(new Integer(inum)) {
 		_trace("init - int");
 	}
-	Var::Var(long inum) : _type(INTEGER), _inum(inum) {
+	Var::Var(long inum) : _type(INTEGER), _obj(new Integer(inum)) {
 		_trace("init - long");
 	}
-	Var::Var(long long inum) : _type(INTEGER), _inum(inum) {
+	Var::Var(long long inum) : _type(INTEGER), _obj(new Integer(inum)) {
 		_trace("init - long long");
 	}
-	Var::Var(const Integer & inum) : _type(INTEGER), _inum(inum) {
+	Var::Var(const Integer & inum) : _type(INTEGER), _obj(new Integer(inum)) {
 		_trace("init - Integer");
 	}
-	Var::Var(float fnum) : _type(FLOAT), _fnum(fnum) {
+	Var::Var(float fnum) : _type(FLOAT), _obj(new Float(fnum)) {
 		_trace("init - float");
 	}
-	Var::Var(double fnum) : _type(FLOAT), _fnum(fnum) {
+	Var::Var(double fnum) : _type(FLOAT), _obj(new Float(fnum)) {
 		_trace("init - double");
 	}
-	Var::Var(const Float & fnum) : _type(FLOAT), _fnum(fnum) {
+	Var::Var(const Float & fnum) : _type(FLOAT), _obj(new Float(fnum)) {
 		_trace("init - Float");
 	}
 	Var::Var(const Func & func) : _type(FUNC), _func(func) {
@@ -633,11 +983,20 @@ namespace LISP {
 	Var::Var(AutoRef<Procedure> procedure) : _type(FUNC), _procedure(procedure) {
 		_trace("init - Procedure");
 	}
-	Var::Var(File & file) : _type(FILE), _file(file) {
-		_trace("init - File");
+	Var::Var(File & file) : _type(PATHNAME), _obj(new Pathname(file)) {
+		_trace("init - Pathname");
 	}
-	Var::Var(AutoRef<FileDescriptor> fd) : _type(FILE_DESCRIPTOR), _fd(fd) {
+	Var::Var(Pathname & pathname) : _type(PATHNAME), _obj(new Pathname(pathname)) {
+		_trace("init - Pathname");
+	}
+	Var::Var(std::FILE * fd) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd)) {
 		_trace("init - FileDescriptor");
+	}
+	Var::Var(std::FILE * fd, bool autoclose) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd, autoclose)) {
+		_trace("init - FileDescriptor");
+	}
+	Var::Var(AutoRef<Object> obj) : _type(OBJECT), _obj(obj) {
+		_trace("init - Object");
 	}
 	Var::Var(AutoRef<LispExtension> ext) : _type(EXTENSION), _ext(ext) {
 		_trace("init - Extension");
@@ -667,19 +1026,19 @@ namespace LISP {
 			_type = NIL;
 		} else if (token == "t") {
 			_type = BOOLEAN;
-			_bval = true;
+		    _obj = AutoRef<Object>(new Boolean(true));
 		} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
 			_type = STRING;
 			_str = token;
 		} else if (Integer::isIntegerString(token)) {
 			_type = INTEGER;
-			_inum = Integer::toInteger(token);
+			_obj = AutoRef<Object>(new Integer(Integer::toInteger(token)));
 		} else if (Float::isFloatString(token)) {
 			_type = FLOAT;
-			_fnum = Float::toFloat(token);
+			_obj = AutoRef<Object>(new Float(Float::toFloat(token)));
 		} else if (*token.begin() == '#' && *(token.begin() + 1) == 'p') {
-			_type = FILE;
-			_file = File(token.substr(3, token.length() - 4));
+			_type = PATHNAME;
+			_obj = AutoRef<Object>(new Pathname(File(token.substr(3, token.length() - 4))));
 		} else {
 			_type = SYMBOL;
 			_symbol = token;
@@ -711,10 +1070,12 @@ namespace LISP {
 			return "STRING";
 		case FUNC:
 			return "FUNCTION";
-		case FILE:
-			return "FILE";
+		case PATHNAME:
+			return "PATHNAME";
 		case FILE_DESCRIPTOR:
 			return "FILE DESCRIPTOR";
+		case OBJECT:
+			return "OBJECT:" + _obj->type_str();
 		case EXTENSION:
 			return "EXTENSION";
 		default:
@@ -725,7 +1086,7 @@ namespace LISP {
 	void Var::typeCheck(int t) const {
 		if (_type != t) {
 			throw LispException("Type check failed (required: " + getTypeString(t) +
-								", but: " + getTypeString() + ")");
+								", but: " + getTypeString() + ") - '" + toString() + "'");
 		}
 	}
 	bool Var::isNil() const {return _type == NIL;}
@@ -733,11 +1094,12 @@ namespace LISP {
 	bool Var::isSymbol() const {return _type == SYMBOL;}
 	bool Var::isKeyword() const {return _type == KEYWORD;}
 	bool Var::isBoolean() const {return _type == BOOLEAN;}
+	bool Var::isNumber() const {return isInteger() || isFloat();}
 	bool Var::isInteger() const {return _type == INTEGER;}
 	bool Var::isFloat() const {return _type == FLOAT;}
 	bool Var::isString() const {return _type == STRING;}
 	bool Var::isFunction() const {return _type == FUNC;}
-	bool Var::isFile() const {return _type == FILE;}
+	bool Var::isPathname() const {return _type == PATHNAME;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
 	bool Var::isExtension() const {return _type == EXTENSION;}
 	const string & Var::r_symbol() const {typeCheck(SYMBOL); return _symbol;}
@@ -745,23 +1107,50 @@ namespace LISP {
 	const Character & Var::r_character() const {typeCheck(CHARACTER); return _ch;};
 	const string & Var::r_string() const {typeCheck(STRING); return _str;}
 	const vector<_VAR> & Var::r_list() const {typeCheck(LIST); return _lst;}
-	const Boolean & Var::r_boolean() const {typeCheck(BOOLEAN); return _bval;}
-	const Integer & Var::r_integer() const {typeCheck(INTEGER); return _inum;}
-	const Float & Var::r_float() const {typeCheck(FLOAT); return _fnum;}
-	const File & Var::r_file() const {typeCheck(FILE); return _file;}
+	const Boolean & Var::r_boolean() const {
+		typeCheck(BOOLEAN);
+		return (const Boolean&)(*_obj);
+	}
+	const Integer & Var::r_integer() const {
+		typeCheck(INTEGER);
+		return (const Integer&)(*_obj);
+	}
+	const Float & Var::r_float() const {
+		typeCheck(FLOAT);
+		return (const Float&)(*_obj);
+	}
+	const Pathname & Var::r_pathname() const {
+		typeCheck(PATHNAME);
+		return (const Pathname&)(*_obj);;
+	}
 	const Func & Var::r_func() const {typeCheck(FUNC); return _func;}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
 	string & Var::r_keyword() {typeCheck(KEYWORD); return _keyword;}
 	Character & Var::r_character() {typeCheck(CHARACTER); return _ch;};
 	string & Var::r_string() {typeCheck(STRING); return _str;}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
-	Boolean & Var::r_boolean() {typeCheck(BOOLEAN); return _bval;}
-	Integer & Var::r_integer() {typeCheck(INTEGER); return _inum;}
-	Float & Var::r_float() {typeCheck(FLOAT); return _fnum;}
-	File & Var::r_file() {typeCheck(FILE); return _file;}
+	Boolean & Var::r_boolean() {
+		typeCheck(BOOLEAN);
+		return (Boolean&)(*_obj);
+	}
+	Integer & Var::r_integer() {
+		typeCheck(INTEGER);
+		return (Integer&)(*_obj);
+	}
+	Float & Var::r_float() {
+		typeCheck(FLOAT);
+		return (Float&)(*_obj);}
+	Pathname & Var::r_pathname() {
+		typeCheck(PATHNAME);
+		return (Pathname&)(*_obj);
+	}
 	Func & Var::r_func() {typeCheck(FUNC); return _func;}
 	AutoRef<Procedure> & Var::r_procedure() {typeCheck(FUNC); return _procedure;}
-	AutoRef<FileDescriptor> & Var::r_fileDescriptor() {typeCheck(FILE_DESCRIPTOR); return _fd;}
+	FileDescriptor & Var::r_fileDescriptor() {
+		typeCheck(FILE_DESCRIPTOR);
+		return (FileDescriptor&)(*_obj);
+	}
+	AutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
 	AutoRef<LispExtension> & Var::r_ext() {typeCheck(EXTENSION); return _ext;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
@@ -837,7 +1226,7 @@ namespace LISP {
 		}
 		case BOOLEAN:
 		{
-			return _bval.toString();
+			return _obj->toString();
 		}
 		case CHARACTER:
 		{
@@ -845,12 +1234,11 @@ namespace LISP {
 		}
 		case INTEGER:
 		{
-			return Text::toString(_inum.raw());
+			return _obj->toString();
 		}
 		case FLOAT:
 		{
-			string x = Text::rtrim(Text::toString(_fnum.raw()), "0");
-			return (x[x.size() - 1] == '.' ? x + "0" : x);
+			return _obj->toString();
 		}
 		case STRING:
 			return unwrap_text(_str);
@@ -861,16 +1249,87 @@ namespace LISP {
 			}
 			return _func.toString();
 		}
-		case FILE:
-			return "#p\"" + _file.getPath() + "\"";
+		case PATHNAME:
+			return _obj->toString();
 		case FILE_DESCRIPTOR:
-			return "#<FD>";
+			return _obj->toString();
+		case OBJECT:
+			return _obj->toString();
 		case EXTENSION:
 			return "#<EXTENSION:" + _ext->toString() + ">";
 		default:
 			break;
 		}
 		throw LispException("[toString()] unknown variable type / " + Text::toString(_type));
+	}
+
+	void Var::numberCheck() const {
+		if (isNumber() == false) {
+			throw LispException("not a number, but '" + getTypeString() + "'");
+		}
+	}
+
+	void Var::numberOperationCheck(const Var & other) const {
+		numberCheck();
+		other.numberCheck();
+	}
+
+	Var & Var::operator+= (const Integer & inum) {
+		r_integer() += inum;
+		return *this;
+	}
+	Var & Var::operator-= (const Integer & inum) {
+		r_integer() -= inum;
+		return *this;
+	}
+	Var & Var::operator*= (const Integer & inum) {
+		r_integer() *= inum;
+		return *this;
+	}
+	Var & Var::operator/= (const Integer & inum) {
+		r_integer() /= inum;
+		return *this;
+	}
+	Var & Var::operator+= (const Float & fnum) {
+		r_float() += fnum;
+		return *this;
+	}
+	Var & Var::operator-= (const Float & fnum) {
+		r_float() -= fnum;
+		return *this;
+	}
+	Var & Var::operator*= (const Float & fnum) {
+		r_float() *= fnum;
+		return *this;
+	}
+	Var & Var::operator/= (const Float & fnum) {
+		r_float() /= fnum;
+		return *this;
+	}
+
+	bool Var::operator> (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) > (other.isInteger() ? other.r_integer() : other.r_float());
+	}
+	bool Var::operator< (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) < (other.isInteger() ? other.r_integer() : other.r_float());
+	}
+	bool Var::operator>= (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) >= (other.isInteger() ? other.r_integer() : other.r_float());
+	}
+	bool Var::operator<= (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) <= (other.isInteger() ? other.r_integer() : other.r_float());
+	}
+	bool Var::operator== (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) == (other.isInteger() ? other.r_integer() : other.r_float());
+	}
+	bool Var::operator!= (const Var & other) const {
+		numberOperationCheck(other);
+		return (isInteger() ? r_integer() : r_float()) != (other.isInteger() ? other.r_integer() : other.r_float());
 	}
 
 	/**
@@ -1184,7 +1643,8 @@ namespace LISP {
 			}
 			case Var::INTEGER:
 			{
-				char d = (char)*v->r_integer();
+				
+				char d = (char)_INT(v);
 				return _socket->send(&d, 1);
 			}
 			default:
@@ -1331,7 +1791,7 @@ namespace LISP {
 	}
 
 	_VAR pathname(Env & env, _VAR path) {
-		if (path->isFile()) {
+		if (path->isPathname()) {
 			return path;
 		}
 		File file(path->toString());
@@ -1355,15 +1815,11 @@ namespace LISP {
 		return ret;
 	}
 
-	bool numberp(_VAR v) {
-		return (v->isInteger() || v->isFloat());
-	}
-
-	bool zerop(_VAR v) {
+	bool zero_p(_VAR v) {
 		if (v->isInteger()) {
-			return v->r_integer().zerop();
+			return v->r_integer().zero_p();
 		} else if (v->isFloat()) {
-			return v->r_float().zerop();
+			return v->r_float().zero_p();
 		}
 		throw LispException("Not number - '" + v->toString() + "'");
 	}
@@ -1421,47 +1877,82 @@ namespace LISP {
 	}
 
 	_VAR plus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
+		v1->numberCheck();
+		v2->numberCheck();
+
+		if (v1->isInteger() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_integer() + v2->r_integer());
+		}
+		if (v1->isInteger() && v2->isFloat()) {
+			return _HEAP_ALLOC(env, v1->r_integer() + v2->r_float());
+		}
+		if (v1->isFloat() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_float() + v2->r_integer());
+		}
+		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() + v2->r_float());
 		}
-		return _HEAP_ALLOC(env, v1->r_integer() + v2->r_integer());
 	}
 
 	_VAR minus(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
+		v1->numberCheck();
+		v2->numberCheck();
+
+		if (v1->isInteger() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_integer() - v2->r_integer());
+		}
+		if (v1->isInteger() && v2->isFloat()) {
+			return _HEAP_ALLOC(env, v1->r_integer() - v2->r_float());
+		}
+		if (v1->isFloat() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_float() - v2->r_integer());
+		}
+		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() - v2->r_float());
 		}
-		return _HEAP_ALLOC(env, v1->r_integer() - v2->r_integer());
 	}
 
 	_VAR multiply(Env & env, _VAR v1, _VAR v2) {
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
+		v1->numberCheck();
+		v2->numberCheck();
+
+		if (v1->isInteger() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_integer() * v2->r_integer());
+		}
+		if (v1->isInteger() && v2->isFloat()) {
+			return _HEAP_ALLOC(env, v1->r_integer() * v2->r_float());
+		}
+		if (v1->isFloat() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_float() * v2->r_integer());
+		}
+		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() * v2->r_float());
 		}
-		return _HEAP_ALLOC(env, v1->r_integer() * v2->r_integer());
 	}
 
 	_VAR divide(Env & env, _VAR v1, _VAR v2) {
-		if (zerop(v2)) {
+		v1->numberCheck();
+		v2->numberCheck();
+		if (zero_p(v2)) {
 			throw DivisionByZeroLispException("dvision by zero");
 		}
-		if (v1->isFloat() || v2->isFloat()) {
-			v1 = toFloat(env, v1);
-			v2 = toFloat(env, v2);
-			
+
+		if (v1->isInteger() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_integer() / v2->r_integer());
+		}
+		if (v1->isInteger() && v2->isFloat()) {
+			return _HEAP_ALLOC(env, v1->r_integer() / v2->r_float());
+		}
+		if (v1->isFloat() && v2->isInteger()) {
+			return _HEAP_ALLOC(env, v1->r_float() / v2->r_integer());
+		}
+		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() / v2->r_float());
 		}
-		return _HEAP_ALLOC(env, v1->r_integer() / v2->r_integer());
 	}
 
 	static _VAR _cos(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1476,7 +1967,7 @@ namespace LISP {
 	}
 
 	static _VAR _sin(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1491,7 +1982,7 @@ namespace LISP {
 	}
 
 	static _VAR _tan(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1506,7 +1997,7 @@ namespace LISP {
 	}
 
 	static _VAR _acos(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1521,7 +2012,7 @@ namespace LISP {
 	}
 
 	static _VAR _asin(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1536,7 +2027,7 @@ namespace LISP {
 	}
 
 	static _VAR _atan(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1551,7 +2042,7 @@ namespace LISP {
 	}
 
 	static _VAR _abs(Env & env, _VAR v) {
-		if (numberp(v) == false) {
+		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
 		switch (v->getType()) {
@@ -1917,9 +2408,6 @@ namespace LISP {
 			for (size_t i = from; i < args.size(); i++) {
 				form.push_back(args[i]);
 			}
-			// vector<_VAR> progn_form;
-			// progn_form.push_back(_HEAP_ALLOC(env, "progn"));
-			// progn_form.push_back(_HEAP_ALLOC(env, form));
 			return scope->rput_func(args[0]->r_symbol(),
 									_HEAP_ALLOC(env, Func(doc, lambda_list, _HEAP_ALLOC(env, form))));
 		}DECL_NATIVE_END();
@@ -2085,12 +2573,11 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			vector<_VAR> steps = args[0]->r_list();
 			string sym = steps[0]->r_symbol();
-			Integer limit = eval(env, scope, steps[1])->r_integer();
+			long long limit = _INT(eval(env, scope, steps[1]));
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
 			local_scope->put_sym(sym, _HEAP_ALLOC(env, Integer(0)));
-			for (; local_scope->get_sym(sym)->r_integer() < limit;
-				 local_scope->put_sym(sym, _HEAP_ALLOC(env, local_scope->get_sym(sym)->r_integer() + 1))) {
+			for (; _INT(local_scope->get_sym(sym)) < limit; (*local_scope->get_sym(sym)) += Integer(1)) {
 				eval(env, local_scope, args[1]);
 			}
 			return _NIL(env);
@@ -2184,10 +2671,10 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
 			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
-			Integer start = eval(env, scope, args[1])->r_integer();
-			Integer end = eval(env, scope, args[2])->r_integer();
+			long long start = _INT(eval(env, scope, args[1]));
+			long long end = _INT(eval(env, scope, args[2]));
 			vector<_VAR> ret;
-			for (size_t i = (size_t)*start; i < (size_t)*end && i < lst.size(); i++) {
+			for (size_t i = start; i < end && i < lst.size(); i++) {
 				ret.push_back(lst[i]);
 			}
 			return _HEAP_ALLOC(env, ret);
@@ -2321,7 +2808,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "pathnamep");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFile());
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isPathname());
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "streamp");
 		{
@@ -2763,7 +3250,7 @@ namespace LISP {
 	void builtin_arithmetic(Env & env) {
 		DECL_NATIVE_BEGIN(env, "+");
 		{
-			_VAR v = _HEAP_ALLOC(env, 0);
+			_VAR v = _HEAP_ALLOC(env, Integer(0));
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 				v = plus(env, v, eval(env, scope, *iter));
 			}
@@ -2773,7 +3260,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);				
 			if (args.size() == 1) {
-				return minus(env, _HEAP_ALLOC(env, 0), eval(env, scope, args[0]));
+				return minus(env, _HEAP_ALLOC(env, Integer(0)), eval(env, scope, args[0]));
 			}
 			_VAR v = eval(env, scope, args[0]);
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
@@ -2801,11 +3288,11 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "%");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			Integer sum = eval(env, scope, args[0])->r_integer();
+			long long sum = _INT(eval(env, scope, args[0]));
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-				sum %= eval(env, scope, *iter)->r_integer();
+				sum %= _INT(eval(env, scope, *iter));
 			}
-			return _HEAP_ALLOC(env, sum);
+			return _HEAP_ALLOC(env, Integer(sum));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "=");
 		{
@@ -2865,12 +3352,12 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "oddp");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().oddp());
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().odd_p());
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "evenp");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().evenp());
+			return _HEAP_ALLOC(env, eval(env, scope, args[0])->r_integer().even_p());
 		}DECL_NATIVE_END();
 	}
 	void builtin_mathematic(Env & env) {
@@ -2913,21 +3400,19 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		env.scope()->put_sym("*standard-output*",
-							 _HEAP_ALLOC(env, AutoRef<FileDescriptor>(new FileDescriptor(stdout, false))));
-		env.scope()->put_sym("*standard-input*",
-							 _HEAP_ALLOC(env, AutoRef<FileDescriptor>(new FileDescriptor(stdin, false))));
+		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, stdout, false));
+		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, stdin, false));
 
 		DECL_NATIVE_BEGIN(env, "read");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR ret = _NIL(env);
-			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
-			if (fd->eof()) {
+			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
+			if (fd.eof()) {
 				return _HEAP_ALLOC(env, true);
 			}
 			BufferedCommandReader reader;
-			while (!fd->eof() && reader.read(string(1, (char)fd->read())) < 1) {}
+			while (!fd.eof() && reader.read(string(1, (char)fd.read())) < 1) {}
                 
 			vector<string> commands = reader.getCommands();
 			for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
@@ -2940,46 +3425,46 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "read-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
-			if (fd->eof()) {
+			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
+			if (fd.eof()) {
 				return _HEAP_ALLOC(env, true);
 			}
-			string line = fd->readline();
+			string line = fd.readline();
 			return _HEAP_ALLOC(env, wrap_text(line));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd->write(msg);
-			fd->write("\n");
+			fd.write(msg);
+			fd.write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd->write(msg);
+			fd.write(msg);
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			AutoRef<FileDescriptor> fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
 			if (args.size() == 2) {
 				fd = eval(env, scope, args[1])->r_fileDescriptor();
 			}
 			string msg = eval(env, scope, args[0])->toString();
-			fd->write(msg);
-			fd->write("\n");
+			fd.write(msg);
+			fd.write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
 	}
@@ -2993,32 +3478,32 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "pathname-name");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, wrap_text(file.getFileNameWithoutExtension()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, wrap_text(p.basename_without_ext()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "pathname-type");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, wrap_text(file.getExtension()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, wrap_text(p.ext()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, wrap_text(file.getPath()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, wrap_text(p.path()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "directory-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, wrap_text(file.getDirectory()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, wrap_text(p.dirname()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, wrap_text(file.getFileName()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, wrap_text(p.basename()));
 		}DECL_NATIVE_END();
 		
 		// https://www.gnu.org/software/emacs/manual/html_node/elisp/Directory-Names.html
@@ -3026,8 +3511,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "directory-file-name");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			string path = file.getPath();
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			string path = p.path();
 			if (path.empty()) {
 				return _NIL(env);
 			}
@@ -3039,8 +3524,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "file-name-directory");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			string path = file.getPath();
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			string path = p.path();
 			size_t f = path.find_last_of(File::getSeparators());
 			if (f == string::npos) {
 				return _NIL(env);
@@ -3053,7 +3538,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
 			_VAR path = ((args.size() > 0) ? pathname(env, eval(env, scope, args[0])) : _HEAP_ALLOC(env, "#p\".\""));
-			vector<File> files = File::list(path->r_file().getPath());
+			vector<File> files = File::list(path->r_pathname().path());
 			vector<_VAR> lst;
 			for (vector<File>::iterator iter = files.begin(); iter != files.end(); iter++) {
 				lst.push_back(_HEAP_ALLOC(env, *iter));
@@ -3063,38 +3548,38 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "probe-file");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return file.exists() ? _HEAP_ALLOC(env, file) : _NIL(env);
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return p.exists() ? _HEAP_ALLOC(env, p) : _NIL(env);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "dirp");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, file.isDirectory());
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, p.is_dir());
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "filep");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, file.isFile());
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, p.is_file());
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-length");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, Integer((long long)file.getSize()));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, Integer((long long)p.size()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-attribute-creation");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.creationTime()).sec));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(p.creation_time()).sec));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "file-attribute-lastmodified");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(file.lastModifiedTime()).sec));
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			return _HEAP_ALLOC(env, Integer((long long)osl_system_time_to_network_time(p.last_modified_time()).sec));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "open");
@@ -3102,9 +3587,9 @@ namespace LISP {
 			Parameters params = Parameters::parse(
 				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))")->r_list());
 			params.bind(env, scope, scope, args, true);
-			File file = pathname(env, scope->get_sym("fname"))->r_file();
+			Pathname & p = pathname(env, scope->get_sym("fname"))->r_pathname();
 			const char * flags = "rb+";
-			if (file.exists() == false) {
+			if (p.exists() == false) {
 				// does not exists
 				if (scope->get_sym("if-does-not-exist")->isNil()) {
 					return _NIL(env);
@@ -3123,24 +3608,23 @@ namespace LISP {
 					flags = "wb+";
 				}
 			}
-			return _HEAP_ALLOC(env, AutoRef<FileDescriptor>(
-								   new FileDescriptor(FileStream::s_open(file.getPath(), flags))));
+			return _HEAP_ALLOC(env, FileStream::s_open(p.path(), flags));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "file-position");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			AutoRef<FileDescriptor> fd = eval(env, scope, args[0])->r_fileDescriptor();
+			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (args.size() > 1) {
-				fd->position((size_t)_INT(eval(env, scope, args[1])));
+				fd.position((size_t)_INT(eval(env, scope, args[1])));
 			}
-			return _HEAP_ALLOC(env, Integer((long long)fd->position()));
+			return _HEAP_ALLOC(env, Integer((long long)fd.position()));
 				
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "close");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			eval(env, scope, args[0])->r_fileDescriptor()->close();
+			eval(env, scope, args[0])->r_fileDescriptor().close();
 			return _NIL(env);
 		}DECL_NATIVE_END();
 	}
@@ -3272,8 +3756,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "load");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			File file = pathname(env, eval(env, scope, args[0]))->r_file();
-			FileStream stream(file, "rb");
+			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
+			FileStream stream(p.file(), "rb");
 			string dump = stream.readFullAsString();
 			stream.close();
 			vector<string> lines = Text::split(dump, "\n");

@@ -36,8 +36,9 @@ namespace OS {
         virtual ~AutoRef();        
         AutoRef<T> & operator= (T * t);
         AutoRef<T> & operator= (const AutoRef<T> & other);
-        T & operator* ();
-        T * operator-> () const;
+        const T & operator* () const;
+		T & operator* ();
+		T * operator-> () const;
         T * operator& ();
 		bool operator== (const AutoRef<T> & other) const;
         int ref_count();
@@ -84,7 +85,7 @@ namespace OS {
     }
 	
 	template <typename T>
-    T & AutoRef<T>::operator* () {
+    const T & AutoRef<T>::operator* () const {
         if (!_t) {
             throw OS::NullException("null exception (operator*)");
         }
@@ -92,7 +93,15 @@ namespace OS {
     }
 
 	template <typename T>
-    T * AutoRef<T>::operator-> () const {
+	T & AutoRef<T>::operator* () {
+        if (!_t) {
+            throw OS::NullException("null exception (operator*)");
+        }
+        return *_t;
+    }
+
+	template <typename T>
+	T * AutoRef<T>::operator-> () const {
         if (!_t) {
             throw OS::NullException("null exception (operator->)");
         }
