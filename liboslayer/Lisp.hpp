@@ -221,6 +221,7 @@ namespace LISP {
 		bool operator> (const Character & ch) const;
 		bool operator<= (const Character & ch) const;
 		bool operator>= (const Character & ch) const;
+		virtual std::string toString() const;
 	};
 
 	/**
@@ -352,12 +353,27 @@ namespace LISP {
 	};
 
 	/**
+	 * @brief closeable
+	 */
+	class Closeable {
+	public:
+		Closeable() {}
+		virtual ~Closeable() {}
+		virtual void close() = 0;
+	};
+
+
+	/**
 	 * @brief lisp file descriptor
 	 */
-	class FileDescriptor : public Object {
+	class FileDescriptor : public Object, public Closeable {
 	private:
 		FILE * _fd;
 		bool _autoclose;
+	private:
+		// do not allow copy
+		FileDescriptor(const FileDescriptor & other);
+		FileDescriptor & operator= (const FileDescriptor & other);
 	public:
 		FileDescriptor();
 		FileDescriptor(bool autoclose);
@@ -372,17 +388,8 @@ namespace LISP {
 		void write(const std::string & data);
 		size_t position();
 		void position(size_t seek);
-		void close();
+		virtual void close();
 		virtual std::string toString() const;
-	};
-
-	/**
-	 * @brief lisp extension type
-	 */
-	class LispExtension : public Object {
-	public:
-		LispExtension() {/**/}
-		virtual ~LispExtension() {/**/}
 	};
 
 	/**
@@ -466,7 +473,6 @@ namespace LISP {
 		const static int PATHNAME = 11;
 		const static int FILE_DESCRIPTOR = 12;
 		const static int OBJECT = 13;
-		const static int EXTENSION = 100;
 		
 	private:
 		static bool _debug;
@@ -475,9 +481,7 @@ namespace LISP {
 		std::string _keyword;
 		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
-		Character _ch;
 		OS::AutoRef<Object> _obj;
-		OS::AutoRef<LispExtension> _ext;
 		
 	public:
 		explicit Var();
@@ -502,7 +506,6 @@ namespace LISP {
 		explicit Var(std::FILE * fd);
 		explicit Var(std::FILE * fd, bool autoclose);
 		explicit Var(OS::AutoRef<Object> obj);
-		explicit Var(OS::AutoRef<LispExtension> ext);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -528,7 +531,6 @@ namespace LISP {
 		bool isPathname() const;
 		bool isFileDescriptor() const;
 		bool isObject() const;
-		bool isExtension() const;
 
 		const std::string & r_symbol() const;
 		const std::string & r_keyword() const;
@@ -553,7 +555,6 @@ namespace LISP {
 		Procedure & r_procedure();
 		FileDescriptor & r_fileDescriptor();
 		OS::AutoRef<Object> & r_obj();
-		OS::AutoRef<LispExtension> & r_ext();
 
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);

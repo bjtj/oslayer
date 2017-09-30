@@ -416,6 +416,9 @@ namespace LISP {
 	bool Character::operator>= (const Character & ch) const {
 		return _ch >= ch._ch;
 	}
+	string Character::toString() const {
+		return "#\\" + string(1, (char)_ch);
+	}
 
 	/**
 	 * 
@@ -807,7 +810,7 @@ namespace LISP {
 	}
 	string FileDescriptor::toString() const {
 		char str[256] = {0,};
-		snprintf(str, sizeof(str), "#<FD:0x%p>", _fd);
+		snprintf(str, sizeof(str), "#<FD:%p>", _fd);
 		return string(str);
 	}
 	
@@ -967,7 +970,7 @@ namespace LISP {
 		}
 		_trace("init - Boolean");
 	}
-	Var::Var(const Character & ch) : _type(CHARACTER), _ch(ch) {
+	Var::Var(const Character & ch) : _type(CHARACTER), _obj(new Character(ch)) {
 		_trace("init - character");
 	}
 	Var::Var(short inum) : _type(INTEGER), _obj(new Integer(inum)) {
@@ -1014,9 +1017,6 @@ namespace LISP {
 	}
 	Var::Var(AutoRef<Object> obj) : _type(OBJECT), _obj(obj) {
 		_trace("init - Object");
-	}
-	Var::Var(AutoRef<LispExtension> ext) : _type(EXTENSION), _ext(ext) {
-		_trace("init - Extension");
 	}
 	Var::~Var() {
 		_trace("deinit");
@@ -1095,8 +1095,6 @@ namespace LISP {
 			return "FILE DESCRIPTOR";
 		case OBJECT:
 			return "OBJECT:" + _obj->type_str();
-		case EXTENSION:
-			return "EXTENSION";
 		default:
 			break;
 		}
@@ -1124,10 +1122,12 @@ namespace LISP {
 	bool Var::isNativeProcedure() const {return _type == NATIVE_PROC;}
 	bool Var::isPathname() const {return _type == PATHNAME;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
-	bool Var::isExtension() const {return _type == EXTENSION;}
 	const string & Var::r_symbol() const {typeCheck(SYMBOL); return _symbol;}
 	const string & Var::r_keyword() const {typeCheck(KEYWORD); return _keyword;}
-	const Character & Var::r_character() const {typeCheck(CHARACTER); return _ch;};
+	const Character & Var::r_character() const {
+		typeCheck(CHARACTER);
+		return (const Character&)(*_obj);
+	};
 	const string & Var::r_string() const {typeCheck(STRING); return _str;}
 	const vector<_VAR> & Var::r_list() const {typeCheck(LIST); return _lst;}
 	const Boolean & Var::r_boolean() const {
@@ -1152,7 +1152,10 @@ namespace LISP {
 	}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
 	string & Var::r_keyword() {typeCheck(KEYWORD); return _keyword;}
-	Character & Var::r_character() {typeCheck(CHARACTER); return _ch;};
+	Character & Var::r_character() {
+		typeCheck(CHARACTER);
+		return (Character&)(*_obj);
+	};
 	string & Var::r_string() {typeCheck(STRING); return _str;}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
 	Boolean & Var::r_boolean() {
@@ -1183,7 +1186,6 @@ namespace LISP {
 		return (FileDescriptor&)(*_obj);
 	}
 	AutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
-	AutoRef<LispExtension> & Var::r_ext() {typeCheck(EXTENSION); return _ext;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
 			throw LispException("Not Function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
@@ -1236,36 +1238,18 @@ namespace LISP {
 			ret += ")";
 			return ret;
 		}
-		case BOOLEAN:
-		{
-			return _obj->toString();
-		}
-		case CHARACTER:
-		{
-			return "#\\" + string(1, (char)_ch.raw());
-		}
-		case INTEGER:
-		{
-			return _obj->toString();
-		}
-		case FLOAT:
-		{
-			return _obj->toString();
-		}
 		case STRING:
 			return unwrap_text(_str);
+		case BOOLEAN:
+		case CHARACTER:
+		case INTEGER:
+		case FLOAT:
 		case FUNC:
-			return _obj->toString();
 		case NATIVE_PROC:
-			return _obj->toString();
 		case PATHNAME:
-			return _obj->toString();
 		case FILE_DESCRIPTOR:
-			return _obj->toString();
 		case OBJECT:
 			return _obj->toString();
-		case EXTENSION:
-			return "#<EXTENSION:" + _ext->toString() + ">";
 		default:
 			break;
 		}
@@ -1595,14 +1579,15 @@ namespace LISP {
 		return ret;
 	}
 
-	// ext
-
 	/**
 	 * @brief Server
 	 */
-	class LispServerSocket : public LispExtension {
+	class LispServerSocket : public Object, public Closeable {
 	private:
 		ServerSocket _server;
+	private:
+		LispServerSocket(const LispServerSocket & other);
+		LispServerSocket & operator= (const LispServerSocket & other);
 	public:
 		LispServerSocket(int port) : _server(port) {
 			_server.setReuseAddr(true);
@@ -1610,13 +1595,16 @@ namespace LISP {
 			_server.listen(50);
 		}
 		virtual ~LispServerSocket() {
-			_server.close();
+			close();
 		}
 		ServerSocket & server() {
 			return _server;
 		}
 		AutoRef<Socket> accept() {
 			return AutoRef<Socket>(_server.accept());
+		}
+		virtual void close() {
+			_server.close();
 		}
 		virtual string toString() const {
 			return "LispServerSocket";
@@ -1626,16 +1614,19 @@ namespace LISP {
 	/**
 	 * @brief socket
 	 */
-	class LispSocket : public LispExtension {
+	class LispSocket : public Object, public Closeable {
 	private:
 		AutoRef<Socket> _socket;
+	private:
+        LispSocket(const LispSocket & other);
+		LispSocket & operator= (const LispSocket & other);
 	public:
 		LispSocket(Socket * socket) : _socket(socket) {
 		}
 		LispSocket(AutoRef<Socket> socket) : _socket(socket) {
 		}
 		virtual ~LispSocket() {
-			_socket->close();
+			close();
 		}
 		AutoRef<Socket> & socket() {
 			return _socket;
@@ -1660,6 +1651,9 @@ namespace LISP {
 				throw LispException("Not supported variable type - " + v->getTypeString());
 			}
 		}
+		virtual void close() {
+			_socket->close();
+		}
 		virtual string toString() const {
 			return "LispSocket";
 		}
@@ -1668,9 +1662,12 @@ namespace LISP {
 	/**
 	 *
 	 */
-	class LispDatabaseConnection : public LispExtension {
+	class LispDatabaseConnection : public Object, public Closeable {
 	private:
 		AutoRef<DatabaseConnection> _conn;
+	private:
+		LispDatabaseConnection(const LispDatabaseConnection & other);
+		LispDatabaseConnection & operator= (const LispDatabaseConnection & other);
 	public:
 		LispDatabaseConnection(AutoRef<DatabaseConnection> conn)
 			: _conn(conn) {
@@ -1679,6 +1676,9 @@ namespace LISP {
 		}
 
 		void connect(const string & host, int port, const string & username, const string & password, const string & dbname) {
+			if (_conn->isConnected()) {
+				throw LispException("Already connected");
+			}
 			_conn->connect(host, port, username, password, dbname);
 		}
 
@@ -1687,6 +1687,10 @@ namespace LISP {
 				throw LispException("Not connected yet");
 			}
 			_conn->disconnect();
+		}
+
+		virtual void close() {
+			disconnect();
 		}
 
 		AutoRef<ResultSet> query(const string & sql) {
@@ -1711,7 +1715,7 @@ namespace LISP {
 	/**
 	 *
 	 */
-	class LispResultSet : public LispExtension {
+	class LispResultSet : public Object {
 	private:
 		AutoRef<ResultSet> _resultSet;
 	public:
@@ -3413,8 +3417,8 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, stdout, false));
-		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, stdin, false));
+		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, stdout));
+		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, stdin));
 
 		DECL_NATIVE_BEGIN(env, "read");
 		{
@@ -3448,10 +3452,11 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			_VAR output = scope->rget_sym("*standard-output*");
 			if (args.size() == 2) {
-				fd = eval(env, scope, args[1])->r_fileDescriptor();
+				output = eval(env, scope, args[1]);
 			}
+			FileDescriptor & fd = output->r_fileDescriptor();
 			string msg = eval(env, scope, args[0])->toString();
 			fd.write(msg);
 			fd.write("\n");
@@ -3460,10 +3465,11 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			_VAR output = scope->rget_sym("*standard-output*");
 			if (args.size() == 2) {
-				fd = eval(env, scope, args[1])->r_fileDescriptor();
+				output = eval(env, scope, args[1]);
 			}
+			FileDescriptor & fd = output->r_fileDescriptor();
 			string msg = eval(env, scope, args[0])->toString();
 			fd.write(msg);
 			return _HEAP_ALLOC(env, wrap_text(msg));
@@ -3471,10 +3477,11 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			FileDescriptor & fd = scope->rget_sym("*standard-output*")->r_fileDescriptor();
+			_VAR output = scope->rget_sym("*standard-output*");
 			if (args.size() == 2) {
-				fd = eval(env, scope, args[1])->r_fileDescriptor();
+				output = eval(env, scope, args[1]);
 			}
+			FileDescriptor & fd = output->r_fileDescriptor();
 			string msg = eval(env, scope, args[0])->toString();
 			fd.write(msg);
 			fd.write("\n");
@@ -3621,7 +3628,7 @@ namespace LISP {
 					flags = "wb+";
 				}
 			}
-			return _HEAP_ALLOC(env, FileStream::s_open(p.path(), flags));
+			return _HEAP_ALLOC(env, FileStream::s_open(p.path(), flags), true);
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "file-position");
@@ -3646,7 +3653,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			int port = (int)_INT(eval(env, scope, args[0]));
-			return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispServerSocket(port)));
+			return _HEAP_ALLOC(env, AutoRef<Object>(new LispServerSocket(port)));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "connect");
@@ -3657,7 +3664,7 @@ namespace LISP {
 			try {
 				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)_INT(port))));
 				socket->connect();
-				return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispSocket(socket)));
+				return _HEAP_ALLOC(env, AutoRef<Object>(new LispSocket(socket)));
 			} catch (Exception e) {
 				throw LispException("socket connect exception - " + e.message());
 			}
@@ -3667,10 +3674,10 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			_VAR serv = eval(env, scope, args[0]);
-			AutoRef<LispExtension> ext = serv->r_ext();
-			LispServerSocket * server = ((LispServerSocket*)&ext);
+			AutoRef<Object> obj = serv->r_obj();
+			LispServerSocket * server = ((LispServerSocket*)&obj);
 			try {
-				return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispSocket(server->accept())));
+				return _HEAP_ALLOC(env, AutoRef<Object>(new LispSocket(server->accept())));
 			} catch (Exception e) {
 				throw LispException("socket accept exception - " + e.message());
 			}
@@ -3685,8 +3692,8 @@ namespace LISP {
 			if (args.size() == 2) {
 				err = eval(env, scope, args[1]);
 			}
-			AutoRef<LispExtension> ext = sock->r_ext();
-			LispSocket * socket = ((LispSocket*)&ext);
+			AutoRef<Object> obj = sock->r_obj();
+			LispSocket * socket = ((LispSocket*)&obj);
 			char d;
 			try {
 				socket->recv(&d, 1);
@@ -3704,8 +3711,8 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			_VAR sock = eval(env, scope, args[0]);
 			_VAR data = eval(env, scope, args[1]);
-			AutoRef<LispExtension> ext = sock->r_ext();
-			LispSocket * socket = ((LispSocket*)&ext);
+			AutoRef<Object> obj = sock->r_obj();
+			LispSocket * socket = ((LispSocket*)&obj);
 			int cnt = 0;
 			try {
 				if (data->isList()) {
@@ -3909,13 +3916,13 @@ namespace LISP {
 			string dbname = eval(env, scope, args[5])->toString();
 			LispDatabaseConnection * conn = new LispDatabaseConnection(DatabaseDriver::instance().getConnection(name));
 			conn->connect(hostname, port, username, password, dbname);
-			return _HEAP_ALLOC(env, AutoRef<LispExtension>(conn));
+			return _HEAP_ALLOC(env, AutoRef<Object>(conn));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "db:disconnect");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_obj());
 			conn->disconnect();
 			return _NIL(env);
 		}DECL_NATIVE_END();
@@ -3923,15 +3930,15 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "db:query");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
-			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_obj());
 			string sql = eval(env, scope, args[1])->toString();
-			return _HEAP_ALLOC(env, AutoRef<LispExtension>(new LispResultSet(conn->query(sql))));
+			return _HEAP_ALLOC(env, AutoRef<Object>(new LispResultSet(conn->query(sql))));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "db:fetch");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			LispResultSet * resultSet = ((LispResultSet *)&eval(env, scope, args[0])->r_ext());
+			LispResultSet * resultSet = ((LispResultSet *)&eval(env, scope, args[0])->r_obj());
 			if (resultSet->next() == false) {
 				return _NIL(env);
 			}
@@ -3945,7 +3952,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "db:update");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
-			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_ext());
+			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_obj());
 			string sql = eval(env, scope, args[1])->toString();
 			return _HEAP_ALLOC(env, conn->queryUpdate(sql));
 		}DECL_NATIVE_END();

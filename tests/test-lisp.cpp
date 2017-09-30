@@ -743,43 +743,67 @@ static void test_algorithm() {
 }
 
 static void test_file() {
-	Env env;
-	native(env);
+	{
+		Env env;
+		native(env);
 
-	compile(env, "(system \"rm hello.txt\")");
-	//ASSERT(compile(env, "(open \"hello.txt\")")->isNil(), ==, true);
-	ASSERT(compile(env, "(open \"hello.txt\" :if-does-not-exist nil)")->isNil(), ==, true);
-	ASSERT(!compile(env, "(open \"hello.txt\" :if-does-not-exist :create)")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
-				   "(write-line \"hello world\" out) (close out))")->isNil(), ==, true);
-	ASSERT(compile(env, "(filep \"hello.txt\")")->r_boolean().val(), ==, true);
-	ASSERT(compile(env, "(let ((in (open \"hello.txt\"))) (read-line in))")->toString(), ==, "hello world");
-	ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
-				   "(write-string \"hello world\" out) (close out))")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((ret \"\") (in (open \"hello.txt\"))) "
-				   "(setq ret (read-line in)) (close in) ret)")->toString(), ==, "hello world");
+		compile(env, "(system \"rm hello.txt\")");
+		ASSERT(compile(env, "(open \"hello.txt\" :if-does-not-exist nil)")->isNil(), ==, true);
+		ASSERT(!compile(env, "(open \"hello.txt\" :if-does-not-exist :create)")->isNil(), ==, true);
+		ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
+					   "(write-line \"hello world\" out) (close out))")->isNil(), ==, true);
+		ASSERT(compile(env, "(filep \"hello.txt\")")->r_boolean().val(), ==, true);
+		ASSERT(compile(env, "(let ((in (open \"hello.txt\"))) (read-line in))")->toString(), ==, "hello world");
+		ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
+					   "(print out) (write-string \"hello world\" out) (close out))")->isNil(), ==, true);
 
-	// append test
-	compile(env, "(system \"rm -rf message.txt\")");
-	ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
-				   "(write-string \"hello \" f) (close f))")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :append))) "
-				   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
-				   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "hello world");
+		printf(" -- debug --\n");
+	}
+	
+	{
+		Env env;
+		native(env);
 
-	// overwrite test
-	ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :overwrite))) "
-				   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
-	ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
-				   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "world");
+		ASSERT(compile(env, "(let ((ret \"\") (in (open \"hello.txt\"))) "
+					   "(setq ret (read-line in)) (close in) ret)")->toString(), ==, "hello world");
+	}
 
-	// file-position
-	compile(env, "(setq *f* (open \"message.txt\"))");
-	ASSERT(*compile(env, "(file-position *f*)")->r_integer(), ==, 0);
-	ASSERT(*compile(env, "(file-position *f* 2)")->r_integer(), ==, 2);
-	ASSERT(compile(env, "(read-line *f*)")->toString(), ==, "rld");
-	compile(env, "(close *f*)");
+	{
+		Env env;
+		native(env);
+
+		// append test
+		compile(env, "(system \"rm -rf message.txt\")");
+		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
+					   "(write-string \"hello \" f) (close f))")->isNil(), ==, true);
+		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :append))) "
+					   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
+		ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
+					   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "hello world");
+	}
+
+	{
+		Env env;
+		native(env);
+
+		// overwrite test
+		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :overwrite))) "
+					   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
+		ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
+					   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "world");
+	}
+
+	{
+		Env env;
+		native(env);
+
+		// file-position
+		compile(env, "(setq *f* (open \"message.txt\"))");
+		ASSERT(*compile(env, "(file-position *f*)")->r_integer(), ==, 0);
+		ASSERT(*compile(env, "(file-position *f* 2)")->r_integer(), ==, 2);
+		ASSERT(compile(env, "(read-line *f*)")->toString(), ==, "rld");
+		compile(env, "(close *f*)");
+	}
 }
 
 static void test_load() {
