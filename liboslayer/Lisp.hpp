@@ -165,21 +165,6 @@ namespace LISP {
 	};
 
 	/**
-	 * @brief procedure (built-in function)
-	 */
-	class Procedure : public Object {
-	private:
-		std::string _name;
-		OS::GCRef<Var> _doc;
-	public:
-		Procedure(const std::string & name);
-		virtual ~Procedure();
-		std::string & name();
-		OS::GCRef<Var> & doc();
-		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
-	};
-
-	/**
 	 * @brief boolean
 	 */
 	class Boolean : public Object {
@@ -452,6 +437,18 @@ namespace LISP {
 	};
 
 	/**
+	 * @brief procedure (built-in function)
+	 */
+	class Procedure : public Object {
+	private:
+	public:
+		Procedure();
+		virtual ~Procedure();
+		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
+		virtual std::string toString() const;
+	};
+
+	/**
 	 * @brief func
 	 */
 	class Func : public Object {
@@ -465,8 +462,8 @@ namespace LISP {
 		Func();
 		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
 		Func(bool macro, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
-		Func(const OS::GCRef<Var> & doc, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
-		Func(bool macro, const OS::GCRef<Var> & doc, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(const OS::GCRef<Var> & description, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(bool macro, const OS::GCRef<Var> & description, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
 		virtual ~Func();
 		bool empty() const;
 		bool & macro();
@@ -475,6 +472,7 @@ namespace LISP {
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & form();
+		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 		std::string toString() const;
 	};
 
@@ -493,9 +491,10 @@ namespace LISP {
 		const static int FLOAT = 7;
 		const static int STRING = 8;
 		const static int FUNC = 9;
-		const static int PATHNAME = 10;
-		const static int FILE_DESCRIPTOR = 11;
-		const static int OBJECT = 12;
+		const static int NATIVE_PROC = 10;
+		const static int PATHNAME = 11;
+		const static int FILE_DESCRIPTOR = 12;
+		const static int OBJECT = 13;
 		const static int EXTENSION = 100;
 		
 	private:
@@ -506,8 +505,6 @@ namespace LISP {
 		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
 		Character _ch;
-		Func _func;
-		OS::AutoRef<Procedure> _procedure;
 		OS::AutoRef<Object> _obj;
 		OS::AutoRef<LispExtension> _ext;
 		
@@ -527,8 +524,8 @@ namespace LISP {
 		explicit Var(float dnum);
 		explicit Var(double dnum);
 		explicit Var(const Float & fnum);
-		explicit Var(const Func & func);
-		explicit Var(OS::AutoRef<Procedure> procedure);
+		explicit Var(Func * func);
+		explicit Var(Procedure * procedure);
 		explicit Var(OS::File & file);
 		explicit Var(Pathname & pathname);
 		explicit Var(std::FILE * fd);
@@ -554,7 +551,9 @@ namespace LISP {
 		bool isInteger() const;
 		bool isFloat() const;
 		bool isString() const;
+		bool isCallable() const;
 		bool isFunction() const;
+		bool isNativeProcedure() const;
 		bool isPathname() const;
 		bool isFileDescriptor() const;
 		bool isObject() const;
@@ -580,13 +579,12 @@ namespace LISP {
 		Float & r_float();
 		Pathname & r_pathname();
 		Func & r_func();
-		OS::AutoRef<Procedure> & r_procedure();
+		Procedure & r_procedure();
 		FileDescriptor & r_fileDescriptor();
 		OS::AutoRef<Object> & r_obj();
 		OS::AutoRef<LispExtension> & r_ext();
 
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
-		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, std::vector<OS::GCRef<Var> > & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 
 		void numberCheck() const;

@@ -436,13 +436,13 @@ static void test_procedure() {
 
 	class MyProc : public Procedure {
 	public:
-		MyProc(const string & name) : Procedure(name) {}
+		MyProc() {}
 		virtual ~MyProc() {}
 		virtual GCRef<Var> proc(Env & env, AutoRef<Scope> scope, GCRef<Var> name, vector< GCRef<Var> > & args) {
 			return env.alloc(new Var((int)args.size()));
 		}
 	};
-	env.scope()->put_func("my-proc", env.alloc(new Var(AutoRef<Procedure>(new MyProc("my-proc")))));
+	env.scope()->put_func("my-proc", env.alloc(new Var(new MyProc)));
 	ASSERT(*compile(env, "(my-proc 1)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(my-proc 1 2)")->r_integer(), ==, 2);
 }

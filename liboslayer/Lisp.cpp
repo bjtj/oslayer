@@ -1,4 +1,3 @@
-
 #include <cmath>
 #include "Lisp.hpp"
 #include "os.hpp"
@@ -37,13 +36,13 @@
 	class _cls : public Procedure {								\
 	private:														\
 	public:															\
-	_cls(const string & name) : Procedure(name) {}					\
+	_cls() {}					\
 	virtual ~_cls() {}												\
 	virtual _VAR proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 #define DECL_NATIVE_END()											\
 	}																\
 	};																\
-	_E.scope()->put_func(_N, _E.alloc(new Var(AutoRef<Procedure>(new _cls(_N))))); \
+	_E.scope()->put_func(_N, _E.alloc(new Var(new _cls)));			\
 	} while (0);
 
 namespace LISP {
@@ -278,19 +277,9 @@ namespace LISP {
 	}
 
 	/**
-	 * procedure
+	 * boolean
 	 */
-
-	Procedure::Procedure(const string & name) : _name(name) {
-	}
-	Procedure::~Procedure() {
-	}
-	string & Procedure::name() {
-		return _name;
-	}
-	_VAR & Procedure::doc() {
-		return _doc;
-	}
+	
 	Boolean::Boolean() : _val(false) {
 	}
 	Boolean::Boolean(bool val) : _val(val) {
@@ -870,6 +859,18 @@ namespace LISP {
 	}
 
 	/**
+	 * procedure
+	 */
+
+	Procedure::Procedure() {
+	}
+	Procedure::~Procedure() {
+	}
+	string Procedure::toString() const {
+		return "#<COMPILED FUNCTION>";
+	}
+
+	/**
 	 * @brief Func
 	 */
 
@@ -910,6 +911,19 @@ namespace LISP {
 	}
 	_VAR & Func::form() {
 		return _form;
+	}
+	_VAR Func::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
+		Parameters p_params = Parameters::parse(env, scope, params()->r_list());
+		if (macro()) {
+			p_params.bind(env, scope, closure_scope(), args, false);
+			AutoRef<Scope> local_scope(new Scope(*closure_scope()));
+			local_scope->parent() = scope;
+			return eval(env, scope, eval(env, local_scope, form()));
+		}
+		p_params.bind(env, scope, closure_scope(), args, true);
+		AutoRef<Scope> local_scope(new Scope(*closure_scope()));
+		local_scope->parent() = scope;
+		return eval(env, local_scope, form());
 	}
 	string Func::toString() const {
 		if (_macro) {
@@ -977,10 +991,10 @@ namespace LISP {
 	Var::Var(const Float & fnum) : _type(FLOAT), _obj(new Float(fnum)) {
 		_trace("init - Float");
 	}
-	Var::Var(const Func & func) : _type(FUNC), _func(func) {
+	Var::Var(Func * func) : _type(FUNC), _obj(func) {
 		_trace("init - Func");
 	}
-	Var::Var(AutoRef<Procedure> procedure) : _type(FUNC), _procedure(procedure) {
+	Var::Var(Procedure * procedure) : _type(NATIVE_PROC), _obj(procedure) {
 		_trace("init - Procedure");
 	}
 	Var::Var(File & file) : _type(PATHNAME), _obj(new Pathname(file)) {
@@ -1070,6 +1084,8 @@ namespace LISP {
 			return "STRING";
 		case FUNC:
 			return "FUNCTION";
+		case NATIVE_PROC:
+			return "NATIVE PROC";
 		case PATHNAME:
 			return "PATHNAME";
 		case FILE_DESCRIPTOR:
@@ -1098,7 +1114,11 @@ namespace LISP {
 	bool Var::isInteger() const {return _type == INTEGER;}
 	bool Var::isFloat() const {return _type == FLOAT;}
 	bool Var::isString() const {return _type == STRING;}
+	bool Var::isCallable() const {
+		return (isFunction() || isNativeProcedure());
+	}
 	bool Var::isFunction() const {return _type == FUNC;}
+	bool Var::isNativeProcedure() const {return _type == NATIVE_PROC;}
 	bool Var::isPathname() const {return _type == PATHNAME;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
 	bool Var::isExtension() const {return _type == EXTENSION;}
@@ -1123,7 +1143,10 @@ namespace LISP {
 		typeCheck(PATHNAME);
 		return (const Pathname&)(*_obj);;
 	}
-	const Func & Var::r_func() const {typeCheck(FUNC); return _func;}
+	const Func & Var::r_func() const {
+		typeCheck(FUNC);
+		return (const Func&)(*_obj);
+	}
 	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
 	string & Var::r_keyword() {typeCheck(KEYWORD); return _keyword;}
 	Character & Var::r_character() {typeCheck(CHARACTER); return _ch;};
@@ -1144,8 +1167,14 @@ namespace LISP {
 		typeCheck(PATHNAME);
 		return (Pathname&)(*_obj);
 	}
-	Func & Var::r_func() {typeCheck(FUNC); return _func;}
-	AutoRef<Procedure> & Var::r_procedure() {typeCheck(FUNC); return _procedure;}
+	Func & Var::r_func() {
+		typeCheck(FUNC);
+		return (Func&)(*_obj);
+	}
+	Procedure & Var::r_procedure() {
+		typeCheck(NATIVE_PROC);
+		return (Procedure&)(*_obj);
+	}
 	FileDescriptor & Var::r_fileDescriptor() {
 		typeCheck(FILE_DESCRIPTOR);
 		return (FileDescriptor&)(*_obj);
@@ -1156,44 +1185,24 @@ namespace LISP {
 		if (!isFunction()) {
 			throw LispException("Not Function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
 		}
-		if (!_procedure.nil()) {
+		if (r_func().macro() == false) {
 			throw LispException("Not Macro");
 		}
-		if (_func.macro() == false) {
-			throw LispException("Not Macro");
-		}
-		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-		params.bind(env, scope, _func.closure_scope(), args, false);
-		_func.closure_scope()->parent() = scope;
-		return eval(env, _func.closure_scope(), _func.form());
+		Parameters params = Parameters::parse(env, scope, r_func().params()->r_list());
+		params.bind(env, scope, r_func().closure_scope(), args, false);
+		r_func().closure_scope()->parent() = scope;
+		return eval(env, r_func().closure_scope(), r_func().form());
 
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
-		if (!isFunction()) {
-			throw LispException("not function / name: '" + name->toString() +
+		if (!isCallable()) {
+			throw LispException("not a callable / name: '" + name->toString() +
 								"' / type : '" + getTypeString() + "'");
 		}
-		if (!_procedure.nil()) {
-			return _procedure->proc(env, scope, name, args);
+		if (isNativeProcedure()) {
+			return r_procedure().proc(env, scope, name, args);
 		}
-		Parameters params = Parameters::parse(env, scope, _func.params()->r_list());
-		if (_func.macro()) {
-			params.bind(env, scope, _func.closure_scope(), args, false);
-			AutoRef<Scope> local_scope(new Scope(*_func.closure_scope()));
-			local_scope->parent() = scope;
-			return eval(env, scope, eval(env, local_scope, _func.form()));
-		}
-		params.bind(env, scope, _func.closure_scope(), args, true);
-		AutoRef<Scope> local_scope(new Scope(*_func.closure_scope()));
-		local_scope->parent() = scope;
-		return eval(env, local_scope, _func.form());
-	}
-	_VAR Var::proc(Env & env, AutoRef<Scope> scope, vector<_VAR> & args) {
-		if (!_procedure.nil()) {
-			return proc(env, scope, _HEAP_ALLOC(env, _procedure->name()), args);
-		} else {
-			return proc(env, scope, _NIL(env), args);
-		}
+		return r_func().proc(env, scope, name, args);
 	}
 	string Var::toString() const {
 		switch (_type) {
@@ -1243,12 +1252,9 @@ namespace LISP {
 		case STRING:
 			return unwrap_text(_str);
 		case FUNC:
-		{
-			if (!_procedure.nil()) {
-				return "#<COMPILED FUNCTION " + _procedure->name() + ">";
-			}
-			return _func.toString();
-		}
+			return _obj->toString();
+		case NATIVE_PROC:
+			return _obj->toString();
 		case PATHNAME:
 			return _obj->toString();
 		case FILE_DESCRIPTOR:
@@ -2067,7 +2073,7 @@ namespace LISP {
 			return scope->rget_func(var->r_symbol());
 		}
 		_VAR func = eval(env, scope, var);
-		if (func->isFunction()) {
+		if (func->isCallable()) {
 			return func;
 		}
 		throw LispException("invalid function - '" + var->toString() + "'");
@@ -2381,8 +2387,8 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			args[0]->typeCheck(Var::LIST);
-			Func func(args[0], args[1]);
-			func.closure_scope()->registries() = scope->registries();
+			Func * func = new Func(args[0], args[1]);
+			func->closure_scope()->registries() = scope->registries();
 			return _HEAP_ALLOC(env, func);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defun");
@@ -2409,7 +2415,7 @@ namespace LISP {
 				form.push_back(args[i]);
 			}
 			return scope->rput_func(args[0]->r_symbol(),
-									_HEAP_ALLOC(env, Func(doc, lambda_list, _HEAP_ALLOC(env, form))));
+									_HEAP_ALLOC(env, new Func(doc, lambda_list, _HEAP_ALLOC(env, form))));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "defparameter");
 		{
@@ -2479,7 +2485,7 @@ namespace LISP {
 			_VAR funcsym = eval(env, scope, args[0]);
 			_VAR func = function(env, scope, funcsym);
 			vector<_VAR> fargs(args.begin() + 1, args.end());
-			return func->proc(env, scope, fargs);
+			return func->proc(env, scope, name, fargs);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "let");
 		{
@@ -2752,7 +2758,7 @@ namespace LISP {
 				doc = _NIL(env);
 				form = args[2];
 			}
-			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, Func(true, doc, lambda_list, form)));
+			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, new Func(true, doc, lambda_list, form)));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "macroexpand");
 		{
@@ -2841,7 +2847,7 @@ namespace LISP {
 					vector<_VAR> & lst = (*iter);
 					fargs.push_back(quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
 				}
-				_VAR r = func->proc(env, scope, fargs);
+				_VAR r = func->proc(env, scope, name, fargs);
 				ret.push_back(r);
 			}
 			return _HEAP_ALLOC(env, ret);
@@ -2866,7 +2872,7 @@ namespace LISP {
 					vector<_VAR> lst = (*iter);
 					fargs.push_back(quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
 				}
-				_VAR r = func->proc(env, scope, fargs);
+				_VAR r = func->proc(env, scope, name, fargs);
 				ret.push_back(r);
 			}
 			return _HEAP_ALLOC(env, ret);
@@ -2887,7 +2893,7 @@ namespace LISP {
 					vector<_VAR> fargs;
 					fargs.push_back(lst[i]);
 					fargs.push_back(lst[i + 1]);
-					if (!func->proc(env, scope, _HEAP_ALLOC(env, "#sort"), fargs)->isNil()) {
+					if (!func->proc(env, scope, _NIL(env), fargs)->isNil()) {
 						iter_swap(lst.begin() + i, lst.begin() + (i + 1));
 					}
 				}
@@ -2904,7 +2910,7 @@ namespace LISP {
 				vector<_VAR> fargs;
 				fargs.push_back(sum);
 				fargs.push_back(lst[i]);
-				sum = func->proc(env, scope, fargs);
+				sum = func->proc(env, scope, _NIL(env), fargs);
 			}
 			return sum;
 		}DECL_NATIVE_END();
@@ -2949,7 +2955,7 @@ namespace LISP {
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				vector<_VAR> fargs;
 				fargs.push_back(*iter);
-				if (!func->proc(env, scope, fargs)->isNil()) {
+				if (!func->proc(env, scope, _NIL(env), fargs)->isNil()) {
 					iter = lst.erase(iter);
 				} else {
 					iter++;
@@ -2966,7 +2972,7 @@ namespace LISP {
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				vector<_VAR> fargs;
 				fargs.push_back(*iter);
-				if (func->proc(env, scope, fargs)->isNil()) {
+				if (func->proc(env, scope, _NIL(env), fargs)->isNil()) {
 					iter = lst.erase(iter);
 				} else {
 					iter++;
