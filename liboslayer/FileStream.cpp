@@ -114,7 +114,11 @@ namespace UTIL {
 		testOpen();
 		string ret;
 		int ch;
-		while (ch = read(), (ch >= 0 && ch != '\n')) {
+		while (true) {
+            ch = read();
+            if ((ch >= 0 && ch != '\n') == false) {
+                break;
+            }
 			ret.append(1, (char)ch);
 		}
 		return ret;

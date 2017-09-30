@@ -1898,6 +1898,7 @@ namespace LISP {
 		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() + v2->r_float());
 		}
+        throw LispException("Weird: should not be reachable place");
 	}
 
 	_VAR minus(Env & env, _VAR v1, _VAR v2) {
@@ -1916,6 +1917,7 @@ namespace LISP {
 		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() - v2->r_float());
 		}
+        throw LispException("Weird: should not be reachable place");
 	}
 
 	_VAR multiply(Env & env, _VAR v1, _VAR v2) {
@@ -1934,6 +1936,7 @@ namespace LISP {
 		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() * v2->r_float());
 		}
+        throw LispException("Weird: should not be reachable place");
 	}
 
 	_VAR divide(Env & env, _VAR v1, _VAR v2) {
@@ -1955,6 +1958,7 @@ namespace LISP {
 		if (v1->isFloat() && v2->isFloat()) {
 			return _HEAP_ALLOC(env, v1->r_float() / v2->r_float());
 		}
+        throw LispException("Weird: should not be reachable place");
 	}
 
 	static _VAR _cos(Env & env, _VAR v) {
