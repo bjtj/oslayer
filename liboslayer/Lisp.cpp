@@ -744,18 +744,21 @@ namespace LISP {
 	 * 
 	 */
 	FileDescriptor::FileDescriptor()
-		: AutoCloseable<Closeable>(this), _fd(NULL) {
+		: _fd(NULL), _autoclose(false) {
 	}
 	FileDescriptor::FileDescriptor(bool autoclose)
-		: AutoCloseable<Closeable>(this, autoclose), _fd(NULL) {
+		: _fd(NULL), _autoclose(autoclose) {
 	}
 	FileDescriptor::FileDescriptor(FILE * _fd)
-		: AutoCloseable<Closeable>(this), _fd(_fd) {
+		: _fd(_fd), _autoclose(false) {
 	}
 	FileDescriptor::FileDescriptor(FILE * _fd, bool autoclose)
-		: AutoCloseable<Closeable>(this, autoclose), _fd(_fd) {
+		: _fd(_fd), _autoclose(autoclose) {
 	}
 	FileDescriptor::~FileDescriptor() {
+		if (_autoclose) {
+			close();
+		}
 	}
 	FILE * FileDescriptor::fd() {
 		return _fd;

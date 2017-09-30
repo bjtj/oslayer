@@ -352,41 +352,12 @@ namespace LISP {
 	};
 
 	/**
-	 * closeable
-	 */
-	class Closeable {
-	public:
-		Closeable() {}
-		virtual ~Closeable() {}
-		virtual void close() = 0;
-	};
-
-	/**
-	 * auto closeable
-	 */
-	template<typename T>
-	class AutoCloseable {
-	private:
-		Closeable * _closeable;
-		bool _autoclose;
-	public:
-		AutoCloseable(T * closeable)
-			: _closeable((Closeable*)closeable), _autoclose(true) {}
-		AutoCloseable(T * closeable, bool autoclose)
-			: _closeable((Closeable*)closeable), _autoclose(autoclose) {}
-		virtual ~AutoCloseable() {
-			if (_autoclose) {
-				_closeable->close();
-			}
-		}
-	};
-
-	/**
 	 * @brief lisp file descriptor
 	 */
-	class FileDescriptor : public Object, public Closeable, public AutoCloseable<Closeable> {
+	class FileDescriptor : public Object {
 	private:
 		FILE * _fd;
+		bool _autoclose;
 	public:
 		FileDescriptor();
 		FileDescriptor(bool autoclose);
@@ -401,7 +372,7 @@ namespace LISP {
 		void write(const std::string & data);
 		size_t position();
 		void position(size_t seek);
-		virtual void close();
+		void close();
 		virtual std::string toString() const;
 	};
 
