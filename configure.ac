@@ -12,7 +12,7 @@ AC_CONFIG_AUX_DIR([build-aux])
 
 AM_SILENT_RULES([yes])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([serial-tests])
 LT_PREREQ([2.2])
 LT_INIT([dlopen])
 
@@ -91,10 +91,11 @@ PKG_CHECK_MODULES([LIBMYSQLCLIENT],[mysqlclient],[HAVE_PKG_MYSQLCLIENT=1],[HAVE_
 AS_IF([test "x$HAVE_PKG_MYSQLCLIENT" = x1], [AC_DEFINE([HAVE_MYSQLCLIENT],1,[support mysqlclient])])
 AM_CONDITIONAL([SUPPORT_MYSQLCLIENT], [test "x$HAVE_PKG_MYSQLCLIENT" = x1])
 
+# misc.
 AC_CONFIG_LINKS([tests/data/cert.pem:tests/data/cert.pem])
 AC_CONFIG_LINKS([tests/data/key.pem:tests/data/key.pem])
 
-#
+# config files
 AC_CONFIG_FILES([Makefile
 				 liboslayer/Makefile
 				 examples/Makefile
@@ -104,5 +105,6 @@ AC_CONFIG_FILES([Makefile
 				 oslayer.pc])
 AC_OUTPUT
 
+# print result
 echo \
 OpenSSL enabled : ${enable_openssl}
