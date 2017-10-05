@@ -1823,15 +1823,6 @@ namespace LISP {
 		return txt.substr(1, txt.length() - 2);
 	}
 
-	static vector<_VAR> _listy(_VAR var) {
-		if (var->isList()) {
-			return var->r_list();
-		}
-		vector<_VAR> ret;
-		ret.push_back(var);
-		return ret;
-	}
-
 	static bool _zero_p(_VAR v) {
 		if (v->isInteger()) {
 			return v->r_integer().zero_p();
@@ -2104,41 +2095,6 @@ namespace LISP {
 			return func;
 		}
 		throw LispException("invalid function - '" + var->toString() + "'");
-	}
-
-	static string _replaceAll(string src, string match, string rep) {
-		string ret = src;
-		size_t f = 0;
-		while ((f = ret.find(match, f)) != string::npos) {
-			ret.replace(f, match.length(), rep);
-			f += rep.length();
-		}
-		return ret;
-	}
-
-	static vector<string> _split(string target, string sep) {
-
-		vector<string> vec;
-		size_t s = 0;
-		size_t f = 0;
-
-		if (target.empty()) {
-			return vec;
-		}
-
-		f = target.find(sep);
-
-		while (f != string::npos) {
-			if (f - s > 0) {
-				vec.push_back(target.substr(s, f - s));
-			}
-			s = f + sep.length();
-			f = target.find(sep, s);
-		}
-		if (s < target.size()) {
-			vec.push_back(target.substr(s));
-		}
-		return vec;
 	}
 
 	static bool _isSpace(const char ch) {
