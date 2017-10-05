@@ -501,7 +501,7 @@ namespace LISP {
 		explicit Var(const Float & fnum);
 		explicit Var(Func * func);
 		explicit Var(Procedure * procedure);
-		explicit Var(OS::File & file);
+		explicit Var(const OS::File & file);
 		explicit Var(Pathname & pathname);
 		explicit Var(std::FILE * fd);
 		explicit Var(std::FILE * fd, bool autoclose);

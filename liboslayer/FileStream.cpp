@@ -116,7 +116,7 @@ namespace UTIL {
 		int ch;
 		while (true) {
             ch = read();
-            if ((ch >= 0 && ch != '\n') == false) {
+            if (ch < 0 || ch == '\n') {
                 break;
             }
 			ret.append(1, (char)ch);

@@ -1003,7 +1003,7 @@ namespace LISP {
 	Var::Var(Procedure * procedure) : _type(NATIVE_PROC), _obj(procedure) {
 		_trace("init - Procedure");
 	}
-	Var::Var(File & file) : _type(PATHNAME), _obj(new Pathname(file)) {
+	Var::Var(const File & file) : _type(PATHNAME), _obj(new Pathname(file)) {
 		_trace("init - Pathname");
 	}
 	Var::Var(Pathname & pathname) : _type(PATHNAME), _obj(new Pathname(pathname)) {
@@ -3444,7 +3444,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (fd.eof()) {
-				return _HEAP_ALLOC(env, true);
+				throw LispException("End Of File exception");
 			}
 			string line = fd.readline();
 			return _HEAP_ALLOC(env, wrap_text(line));
@@ -3554,7 +3554,12 @@ namespace LISP {
 		}DECL_NATIVE_END();
 	}
 	void builtin_file(Env & env) {
-		DECL_NATIVE_BEGIN(env, "dir");
+		DECL_NATIVE_BEGIN(env, "get-working-directory");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 0);
+			return _HEAP_ALLOC(env, File(File::getCwd()));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "list-directory");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
 			_VAR path = ((args.size() > 0) ? pathname(env, eval(env, scope, args[0])) : _HEAP_ALLOC(env, "#p\".\""));
@@ -3611,20 +3616,22 @@ namespace LISP {
 			const char * flags = "rb+";
 			if (p.exists() == false) {
 				// does not exists
-				if (scope->get_sym("if-does-not-exist")->isNil()) {
+				_VAR idne = scope->get_sym("if-does-not-exist");
+				if (idne->isNil()) {
 					return _NIL(env);
-				} else if (silentkeywordeq(scope->get_sym("if-does-not-exist"), ":error")) {
-					throw LispException("cannot open");
-				} else if (silentkeywordeq(scope->get_sym("if-does-not-exist"), ":create")) {
+				} else if (silentkeywordeq(idne, ":error")) {
+					throw LispException("cannot open " + p.toString());
+				} else if (silentkeywordeq(idne, ":create")) {
 					flags = "wb+";
 				}
 			} else {
 				// exists
-				if (scope->get_sym("if-exists")->isNil()) {
+				_VAR ie = scope->get_sym("if-exists");
+				if (ie->isNil()) {
 					return _NIL(env);
-				} else if (silentkeywordeq(scope->get_sym("if-exists"), ":append")) {
+				} else if (silentkeywordeq(ie, ":append")) {
 					flags = "ab+";
-				} else if (silentkeywordeq(scope->get_sym("if-exists"), ":overwrite")) {
+				} else if (silentkeywordeq(ie, ":overwrite")) {
 					flags = "wb+";
 				}
 			}
