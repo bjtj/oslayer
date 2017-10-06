@@ -1647,7 +1647,6 @@ namespace LISP {
 			}
 			case Var::INTEGER:
 			{
-				
 				char d = (char)_INT(v);
 				return _socket->send(&d, 1);
 			}
@@ -3231,6 +3230,14 @@ namespace LISP {
 				return _HEAP_ALLOC(env, wrap_text(org.substr(prefix.length())));
 			}
 			return _HEAP_ALLOC(env, wrap_text(org));
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "replace-all");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 3);
+			string org = eval(env, scope, args[0])->toString();
+			string target = eval(env, scope, args[1])->toString();
+			string replace = eval(env, scope, args[2])->toString();
+			return _HEAP_ALLOC(env, wrap_text(Text::replaceAll(org, target, replace)));
 		}DECL_NATIVE_END();
 	}
 	void builtin_arithmetic(Env & env) {
