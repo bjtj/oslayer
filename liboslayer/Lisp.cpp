@@ -864,9 +864,6 @@ namespace LISP {
 		AutoLock lock(Ref<Semaphore>(&_heap.sem()));
 		_heap.clear();
 	}
-	string & Env::last_command() {
-		return _last_command;
-	}
 
 	/**
 	 * procedure

@@ -400,7 +400,6 @@ namespace LISP {
 		static bool _debug;
 		OS::AutoRef<Scope> _scope;
 		OS::SharedHeap<Var> _heap;
-		std::string _last_command;
 	public:
 		Env();
 		virtual ~Env();
@@ -411,7 +410,6 @@ namespace LISP {
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
 		void clear();
-		std::string & last_command();
 	};
 
 	/**
