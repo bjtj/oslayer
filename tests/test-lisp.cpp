@@ -21,14 +21,14 @@ static void test_comment() {
 
 	Env env;
 	native(env);
-	ASSERT(compile(env, "(format nil \"hello\") ; comment")->toString(), ==, "hello");
+	ASSERT(compile(env, "(format nil \"hello\") ; comment")->toPrintString(), ==, "hello");
 	ASSERT(BufferedCommandReader::eliminateComment("(format nil ;comment\n"
 											  "\"hello\")"), ==, "(format nil \n"
 		   "\"hello\")");
 	ASSERT(compile(env, "(format nil\n"
-				   "\"hello\")")->toString(), ==, "hello");
+				   "\"hello\")")->toPrintString(), ==, "hello");
 	ASSERT(compile(env, "(format nil ; comment \n"
-				   "\"hello\")")->toString(), ==, "hello");
+				   "\"hello\")")->toPrintString(), ==, "hello");
 }
 
 static void test_subseq() {
@@ -369,7 +369,7 @@ static void test_func() {
 		compile(env, "(setq *str* \"\")");
 		compile(env, "(defun wr (x) (setq *str* (string-append *str* x)))");
 		compile(env, "(dolist (x (list 1 2 3)) (wr x))");
-		ASSERT(env.scope()->get_sym("*str*")->toString(), ==, "123");
+		ASSERT(env.scope()->get_sym("*str*")->toPrintString(), ==, "123");
 
 		compile(env, "(system \"touch .temp\")");
 		compile(env, "(defun foo (x) (filep x))");
@@ -390,8 +390,8 @@ static void test_func_more() {
 		err = e.toString();
 	}
 	ASSERT(err.empty(), ==, false);
-	ASSERT(compile(env, "(funcall (quote hello))")->toString(), ==, "hello");
-	ASSERT(compile(env, "(funcall (function hello))")->toString(), ==, "hello");
+	ASSERT(compile(env, "(funcall (quote hello))")->toPrintString(), ==, "hello");
+	ASSERT(compile(env, "(funcall (function hello))")->toPrintString(), ==, "hello");
 }
 
 static void test_func_params() {
@@ -493,7 +493,7 @@ static void test_let() {
 	Env env;
 	native(env);
 
-	ASSERT(compile(env, "(let ((ret \"\")) ret)")->toString(), ==, "");
+	ASSERT(compile(env, "(let ((ret \"\")) ret)")->toPrintString(), ==, "");
 	ASSERT(compile(env, "(let ((ret \"\")) (setq ret (list 1 2 3)) (print ret) ret)")->getTypeString(), ==, "LIST");
 }
 
@@ -509,7 +509,7 @@ static void test_cond() {
 	ASSERT(*compile(env, "(unless nil 1)")->r_integer(), ==, 1);
 	compile(env, "(setq a 5)");
 	ASSERT(*compile(env, "(cond ((= a 5) 1) (t \"default\"))")->r_integer(), ==, 1);
-	ASSERT(compile(env, "(cond ((string= a \"hack\") \"foo\") (t \"default\"))")->toString(), ==, "default");
+	ASSERT(compile(env, "(cond ((string= a \"hack\") \"foo\") (t \"default\"))")->toPrintString(), ==, "default");
 }
 
 static void test_loop() {
@@ -562,18 +562,18 @@ static void test_string() {
 	native(env);
 	_VAR ret = compile(env, "(setq hello \"Hello World\")");
 
-	ASSERT(ret->toString(), ==, "Hello World");
-	ASSERT(env.scope()->get_sym("hello")->toString(), ==, "Hello World");
+	ASSERT(ret->toPrintString(), ==, "Hello World");
+	ASSERT(env.scope()->get_sym("hello")->toPrintString(), ==, "Hello World");
 
 	ret = compile(env, "(enough-namestring \"/www/html/foo/bar/baz.html\" \"/www/\")");
-	ASSERT(ret->toString(), ==, "html/foo/bar/baz.html");
+	ASSERT(ret->toPrintString(), ==, "html/foo/bar/baz.html");
 
 	ASSERT(*compile(env, "1")->r_integer(), ==, 1);
 
 	ASSERT(compile(env, "(string-prefix-p \".bashrc\" \".\")")->isNil(), ==, false);
 	ASSERT(compile(env, "(string-prefix-p \"bashrc\" \".\")")->isNil(), ==, true);
 
-	ASSERT(compile(env, "(string-append \"hello\" \" world\")")->toString(), ==, "hello world");
+	ASSERT(compile(env, "(string-append \"hello\" \" world\")")->toPrintString(), ==, "hello world");
 
 	ASSERT(*compile(env, "(string-length \"hello world\")")->r_integer(), ==, strlen("hello world"));
 }
@@ -582,8 +582,8 @@ static void test_format() {
 	Env env;
 	native(env);
 
-	ASSERT(compile(env, "(format nil \"hello world\")")->toString(), ==, "hello world");
-	ASSERT(compile(env, "(format nil \"hello, ~a?\" \"friend\")")->toString(), ==, "hello, friend?");
+	ASSERT(compile(env, "(format nil \"hello world\")")->toPrintString(), ==, "hello world");
+	ASSERT(compile(env, "(format nil \"hello, ~a?\" \"friend\")")->toPrintString(), ==, "hello, friend?");
 
 	string err;
 	try {
@@ -669,8 +669,8 @@ static void test_list() {
 
 	compile(env, "(setq *lst* (list (list \"name\" \"steve\") (list \"age\" \"23\")))");
 	ASSERT((compile(env, "(car *lst*)"))->r_list().size(), ==, 2);
-	ASSERT((compile(env, "(car (car *lst*))"))->toString(), ==, "name");
-	ASSERT((compile(env, "(car (cdr (car *lst*)))"))->toString(), ==, "steve");
+	ASSERT((compile(env, "(car (car *lst*))"))->toPrintString(), ==, "name");
+	ASSERT((compile(env, "(car (cdr (car *lst*)))"))->toPrintString(), ==, "steve");
 }
 
 static void test_cons() {
@@ -753,7 +753,7 @@ static void test_file() {
 		ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
 					   "(write-line \"hello world\" out) (close out))")->isNil(), ==, true);
 		ASSERT(compile(env, "(filep \"hello.txt\")")->r_boolean().val(), ==, true);
-		ASSERT(compile(env, "(let ((in (open \"hello.txt\"))) (read-line in))")->toString(), ==, "hello world");
+		ASSERT(compile(env, "(let ((in (open \"hello.txt\"))) (read-line in))")->toPrintString(), ==, "hello world");
 		ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
 					   "(print out) (write-string \"hello world\" out) (close out))")->isNil(), ==, true);
 
@@ -765,7 +765,7 @@ static void test_file() {
 		native(env);
 
 		ASSERT(compile(env, "(let ((ret \"\") (in (open \"hello.txt\"))) "
-					   "(setq ret (read-line in)) (close in) ret)")->toString(), ==, "hello world");
+					   "(setq ret (read-line in)) (close in) ret)")->toPrintString(), ==, "hello world");
 	}
 
 	{
@@ -779,7 +779,7 @@ static void test_file() {
 		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :append))) "
 					   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
 		ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
-					   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "hello world");
+					   "(setq ret (read-line f)) (close f) ret)")->toPrintString(), ==, "hello world");
 	}
 
 	{
@@ -790,7 +790,7 @@ static void test_file() {
 		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :overwrite))) "
 					   "(write-string \"world\" f) (close f))")->isNil(), ==, true);
 		ASSERT(compile(env, "(let ((ret \"\") (f (open \"message.txt\"))) "
-					   "(setq ret (read-line f)) (close f) ret)")->toString(), ==, "world");
+					   "(setq ret (read-line f)) (close f) ret)")->toPrintString(), ==, "world");
 	}
 
 	{
@@ -801,7 +801,7 @@ static void test_file() {
 		compile(env, "(setq *f* (open \"message.txt\"))");
 		ASSERT(*compile(env, "(file-position *f*)")->r_integer(), ==, 0);
 		ASSERT(*compile(env, "(file-position *f* 2)")->r_integer(), ==, 2);
-		ASSERT(compile(env, "(read-line *f*)")->toString(), ==, "rld");
+		ASSERT(compile(env, "(read-line *f*)")->toPrintString(), ==, "rld");
 		compile(env, "(close *f*)");
 	}
 }

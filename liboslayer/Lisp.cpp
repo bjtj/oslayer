@@ -699,7 +699,32 @@ namespace LISP {
 	}
 
 	/**
-	 * 
+	 * @brief string
+	 */
+	String::String() {
+	}
+	String::String(const string & str) : _str(str) {
+	}
+	String::~String() {
+	}
+	string & String::str() {
+		return _str;
+	}
+	AutoRef<Object> String::call(const string & cmd, vector< AutoRef<Object> > & args) {
+		if (cmd == "length") {
+			return AutoRef<Object>(new Integer((long long)_str.size()));
+		}
+		return Object::call(cmd, args);
+	}
+	string String::toString() const {
+		return wrap_text(_str);
+	}
+	string String::toPrintString() const {
+		return _str;
+	}
+
+	/**
+	 * @brief pathname
 	 */
 	Pathname::Pathname() {
 	}
@@ -745,6 +770,9 @@ namespace LISP {
 	}
 	string Pathname::toString() const {
 		return "#p\"" + _file.getPath() + "\"";
+	}
+	string Pathname::toPrintString() const {
+		return _file.getPath();
 	}
 
 	/**
@@ -1010,10 +1038,10 @@ namespace LISP {
 	Var::Var(Pathname & pathname) : _type(PATHNAME), _obj(new Pathname(pathname)) {
 		_trace("init - Pathname");
 	}
-	Var::Var(std::FILE * fd) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd)) {
+	Var::Var(FILE * fd) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd)) {
 		_trace("init - FileDescriptor");
 	}
-	Var::Var(std::FILE * fd, bool autoclose) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd, autoclose)) {
+	Var::Var(FILE * fd, bool autoclose) : _type(FILE_DESCRIPTOR), _obj(new FileDescriptor(fd, autoclose)) {
 		_trace("init - FileDescriptor");
 	}
 	Var::Var(AutoRef<Object> obj) : _type(OBJECT), _obj(obj) {
@@ -1047,7 +1075,7 @@ namespace LISP {
 		    _obj = AutoRef<Object>(new Boolean(true));
 		} else if (*token.begin() == '\"' && *token.rbegin() == '\"') {
 			_type = STRING;
-			_str = token;
+			_obj = AutoRef<Object>(new String(unwrap_text(token)));
 		} else if (Integer::isIntegerString(token)) {
 			_type = INTEGER;
 			_obj = AutoRef<Object>(new Integer(Integer::toInteger(token)));
@@ -1104,7 +1132,7 @@ namespace LISP {
 	void Var::typeCheck(int t) const {
 		if (_type != t) {
 			throw LispException("Type check failed (required: " + getTypeString(t) +
-								", but: " + getTypeString() + ") - '" + toString() + "'");
+								", but: " + getTypeString() + ") - " + toString());
 		}
 	}
 	bool Var::isNil() const {return _type == NIL;}
@@ -1129,7 +1157,10 @@ namespace LISP {
 		typeCheck(CHARACTER);
 		return (const Character&)(*_obj);
 	};
-	const string & Var::r_string() const {typeCheck(STRING); return _str;}
+	const String & Var::r_string() const {
+		typeCheck(STRING);
+		return (const String&)(*_obj);
+	}
 	const vector<_VAR> & Var::r_list() const {typeCheck(LIST); return _lst;}
 	const Boolean & Var::r_boolean() const {
 		typeCheck(BOOLEAN);
@@ -1157,7 +1188,10 @@ namespace LISP {
 		typeCheck(CHARACTER);
 		return (Character&)(*_obj);
 	};
-	string & Var::r_string() {typeCheck(STRING); return _str;}
+	String & Var::r_string() {
+		typeCheck(STRING);
+		return (String&)(*_obj);
+	}
 	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
 	Boolean & Var::r_boolean() {
 		typeCheck(BOOLEAN);
@@ -1189,7 +1223,7 @@ namespace LISP {
 	AutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isFunction()) {
-			throw LispException("Not Function / name: '" + name->toString() + "' / type : '" + getTypeString() + "'");
+			throw LispException("Not Function / name: " + name->toString() + " / type : '" + getTypeString() + "'");
 		}
 		if (r_func().macro() == false) {
 			throw LispException("Not Macro");
@@ -1202,8 +1236,8 @@ namespace LISP {
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
 		if (!isCallable()) {
-			throw LispException("not a callable / name: '" + name->toString() +
-								"' / type : '" + getTypeString() + "'");
+			throw LispException("not a callable / name: " + name->toString() +
+								" / type : '" + getTypeString() + "'");
 		}
 		if (isNativeProcedure()) {
 			return r_procedure().proc(env, scope, name, args);
@@ -1240,7 +1274,6 @@ namespace LISP {
 			return ret;
 		}
 		case STRING:
-			return unwrap_text(_str);
 		case BOOLEAN:
 		case CHARACTER:
 		case INTEGER:
@@ -1255,6 +1288,23 @@ namespace LISP {
 			break;
 		}
 		throw LispException("[toString()] unknown variable type / " + Text::toString(_type));
+	}
+	string Var::toPrintString() const {
+		switch (_type) {
+		case STRING:
+		case BOOLEAN:
+		case CHARACTER:
+		case INTEGER:
+		case FLOAT:
+		case FUNC:
+		case NATIVE_PROC:
+		case PATHNAME:
+		case FILE_DESCRIPTOR:
+		case OBJECT:
+			return _obj->toPrintString();
+		default:
+			return toString();
+		}
 	}
 
 	void Var::numberCheck() const {
@@ -1608,7 +1658,7 @@ namespace LISP {
 			_server.close();
 		}
 		virtual string toString() const {
-			return "LispServerSocket";
+			return "<LispServerSocket>";
 		}
 	};
 
@@ -1639,7 +1689,7 @@ namespace LISP {
 			switch (v->getType()) {
 			case Var::STRING:
 			{
-				string str = v->toString();
+				string str = v->toPrintString();
 				return _socket->send(str.c_str(), str.size());
 			}
 			case Var::INTEGER:
@@ -1655,7 +1705,7 @@ namespace LISP {
 			_socket->close();
 		}
 		virtual string toString() const {
-			return "LispSocket";
+			return "<LispSocket>";
 		}
 	};
 
@@ -1708,7 +1758,7 @@ namespace LISP {
 		}
 
 		virtual string toString() const {
-			return "LispDatabaseConnection";
+			return "<LispDatabaseConnection>";
 		}			
 	};
 
@@ -1734,7 +1784,7 @@ namespace LISP {
 			return _resultSet->getString(i);
 		}
 		virtual string toString() const {
-			return "LispResultSet";
+			return "<LispResultSet>";
 		}
 	};
 
@@ -1771,25 +1821,25 @@ namespace LISP {
 				ret.append("\n");
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'a') {
-				ret.append(eval(env, scope, iter.next())->toString());
+				ret.append(eval(env, scope, iter.next())->toPrintString());
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == 'd') {
-				string num = eval(env, scope, iter.next())->toString();
+				string num = eval(env, scope, iter.next())->toPrintString();
 				ret.append(num);
 				s = f = (f + 2);
 			} else if (fmt[f + 1] == ':' && fmt[f + 2] == 'd') {
-				string num = eval(env, scope, iter.next())->toString();
+				string num = eval(env, scope, iter.next())->toPrintString();
 				ret.append(Text::toCommaNumber(num));
 				s = f = (f + 3);
 			} else if (fmt[f + 1] == '$') {
 				_VAR var = eval(env, scope, iter.next());
 				string num;
 				if (var->isInteger()) {
-					num = var->toString();
+					num = var->toPrintString();
 				} else if (var->isFloat()) {
 					num = Text::format("%.2lf", _FLOAT(var));
 				} else {
-					throw LispException("wrong format '~$' - '" + var->toString() + "'");
+					throw LispException("wrong format '~$' - '" + var->toPrintString() + "'");
 				}
 				ret.append(num);
 				s = f = (f + 2);
@@ -1807,7 +1857,7 @@ namespace LISP {
 		if (path->isPathname()) {
 			return path;
 		}
-		File file(path->toString());
+		File file(path->toPrintString());
 		return _HEAP_ALLOC(env, file);
 	}
 
@@ -1825,7 +1875,7 @@ namespace LISP {
 		} else if (v->isFloat()) {
 			return v->r_float().zero_p();
 		}
-		throw LispException("Not number - '" + v->toString() + "'");
+		throw LispException("Not a number type - " + v->toString());
 	}
 
 	static _VAR _toFloat(Env & env, _VAR v) {
@@ -2090,7 +2140,7 @@ namespace LISP {
 		if (func->isCallable()) {
 			return func;
 		}
-		throw LispException("invalid function - '" + var->toString() + "'");
+		throw LispException("invalid function - " + var->toString());
 	}
 
 	static bool _isSpace(const char ch) {
@@ -2915,7 +2965,7 @@ namespace LISP {
 			_VAR val = eval(env, scope, args[0]);
 			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
-				if (val->toString() == (*iter)->toString()) {
+				if (val->toPrintString() == (*iter)->toPrintString()) {
 					iter = lst.erase(iter);
 				} else {
 					iter++;
@@ -3168,9 +3218,9 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "string=");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			string val = eval(env, scope, args[0])->toString();
+			string val = eval(env, scope, args[0])->toPrintString();
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-				if (val != eval(env, scope, *iter)->toString()) {
+				if (val != eval(env, scope, *iter)->toPrintString()) {
 					return _NIL(env);
 				}
 			}
@@ -3179,21 +3229,21 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "string-prefix-p");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			string str = eval(env, scope, args[0])->toString();
-			string dst = eval(env, scope, args[1])->toString();
+			string str = eval(env, scope, args[0])->toPrintString();
+			string dst = eval(env, scope, args[1])->toPrintString();
 			return _HEAP_ALLOC(env, Text::startsWith(str, dst));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-suffix-p");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			string str = eval(env, scope, args[0])->toString();
-			string dst = eval(env, scope, args[1])->toString();
+			string str = eval(env, scope, args[0])->toPrintString();
+			string dst = eval(env, scope, args[1])->toPrintString();
 			return _HEAP_ALLOC(env, Text::endsWith(str, dst));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-length");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			Integer len((long long)eval(env, scope, args[0])->toString().length());
+			Integer len((long long)eval(env, scope, args[0])->toPrintString().length());
 			return _HEAP_ALLOC(env, len);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "string-append");
@@ -3201,7 +3251,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 0);
 			string ret;
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-				ret.append(eval(env, scope, *iter)->toString());
+				ret.append(eval(env, scope, *iter)->toPrintString());
 			}
 			return _HEAP_ALLOC(env, wrap_text(ret));
 		}DECL_NATIVE_END();
@@ -3210,7 +3260,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR test = eval(env, scope, args[0]);
 			vector<_VAR> fargs(args.begin() + 2, args.end());
-			string str = format(env, scope, args[1]->toString(), fargs);
+			string str = format(env, scope, args[1]->toPrintString(), fargs);
 			if (!test->isNil()) {
 				fputs(str.c_str(), stdout);
 				fputs("\n", stdout);
@@ -3221,8 +3271,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "enough-namestring");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			string org = eval(env, scope, args[0])->toString();
-			string prefix = eval(env, scope, args[1])->toString();
+			string org = eval(env, scope, args[0])->toPrintString();
+			string prefix = eval(env, scope, args[1])->toPrintString();
 			if (Text::startsWith(org, prefix)) {
 				return _HEAP_ALLOC(env, wrap_text(org.substr(prefix.length())));
 			}
@@ -3231,9 +3281,9 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "replace-all");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 3);
-			string org = eval(env, scope, args[0])->toString();
-			string target = eval(env, scope, args[1])->toString();
-			string replace = eval(env, scope, args[2])->toString();
+			string org = eval(env, scope, args[0])->toPrintString();
+			string target = eval(env, scope, args[1])->toPrintString();
+			string replace = eval(env, scope, args[2])->toPrintString();
 			return _HEAP_ALLOC(env, wrap_text(Text::replaceAll(org, target, replace)));
 		}DECL_NATIVE_END();
 	}
@@ -3430,10 +3480,23 @@ namespace LISP {
 				output = eval(env, scope, args[1]);
 			}
 			FileDescriptor & fd = output->r_fileDescriptor();
-			string msg = eval(env, scope, args[0])->toString();
-			fd.write(msg);
+			_VAR msg = eval(env, scope, args[0]);
+			fd.write(msg->toString());
 			fd.write("\n");
-			return _HEAP_ALLOC(env, wrap_text(msg));
+			return msg;
+		}DECL_NATIVE_END();
+		DECL_NATIVE_BEGIN(env, "princ");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			_VAR output = scope->rget_sym("*standard-output*");
+			if (args.size() == 2) {
+				output = eval(env, scope, args[1]);
+			}
+			FileDescriptor & fd = output->r_fileDescriptor();
+			_VAR msg = eval(env, scope, args[0]);
+			fd.write(msg->toPrintString());
+			fd.write("\n");
+			return msg;
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
@@ -3443,7 +3506,7 @@ namespace LISP {
 				output = eval(env, scope, args[1]);
 			}
 			FileDescriptor & fd = output->r_fileDescriptor();
-			string msg = eval(env, scope, args[0])->toString();
+			string msg = eval(env, scope, args[0])->r_string().str();
 			fd.write(msg);
 			return _HEAP_ALLOC(env, wrap_text(msg));
 		}DECL_NATIVE_END();
@@ -3455,7 +3518,7 @@ namespace LISP {
 				output = eval(env, scope, args[1]);
 			}
 			FileDescriptor & fd = output->r_fileDescriptor();
-			string msg = eval(env, scope, args[0])->toString();
+			string msg = eval(env, scope, args[0])->r_string().str();
 			fd.write(msg);
 			fd.write("\n");
 			return _HEAP_ALLOC(env, wrap_text(msg));
@@ -3642,7 +3705,7 @@ namespace LISP {
 			_VAR host = eval(env, scope, args[0]);
 			_VAR port = eval(env, scope, args[1]);
 			try {
-				AutoRef<Socket> socket(new Socket(InetAddress(host->toString(), (int)_INT(port))));
+				AutoRef<Socket> socket(new Socket(InetAddress(host->toPrintString(), (int)_INT(port))));
 				socket->connect();
 				return _HEAP_ALLOC(env, AutoRef<Object>(new LispSocket(socket)));
 			} catch (Exception e) {
@@ -3731,14 +3794,14 @@ namespace LISP {
             throw LispException("system() deprecated");
 #else
             _CHECK_ARGS_MIN_COUNT(args, 1);
-			Integer ret(system(eval(env, scope, args[0])->toString().c_str()));
+			Integer ret(system(eval(env, scope, args[0])->toPrintString().c_str()));
             return _HEAP_ALLOC(env, ret);
 #endif
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "run-process");
 		{
             _CHECK_ARGS_MIN_COUNT(args, 1);
-			Process p(eval(env, scope, args[0])->toString());
+			Process p(eval(env, scope, args[0])->toPrintString());
 			p.start();
 			FileStream out(p.out());
 			string o;
@@ -3879,8 +3942,8 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "db:load");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
-			string path = eval(env, scope, args[0])->toString();
-			string name = eval(env, scope, args[1])->toString();
+			string path = eval(env, scope, args[0])->toPrintString();
+			string name = eval(env, scope, args[1])->toPrintString();
 			DatabaseDriver::instance().load(name, AutoRef<Library>(new Library(path, name)));
 			return _HEAP_ALLOC(env, name);
 		}DECL_NATIVE_END();
@@ -3888,12 +3951,12 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "db:connect");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 6);
-			string name = eval(env, scope, args[0])->toString();
-			string hostname = eval(env, scope, args[1])->toString();
+			string name = eval(env, scope, args[0])->toPrintString();
+			string hostname = eval(env, scope, args[1])->toPrintString();
 			int port = (int)_INT(eval(env, scope, args[2]));
-			string username = eval(env, scope, args[3])->toString();
-			string password = eval(env, scope, args[4])->toString();
-			string dbname = eval(env, scope, args[5])->toString();
+			string username = eval(env, scope, args[3])->toPrintString();
+			string password = eval(env, scope, args[4])->toPrintString();
+			string dbname = eval(env, scope, args[5])->toPrintString();
 			LispDatabaseConnection * conn = new LispDatabaseConnection(DatabaseDriver::instance().getConnection(name));
 			conn->connect(hostname, port, username, password, dbname);
 			return _HEAP_ALLOC(env, AutoRef<Object>(conn));
@@ -3911,7 +3974,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_obj());
-			string sql = eval(env, scope, args[1])->toString();
+			string sql = eval(env, scope, args[1])->toPrintString();
 			return _HEAP_ALLOC(env, AutoRef<Object>(new LispResultSet(conn->query(sql))));
 		}DECL_NATIVE_END();
 
@@ -3933,14 +3996,14 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			LispDatabaseConnection * conn = ((LispDatabaseConnection*)&eval(env, scope, args[0])->r_obj());
-			string sql = eval(env, scope, args[1])->toString();
+			string sql = eval(env, scope, args[1])->toPrintString();
 			return _HEAP_ALLOC(env, conn->queryUpdate(sql));
 		}DECL_NATIVE_END();
 
 		DECL_NATIVE_BEGIN(env, "db:escape");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			string sql = eval(env, scope, args[0])->toString();
+			string sql = eval(env, scope, args[0])->toPrintString();
 			return _HEAP_ALLOC(env, wrap_text(Text::replaceAll(sql, "'", "\\'")));
 		}DECL_NATIVE_END();
 	}
@@ -4070,9 +4133,6 @@ namespace LISP {
 	}
 
 	static string _printVar(_VAR var) {
-		if (var->isString()) {
-			return var->r_string();
-		}
 		return var->toString();
 	}
 

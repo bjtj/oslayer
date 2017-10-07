@@ -162,6 +162,9 @@ namespace LISP {
 		virtual std::string toString() const {
 			return "<lisp::object>";
 		}
+		virtual std::string toPrintString() const {
+			return toString();
+		}
 	};
 
 	/**
@@ -328,7 +331,23 @@ namespace LISP {
 	};
 
 	/**
-	 * 
+	 * @brief string
+	 */
+	class String : public Object {
+	private:
+		std::string _str;
+	public:
+		String();
+		String(const std::string & str);
+		virtual ~String();
+		std::string & str();
+		virtual OS::AutoRef<Object> call(const std::string & cmd, std::vector< OS::AutoRef<Object> > & args);
+		virtual std::string toString() const;
+		virtual std::string toPrintString() const;
+	};
+
+	/**
+	 * @brief pathname
 	 */
 	class Pathname : public Object {
 	private:
@@ -350,6 +369,7 @@ namespace LISP {
 		OS::osl_time_t creation_time();
 		OS::osl_time_t last_modified_time();
 		virtual std::string toString() const;
+		virtual std::string toPrintString() const;
 	};
 
 	/**
@@ -477,7 +497,6 @@ namespace LISP {
 		int _type;
 		std::string _symbol;
 		std::string _keyword;
-		std::string _str;
 		std::vector<OS::GCRef<Var> > _lst;
 		OS::AutoRef<Object> _obj;
 		
@@ -533,7 +552,7 @@ namespace LISP {
 		const std::string & r_symbol() const;
 		const std::string & r_keyword() const;
 		const Character & r_character() const;
-		const std::string & r_string() const;
+		const String & r_string() const;
 		const std::vector<OS::GCRef<Var> > & r_list() const;
 		const Boolean & r_boolean() const;
 		const Integer & r_integer() const;
@@ -543,7 +562,7 @@ namespace LISP {
 		std::string & r_symbol();
 		std::string & r_keyword();
 		Character & r_character();
-		std::string & r_string();
+		String & r_string();
 		std::vector<OS::GCRef<Var> > & r_list();
 		Boolean & r_boolean();
 		Integer & r_integer();
@@ -575,6 +594,7 @@ namespace LISP {
         bool operator!= (const Var & other) const;
 		
 		std::string toString() const;
+		std::string toPrintString() const;
 	};
 
 	/**
