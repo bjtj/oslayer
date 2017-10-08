@@ -2466,9 +2466,13 @@ namespace LISP {
 			_CHECK_ARGS_EVEN_COUNT(args);
 			_VAR ret = _NIL(env);
 			_FORI_STEP(args, i, 0, 2) {
-				_VAR a = eval(env, scope, args[i + 0]);
+				int type = args[i]->getType();
+				_VAR a = eval(env, scope, args[i]);
 				_VAR b = eval(env, scope, args[i + 1]);
-				if (a->isList() && b->isList()) {
+				if (type != Var::SYMBOL && a->isNil()) {
+					throw LispException("setf nil");
+				}
+				if (type != Var::SYMBOL && a->isList() && b->isList()) {
 					for (size_t j = 0; j < a->r_list().size() && j < b->r_list().size(); j++) {
 						(*a->r_list()[j]) = (*b->r_list()[j]);
 					}
