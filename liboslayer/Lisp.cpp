@@ -303,6 +303,22 @@ namespace LISP {
 		_val = val;
 		return *this;
 	}
+	Boolean & Boolean::operator= (const Boolean & other) {
+		_val = other._val;
+		return *this;
+	}
+	bool Boolean::operator== (const bool & other) const {
+		return (_val == other);
+	}
+	bool Boolean::operator== (const Boolean & other) const {
+		return (_val == other._val);
+	}
+	bool Boolean::operator!= (const bool & other) const {
+		return (_val != other);
+	}
+	bool Boolean::operator!= (const Boolean & other) const {
+		return (_val != other._val);
+	}
 	string Boolean::toString() const {
 		return (_val ? "T" : "NIL");
 	}

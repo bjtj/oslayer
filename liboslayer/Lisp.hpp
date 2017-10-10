@@ -181,6 +181,11 @@ namespace LISP {
 		bool val() const;
 		bool & operator* ();
 		Boolean & operator= (bool val);
+		Boolean & operator= (const Boolean & other);
+		bool operator== (const bool & other) const;
+		bool operator== (const Boolean & other) const;
+		bool operator!= (const bool & other) const;
+		bool operator!= (const Boolean & other) const;
 		virtual std::string toString() const;
 	};
 
