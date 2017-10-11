@@ -224,7 +224,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -240,7 +240,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 	
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -258,7 +258,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -276,7 +276,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -294,7 +294,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -312,7 +312,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -331,7 +331,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -353,7 +353,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list());
+		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
 		ASSERT(*env.scope()->get_var(Symbol("x"))->r_integer(), ==, 1);
 		ASSERT(env.scope()->get_var(Symbol("y"))->r_list().size(), ==, 6);
 		ASSERT(*env.scope()->get_var(Symbol("y"))->r_list()[0]->r_integer(), ==, 2);
@@ -662,11 +662,43 @@ static void test_list() {
 
 	Env env;
 	native(env);
+	// append
+	ASSERT(compile(env, "(append '(1 2 3) '(4 5 6))")->r_list().size(), ==, 6);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[3]->r_integer(), ==, 4);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[4]->r_integer(), ==, 5);
+	ASSERT(*compile(env, "(append '(1 2 3) '(4 5 6))")->r_list()[5]->r_integer(), ==, 6);
+
+	compile(env, "(defparameter *lst* '(1 2))");
+	ASSERT(compile(env, "(append *lst* '(3 4))")->r_list().size(), ==, 4);
+	ASSERT(*compile(env, "(append *lst* '(3 4))")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(append *lst* '(3 4))")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(append *lst* '(3 4))")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(append *lst* '(3 4))")->r_list()[3]->r_integer(), ==, 4);
+
+	ASSERT(compile(env, "*lst*")->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "*lst*")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "*lst*")->r_list()[1]->r_integer(), ==, 2);
+
+	// remove-if
 	ASSERT(compile(env, "(remove-if (lambda (x) (= x 1)) (list 1 2 1 3))")->r_list().size(), ==, 2);
 	ASSERT(compile(env, "(remove-if #'(lambda (x) (= x 1)) '(1 2 1 3))")->r_list().size(), ==, 2);
 	ASSERT(compile(env, "(remove-if #'oddp '(1 2 4 1 3 4 5))")->r_list().size(), ==, 3);
 	ASSERT(compile(env, "(remove-if-not #'evenp '(1 2 3 4 5 6 7 8 9))")->r_list().size(), ==, 4);
 	ASSERT(compile(env, "(remove-if #'evenp '(1 2 3 4 5 6 7 8 9))")->r_list().size(), ==, 5);
+
+	compile(env, "(defparameter *lst* '(1 1 2 3))");
+	ASSERT(compile(env, "(remove-if (lambda (x) (= x 1)) *lst*)")->r_list().size(), ==, 2);
+	ASSERT(*compile(env, "(remove-if (lambda (x) (= x 1)) *lst*)")->r_list()[0]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(remove-if (lambda (x) (= x 1)) *lst*)")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(compile(env, "(remove-if #'evenp *lst*)")->r_list().size(), ==, 3);
+	ASSERT(*compile(env, "(remove-if #'evenp *lst*)")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(remove-if #'evenp *lst*)")->r_list()[1]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(remove-if #'evenp *lst*)")->r_list()[2]->r_integer(), ==, 3);
+
+	// list access
 	compile(env, "(setq *lst* (list 1 2 3))");
 	ASSERT(*compile(env, "(car *lst*)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(car (list 1 2 3))")->r_integer(), ==, 1);

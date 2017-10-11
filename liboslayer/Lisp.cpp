@@ -2,7 +2,6 @@
 #include "Lisp.hpp"
 #include "os.hpp"
 #include "Text.hpp"
-#include "Iterator.hpp"
 #include "FileStream.hpp"
 #include "Socket.hpp"
 #include "AutoLock.hpp"
@@ -14,10 +13,35 @@
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
 #define _NIL(e) _HEAP_ALLOC(e,"nil")
-#define _CHECK_ARGS_MIN_COUNT(L,C) validateArgumentCountMin(L,C)
-#define _CHECK_ARGS_EXACT_COUNT(L,C) validateArgumentCountExact(L,C)
-#define _CHECK_ARGS_MAX_COUNT(L,C) validateArgumentCountMax(L,C)
-#define _CHECK_ARGS_EVEN_COUNT(L) validateArgumentCountEven(L)
+#define _CHECK_ARGS_MIN_COUNT(L,C)										\
+  do {																	\
+	  if ((L).size() < C) {												\
+		  throw LispException("Wrong argument count: " + Text::toString((L).size()) \
+							  + " / expected minimum: " + Text::toString(C)); \
+	  }																	\
+  } while(0);
+#define _CHECK_ARGS_EXACT_COUNT(L,C)									\
+  do {																	\
+	  if ((L).size() != C) {											\
+		  throw LispException("Wrong argument count: " + Text::toString((L).size()) \
+							  + " / expected: " + Text::toString(C));	\
+	  }																	\
+  } while(0);
+#define _CHECK_ARGS_MAX_COUNT(L,C)										\
+  do {																	\
+	  if ((L).size() > C) {												\
+		  throw LispException("Wrong argument count: " + Text::toString((L).size()) \
+							  + " / expected maximum: " + Text::toString(C)); \
+	  }																	\
+  } while(0);
+#define _CHECK_ARGS_EVEN_COUNT(L)										\
+  do {																	\
+	  if ((L).size() % 2 != 0) {										\
+		  throw LispException("Wrong argument count: " + Text::toString((L).size()) \
+							  + " / expected : even");					\
+	  }																	\
+  } while(0);
+
 #define _EQ_NIL_OR_SYMBOL(A,B) (((A)->isNil() && (B)->isNil()) ||		\
 								(((A)->isNil() == false && (B)->isNil() == false) && \
 								 ((A)->r_symbol() == (B)->r_symbol())))
@@ -297,7 +321,65 @@ namespace LISP {
 	}
 
 	/**
-	 * symbol
+	 * @brief Sequence
+	 */
+
+	Sequence::Sequence() {
+	}
+	Sequence::Sequence(const vector<_VAR> & lst) : _lst(lst) {
+	}
+	Sequence::~Sequence() {
+	}
+	Iterator<_VAR> Sequence::iter() {
+		return Iterator<_VAR>(_lst);
+	}
+	vector<_VAR> & Sequence::vec() {
+		return _lst;
+	}
+	bool Sequence::empty() const {
+		return _lst.empty();
+	}
+	vector<_VAR>::iterator Sequence::begin() {
+		return _lst.begin();
+	}
+	vector<_VAR>::iterator Sequence::end() {
+		return _lst.end();
+	}
+	size_t Sequence::size() const {
+		return _lst.size();
+	}
+	vector<_VAR>::iterator Sequence::erase(vector<_VAR>::iterator iter) {
+		return _lst.erase(iter);
+	}
+	_VAR & Sequence::operator[] (size_t idx) {
+		return _lst[idx];
+	}
+	const _VAR & Sequence::operator[] (size_t idx) const {
+		return _lst[idx];
+	}
+	string Sequence::toString() const {
+		if ((_lst.size() > 1) && _lst[0]->isSymbol()) {
+			if (_lst[0]->r_symbol() == "quote") {
+				return "'" + _lst[1]->toString();
+			} else if (_lst[0]->r_symbol() == "`") {
+				return "`" + _lst[1]->toString();
+			} else if (_lst[0]->r_symbol() == ",") {
+				return "," + _lst[1]->toString();
+			}
+		}
+		string ret = "(";
+		for (vector<_VAR>::const_iterator iter = _lst.begin(); iter != _lst.end(); iter++) {
+			if (iter != _lst.begin()) {
+				ret += " ";
+			}
+			ret += _printVar(*iter);
+		}
+		ret += ")";
+		return ret;
+	}
+
+	/**
+	 * @brief Symbol
 	 */
 
 	Symbol::Symbol() {
@@ -327,7 +409,6 @@ namespace LISP {
 	string Symbol::toString() const {
 		return _symbol;
 	}
-
 	bool operator== (const std::string & a, const Symbol & b) {
 		return b == a;
 	}
@@ -461,11 +542,11 @@ namespace LISP {
 		return Text::isDigit((char)_ch);
 	}
 	bool Character::graphic_char_p() const {
-		// todo
+		// TODO: implement
 		return false;
 	}
 	bool Character::standard_char_p() const {
-		// todo
+		// TODO: implement
 		return false;
 	}
 	Character Character::upcase() const {
@@ -490,7 +571,7 @@ namespace LISP {
 		return _ch;
 	}
 	int Character::char_code_limit() const {
-		// todo
+		// TODO: implement
 		return 0;
 	}
 	string Character::charname() const {
@@ -522,6 +603,9 @@ namespace LISP {
 	}
 	bool Character::operator>= (const Character & ch) const {
 		return _ch >= ch._ch;
+	}
+	string Character::toPrintString() const {
+		return string(1, (char)_ch);
 	}
 	string Character::toString() const {
 		return "#\\" + string(1, (char)_ch);
@@ -1087,7 +1171,10 @@ namespace LISP {
 		init(token);
 		_trace("init - string");
 	}
-	Var::Var(vector<_VAR> lst) : _type(LIST), _lst(lst) {
+	Var::Var(const vector<_VAR> & lst) : _type(LIST), _obj(new Sequence(lst)) {
+		_trace("init - list");
+	}
+	Var::Var(const Sequence & seq) : _type(LIST), _obj(new Sequence(seq)) {
 		_trace("init - list");
 	}
 	Var::Var(bool bval) : _type(BOOLEAN), _obj(new Boolean(bval)) {
@@ -1276,7 +1363,10 @@ namespace LISP {
 		typeCheck(STRING);
 		return (const String&)(*_obj);
 	}
-	const vector<_VAR> & Var::r_list() const {typeCheck(LIST); return _lst;}
+	const Sequence & Var::r_list() const {
+		typeCheck(LIST);
+		return (const Sequence&)(*_obj);
+	}
 	const Boolean & Var::r_boolean() const {
 		typeCheck(BOOLEAN);
 		return (const Boolean&)(*_obj);
@@ -1313,7 +1403,10 @@ namespace LISP {
 		typeCheck(STRING);
 		return (String&)(*_obj);
 	}
-	vector<_VAR> & Var::r_list() {typeCheck(LIST); return _lst;}
+	Sequence & Var::r_list() {
+		typeCheck(LIST);
+		return (Sequence&)(*_obj);
+	}
 	Boolean & Var::r_boolean() {
 		typeCheck(BOOLEAN);
 		return (Boolean&)(*_obj);
@@ -1324,7 +1417,8 @@ namespace LISP {
 	}
 	Float & Var::r_float() {
 		typeCheck(FLOAT);
-		return (Float&)(*_obj);}
+		return (Float&)(*_obj);
+	}
 	Pathname & Var::r_pathname() {
 		typeCheck(PATHNAME);
 		return (Pathname&)(*_obj);
@@ -1370,26 +1464,6 @@ namespace LISP {
 		case NIL:
 			return "NIL";
 		case LIST:
-		{
-			if ((_lst.size() > 1) && _lst[0]->isSymbol()) {
-				if (_lst[0]->r_symbol() == "quote") {
-					return "'" + _lst[1]->toString();
-				} else if (_lst[0]->r_symbol() == "`") {
-					return "`" + _lst[1]->toString();
-				} else if (_lst[0]->r_symbol() == ",") {
-					return "," + _lst[1]->toString();
-				}
-			}
-			string ret = "(";
-			for (vector<_VAR>::const_iterator iter = _lst.begin(); iter != _lst.end(); iter++) {
-				if (iter != _lst.begin()) {
-					ret += " ";
-				}
-				ret += _printVar(*iter);
-			}
-			ret += ")";
-			return ret;
-		}
 		case SYMBOL:
 		case KEYWORD:
 		case STRING:
@@ -1410,6 +1484,7 @@ namespace LISP {
 	}
 	string Var::toPrintString() const {
 		switch (_type) {
+		case LIST:
 		case SYMBOL:
 		case KEYWORD:
 		case STRING:
@@ -1498,38 +1573,6 @@ namespace LISP {
 	}
 
 	/**
-	 * @brief 
-	 */
-	
-	static void validateArgumentCountMin(vector<_VAR> & args, size_t expect) {
-		if (args.size() < expect) {
-			throw LispException("Wrong argument count: " + Text::toString(args.size())
-								+ " / expected minimum: " + Text::toString(expect));
-		}
-	}
-
-	static void validateArgumentCountExact(vector<_VAR> & args, size_t expect) {
-		if (args.size() != expect) {
-			throw LispException("Wrong argument count: " + Text::toString(args.size())
-								+ " / expected: " + Text::toString(expect));
-		}
-	}
-
-	static void validateArgumentCountMax(vector<_VAR> & args, size_t expect) {
-		if (args.size() > expect) {
-			throw LispException("Wrong argument count: " + Text::toString(args.size())
-								+ " / expected maximum: " + Text::toString(expect));
-		}
-	}
-
-	static void validateArgumentCountEven(vector<_VAR> & args) {
-		if (args.size() % 2 != 0) {
-			throw LispException("Wrong argument count: " + Text::toString(args.size())
-								+ " / expected : even");
-		}
-	}
-
-	/**
 	 * @brief parameters
 	 */
 	Parameters::Parameter::Parameter() {
@@ -1614,9 +1657,9 @@ namespace LISP {
 		return ret;
 	}
 
-	Parameters Parameters::parse(Env & env, AutoRef<Scope> scope, vector<_VAR> & tokens) {
+	Parameters Parameters::parse(Env & env, AutoRef<Scope> scope, Sequence & tokens) {
 		Parameters params;
-		Iterator<_VAR> iter(tokens);
+		Iterator<_VAR> iter = tokens.iter();
 		
 		vector<_VAR> names = s_read_tokens(iter);
 		for (vector<_VAR>::iterator iter = names.begin(); iter != names.end(); iter++) {
@@ -2244,7 +2287,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _progn(Env & env, AutoRef<Scope> scope, const vector<_VAR> & forms, size_t start_index) {
+	static _VAR _progn(Env & env, AutoRef<Scope> scope, const Sequence & forms, size_t start_index) {
 		_VAR ret = _NIL(env);
 		_FORI(forms, i, start_index) {
 			ret = eval(env, scope, forms[i]);
@@ -2252,7 +2295,7 @@ namespace LISP {
 		return ret;
 	}
 
-	static _VAR _progn1(Env & env, AutoRef<Scope> scope, const vector<_VAR> & forms) {
+	static _VAR _progn1(Env & env, AutoRef<Scope> scope, const Sequence & forms) {
 		return _progn(env, scope, forms, 1);
 	}
 
@@ -2426,7 +2469,7 @@ namespace LISP {
 
 	static _VAR _quote(Env & env, AutoRef<Scope> scope, _VAR var) {
 		if (var->isList()) {
-			vector<_VAR> lst = var->r_list();
+			Sequence lst = var->r_list(); // copy
 			if (lst.empty()) {
 				return _NIL(env);
 			}
@@ -2444,21 +2487,21 @@ namespace LISP {
 	
 	static _VAR _quasi(Env & env, AutoRef<Scope> scope, _VAR var) {
 		if (var->isList()) {
-			vector<_VAR> lst = var->r_list();
+			Sequence lst = var->r_list(); // copy
 			if (lst.empty()) {
 				return _NIL(env);
 			}
 			vector<_VAR> ret;
 			for (size_t i = 0; i < lst.size(); i++) {
 				if (lst[i]->isList()) {
-					vector<_VAR> lv = lst[i]->r_list();
+					Sequence & lv = lst[i]->r_list();
 					if (lv.empty() == false && lv[0]->isSymbol()) {
 						if (lv[0]->r_symbol() == ",") {
 							_CHECK_ARGS_EXACT_COUNT(lv, 2);
 							ret.push_back(eval(env, scope, lv[1]));
 						} else if (lv[0]->r_symbol() == ",@") {
 							_CHECK_ARGS_EXACT_COUNT(lv, 2);
-							vector<_VAR> llv = eval(env, scope, lv[1])->r_list();
+							Sequence & llv = eval(env, scope, lv[1])->r_list();
 							ret.insert(ret.end(), llv.begin(), llv.end());
 						} else {
 							ret.push_back(_quasi(env, scope, lst[i]));
@@ -2481,7 +2524,7 @@ namespace LISP {
 		} else if (var->r_list().empty()) {
 			return _NIL(env);
 		} else {
-			vector<_VAR> & lv = var->r_list();
+			Sequence & lv = var->r_list();
 			_VAR & cmd = lv[0];
 			vector<_VAR> args(lv.begin() + 1, lv.end());
 			if (_silentsymboleq(cmd, "quit")) {
@@ -2546,7 +2589,13 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			args[0]->typeCheck(Var::LIST);
-			Func * func = new Func(args[0], args[1]);
+			vector<_VAR> form;
+			form.push_back(_HEAP_ALLOC(env, "progn"));
+			for (size_t i = 1; i < args.size(); i++) {
+				form.push_back(args[i]);
+			}
+			// Func * func = new Func(args[0], args[1]);
+			Func * func = new Func(args[0], _HEAP_ALLOC(env, form));
 			func->closure_scope()->registries() = scope->registries();
 			return _HEAP_ALLOC(env, func);
 		}DECL_NATIVE_END();
@@ -2654,11 +2703,11 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR ret = _NIL(env);
-			vector<_VAR> & lets = args[0]->r_list();
+			Sequence & lets = args[0]->r_list();
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
 			for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
-				vector<_VAR> decl = (*iter)->r_list();
+				Sequence decl = (*iter)->r_list(); // copy
 				local_scope->put_var(decl[0]->r_symbol(), eval(env, scope, decl[1]));
 			}
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
@@ -2698,9 +2747,9 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "cond");
 		{
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-				vector<_VAR> lst = (*iter)->r_list();
+				Sequence lst = (*iter)->r_list(); // copy
 				_CHECK_ARGS_MIN_COUNT(lst, 2);
-				if (!eval(env, scope, lst[0])->isNil()) {
+				if (eval(env, scope, lst[0])->isNil() == false) {
 					return _progn1(env, scope, lst);
 				}
 			}
@@ -2722,9 +2771,9 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "dolist");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			vector<_VAR> decl = args[0]->r_list();
+			Sequence decl = args[0]->r_list(); // copy
 			Symbol & param = decl[0]->r_symbol();
-			vector<_VAR> lst = eval(env, scope, decl[1])->r_list();
+			Sequence lst = eval(env, scope, decl[1])->r_list(); // copy
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
@@ -2736,7 +2785,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "dotimes");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			vector<_VAR> steps = args[0]->r_list();
+			Sequence steps = args[0]->r_list(); // copy
 			Symbol & sym = steps[0]->r_symbol();
 			long long limit = _INT(eval(env, scope, steps[1]));
 			AutoRef<Scope> local_scope(new Scope);
@@ -2779,7 +2828,7 @@ namespace LISP {
 			_VAR cell = eval(env, scope, args[1]);
 			ret.push_back(cons);
 			if (cell->isList()) {
-				vector<_VAR> lst = cell->r_list();
+				Sequence lst = cell->r_list(); // copy
 				ret.insert(ret.end(), lst.begin(), lst.end());
 			} else {
 				ret.push_back(cell);
@@ -2789,7 +2838,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "car");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			Sequence lst = eval(env, scope, args[0])->r_list(); // copy
 			if (lst.size() > 0) {
 				return lst[0];
 			}
@@ -2798,7 +2847,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "cdr");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			Sequence & lst = eval(env, scope, args[0])->r_list();
 			if (lst.size() > 1) {
 				vector<_VAR> rest;
 				for (vector<_VAR>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
@@ -2812,7 +2861,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 2);
 			size_t idx = (size_t)_INT(eval(env, scope, args[0]));
-			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
+			Sequence & lst = eval(env, scope, args[1])->r_list();
 			if (idx < lst.size()) {
 				return lst[idx];
 			}
@@ -2822,7 +2871,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			size_t idx = (size_t)_INT(eval(env, scope, args[0]));
-			vector<_VAR> & lst = eval(env, scope, args[1])->r_list();
+			Sequence & lst = eval(env, scope, args[1])->r_list();
 			if (idx < lst.size()) {
 				vector<_VAR> rest;
 				for (vector<_VAR>::iterator iter = lst.begin() + idx; iter != lst.end(); iter++) {
@@ -2835,7 +2884,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "subseq");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 3);
-			vector<_VAR> & lst = eval(env, scope, args[0])->r_list();
+			Sequence & lst = eval(env, scope, args[0])->r_list();
 			long long start = _INT(eval(env, scope, args[1]));
 			long long end = _INT(eval(env, scope, args[2]));
 			vector<_VAR> ret;
@@ -2922,7 +2971,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "macroexpand");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			vector<_VAR> vars = eval(env, scope, args[0])->r_list();
+			Sequence vars = eval(env, scope, args[0])->r_list(); // copy
 			_CHECK_ARGS_MIN_COUNT(vars, 1);
 			vector<_VAR> xargs(vars.begin() + 1, vars.end());
 			return _function(env, scope, vars[0])->expand(env, scope, vars[0], xargs);
@@ -2994,11 +3043,11 @@ namespace LISP {
 			vector<vector<_VAR> > lists;
 			size_t size = 0;
 			for (size_t i = 2; i < args.size(); i++) {
-				vector<_VAR> lst = eval(env, scope, args[i])->r_list();
+				Sequence lst = eval(env, scope, args[i])->r_list(); // copy
 				if (lst.size() > size) {
 					size = lst.size();
 				}
-				lists.push_back(lst);
+				lists.push_back(lst.vec());
 			}
 			for (size_t i = 0; i < size; i++) {
 				vector<_VAR> fargs;
@@ -3019,11 +3068,11 @@ namespace LISP {
 			vector<vector<_VAR> > lists;
 			size_t size = 0;
 			for (size_t i = 1; i < args.size(); i++) {
-				vector<_VAR> lst = eval(env, scope, args[i])->r_list();
+				Sequence lst = eval(env, scope, args[i])->r_list(); // copy
 				if (lst.size() > size) {
 					size = lst.size();
 				}
-				lists.push_back(lst);
+				lists.push_back(lst.vec());
 			}
 			for (size_t i = 0; i < size; i++) {
 				vector<_VAR> fargs;
@@ -3039,7 +3088,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "sort");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			vector<_VAR> lst = eval(env, scope, args[0])->r_list();
+			Sequence lst = eval(env, scope, args[0])->r_list(); // copy
 			_VAR func = eval(env, scope, args[1]);
 			func = _function(env, scope, func);
 
@@ -3063,7 +3112,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
-			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			_VAR sum = (lst.size() > 0 ? lst[0] : _NIL(env));
 			for (size_t i = 1; i < lst.size(); i++) {
 				vector<_VAR> fargs;
@@ -3079,7 +3128,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "length");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			vector<_VAR> lst = eval(env, scope, args[0])->r_list();
+			Sequence lst = eval(env, scope, args[0])->r_list(); // copy
 			return _HEAP_ALLOC(env, Integer((long long)lst.size()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "append");
@@ -3087,7 +3136,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 0);
 			vector<_VAR> ret;
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
-				vector<_VAR> lst = eval(env, scope, *iter)->r_list();
+				Sequence lst = eval(env, scope, *iter)->r_list(); // copy
 				ret.insert(ret.end(), lst.begin(), lst.end());
 			}
 			return _HEAP_ALLOC(env, ret);
@@ -3096,7 +3145,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR val = eval(env, scope, args[0]);
-			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				if (val->toPrintString() == (*iter)->toPrintString()) {
 					iter = lst.erase(iter);
@@ -3110,7 +3159,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
-			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				vector<_VAR> fargs;
 				fargs.push_back(*iter);
@@ -3127,7 +3176,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
-			vector<_VAR> lst = eval(env, scope, args[1])->r_list();
+			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				vector<_VAR> fargs;
 				fargs.push_back(*iter);
@@ -3892,7 +3941,7 @@ namespace LISP {
 			int cnt = 0;
 			try {
 				if (data->isList()) {
-					vector<_VAR> lst = data->r_list();
+					Sequence lst = data->r_list(); // copy
 					_FORI(lst, i, 0) {
 						cnt += socket->send(lst[i]);
 					}

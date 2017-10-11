@@ -14,6 +14,7 @@
 #include "AutoRef.hpp"
 #include "Text.hpp"
 #include "Heap.hpp"
+#include "Iterator.hpp"
 
 namespace LISP {
 
@@ -145,7 +146,7 @@ namespace LISP {
 	};
 
 	/**
-	 * 
+	 * @brief Object
 	 */
 	class Object {
 	private:
@@ -153,15 +154,6 @@ namespace LISP {
 		Object() {
 		}
 		virtual ~Object() {
-		}
-		virtual void * native_ptr() {
-			return NULL;
-		}
-		virtual int type() {
-			return 0;
-		}
-		virtual std::string description() {
-			return "<top object>";
 		}
 		virtual std::string type_str() {
 			return "BaseObject";
@@ -175,6 +167,28 @@ namespace LISP {
 		virtual std::string toPrintString() const {
 			return toString();
 		}
+	};
+
+	/**
+	 * @brief
+	 */
+	class Sequence : public Object {
+	private:
+		std::vector< OS::GCRef<Var> > _lst;
+	public:
+		Sequence();
+		Sequence(const std::vector< OS::GCRef<Var> > & lst);
+		virtual ~Sequence();
+		UTIL::Iterator< OS::GCRef<Var> > iter();
+		std::vector< OS::GCRef<Var> > & vec();
+		bool empty() const;
+		std::vector< OS::GCRef<Var> >::iterator begin();
+		std::vector< OS::GCRef<Var> >::iterator end();
+		size_t size() const;
+		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
+		OS::GCRef<Var> & operator[] (size_t idx);
+		const OS::GCRef<Var> & operator[] (size_t idx) const;
+		virtual std::string toString() const;
 	};
 
 	/**
@@ -279,6 +293,7 @@ namespace LISP {
 		bool operator> (const Character & ch) const;
 		bool operator<= (const Character & ch) const;
 		bool operator>= (const Character & ch) const;
+		virtual std::string toPrintString() const;
 		virtual std::string toString() const;
 	};
 
@@ -551,14 +566,14 @@ namespace LISP {
 		static bool _debug;
 		int _type;
 		Boolean _special;
-		std::vector< OS::GCRef<Var> > _lst;
 		OS::AutoRef<Object> _obj;
 		
 	public:
 		explicit Var();
 		explicit Var(const char * token);
 		explicit Var(const std::string & token);
-		explicit Var(std::vector<OS::GCRef<Var> > lst);
+		explicit Var(const std::vector<OS::GCRef<Var> > & lst);
+		explicit Var(const Sequence & lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);
 		explicit Var(const Character & ch);
@@ -610,7 +625,7 @@ namespace LISP {
 		const Keyword & r_keyword() const;
 		const Character & r_character() const;
 		const String & r_string() const;
-		const std::vector<OS::GCRef<Var> > & r_list() const;
+		const Sequence & r_list() const;
 		const Boolean & r_boolean() const;
 		const Integer & r_integer() const;
 		const Float & r_float() const;
@@ -620,7 +635,7 @@ namespace LISP {
 		Keyword & r_keyword();
 		Character & r_character();
 		String & r_string();
-		std::vector<OS::GCRef<Var> > & r_list();
+		Sequence & r_list();
 		Boolean & r_boolean();
 		Integer & r_integer();
 		Float & r_float();
@@ -723,9 +738,11 @@ namespace LISP {
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
 		std::map<Keyword, Parameter> & keywords();
-		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, std::vector< OS::GCRef<Var> > & tokens);
-		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens);
-		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens, bool proc_eval);
+		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, Sequence & tokens);
+		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
+				  std::vector< OS::GCRef<Var> > & tokens);
+		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
+				  std::vector< OS::GCRef<Var> > & tokens, bool proc_eval);
 		std::string toString() const;
 	};
 
