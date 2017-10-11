@@ -92,6 +92,14 @@ namespace LISP {
 	extern std::string unwrap_text(const std::string & txt);
 
 	/**
+	 * @brief registry IDs
+	 */
+
+	typedef enum _REG_ID {
+		SYMBOL, FUNCTION
+	} REG_ID;
+
+	/**
 	 * @brief registry
 	 */
 	
@@ -109,29 +117,29 @@ namespace LISP {
 	class Scope {
 	private:
 		OS::AutoRef<Scope> _parent;
-		std::map<Symbol, Registry> _registries;
+		std::map<REG_ID, Registry> _registries;
 	public:
 		Scope();
 		virtual ~Scope();
 		OS::AutoRef<Scope> & parent();
 		void clear();
-		std::map<Symbol, Registry> & registries();
-		Registry & registry(const std::string id);
+		std::map<REG_ID, Registry> & registries();
+		Registry & registry(const REG_ID & id);
 		OS::GCRef<Var> rsearch_sym(const Symbol & sym);
 		OS::GCRef<Var> rget_sym(const Symbol & sym);
 		OS::GCRef<Var> rput_sym(const Symbol & sym, const OS::GCRef<Var> & var);
 		OS::GCRef<Var> rsearch_func(const Symbol & sym);
 		OS::GCRef<Var> rget_func(const Symbol & sym);
 		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> rsearch(const std::string id, const Symbol & sym);
-		OS::GCRef<Var> rget(const std::string id, const Symbol & sym);
-		OS::GCRef<Var> rput(const std::string id, const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch(const REG_ID & id, const Symbol & sym);
+		OS::GCRef<Var> rget(const REG_ID & id, const Symbol & sym);
+		OS::GCRef<Var> rput(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
 		OS::GCRef<Var> get_sym(const Symbol & sym);
 	    void put_sym(const Symbol & sym, const OS::GCRef<Var> & var);
 		OS::GCRef<Var> get_func(const Symbol & sym);
 	    void put_func(const Symbol & sym, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> get(const std::string id, const Symbol & sym);
-	    void put(const std::string id, const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get(const REG_ID & id, const Symbol & sym);
+	    void put(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
 		int depth();
 		std::string toString() const;
 	};

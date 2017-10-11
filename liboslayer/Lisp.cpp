@@ -122,6 +122,22 @@ namespace LISP {
 	}
 
 	/**
+	 * @brief
+	 */
+
+	static string _reg_id_to_string(const REG_ID & id) {
+		switch (id) {
+		case SYMBOL:
+			return "SYMBOL";
+		case FUNCTION:
+			return "FUNCTION";
+		default:
+			break;
+		}
+		return "(UNKNOWN)";
+	}
+
+	/**
 	 * @brief registry
 	 */
 
@@ -152,39 +168,39 @@ namespace LISP {
 		_registries.clear();
 	}
 	
-	map<Symbol, Registry> & Scope::registries() {
+	map<REG_ID, Registry> & Scope::registries() {
 		return _registries;
 	}
 	
-	Registry & Scope::registry(const string id) {
+	Registry & Scope::registry(const REG_ID & id) {
 		return _registries[id];
 	}
 	
 	_VAR Scope::rsearch_sym(const Symbol & sym) {
-		return rsearch("symbol", sym);
+		return rsearch(SYMBOL, sym);
 	}
 	
 	_VAR Scope::rget_sym(const Symbol & sym) {
-		return rget("symbol", sym);
+		return rget(SYMBOL, sym);
 	}
 	
 	_VAR Scope::rput_sym(const Symbol & sym, const _VAR & var) {
-		return rput("symbol", sym, var);
+		return rput(SYMBOL, sym, var);
 	}
 	
 	_VAR Scope::rsearch_func(const Symbol & sym) {
-		return rsearch("function", sym);
+		return rsearch(FUNCTION, sym);
 	}
 
 	_VAR Scope::rget_func(const Symbol & sym) {
-		return rget("function", sym);
+		return rget(FUNCTION, sym);
 	}
 
 	_VAR Scope::rput_func(const Symbol & sym, const _VAR & var) {
-		return rput("function", sym, var);
+		return rput(FUNCTION, sym, var);
 	}
 
-	_VAR Scope::rsearch(const string id, const Symbol & sym) {
+	_VAR Scope::rsearch(const REG_ID & id, const Symbol & sym) {
 		if (registry(id).contains(sym)) {
 			return registry(id)[sym];
 		}
@@ -194,7 +210,7 @@ namespace LISP {
 		return _VAR();
 	}
 
-	_VAR Scope::rget(const string id, const Symbol & sym) {
+	_VAR Scope::rget(const REG_ID & id, const Symbol & sym) {
 		if (registry(id).contains(sym)) {
 			return registry(id)[sym];
 		}
@@ -203,7 +219,7 @@ namespace LISP {
 		}
 		throw UnboundLispException(sym.symbol());
 	}
-	_VAR Scope::rput(const string id, const Symbol & sym, const _VAR & var) {
+	_VAR Scope::rput(const REG_ID & id, const Symbol & sym, const _VAR & var) {
 		if (registry(id).contains(sym)) {
 			registry(id)[sym] = var;
 			return var;
@@ -216,29 +232,29 @@ namespace LISP {
 	}
 
 	_VAR Scope::get_sym(const Symbol & sym) {
-		return get("symbol", sym);
+		return get(SYMBOL, sym);
 	}
 	
 	void Scope::put_sym(const Symbol & sym, const _VAR & var) {
-		put("symbol", sym, var);
+		put(SYMBOL, sym, var);
 	}
 
 	_VAR Scope::get_func(const Symbol & sym) {
-		return get("function", sym);
+		return get(FUNCTION, sym);
 	}
 	
 	void Scope::put_func(const Symbol & sym, const _VAR & var) {
-		put("function", sym, var);
+		put(FUNCTION, sym, var);
 	}
 	
-	_VAR Scope::get(const string id, const Symbol & sym) {
+	_VAR Scope::get(const REG_ID & id, const Symbol & sym) {
 		if (registry(id).contains(sym) == false) {
 			throw UnboundLispException(sym.symbol());
 		}
 		return registry(id)[sym];
 	}
 	
-	void Scope::put(const string id, const Symbol & sym, const _VAR & var) {
+	void Scope::put(const REG_ID & id, const Symbol & sym, const _VAR & var) {
 		registry(id)[sym] = var;
 	}
 
@@ -257,9 +273,9 @@ namespace LISP {
 			indent = "    ";
 		}
 		
-		for (map<Symbol, Registry>::const_iterator ri = _registries.begin(); ri != _registries.end(); ri++) {
+		for (map<REG_ID, Registry>::const_iterator ri = _registries.begin(); ri != _registries.end(); ri++) {
 			ret.append("$$");
-			ret.append(ri->first.symbol());
+			ret.append(_reg_id_to_string(ri->first));
 			ret.append(": \n");
 			ret.append(indent);
 			ret.append("[");
