@@ -131,7 +131,7 @@ namespace LISP {
 	Registry::~Registry() {
 	}
 
-	bool Registry::contains(const string & k) {
+	bool Registry::contains(const Symbol & k) {
 		return (find(k) != end() ? true : false);
 	}
 	
@@ -152,7 +152,7 @@ namespace LISP {
 		_registries.clear();
 	}
 	
-	map<string, Registry> & Scope::registries() {
+	map<Symbol, Registry> & Scope::registries() {
 		return _registries;
 	}
 	
@@ -160,86 +160,86 @@ namespace LISP {
 		return _registries[id];
 	}
 	
-	_VAR Scope::rsearch_sym(const string & name) {
-		return rsearch("symbol", name);
+	_VAR Scope::rsearch_sym(const Symbol & sym) {
+		return rsearch("symbol", sym);
 	}
 	
-	_VAR Scope::rget_sym(const string & name) {
-		return rget("symbol", name);
+	_VAR Scope::rget_sym(const Symbol & sym) {
+		return rget("symbol", sym);
 	}
 	
-	_VAR Scope::rput_sym(const string & name, const _VAR & var) {
-		return rput("symbol", name, var);
+	_VAR Scope::rput_sym(const Symbol & sym, const _VAR & var) {
+		return rput("symbol", sym, var);
 	}
 	
-	_VAR Scope::rsearch_func(const string & name) {
-		return rsearch("function", name);
+	_VAR Scope::rsearch_func(const Symbol & sym) {
+		return rsearch("function", sym);
 	}
 
-	_VAR Scope::rget_func(const string & name) {
-		return rget("function", name);
+	_VAR Scope::rget_func(const Symbol & sym) {
+		return rget("function", sym);
 	}
 
-	_VAR Scope::rput_func(const string & name, const _VAR & var) {
-		return rput("function", name, var);
+	_VAR Scope::rput_func(const Symbol & sym, const _VAR & var) {
+		return rput("function", sym, var);
 	}
 
-	_VAR Scope::rsearch(const string id, const string & name) {
-		if (registry(id).contains(name)) {
-			return registry(id)[name];
+	_VAR Scope::rsearch(const string id, const Symbol & sym) {
+		if (registry(id).contains(sym)) {
+			return registry(id)[sym];
 		}
 		if (_parent.nil() == false) {
-			return _parent->rsearch(id, name);
+			return _parent->rsearch(id, sym);
 		}
 		return _VAR();
 	}
 
-	_VAR Scope::rget(const string id, const string & name) {
-		if (registry(id).contains(name)) {
-			return registry(id)[name];
+	_VAR Scope::rget(const string id, const Symbol & sym) {
+		if (registry(id).contains(sym)) {
+			return registry(id)[sym];
 		}
 		if (_parent.nil() == false) {
-			return _parent->rget(id, name);
+			return _parent->rget(id, sym);
 		}
-		throw UnboundLispException(name);
+		throw UnboundLispException(sym.symbol());
 	}
-	_VAR Scope::rput(const string id, const string & name, const _VAR & var) {
-		if (registry(id).contains(name)) {
-			registry(id)[name] = var;
+	_VAR Scope::rput(const string id, const Symbol & sym, const _VAR & var) {
+		if (registry(id).contains(sym)) {
+			registry(id)[sym] = var;
 			return var;
 		}
 		if (_parent.nil() == false) {
-			return _parent->rput(id, name, var);
+			return _parent->rput(id, sym, var);
 		}
-		registry(id)[name] = var;
+		registry(id)[sym] = var;
 		return var;
 	}
 
-	_VAR Scope::get_sym(const string & name) {
-		return get("symbol", name);
+	_VAR Scope::get_sym(const Symbol & sym) {
+		return get("symbol", sym);
 	}
 	
-	void Scope::put_sym(const string & name, const _VAR & var) {
-		put("symbol", name, var);
+	void Scope::put_sym(const Symbol & sym, const _VAR & var) {
+		put("symbol", sym, var);
 	}
 
-	_VAR Scope::get_func(const string & name) {
-		return get("function", name);
+	_VAR Scope::get_func(const Symbol & sym) {
+		return get("function", sym);
 	}
 	
-	void Scope::put_func(const string & name, const _VAR & var) {
-		put("function", name, var);
+	void Scope::put_func(const Symbol & sym, const _VAR & var) {
+		put("function", sym, var);
 	}
 	
-	_VAR Scope::get(const string id, const string & name) {
-		if (registry(id).contains(name) == false) {
-			throw UnboundLispException(name);
+	_VAR Scope::get(const string id, const Symbol & sym) {
+		if (registry(id).contains(sym) == false) {
+			throw UnboundLispException(sym.symbol());
 		}
-		return registry(id)[name];
+		return registry(id)[sym];
 	}
 	
-	void Scope::put(const string id, const string & name, const _VAR & var) {
-		registry(id)[name] = var;
+	void Scope::put(const string id, const Symbol & sym, const _VAR & var) {
+		registry(id)[sym] = var;
 	}
 
 	int Scope::depth() {
@@ -257,19 +257,19 @@ namespace LISP {
 			indent = "    ";
 		}
 		
-		for (map<string, Registry>::const_iterator ri = _registries.begin(); ri != _registries.end(); ri++) {
+		for (map<Symbol, Registry>::const_iterator ri = _registries.begin(); ri != _registries.end(); ri++) {
 			ret.append("$$");
-			ret.append(ri->first);
+			ret.append(ri->first.symbol());
 			ret.append(": \n");
 			ret.append(indent);
 			ret.append("[");
-			for (map<string, _VAR>::const_iterator it = ri->second.begin(); it != ri->second.end(); it++) {
+			for (map<Symbol, _VAR>::const_iterator it = ri->second.begin(); it != ri->second.end(); it++) {
 				if (it != ri->second.begin()) {
 					ret.append("\n");
 				}
 				ret.append(indent);
 				ret.append("'");
-				ret.append(it->first);
+				ret.append(it->first.symbol());
 				ret.append("': '");
 				ret.append(_to_string(it->second));
 				ret.append("'");
@@ -278,6 +278,77 @@ namespace LISP {
 			ret.append("]");
 		}
 		return ret;
+	}
+
+	/**
+	 * symbol
+	 */
+
+	Symbol::Symbol() {
+	}
+	Symbol::Symbol(const string & symbol) : _symbol(symbol) {
+	}
+	Symbol::~Symbol() {
+	}
+	string & Symbol::symbol() {
+		return _symbol;
+	}
+	string Symbol::symbol() const {
+		return _symbol;
+	}
+	bool Symbol::operator== (const string & other) const {
+		return (_symbol == other);
+	}
+	bool Symbol::operator== (const Symbol & other) const {
+		return (_symbol == other._symbol);
+	}
+	bool Symbol::operator< (const Symbol & other) const {
+		return (_symbol < other._symbol);
+	}
+	bool Symbol::operator> (const Symbol & other) const {
+		return (_symbol > other._symbol);
+	}
+	string Symbol::toString() const {
+		return _symbol;
+	}
+
+	bool operator== (const std::string & a, const Symbol & b) {
+		return b == a;
+	}
+
+	/**
+	 * keyword
+	 */
+
+	Keyword::Keyword() {
+	}
+	Keyword::Keyword(const string & keyword) : Symbol(keyword) {
+		if (Text::startsWith(keyword, ":") == false) {
+			throw LispException("Wrong keyword format");
+		}
+	}
+	Keyword::~Keyword() {
+	}
+	string & Keyword::keyword() {
+		return symbol();
+	}
+	string Keyword::keyword() const {
+		return symbol();
+	}
+	string Keyword::keyword_without_token() const {
+		return symbol().substr(1);
+	}
+	Symbol Keyword::toSymbol() const {
+		return Symbol(keyword_without_token());
+	}
+	Keyword Keyword::wrap(const Symbol & sym) {
+		return Keyword(":" + sym.symbol());
+	}
+	string Keyword::toString() const {
+		return Symbol::toString();;
+	}
+	bool operator== (const std::string & a, const Keyword & b) {
+		return b == a;
 	}
 
 	/**
@@ -1083,7 +1154,7 @@ namespace LISP {
 		}
 		if (token[0] == ':') {
 			_type = KEYWORD;
-			_keyword = token;
+			_obj = AutoRef<Object>(new Keyword(token));
 		} else if (token == "nil") {
 			_type = NIL;
 		} else if (token == "t") {
@@ -1103,7 +1174,7 @@ namespace LISP {
 			_obj = AutoRef<Object>(new Pathname(File(token.substr(3, token.length() - 4))));
 		} else {
 			_type = SYMBOL;
-			_symbol = token;
+			_obj = AutoRef<Object>(new Symbol(token));;
 		}
 	}
 	int Var::getType() { return _type; }
@@ -1167,8 +1238,20 @@ namespace LISP {
 	bool Var::isNativeProcedure() const {return _type == NATIVE_PROC;}
 	bool Var::isPathname() const {return _type == PATHNAME;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
-	const string & Var::r_symbol() const {typeCheck(SYMBOL); return _symbol;}
-	const string & Var::r_keyword() const {typeCheck(KEYWORD); return _keyword;}
+	Boolean & Var::special() {
+		return _special;
+	}
+	Boolean Var::special() const {
+		return _special;
+	}
+	const Symbol & Var::r_symbol() const {
+		typeCheck(SYMBOL);
+		return (const Symbol&)(*_obj);;
+	}
+	const Keyword & Var::r_keyword() const {
+		typeCheck(KEYWORD);
+		return (const Keyword&)(*_obj);;
+	}
 	const Character & Var::r_character() const {
 		typeCheck(CHARACTER);
 		return (const Character&)(*_obj);
@@ -1198,8 +1281,14 @@ namespace LISP {
 		typeCheck(FUNC);
 		return (const Func&)(*_obj);
 	}
-	string & Var::r_symbol() {typeCheck(SYMBOL); return _symbol;}
-	string & Var::r_keyword() {typeCheck(KEYWORD); return _keyword;}
+	Symbol & Var::r_symbol() {
+		typeCheck(SYMBOL);
+		return (Symbol&)(*_obj);
+	}
+	Keyword & Var::r_keyword() {
+		typeCheck(KEYWORD);
+		return (Keyword&)(*_obj);
+	}
 	Character & Var::r_character() {
 		typeCheck(CHARACTER);
 		return (Character&)(*_obj);
@@ -1264,10 +1353,6 @@ namespace LISP {
 		switch (_type) {
 		case NIL:
 			return "NIL";
-		case SYMBOL:
-			return _symbol;
-		case KEYWORD:
-			return _keyword;
 		case LIST:
 		{
 			if ((_lst.size() > 1) && _lst[0]->isSymbol()) {
@@ -1289,6 +1374,8 @@ namespace LISP {
 			ret += ")";
 			return ret;
 		}
+		case SYMBOL:
+		case KEYWORD:
 		case STRING:
 		case BOOLEAN:
 		case CHARACTER:
@@ -1307,6 +1394,8 @@ namespace LISP {
 	}
 	string Var::toPrintString() const {
 		switch (_type) {
+		case SYMBOL:
+		case KEYWORD:
 		case STRING:
 		case BOOLEAN:
 		case CHARACTER:
@@ -1460,13 +1549,16 @@ namespace LISP {
 	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals)
 		: _names(names), _optionals(optionals) {
 	}
-	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const Parameter & rest)
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals,
+						   const Parameter & rest)
 		: _names(names), _optionals(optionals), _rest(rest) {
 	}
-	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const map<string, Parameter> & keywords)
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals,
+						   const map<Keyword, Parameter> & keywords)
 		: _names(names), _optionals(optionals), _keywords(keywords) {
 	}
-	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals, const Parameter & rest, const map<string, Parameter> & keywords)
+	Parameters::Parameters(const vector<Parameter> & names, const vector<Parameter> & optionals,
+						   const Parameter & rest, const map<Keyword, Parameter> & keywords)
 		: _names(names), _optionals(optionals), _rest(rest), _keywords(keywords) {
 	}
 	Parameters::~Parameters() {
@@ -1481,11 +1573,11 @@ namespace LISP {
 	Parameters::Parameter & Parameters::rest() {
 		return _rest;
 	}
-	map<string, Parameters::Parameter> & Parameters::keywords() {
+	map<Keyword, Parameters::Parameter> & Parameters::keywords() {
 		return _keywords;
 	}
 
-	static bool s_is_reserved_keyword(const string & token) {
+	static bool _is_special_keyword(const Symbol & token) {
 		vector<string> lst = tokenize("&optional &rest &key");
 		for (vector<string>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
 			if (*iter == token) {
@@ -1498,7 +1590,7 @@ namespace LISP {
 	static vector<_VAR> s_read_tokens(Iterator<_VAR> & iter) {
 		vector<_VAR> ret;
 		while (iter.has()) {
-			if ((*iter)->isSymbol() && s_is_reserved_keyword((*iter)->r_symbol())) {
+			if ((*iter)->isSymbol() && _is_special_keyword((*iter)->r_symbol())) {
 				break;
 			}
 			ret.push_back(*iter++);
@@ -1546,20 +1638,26 @@ namespace LISP {
 				if ((*iter)->isList() && (*iter)->r_list().size() == 2) {
 					_VAR v = (*iter)->r_list()[0];
 					_VAR i = (*iter)->r_list()[1];
-					params.keywords()[v->r_symbol()] = Parameter(v, i);
+					Keyword k = Keyword::wrap(v->r_symbol());
+					params.keywords()[k] = Parameter(v, i);
 				} else {
-					params.keywords()[(*iter)->r_symbol()] = Parameter(*iter);
+					Keyword k = Keyword::wrap((*iter)->r_symbol());
+					params.keywords()[k] = Parameter(*iter);
 				}
 			}
 		}
 		return params;
 	}
 
-	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope, vector<_VAR> & tokens) {
+	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope,
+						  vector<_VAR> & tokens) {
 		bind(env, global_scope, lex_scope, tokens, true);
 	}
-	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope, vector<_VAR> & tokens, bool proc_eval) {
+	void Parameters::bind(Env & env, AutoRef<Scope> global_scope, AutoRef<Scope> lex_scope,
+						  vector<_VAR> & tokens, bool proc_eval) {
+		
 #define _PROC_VAR(E,S,T) (proc_eval ? eval(E,S,(T)) : (T))
+		
 		Iterator<_VAR> tokens_iter(tokens);
 		_CHECK_ARGS_MIN_COUNT(tokens, _names.size());
 		for (vector<Parameter>::iterator iter = _names.begin(); iter != _names.end(); iter++) {
@@ -1577,10 +1675,10 @@ namespace LISP {
 			lex_scope->put_sym(_rest.name()->r_symbol(), _NIL(env));
 		}
 
-		for (map<string, Parameter>::iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
+		for (map<Keyword, Parameter>::iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
 			_VAR v = (iter->second.initial().nil() ?
 					  _NIL(env) : _PROC_VAR(env, global_scope, iter->second.initial()));
-			lex_scope->put_sym(iter->first, v);
+			lex_scope->put_sym(iter->first.toSymbol(), v);
 		}
 		
 		if (tokens_iter.has() == false) {
@@ -1591,17 +1689,17 @@ namespace LISP {
 		vector<_VAR> rest(tokens_iter.iter(), tokens.end());
 		for (vector<_VAR>::iterator iter = rest.begin(); iter != rest.end(); iter++) {
 			if ((*iter)->isKeyword()) {
-				if (_keywords.find((*iter)->r_keyword().substr(1)) == _keywords.end()) {
-					throw LispException("Keyword '" + (*iter)->r_keyword() + "' is not provided");
+				if (_keywords.find((*iter)->r_keyword()) == _keywords.end()) {
+					throw LispException("Keyword '" + (*iter)->r_keyword().toString() + "' is not provided");
 				}
 				if (iter + 1 == rest.end()) {
 					throw LispException("Unexpected end of tokens / keyword's value is missing");
 				}
-				string n = (*iter)->r_keyword().substr(1);
+				Symbol sym = (*iter)->r_keyword().toSymbol();
 				rest_ret.push_back(*iter);
 				_VAR v = _PROC_VAR(env, global_scope, *(++iter));
 				rest_ret.push_back(v);
-				lex_scope->put_sym(n, v);
+				lex_scope->put_sym(sym, v);
 			} else {
 				if (_rest.empty()) {
 					throw LispException("&rest is not provided");
@@ -1636,7 +1734,7 @@ namespace LISP {
 		ret.append("], rest: '");
 		ret.append(_rest.toString());
 		ret.append("', keywods: [");
-		for (map<string, Parameter>::const_iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
+		for (map<Keyword, Parameter>::const_iterator iter = _keywords.begin(); iter != _keywords.end(); iter++) {
 			if (iter != _keywords.begin()) {
 				ret.append(", ");
 			}
@@ -2511,7 +2609,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "#\\");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			return _HEAP_ALLOC(env, Character(args[0]->r_symbol()));
+			return _HEAP_ALLOC(env, Character(args[0]->r_symbol().symbol()));
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "quote");
 		{
@@ -2545,8 +2643,7 @@ namespace LISP {
 			local_scope->parent() = scope;
 			for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
 				vector<_VAR> decl = (*iter)->r_list();
-				string sym = decl[0]->r_symbol();
-				local_scope->put_sym(sym, eval(env, scope, decl[1]));
+				local_scope->put_sym(decl[0]->r_symbol(), eval(env, scope, decl[1]));
 			}
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 				ret = eval(env, local_scope, *iter);
@@ -2610,7 +2707,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			vector<_VAR> decl = args[0]->r_list();
-			string param = decl[0]->r_symbol();
+			Symbol & param = decl[0]->r_symbol();
 			vector<_VAR> lst = eval(env, scope, decl[1])->r_list();
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
@@ -2624,7 +2721,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			vector<_VAR> steps = args[0]->r_list();
-			string sym = steps[0]->r_symbol();
+			Symbol & sym = steps[0]->r_symbol();
 			long long limit = _INT(eval(env, scope, steps[1]));
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
@@ -3227,7 +3324,7 @@ namespace LISP {
 			case Var::STRING:
 				return v;
 			case Var::SYMBOL:
-				return _HEAP_ALLOC(env, wrap_text(v->r_symbol()));
+				return _HEAP_ALLOC(env, wrap_text(v->r_symbol().toString()));
 			case Var::CHARACTER:
 				return _HEAP_ALLOC(env, wrap_text(string(1, (char)v->r_character().raw())));
 			default:
@@ -3421,7 +3518,7 @@ namespace LISP {
 		}DECL_NATIVE_END();
 	}
 	void builtin_mathematic(Env & env) {
-		env.scope()->put_sym("pi", _HEAP_ALLOC(env, 3.141592653589793));
+		env.scope()->put_sym(Symbol("pi"), _HEAP_ALLOC(env, 3.141592653589793));
 		DECL_NATIVE_BEGIN(env, "cos");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
@@ -3460,8 +3557,8 @@ namespace LISP {
 	}
 	void builtin_io(Env & env) {
 
-		env.scope()->put_sym("*standard-output*", _HEAP_ALLOC(env, stdout));
-		env.scope()->put_sym("*standard-input*", _HEAP_ALLOC(env, stdin));
+		env.scope()->put_sym(Symbol("*standard-output*"), _HEAP_ALLOC(env, stdout));
+		env.scope()->put_sym(Symbol("*standard-input*"), _HEAP_ALLOC(env, stdin));
 
 		DECL_NATIVE_BEGIN(env, "read");
 		{
@@ -3495,7 +3592,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "print");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR output = scope->rget_sym("*standard-output*");
+			_VAR output = scope->rget_sym(Symbol("*standard-output*"));
 			if (args.size() == 2) {
 				output = eval(env, scope, args[1]);
 			}
@@ -3508,7 +3605,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "princ");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR output = scope->rget_sym("*standard-output*");
+			_VAR output = scope->rget_sym(Symbol("*standard-output*"));
 			if (args.size() == 2) {
 				output = eval(env, scope, args[1]);
 			}
@@ -3521,7 +3618,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-string");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR output = scope->rget_sym("*standard-output*");
+			_VAR output = scope->rget_sym(Symbol("*standard-output*"));
 			if (args.size() == 2) {
 				output = eval(env, scope, args[1]);
 			}
@@ -3533,7 +3630,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "write-line");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR output = scope->rget_sym("*standard-output*");
+			_VAR output = scope->rget_sym(Symbol("*standard-output*"));
 			if (args.size() == 2) {
 				output = eval(env, scope, args[1]);
 			}
@@ -3668,11 +3765,11 @@ namespace LISP {
 			Parameters params = Parameters::parse(
 				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))")->r_list());
 			params.bind(env, scope, scope, args, true);
-			Pathname & p = pathname(env, scope->get_sym("fname"))->r_pathname();
+			Pathname & p = pathname(env, scope->get_sym(Symbol("fname")))->r_pathname();
 			const char * flags = "rb+";
 			if (p.exists() == false) {
 				// does not exists
-				_VAR idne = scope->get_sym("if-does-not-exist");
+				_VAR idne = scope->get_sym(Symbol("if-does-not-exist"));
 				if (idne->isNil()) {
 					return _NIL(env);
 				} else if (_silentkeywordeq(idne, ":error")) {
@@ -3682,7 +3779,7 @@ namespace LISP {
 				}
 			} else {
 				// exists
-				_VAR ie = scope->get_sym("if-exists");
+				_VAR ie = scope->get_sym(Symbol("if-exists"));
 				if (ie->isNil()) {
 					return _NIL(env);
 				} else if (_silentkeywordeq(ie, ":append")) {
@@ -3859,7 +3956,7 @@ namespace LISP {
 	}
 	
 	void builtin_date(Env & env) {
-		env.scope()->put_sym("internal-time-units-per-second", _HEAP_ALLOC(env, 1000));
+		env.scope()->put_sym(Symbol("internal-time-units-per-second"), _HEAP_ALLOC(env, 1000));
 		DECL_NATIVE_BEGIN(env, "now");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);

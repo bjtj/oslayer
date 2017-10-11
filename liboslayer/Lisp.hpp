@@ -18,6 +18,8 @@
 namespace LISP {
 
 	/**/
+	class Symbol;
+	class Keyword;
 	class Integer;
 	class Float;
 	class Env;
@@ -93,12 +95,12 @@ namespace LISP {
 	 * @brief registry
 	 */
 	
-	class Registry : public std::map< std::string, OS::GCRef<Var> > {
+	class Registry : public std::map< Symbol, OS::GCRef<Var> > {
 	private:
 	public:
 		Registry();
 		virtual ~Registry();
-		bool contains(const std::string & k);
+		bool contains(const Symbol & k);
 	};
 
 	/**
@@ -107,29 +109,29 @@ namespace LISP {
 	class Scope {
 	private:
 		OS::AutoRef<Scope> _parent;
-		std::map<std::string, Registry> _registries;
+		std::map<Symbol, Registry> _registries;
 	public:
 		Scope();
 		virtual ~Scope();
 		OS::AutoRef<Scope> & parent();
 		void clear();
-		std::map<std::string, Registry> & registries();
+		std::map<Symbol, Registry> & registries();
 		Registry & registry(const std::string id);
-		OS::GCRef<Var> rsearch_sym(const std::string & name);
-		OS::GCRef<Var> rget_sym(const std::string & name);
-		OS::GCRef<Var> rput_sym(const std::string & name, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> rsearch_func(const std::string & name);
-		OS::GCRef<Var> rget_func(const std::string & name);
-		OS::GCRef<Var> rput_func(const std::string & name, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> rsearch(const std::string id, const std::string & name);
-		OS::GCRef<Var> rget(const std::string id, const std::string & name);
-		OS::GCRef<Var> rput(const std::string id, const std::string & name, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> get_sym(const std::string & name);
-	    void put_sym(const std::string & name, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> get_func(const std::string & name);
-	    void put_func(const std::string & name, const OS::GCRef<Var> & var);
-		OS::GCRef<Var> get(const std::string id, const std::string & name);
-	    void put(const std::string id, const std::string & name, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch_sym(const Symbol & sym);
+		OS::GCRef<Var> rget_sym(const Symbol & sym);
+		OS::GCRef<Var> rput_sym(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch_func(const Symbol & sym);
+		OS::GCRef<Var> rget_func(const Symbol & sym);
+		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> rsearch(const std::string id, const Symbol & sym);
+		OS::GCRef<Var> rget(const std::string id, const Symbol & sym);
+		OS::GCRef<Var> rput(const std::string id, const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get_sym(const Symbol & sym);
+	    void put_sym(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get_func(const Symbol & sym);
+	    void put_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> get(const std::string id, const Symbol & sym);
+	    void put(const std::string id, const Symbol & sym, const OS::GCRef<Var> & var);
 		int depth();
 		std::string toString() const;
 	};
@@ -166,6 +168,46 @@ namespace LISP {
 			return toString();
 		}
 	};
+
+	/**
+	 * @brief symbol
+	 */
+	class Symbol : public Object {
+	private:
+		std::string _symbol;
+	public:
+		Symbol();
+		Symbol(const std::string & symbol);
+		virtual ~Symbol();
+		std::string & symbol();
+		std::string symbol() const;
+		bool operator== (const std::string & other) const;
+		bool operator== (const Symbol & other) const;
+		bool operator< (const Symbol & other) const;
+		bool operator> (const Symbol & other) const;
+		virtual std::string toString() const;
+	};
+
+	bool operator== (const std::string & a, const Symbol & b);
+
+	/**
+	 * @brief keyword
+	 */
+	class Keyword : public Symbol {
+	private:
+	public:
+		Keyword();
+		Keyword(const std::string & keyword);
+		virtual ~Keyword();
+		std::string & keyword();
+		std::string keyword() const;
+		std::string keyword_without_token() const;
+		Symbol toSymbol() const;
+		static Keyword wrap(const Symbol & sym);
+		virtual std::string toString() const;
+	};
+
+	bool operator== (const std::string & a, const Keyword & b);
 
 	/**
 	 * @brief boolean
@@ -500,9 +542,8 @@ namespace LISP {
 	private:
 		static bool _debug;
 		int _type;
-		std::string _symbol;
-		std::string _keyword;
-		std::vector<OS::GCRef<Var> > _lst;
+		Boolean _special;
+		std::vector< OS::GCRef<Var> > _lst;
 		OS::AutoRef<Object> _obj;
 		
 	public:
@@ -554,8 +595,11 @@ namespace LISP {
 		bool isFileDescriptor() const;
 		bool isObject() const;
 
-		const std::string & r_symbol() const;
-		const std::string & r_keyword() const;
+		Boolean & special();
+		Boolean special() const;
+
+		const Symbol & r_symbol() const;
+		const Keyword & r_keyword() const;
 		const Character & r_character() const;
 		const String & r_string() const;
 		const std::vector<OS::GCRef<Var> > & r_list() const;
@@ -564,8 +608,8 @@ namespace LISP {
 		const Float & r_float() const;
 		const Pathname & r_pathname() const;
 		const Func & r_func() const;
-		std::string & r_symbol();
-		std::string & r_keyword();
+		Symbol & r_symbol();
+		Keyword & r_keyword();
 		Character & r_character();
 		String & r_string();
 		std::vector<OS::GCRef<Var> > & r_list();
@@ -578,8 +622,10 @@ namespace LISP {
 		FileDescriptor & r_fileDescriptor();
 		OS::AutoRef<Object> & r_obj();
 
-		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
-		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope,
+							  OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
+		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope,
+							OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
 
 		void numberCheck() const;
 		void numberOperationCheck(const Var & other) const;
@@ -653,19 +699,22 @@ namespace LISP {
 		std::vector<Parameter> _names;
 		std::vector<Parameter> _optionals;
 		Parameter _rest;
-		std::map<std::string, Parameter> _keywords;
+		std::map<Keyword, Parameter> _keywords;
 	public:
 		Parameters();
 		Parameters(const std::vector<Parameter> & names);
 		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals);
-		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const Parameter & rest);
-		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const std::map<std::string, Parameter> & keywords);
-		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals, const Parameter & rest, const std::map<std::string, Parameter> & keywords);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals,
+				   const Parameter & rest);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals,
+				   const std::map<Keyword, Parameter> & keywords);
+		Parameters(const std::vector<Parameter> & names, const std::vector<Parameter> & optionals,
+				   const Parameter & rest, const std::map<Keyword, Parameter> & keywords);
 		virtual ~Parameters();
 		std::vector<Parameter> & names();
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
-		std::map<std::string, Parameter> & keywords();
+		std::map<Keyword, Parameter> & keywords();
 		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, std::vector< OS::GCRef<Var> > & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope, std::vector< OS::GCRef<Var> > & tokens, bool proc_eval);

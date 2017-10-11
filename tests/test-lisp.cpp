@@ -31,6 +31,27 @@ static void test_comment() {
 				   "\"hello\")")->toPrintString(), ==, "hello");
 }
 
+static void test_raw_type() {
+
+	// Boolean
+	
+	Boolean a;
+	Boolean b;
+
+	ASSERT(a == b, ==, true);
+	ASSERT(a != b, ==, false);
+
+	a = true;
+
+	ASSERT(a == b, ==, false);
+	ASSERT(a != b, ==, true);
+
+	b = a;
+
+	ASSERT(a == b, ==, true);
+	ASSERT(a != b, ==, false);
+}
+
 static void test_subseq() {
 	Env env;
 	native(env);
@@ -63,9 +84,9 @@ static void test_ref() {
 	ASSERT(*compile(env, "*y*")->r_integer(), ==, 1);
 
 	ASSERT(*compile(env, "(setq a (car (list 1 2 3)))")->r_integer(), ==, 1);
-	ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
+	ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(setq b (cdr (list 1 2 3)))")->r_list()[0]->r_integer(), ==, 2);
-	ASSERT(*env.scope()->get_sym("b")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(*env.scope()->get_sym(Symbol("b"))->r_list()[1]->r_integer(), ==, 3);
 
 	compile(env, "(setq lst (list (list 1 2) (list 3 4)))");
 	ASSERT(*compile(env, "(car (car lst))")->r_integer(), ==, 1);
@@ -87,39 +108,39 @@ static void test_scope() {
 	AutoRef<Scope> local_scope(new Scope);
 	AutoRef<Scope> leaf_scope(new Scope);
 
-	global_scope->put_sym("a", env.alloc(new Var("A")));
-	local_scope->put_sym("b", env.alloc(new Var("B")));
+	global_scope->put_sym(Symbol("a"), env.alloc(new Var("A")));
+	local_scope->put_sym(Symbol("b"), env.alloc(new Var("B")));
 
-	ASSERT(global_scope->get_sym("a").nil(), ==, false);
-	ASSERT(global_scope->get_sym("a")->r_symbol(), ==, "A");
-	ASSERT(local_scope->rsearch_sym("b").nil(), ==, false);
-	ASSERT(local_scope->get_sym("b")->r_symbol(), ==, "B");
-	ASSERT(local_scope->rsearch_sym("a").nil(), ==, true);
+	ASSERT(global_scope->get_sym(Symbol("a")).nil(), ==, false);
+	ASSERT(global_scope->get_sym(Symbol("a"))->toPrintString(), ==, "A");
+	ASSERT(local_scope->rsearch_sym(Symbol("b")).nil(), ==, false);
+	ASSERT(local_scope->get_sym(Symbol("b"))->toPrintString(), ==, "B");
+	ASSERT(local_scope->rsearch_sym(Symbol("a")).nil(), ==, true);
 
 	local_scope->parent() = global_scope;
-	ASSERT(local_scope->rsearch_sym("a").nil(), ==, false);
-	ASSERT(local_scope->rsearch_sym("a")->r_symbol(), ==, "A");
+	ASSERT(local_scope->rsearch_sym(Symbol("a")).nil(), ==, false);
+	ASSERT(local_scope->rsearch_sym(Symbol("a"))->toPrintString(), ==, "A");
 
-	local_scope->rput_sym("c", env.alloc(new Var("C")));
-	ASSERT(global_scope->get_sym("c").nil(), ==, false);
-	ASSERT(global_scope->get_sym("c")->r_symbol(), ==, "C");
+	local_scope->rput_sym(Symbol("c"), env.alloc(new Var("C")));
+	ASSERT(global_scope->get_sym(Symbol("c")).nil(), ==, false);
+	ASSERT(global_scope->get_sym(Symbol("c"))->toPrintString(), ==, "C");
 	try {
-		ASSERT(local_scope->get_sym("c")->isNil(), ==, true);
+		ASSERT(local_scope->get_sym(Symbol("c"))->isNil(), ==, true);
 		throw "This should not be thrown!";
 	} catch (LispException & e) {
 		//
 		cout << " -- expected exception : " << e.what() << endl;
 	}
-	ASSERT(local_scope->rsearch_sym("c").nil(), ==, false);
-	ASSERT(local_scope->rsearch_sym("c")->r_symbol(), ==, "C");
+	ASSERT(local_scope->rsearch_sym(Symbol("c")).nil(), ==, false);
+	ASSERT(local_scope->rsearch_sym(Symbol("c"))->toPrintString(), ==, "C");
 
 	leaf_scope->parent() = local_scope;
-	ASSERT(leaf_scope->rsearch_sym("a").nil(), ==, false);
-	ASSERT(leaf_scope->rsearch_sym("a")->r_symbol(), ==, "A");
-	ASSERT(leaf_scope->rsearch_sym("b").nil(), ==, false);
-	ASSERT(leaf_scope->rsearch_sym("b")->r_symbol(), ==, "B");
-	ASSERT(leaf_scope->rsearch_sym("c").nil(), ==, false);
-	ASSERT(leaf_scope->rsearch_sym("c")->r_symbol(), ==, "C");
+	ASSERT(leaf_scope->rsearch_sym(Symbol("a")).nil(), ==, false);
+	ASSERT(leaf_scope->rsearch_sym(Symbol("a"))->toPrintString(), ==, "A");
+	ASSERT(leaf_scope->rsearch_sym(Symbol("b")).nil(), ==, false);
+	ASSERT(leaf_scope->rsearch_sym(Symbol("b"))->toPrintString(), ==, "B");
+	ASSERT(leaf_scope->rsearch_sym(Symbol("c")).nil(), ==, false);
+	ASSERT(leaf_scope->rsearch_sym(Symbol("c"))->toPrintString(), ==, "C");
 }
 
 static void test_quote() {
@@ -155,22 +176,22 @@ static void test_setf() {
 	ASSERT(compile(env, "(setf (subseq (list 1 2 3) 0 2) (list 4 5))")->r_list().size(), ==, 2);
 
 	compile(env, "(setq n 2)");
-	ASSERT(*env.scope()->get_sym("n")->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get_sym(Symbol("n"))->r_integer(), ==, 2);
 	compile(env, "(setf n 7)");
-	ASSERT(*env.scope()->get_sym("n")->r_integer(), ==, 7);
+	ASSERT(*env.scope()->get_sym(Symbol("n"))->r_integer(), ==, 7);
 
 	compile(env, "(setq lst (list 1 2 3))");
 	compile(env, "(setf (car lst) 7)");
 	
-	ASSERT(env.scope()->get_sym("lst")->r_list().size(), ==, 3);
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[0]->r_integer(), ==, 7);
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[1]->r_integer(), ==, 2);
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(env.scope()->get_sym(Symbol("lst"))->r_list().size(), ==, 3);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[0]->r_integer(), ==, 7);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[2]->r_integer(), ==, 3);
 
 	compile(env, "(setf (subseq lst 0 1) (list 9))");
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[0]->r_integer(), ==, 9);
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[1]->r_integer(), ==, 2);
-	ASSERT(*env.scope()->get_sym("lst")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[0]->r_integer(), ==, 9);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*env.scope()->get_sym(Symbol("lst"))->r_list()[2]->r_integer(), ==, 3);
 
 	ASSERT(compile(env, "(setf (list 1 2) (list 4 5))")->r_list().size(), ==, 2);
 	ASSERT(*compile(env, "(setf (list 1 2) (list 4 5))")->r_list()[0]->r_integer(), ==, 4);
@@ -204,9 +225,9 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
 
 		env.clear();
 
@@ -220,10 +241,10 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 	
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(env.scope()->get_sym("x")->isNil(), ==, true);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(env.scope()->get_sym(Symbol("x"))->isNil(), ==, true);
 	}
 
 	{
@@ -238,10 +259,10 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 4);
 	}
 
 	{
@@ -256,10 +277,10 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 1);
 	}
 
 	{
@@ -274,10 +295,10 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 4);
 	}
 
 	{
@@ -292,11 +313,11 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 4);
-		ASSERT(env.scope()->get_sym("y")->isNil(), ==, true);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 4);
+		ASSERT(env.scope()->get_sym(Symbol("y"))->isNil(), ==, true);
 	}
 
 	{
@@ -311,14 +332,14 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("a")->r_integer(), ==, 1);
-		ASSERT(*env.scope()->get_sym("b")->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("c")->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 4);
-		ASSERT(env.scope()->get_sym("y")->r_list().size(), ==, 3);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[0]->r_integer(), ==, 5);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[1]->r_integer(), ==, 6);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[2]->r_integer(), ==, 7);
+		ASSERT(*env.scope()->get_sym(Symbol("a"))->r_integer(), ==, 1);
+		ASSERT(*env.scope()->get_sym(Symbol("b"))->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("c"))->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 4);
+		ASSERT(env.scope()->get_sym(Symbol("y"))->r_list().size(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[0]->r_integer(), ==, 5);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[1]->r_integer(), ==, 6);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[2]->r_integer(), ==, 7);
 	}
 
 	{
@@ -333,14 +354,14 @@ static void test_func() {
 		cout << "input: " << input->toString() << endl;
 
 		params.bind(env, env.scope(), env.scope(), input->r_list());
-		ASSERT(*env.scope()->get_sym("x")->r_integer(), ==, 1);
-		ASSERT(env.scope()->get_sym("y")->r_list().size(), ==, 6);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[0]->r_integer(), ==, 2);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[1]->r_integer(), ==, 3);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[2]->r_integer(), ==, 4);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[3]->r_integer(), ==, 5);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[4]->r_integer(), ==, 6);
-		ASSERT(*env.scope()->get_sym("y")->r_list()[5]->r_integer(), ==, 7);
+		ASSERT(*env.scope()->get_sym(Symbol("x"))->r_integer(), ==, 1);
+		ASSERT(env.scope()->get_sym(Symbol("y"))->r_list().size(), ==, 6);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[0]->r_integer(), ==, 2);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[1]->r_integer(), ==, 3);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[2]->r_integer(), ==, 4);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[3]->r_integer(), ==, 5);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[4]->r_integer(), ==, 6);
+		ASSERT(*env.scope()->get_sym(Symbol("y"))->r_list()[5]->r_integer(), ==, 7);
 	}
 
 	{
@@ -369,7 +390,7 @@ static void test_func() {
 		compile(env, "(setq *str* \"\")");
 		compile(env, "(defun wr (x) (setq *str* (string-append *str* x)))");
 		compile(env, "(dolist (x (list 1 2 3)) (wr x))");
-		ASSERT(env.scope()->get_sym("*str*")->toPrintString(), ==, "123");
+		ASSERT(env.scope()->get_sym(Symbol("*str*"))->toPrintString(), ==, "123");
 
 		compile(env, "(system \"touch .temp\")");
 		compile(env, "(defun foo (x) (filep x))");
@@ -442,7 +463,7 @@ static void test_procedure() {
 			return env.alloc(new Var((int)args.size()));
 		}
 	};
-	env.scope()->put_func("my-proc", env.alloc(new Var(new MyProc)));
+	env.scope()->put_func(Symbol("my-proc"), env.alloc(new Var(new MyProc)));
 	ASSERT(*compile(env, "(my-proc 1)")->r_integer(), ==, 1);
 	ASSERT(*compile(env, "(my-proc 1 2)")->r_integer(), ==, 2);
 }
@@ -563,7 +584,7 @@ static void test_string() {
 	_VAR ret = compile(env, "(setq hello \"Hello World\")");
 
 	ASSERT(ret->toPrintString(), ==, "Hello World");
-	ASSERT(env.scope()->get_sym("hello")->toPrintString(), ==, "Hello World");
+	ASSERT(env.scope()->get_sym(Symbol("hello"))->toPrintString(), ==, "Hello World");
 
 	ret = compile(env, "(enough-namestring \"/www/html/foo/bar/baz.html\" \"/www/\")");
 	ASSERT(ret->toPrintString(), ==, "html/foo/bar/baz.html");
@@ -835,7 +856,7 @@ static void test_error_handling() {
 	Env env;
 	native(env);
 
-	ASSERT(compile(env, "(quote abc)")->r_symbol(), ==, "abc");
+	ASSERT(compile(env, "(quote abc)")->toPrintString(), ==, "abc");
 
 	try {
 		compile(env, "(quote)");
@@ -866,7 +887,7 @@ static void test_throw() {
 		"(throw 'foo 'second-throw))))"
 		"'outer-catch)";
 
-	ASSERT(compile(env, cmd)->r_symbol(), ==, "outer-catch");
+	ASSERT(compile(env, cmd)->toPrintString(), ==, "outer-catch");
 }
 
 static void test_recursive() {
@@ -897,6 +918,8 @@ int main(int argc, char *args[]) {
 	try {
 		cout << " *** test_comment()" << endl;
 		test_comment();
+		cout << " *** test_raw_type()" << endl;
+		test_raw_type();
 		cout << " *** test_subseq()" << endl;
 		test_subseq();
 		cout << " *** test_ref()" << endl;
