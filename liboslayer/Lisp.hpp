@@ -178,6 +178,8 @@ namespace LISP {
 	public:
 		explicit Sequence();
 		explicit Sequence(const std::vector< OS::GCRef<Var> > & lst);
+		explicit Sequence(std::vector< OS::GCRef<Var> >::iterator begin,
+						  std::vector< OS::GCRef<Var> >::iterator end);
 		virtual ~Sequence();
 		UTIL::Iterator< OS::GCRef<Var> > iter();
 		std::vector< OS::GCRef<Var> > & vec();
@@ -186,6 +188,7 @@ namespace LISP {
 		std::vector< OS::GCRef<Var> >::iterator end();
 		size_t size() const;
 		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
+		void push_back(const OS::GCRef<Var> & var);
 		OS::GCRef<Var> & operator[] (size_t idx);
 		const OS::GCRef<Var> & operator[] (size_t idx) const;
 		virtual std::string toString() const;
@@ -510,7 +513,7 @@ namespace LISP {
 	public:
 		Procedure();
 		virtual ~Procedure();
-		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args) = 0;
+		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args) = 0;
 		virtual std::string toString() const;
 	};
 
@@ -538,7 +541,7 @@ namespace LISP {
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & form();
-		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args);
 		std::string toString() const;
 	};
 
@@ -646,9 +649,9 @@ namespace LISP {
 		OS::AutoRef<Object> & r_obj();
 
 		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope,
-							  OS::GCRef<Var> name, std::vector< OS::GCRef<Var> > & args);
+							  OS::GCRef<Var> name, Sequence & args);
 		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope,
-							OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+							OS::GCRef<Var> name, Sequence & args);
 
 		void numberCheck() const;
 		void numberOperationCheck(const Var & other) const;
@@ -741,9 +744,9 @@ namespace LISP {
 		static Parameters read(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> tokens);
 		static Parameters read(Env & env, OS::AutoRef<Scope> scope, Sequence & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
-				  std::vector< OS::GCRef<Var> > & tokens);
+				  Sequence & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
-				  std::vector< OS::GCRef<Var> > & tokens, bool proc_eval);
+				  Sequence & tokens, bool proc_eval);
 		std::string toString() const;
 	};
 

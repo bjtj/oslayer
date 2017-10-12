@@ -224,7 +224,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -240,7 +240,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 	
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -258,7 +258,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -276,7 +276,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -294,7 +294,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -312,7 +312,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -331,7 +331,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("a"))->r_integer(), ==, 1);
 		ASSERT(*env.scope()->get_var(Symbol("b"))->r_integer(), ==, 2);
 		ASSERT(*env.scope()->get_var(Symbol("c"))->r_integer(), ==, 3);
@@ -353,7 +353,7 @@ static void test_func() {
 		cout << "proto: " << proto->toString() << endl;
 		cout << "input: " << input->toString() << endl;
 
-		params.bind(env, env.scope(), env.scope(), input->r_list().vec());
+		params.bind(env, env.scope(), env.scope(), input->r_list());
 		ASSERT(*env.scope()->get_var(Symbol("x"))->r_integer(), ==, 1);
 		ASSERT(env.scope()->get_var(Symbol("y"))->r_list().size(), ==, 6);
 		ASSERT(*env.scope()->get_var(Symbol("y"))->r_list()[0]->r_integer(), ==, 2);
@@ -459,7 +459,7 @@ static void test_procedure() {
 	public:
 		MyProc() {}
 		virtual ~MyProc() {}
-		virtual GCRef<Var> proc(Env & env, AutoRef<Scope> scope, GCRef<Var> name, vector< GCRef<Var> > & args) {
+		virtual GCRef<Var> proc(Env & env, AutoRef<Scope> scope, GCRef<Var> name, Sequence & args) {
 			return env.alloc(new Var((int)args.size()));
 		}
 	};
