@@ -12,7 +12,8 @@
 #define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
-#define _NIL(e) _HEAP_ALLOC(e,"nil")
+#define _NIL(E) _HEAP_ALLOC(E,"nil")
+#define _NIL_OR_PASS(E,V) ((V).nil() ? _NIL(E) : (V))
 #define _CHECK_ARGS_MIN_COUNT(L,C)										\
   do {																	\
 	  if ((L).size() < C) {												\
@@ -2288,11 +2289,11 @@ namespace LISP {
 	}
 
 	static _VAR _progn(Env & env, AutoRef<Scope> scope, const Sequence & forms, size_t start_index) {
-		_VAR ret = _NIL(env);
+		_VAR ret;
 		_FORI(forms, i, start_index) {
 			ret = eval(env, scope, forms[i]);
 		}
-		return ret;
+		return ret.nil() ? _NIL(env) : ret;
 	}
 
 	static _VAR _progn1(Env & env, AutoRef<Scope> scope, const Sequence & forms) {
@@ -2594,7 +2595,6 @@ namespace LISP {
 			for (size_t i = 1; i < args.size(); i++) {
 				form.push_back(args[i]);
 			}
-			// Func * func = new Func(args[0], args[1]);
 			Func * func = new Func(args[0], _HEAP_ALLOC(env, form));
 			func->closure_scope()->registries() = scope->registries();
 			return _HEAP_ALLOC(env, func);
@@ -2643,7 +2643,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "setf");
 		{
 			_CHECK_ARGS_EVEN_COUNT(args);
-			_VAR ret = _NIL(env);
+			_VAR ret;
 			_FORI_STEP(args, i, 0, 2) {
 				int type = args[i]->getType();
 				_VAR a = eval(env, scope, args[i]);
@@ -2660,16 +2660,16 @@ namespace LISP {
 				}
 				ret = a;
 			}
-			return ret;
+			return _NIL_OR_PASS(env, ret);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "setq");
 		{
 			_CHECK_ARGS_EVEN_COUNT(args);
-			_VAR ret = _NIL(env);
+			_VAR ret;
 			_FORI_STEP(args, i, 0, 2) {
 				ret = scope->rput_var(args[i + 0]->r_symbol(), eval(env, scope, args[i + 1]));
 			}
-			return ret;
+			return _NIL_OR_PASS(env, ret);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "#\\");
 		{
@@ -2702,7 +2702,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "let");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR ret = _NIL(env);
+			_VAR ret;
 			Sequence & lets = args[0]->r_list();
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
@@ -2713,7 +2713,7 @@ namespace LISP {
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
 				ret = eval(env, local_scope, *iter);
 			}
-			return ret;
+			return _NIL_OR_PASS(env, ret);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "if");
 		{
@@ -2896,7 +2896,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "unwind-protect");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
-			_VAR ret = _NIL(env);
+			_VAR ret;
 			try {
 				ret = eval(env, scope, args[0]);
 			} catch (LispException e) {
@@ -2904,17 +2904,17 @@ namespace LISP {
 				throw e;
 			}
 			eval(env, scope, args[1]);
-			return ret;
+			return _NIL_OR_PASS(env, ret);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "catch");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			try {
-				_VAR ret = _NIL(env);
+				_VAR ret;
 				_FORI(args, i, 1) {
 					ret = eval(env, scope, args[i]);
 				}
-				return ret;
+				return _NIL_OR_PASS(env, ret);
 			} catch (ThrowLispException e) {
 				_VAR exp = eval(env, scope, args[0]);
 				if (_EQ_NIL_OR_SYMBOL(e.except(), exp)) {
@@ -2932,11 +2932,11 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			try {
-				_VAR ret = _NIL(env);
+				_VAR ret;
 				_FORI(args, i, 1) {
 					ret = eval(env, scope, args[i]);
 				}
-				return ret;
+				return _NIL_OR_PASS(env, ret);
 			} catch (ReturnLispException e) {
 				if (_EQ_NIL_OR_SYMBOL(e.tag(), args[0])) {
 					return e.var();
@@ -3206,14 +3206,14 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "or");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
-			_VAR var = _NIL(env);
+			_VAR var;
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 				var = eval(env, scope, *iter);
 				if (!var->isNil()) {
 					break;
 				}
 			}
-			return var;
+			return _NIL_OR_PASS(env, var);
 		}DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "and");
 		{
@@ -3628,7 +3628,7 @@ namespace LISP {
 		DECL_NATIVE_BEGIN(env, "read");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			_VAR ret = _NIL(env);
+			_VAR ret;
 			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (fd.eof()) {
 				return _HEAP_ALLOC(env, true);
@@ -3641,7 +3641,7 @@ namespace LISP {
 				ret = parse(env, *iter);
 				env.gc();
 			}
-			return ret;
+			return _NIL_OR_PASS(env, ret);
 
         }DECL_NATIVE_END();
 		DECL_NATIVE_BEGIN(env, "read-line");
