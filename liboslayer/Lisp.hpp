@@ -189,6 +189,7 @@ namespace LISP {
 		size_t size() const;
 		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
 		void push_back(const OS::GCRef<Var> & var);
+		void testIndexValid(size_t idx) const;
 		OS::GCRef<Var> & operator[] (size_t idx);
 		const OS::GCRef<Var> & operator[] (size_t idx) const;
 		virtual std::string toString() const;

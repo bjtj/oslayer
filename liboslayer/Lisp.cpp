@@ -358,10 +358,18 @@ namespace LISP {
 	void Sequence::push_back(const _VAR & var) {
 		_lst.push_back(var);
 	}
+	void Sequence::testIndexValid(size_t idx) const {
+		if (idx >= _lst.size()) {
+			throw LispException("not allowed index: " + Text::toString(idx) +
+								", size: " + Text::toString(size()));
+		}
+	}
 	_VAR & Sequence::operator[] (size_t idx) {
+		testIndexValid(idx);
 		return _lst[idx];
 	}
 	const _VAR & Sequence::operator[] (size_t idx) const {
+		testIndexValid(idx);
 		return _lst[idx];
 	}
 	string Sequence::toString() const {
