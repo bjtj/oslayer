@@ -176,8 +176,8 @@ namespace LISP {
 	private:
 		std::vector< OS::GCRef<Var> > _lst;
 	public:
-		Sequence();
-		Sequence(const std::vector< OS::GCRef<Var> > & lst);
+		explicit Sequence();
+		explicit Sequence(const std::vector< OS::GCRef<Var> > & lst);
 		virtual ~Sequence();
 		UTIL::Iterator< OS::GCRef<Var> > iter();
 		std::vector< OS::GCRef<Var> > & vec();
