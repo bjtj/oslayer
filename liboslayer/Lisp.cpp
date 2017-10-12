@@ -1136,7 +1136,7 @@ namespace LISP {
 		return _form;
 	}
 	_VAR Func::proc(Env & env, AutoRef<Scope> scope, _VAR name, vector<_VAR> & args) {
-		Parameters p_params = Parameters::parse(env, scope, params()->r_list());
+		Parameters p_params = Parameters::read(env, scope, params());
 		if (macro()) {
 			p_params.bind(env, scope, closure_scope(), args, false);
 			AutoRef<Scope> local_scope(new Scope(*closure_scope()));
@@ -1444,7 +1444,7 @@ namespace LISP {
 		if (r_func().macro() == false) {
 			throw LispException("Not Macro");
 		}
-		Parameters params = Parameters::parse(env, scope, r_func().params()->r_list());
+		Parameters params = Parameters::read(env, scope, r_func().params());
 		params.bind(env, scope, r_func().closure_scope(), args, false);
 		r_func().closure_scope()->parent() = scope;
 		return eval(env, r_func().closure_scope(), r_func().form());
@@ -1658,24 +1658,28 @@ namespace LISP {
 		return ret;
 	}
 
-	Parameters Parameters::parse(Env & env, AutoRef<Scope> scope, Sequence & tokens) {
+	Parameters Parameters::read(Env & env, AutoRef<Scope> scope, _VAR tokens) {
+		return Parameters::read(env, scope, tokens->r_list());
+	}
+
+	Parameters Parameters::read(Env & env, AutoRef<Scope> scope, Sequence & tokens) {
 		Parameters params;
 		Iterator<_VAR> iter = tokens.iter();
 		
 		vector<_VAR> names = s_read_tokens(iter);
-		for (vector<_VAR>::iterator iter = names.begin(); iter != names.end(); iter++) {
-			params.names().push_back(Parameter(*iter));
+		for (vector<_VAR>::iterator it = names.begin(); it != names.end(); it++) {
+			params.names().push_back(Parameter(*it));
 		}
 		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&optional") {
 			vector<_VAR> optionals = s_read_tokens(++iter);
 			if (optionals.size() == 0) {
 				throw LispException("&optional without any element");
 			}
-			for (vector<_VAR>::iterator iter = optionals.begin(); iter != optionals.end(); iter++) {
-				if ((*iter)->isList() && (*iter)->r_list().size() == 2) {
-					params.optionals().push_back(Parameter((*iter)->r_list()[0], (*iter)->r_list()[1]));
+			for (vector<_VAR>::iterator it = optionals.begin(); it != optionals.end(); it++) {
+				if ((*it)->isList() && (*it)->r_list().size() == 2) {
+					params.optionals().push_back(Parameter((*it)->r_list()[0], (*it)->r_list()[1]));
 				} else {
-					params.optionals().push_back(Parameter(*iter));
+					params.optionals().push_back(Parameter(*it));
 				}
 			}
 		}
@@ -1694,15 +1698,15 @@ namespace LISP {
 			if (keys.size() == 0) {
 				throw LispException("&key without any element");
 			}
-			for (vector<_VAR>::iterator iter = keys.begin(); iter != keys.end(); iter++) {
-				if ((*iter)->isList() && (*iter)->r_list().size() == 2) {
-					_VAR v = (*iter)->r_list()[0];
-					_VAR i = (*iter)->r_list()[1];
+			for (vector<_VAR>::iterator it = keys.begin(); it != keys.end(); it++) {
+				if ((*it)->isList() && (*it)->r_list().size() == 2) {
+					_VAR v = (*it)->r_list()[0];
+					_VAR i = (*it)->r_list()[1];
 					Keyword k = Keyword::wrap(v->r_symbol());
 					params.keywords()[k] = Parameter(v, i);
 				} else {
-					Keyword k = Keyword::wrap((*iter)->r_symbol());
-					params.keywords()[k] = Parameter(*iter);
+					Keyword k = Keyword::wrap((*it)->r_symbol());
+					params.keywords()[k] = Parameter(*it);
 				}
 			}
 		}
@@ -3827,8 +3831,8 @@ namespace LISP {
 
 		DECL_NATIVE_BEGIN(env, "open");
 		{
-			Parameters params = Parameters::parse(
-				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))")->r_list());
+			Parameters params = Parameters::read(
+				env, scope, parse(env, "(fname &key (if-does-not-exist :error) (if-exists :new-version))"));
 			params.bind(env, scope, scope, args, true);
 			Pathname & p = pathname(env, scope->get_var(Symbol("fname")))->r_pathname();
 			const char * flags = "rb+";

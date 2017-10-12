@@ -738,7 +738,8 @@ namespace LISP {
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
 		std::map<Keyword, Parameter> & keywords();
-		static Parameters parse(Env & env, OS::AutoRef<Scope> scope, Sequence & tokens);
+		static Parameters read(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> tokens);
+		static Parameters read(Env & env, OS::AutoRef<Scope> scope, Sequence & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
 				  std::vector< OS::GCRef<Var> > & tokens);
 		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,

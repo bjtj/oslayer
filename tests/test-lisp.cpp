@@ -218,7 +218,7 @@ static void test_func() {
 		native(env);
 
 		_VAR proto = parse(env, "(a b c)");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -234,7 +234,7 @@ static void test_func() {
 		env = Env();
 		native(env);
 		proto = parse(env, "(a b c &optional x)");
-		params = Parameters::parse(env, env.scope(), proto->r_list());
+		params = Parameters::read(env, env.scope(), proto);
 		input = parse(env, "(1 2 3)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -252,7 +252,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x)");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -270,7 +270,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -288,7 +288,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional (x 1))");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -306,7 +306,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3 4)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -325,7 +325,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(a b c &optional x &rest y)");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
 		cout << "proto: " << proto->toString() << endl;
@@ -347,7 +347,7 @@ static void test_func() {
 		Env env;
 		native(env);
 		_VAR proto = parse(env, "(&optional x &rest y)");
-		Parameters params = Parameters::parse(env, env.scope(), proto->r_list());
+		Parameters params = Parameters::read(env, env.scope(), proto);
 		_VAR input = parse(env, "(1 2 3 4 5 6 7)");
 
 		cout << "proto: " << proto->toString() << endl;
