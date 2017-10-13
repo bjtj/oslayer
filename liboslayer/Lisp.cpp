@@ -364,6 +364,9 @@ namespace LISP {
 								", size: " + Text::toString(size()));
 		}
 	}
+	void Sequence::swap(size_t a, size_t b) {
+		iter_swap(_lst.begin() + a, _lst.begin() + b);
+	}
 	_VAR & Sequence::operator[] (size_t idx) {
 		testIndexValid(idx);
 		return _lst[idx];
@@ -1356,12 +1359,7 @@ namespace LISP {
 	bool Var::isNativeProcedure() const {return _type == NATIVE_PROC;}
 	bool Var::isPathname() const {return _type == PATHNAME;}
 	bool Var::isFileDescriptor() const {return _type == FILE_DESCRIPTOR;}
-	Boolean & Var::special() {
-		return _special;
-	}
-	Boolean Var::special() const {
-		return _special;
-	}
+
 	const Symbol & Var::r_symbol() const {
 		typeCheck(SYMBOL);
 		return (const Symbol&)(*_obj);;
@@ -3067,24 +3065,23 @@ namespace LISP {
 			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
 			_VAR result_type = eval(env, scope, args[0]); /* TODO: use it */
 			_VAR func = _function(env, scope, eval(env, scope, args[1]));
-			vector<_VAR> ret;
-			vector<vector<_VAR> > lists;
+			Sequence ret;
+			vector<_VAR> lists;
 			size_t size = 0;
 			for (size_t i = 2; i < args.size(); i++) {
-				Sequence lst = eval(env, scope, args[i])->r_list(); // copy
-				if (lst.size() > size) {
-					size = lst.size();
+				_VAR lst = eval(env, scope, args[i]);
+				if (lst->r_list().size() > size) {
+					size = lst->r_list().size();
 				}
-				lists.push_back(lst.vec());
+				lists.push_back(lst);
 			}
 			for (size_t i = 0; i < size; i++) {
 				Sequence fargs;
-				for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
-					vector<_VAR> & lst = (*iter);
-					fargs.push_back(_quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
+				for (vector<_VAR>::iterator iter = lists.begin(); iter != lists.end(); iter++) {
+					_VAR & lst = (*iter);
+					fargs.push_back(_quoty(env, (i < lst->r_list().size() ? lst->r_list()[i] : _NIL(env))));
 				}
-				_VAR r = func->proc(env, scope, name, fargs);
-				ret.push_back(r);
+				ret.push_back(func->proc(env, scope, name, fargs));
 			}
 			return _HEAP_ALLOC(env, ret);
 		}END_DECL_NATIVE;
@@ -3092,24 +3089,24 @@ namespace LISP {
 		{
 			// TODO: check - http://clhs.lisp.se/Body/f_map.htm
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
-			vector<_VAR> ret;
-			vector<vector<_VAR> > lists;
+			Sequence ret;
+			vector<_VAR> lists;
 			size_t size = 0;
 			for (size_t i = 1; i < args.size(); i++) {
-				Sequence lst = eval(env, scope, args[i])->r_list(); // copy
-				if (lst.size() > size) {
-					size = lst.size();
+				_VAR lst = eval(env, scope, args[i]);
+				lst->typeCheck(Var::LIST);
+				if (lst->r_list().size() > size) {
+					size = lst->r_list().size();
 				}
-				lists.push_back(lst.vec());
+				lists.push_back(lst);
 			}
 			for (size_t i = 0; i < size; i++) {
 				Sequence fargs;
-				for (vector<vector<_VAR> >::iterator iter = lists.begin(); iter != lists.end(); iter++) {
-					vector<_VAR> lst = (*iter);
-					fargs.push_back(_quoty(env, (i < lst.size() ? lst[i] : _NIL(env))));
+				for (vector<_VAR>::iterator iter = lists.begin(); iter != lists.end(); iter++) {
+					_VAR & lst = (*iter);
+					fargs.push_back(_quoty(env, (i < lst->r_list().size() ? lst->r_list()[i] : _NIL(env))));
 				}
-				_VAR r = func->proc(env, scope, name, fargs);
-				ret.push_back(r);
+				ret.push_back(func->proc(env, scope, name, fargs));
 			}
 			return _HEAP_ALLOC(env, ret);
 		}END_DECL_NATIVE;
@@ -3124,13 +3121,14 @@ namespace LISP {
 				return _HEAP_ALLOC(env, lst);
 			}
 
+			_VAR nil = _NIL(env);
 			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
 				for (size_t i = 0; i < lst.size() - 1; i++) {
 					Sequence fargs;
 					fargs.push_back(lst[i]);
-					fargs.push_back(lst[i + 1]);
-					if (!func->proc(env, scope, _NIL(env), fargs)->isNil()) {
-						iter_swap(lst.begin() + i, lst.begin() + (i + 1));
+					fargs.push_back(lst[i+1]);
+					if (func->proc(env, scope, nil, fargs)->isNil() == false) {
+						lst.swap(i, i+1);
 					}
 				}
 			}
@@ -3142,11 +3140,12 @@ namespace LISP {
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			_VAR sum = (lst.size() > 0 ? lst[0] : _NIL(env));
+			_VAR nil = _NIL(env);
 			for (size_t i = 1; i < lst.size(); i++) {
 				Sequence fargs;
 				fargs.push_back(sum);
 				fargs.push_back(lst[i]);
-				sum = func->proc(env, scope, _NIL(env), fargs);
+				sum = func->proc(env, scope, nil, fargs);
 			}
 			return sum;
 		}END_DECL_NATIVE;
@@ -3188,10 +3187,11 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
+			_VAR nil = _NIL(env);
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				Sequence fargs;
 				fargs.push_back(*iter);
-				if (!func->proc(env, scope, _NIL(env), fargs)->isNil()) {
+				if (!func->proc(env, scope, nil, fargs)->isNil()) {
 					iter = lst.erase(iter);
 				} else {
 					iter++;
@@ -3205,10 +3205,11 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
+			_VAR nil = _NIL(env);
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				Sequence fargs;
 				fargs.push_back(*iter);
-				if (func->proc(env, scope, _NIL(env), fargs)->isNil()) {
+				if (func->proc(env, scope, nil, fargs)->isNil()) {
 					iter = lst.erase(iter);
 				} else {
 					iter++;

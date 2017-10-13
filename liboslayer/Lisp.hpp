@@ -190,6 +190,7 @@ namespace LISP {
 		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
 		void push_back(const OS::GCRef<Var> & var);
 		void testIndexValid(size_t idx) const;
+		void swap(size_t a, size_t b);
 		OS::GCRef<Var> & operator[] (size_t idx);
 		const OS::GCRef<Var> & operator[] (size_t idx) const;
 		virtual std::string toString() const;
@@ -569,7 +570,6 @@ namespace LISP {
 	private:
 		static bool _debug;
 		int _type;
-		Boolean _special;
 		OS::AutoRef<Object> _obj;
 		
 	public:
@@ -621,9 +621,6 @@ namespace LISP {
 		bool isPathname() const;
 		bool isFileDescriptor() const;
 		bool isObject() const;
-
-		Boolean & special();
-		Boolean special() const;
 
 		const Symbol & r_symbol() const;
 		const Keyword & r_keyword() const;
