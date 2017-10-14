@@ -180,19 +180,24 @@ namespace LISP {
 		explicit Sequence(const std::vector< OS::GCRef<Var> > & lst);
 		explicit Sequence(std::vector< OS::GCRef<Var> >::iterator begin,
 						  std::vector< OS::GCRef<Var> >::iterator end);
+		explicit Sequence(std::vector< OS::GCRef<Var> >::const_iterator begin,
+						  std::vector< OS::GCRef<Var> >::const_iterator end);
 		virtual ~Sequence();
 		UTIL::Iterator< OS::GCRef<Var> > iter();
 		std::vector< OS::GCRef<Var> > & vec();
 		bool empty() const;
 		std::vector< OS::GCRef<Var> >::iterator begin();
 		std::vector< OS::GCRef<Var> >::iterator end();
+		std::vector< OS::GCRef<Var> >::const_iterator begin() const;
+		std::vector< OS::GCRef<Var> >::const_iterator end() const;
 		size_t size() const;
 		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
 		void push_back(const OS::GCRef<Var> & var);
-		void testIndexValid(size_t idx) const;
-		void swap(size_t a, size_t b);
-		OS::GCRef<Var> & operator[] (size_t idx);
-		const OS::GCRef<Var> & operator[] (size_t idx) const;
+		void testIndexValid(const size_t & idx) const;
+		void swap(const size_t & from, const size_t & to);
+		Sequence subseq(const size_t & start, const size_t & end) const;
+		OS::GCRef<Var> & operator[] (const size_t & idx);
+		const OS::GCRef<Var> & operator[] (const size_t & idx) const;
 		virtual std::string toString() const;
 	};
 
@@ -417,6 +422,7 @@ namespace LISP {
 		virtual ~String();
 		std::string & str();
 		virtual OS::AutoRef<Object> call(const std::string & cmd, std::vector< OS::AutoRef<Object> > & args);
+		const char operator[] (const size_t & idx) const;
 		virtual std::string toString() const;
 		virtual std::string toPrintString() const;
 	};

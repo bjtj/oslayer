@@ -332,6 +332,9 @@ namespace LISP {
 	Sequence::Sequence(vector<_VAR>::iterator begin, vector<_VAR>::iterator end)
 		: _lst(begin, end) {
 	}
+	Sequence::Sequence(vector<_VAR>::const_iterator begin, vector<_VAR>::const_iterator end)
+		: _lst(begin, end) {
+	}
 	Sequence::~Sequence() {
 	}
 	Iterator<_VAR> Sequence::iter() {
@@ -349,6 +352,12 @@ namespace LISP {
 	vector<_VAR>::iterator Sequence::end() {
 		return _lst.end();
 	}
+	vector<_VAR>::const_iterator Sequence::begin() const {
+		return _lst.begin();
+	}
+	vector<_VAR>::const_iterator Sequence::end() const {
+		return _lst.end();
+	}
 	size_t Sequence::size() const {
 		return _lst.size();
 	}
@@ -358,20 +367,25 @@ namespace LISP {
 	void Sequence::push_back(const _VAR & var) {
 		_lst.push_back(var);
 	}
-	void Sequence::testIndexValid(size_t idx) const {
+	void Sequence::testIndexValid(const size_t & idx) const {
 		if (idx >= _lst.size()) {
 			throw LispException("not allowed index: " + Text::toString(idx) +
 								", size: " + Text::toString(size()));
 		}
 	}
-	void Sequence::swap(size_t a, size_t b) {
-		iter_swap(_lst.begin() + a, _lst.begin() + b);
+	void Sequence::swap(const size_t & from, const size_t & to) {
+		iter_swap(_lst.begin() + from, _lst.begin() + to);
 	}
-	_VAR & Sequence::operator[] (size_t idx) {
+	Sequence Sequence::subseq(const size_t & start, const size_t & end) const {
+		testIndexValid(start);
+		testIndexValid(end);
+		return Sequence(begin() + start, begin() + end);
+	}
+	_VAR & Sequence::operator[] (const size_t & idx) {
 		testIndexValid(idx);
 		return _lst[idx];
 	}
-	const _VAR & Sequence::operator[] (size_t idx) const {
+	const _VAR & Sequence::operator[] (const size_t & idx) const {
 		testIndexValid(idx);
 		return _lst[idx];
 	}
@@ -921,6 +935,9 @@ namespace LISP {
 		}
 		return Object::call(cmd, args);
 	}
+	const char String::operator[] (const size_t & idx) const {
+		return _str[idx];
+	}
 	string String::toString() const {
 		return wrap_text(_str);
 	}
@@ -1080,11 +1097,9 @@ namespace LISP {
 		return _heap;
 	}
 	_VAR Env::alloc(Var * var) {
-		AutoLock lock(Ref<Semaphore>(&heap().sem()));
 		return heap().alloc(var);
 	}
 	void Env::gc() {
-		AutoLock lock(Ref<Semaphore>(&_heap.sem()));
 		size_t size = _heap.size();
 		unsigned long elapsed = _heap.gc();
 		if (_debug) {
@@ -1094,7 +1109,6 @@ namespace LISP {
 	void Env::clear() {
 		_scope->clear();
 		gc();
-		AutoLock lock(Ref<Semaphore>(&_heap.sem()));
 		_heap.clear();
 	}
 
@@ -2304,6 +2318,25 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
+	static size_t _length(_VAR lst) {
+		return lst->r_list().size();
+	}
+
+	static _VAR _car(_VAR lst) {
+		return lst->r_list()[0];
+	}
+
+	static Sequence _cdr(_VAR lst) {
+		Sequence rest;
+		if (_length(lst) > 1) {
+			Iterator<_VAR> iter = lst->r_list().iter();
+			for (iter++; iter.has(); iter++) {
+				rest.push_back(*iter);
+			}
+		}
+		return rest;
+	}
+
 	static _VAR _progn(Env & env, AutoRef<Scope> scope, const Sequence & forms,
 					   size_t start_index) {
 		_VAR ret;
@@ -2724,10 +2757,10 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			_VAR ret;
-			Sequence & lets = args[0]->r_list();
+			Sequence & decls = args[0]->r_list();
 			AutoRef<Scope> local_scope(new Scope);
 			local_scope->parent() = scope;
-			for (vector<_VAR>::iterator iter = lets.begin(); iter != lets.end(); iter++) {
+			for (vector<_VAR>::iterator iter = decls.begin(); iter != decls.end(); iter++) {
 				Sequence decl = (*iter)->r_list(); // copy
 				local_scope->put_var(decl[0]->r_symbol(), eval(env, scope, decl[1]));
 			}
@@ -2836,7 +2869,38 @@ namespace LISP {
 			// while (update_iter()) {
 			// 	eval(env, scope, actions);
 			// }
-			throw LispException("not implemeneted");
+			// 
+			// spec:
+			// for
+			//     for x in '(1 2 3 4 5) ; eval once
+			//     for (x . y) in '((1 . 1) (2 . 4) (3 . 9))
+			//     --
+			//     for x from 1
+			//     for x to 10
+			//     for x below 9
+			//     for x from 1 to 5 below 9
+			//     for x from 0 below (length s) ; eval once
+			//     --
+			//     for y = (* x 10) ; eval each loop
+			//     --
+			// test ; eval each loop
+			//     while:
+			//       while (< y 100) ; eval each loop
+			//     until:
+			//     when:
+			//       when (oddp x) do (print x)
+			//       when (oddp x) collect x
+			//       when (> x 10) return x
+			// do
+			//     user action
+			// shorthands ; not allow mix
+			//     collect
+			//     sum
+			//     thereis
+			//     never
+			//     always
+			throw LispException("Not implemented");
+
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "list");
 		{
@@ -2864,24 +2928,29 @@ namespace LISP {
 		BEGIN_DECL_NATIVE(env, "car");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			Sequence lst = eval(env, scope, args[0])->r_list(); // copy
-			if (lst.size() > 0) {
-				return lst[0];
+			// Sequence lst = eval(env, scope, args[0])->r_list(); // copy
+			// if (lst.size() > 0) {
+			// 	return lst[0];
+			// }
+			_VAR lst = eval(env, scope, args[0]);
+			if (_length(lst)) {
+				return _car(lst);
 			}
 			return _NIL(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "cdr");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			Sequence & lst = eval(env, scope, args[0])->r_list();
-			if (lst.size() > 1) {
-				vector<_VAR> rest;
-				for (vector<_VAR>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
-					rest.push_back(*iter);
-				}
-				return _HEAP_ALLOC(env, rest);
-			}
-			return _NIL(env);
+			// Sequence & lst = eval(env, scope, args[0])->r_list();
+			// if (lst.size() > 1) {
+			// 	vector<_VAR> rest;
+			// 	for (vector<_VAR>::iterator iter = lst.begin() + 1; iter != lst.end(); iter++) {
+			// 		rest.push_back(*iter);
+			// 	}
+			// 	return _HEAP_ALLOC(env, rest);
+			// }
+			// return _NIL(env);
+			return _HEAP_ALLOC(env, _cdr(eval(env, scope, args[0])));
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "nth");
 		{
@@ -3261,31 +3330,31 @@ namespace LISP {
 	void builtin_character(Env & env) {
 		BEGIN_DECL_NATIVE(env, "character");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "characterp");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "alpha-char-p");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "alpha-numeric-p");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "digit-char-p");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "graphic-char-p");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "standard-char-p");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "upcase");
 		{
@@ -3329,7 +3398,7 @@ namespace LISP {
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char-code-limit");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "charname");
 		{
@@ -3338,15 +3407,15 @@ namespace LISP {
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char-equal");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char-lessp");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char-greaterp");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char=");
 		{
@@ -3361,7 +3430,7 @@ namespace LISP {
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char/=");
 		{
-            throw LispException("not implemented");
+            throw LispException("Not implemented");
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char<");
 		{
