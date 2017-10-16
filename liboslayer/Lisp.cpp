@@ -9,11 +9,11 @@
 #include "DatabaseDriver.hpp"
 #include "DatabaseConnection.hpp"
 
-#define _CONTAINS(M,E) (M.find(E) != M.end())
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
 #define _NIL(E) _HEAP_ALLOC(E,"nil")
 #define _NIL_OR_PASS(E,V) ((V).nil() ? _NIL(E) : (V))
+#define _SAFE_STRING(V) ((V).nil() ? "(null)" : (V)->toString())
 #define _CHECK_ARGS_MIN_COUNT(L,C)										\
   do {																	\
 	  if ((L).size() < C) {												\
@@ -1465,7 +1465,7 @@ namespace LISP {
 	AutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, Sequence & args) {
 		if (!isFunction()) {
-			throw LispException("Not Function / name: " + name->toString() + " / type : '" + getTypeString() + "'");
+			throw LispException("Not Function / name: " + _SAFE_STRING(name) + " / type : '" + getTypeString() + "'");
 		}
 		if (r_func().macro() == false) {
 			throw LispException("Not Macro");
@@ -1478,7 +1478,7 @@ namespace LISP {
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, Sequence & args) {
 		if (!isCallable()) {
-			throw LispException("not a callable / name: " + name->toString() +
+			throw LispException("not a callable / name: " + _SAFE_STRING(name) +
 								" / type : '" + getTypeString() + "'");
 		}
 		if (isNativeProcedure()) {
@@ -2073,6 +2073,24 @@ namespace LISP {
 		return txt.substr(1, txt.length() - 2);
 	}
 
+	template <typename T>
+	static bool _contains(const vector<T> & _vec, const T & val) {
+		typename vector<T>::const_iterator iter = _vec.begin();
+		for (; iter != _vec.end(); iter++) {
+			if (*iter == val) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	template <typename T, typename U>
+	static bool _contains(const map<T, U> & _map, const T & val) {
+		return (_map.find(val) != _map.end());
+	}
+
+	
+
 	static bool _zero_p(_VAR v) {
 		if (v->isInteger()) {
 			return v->r_integer().zero_p();
@@ -2617,6 +2635,193 @@ namespace LISP {
 		builtin_db(env);
 	}
 
+	/**
+	 * iter
+	 */
+	class _cls_iter {
+		Sequence _vars;
+		_VAR _stmt;
+	public:
+		_cls_iter(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			read_statement(env, scope, stmt);
+		}
+		virtual ~_cls_iter() {
+		}
+		Sequence & vars() {
+			return _vars;
+		}
+		void read_statement(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			_VAR sym = _car(stmt);
+			if (sym->r_symbol() == "for") {
+				_read_for(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "while") {
+				_read_while(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "unless") {
+				_read_unless(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "when") {
+				_read_when(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "do") {
+				_read_do(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "collect") {
+				_read_collect(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "thereis") {
+				_read_thereis(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "always") {
+				_read_always(env, scope, stmt);
+			}
+			if (sym->r_symbol() == "never") {
+				_read_never(env, scope, stmt);
+			}
+		}
+		map<Symbol, _VAR> _read_map(_VAR stmt) {
+			map<Symbol, _VAR> _map;
+			Iterator<_VAR> iter = stmt->r_list().iter();
+			while (iter.has()) {
+				_VAR & var = *iter++;
+				_VAR & val = *iter++;
+				_map[var->r_symbol()] = val;
+			}
+			return _map;
+		}
+		void _set_var(AutoRef<Scope> scope, _VAR var, _VAR val) {
+			if (var->isList()) {
+				Iterator<_VAR> iter = var->r_list().iter();
+				for (; iter.has(); iter++) {
+					if (scope->rget_var((*iter)->r_symbol()).nil() == false) {
+						throw LispException("Duplicated variable declaration");
+					}
+					scope->put_var((*iter)->r_symbol(), val);
+				}
+			} else if (var->isSymbol()) {
+				if (scope->rget_var(var->r_symbol()).nil() == false) {
+					throw LispException("Duplicated variable declaration");
+				}
+				scope->put_var(var->r_symbol(), val);
+			} else {
+				throw LispException("Not allowed var type - " + var->getTypeString());
+			}
+		}
+		void _test_allowed_keywords(const map<Symbol, _VAR> & _map, const vector<Symbol> & keywords) {
+			for (map<Symbol, _VAR>::const_iterator iter = _map.begin(); iter != _map.end(); iter++) {
+				Symbol & sym = iter->second->r_symbol();
+				if (_contains(keywords, sym) == false) {
+					throw LispException("Not in allowed keywords - " + sym.toString());
+				}
+			}
+		}
+		vector<Symbol> _make_symbol_vector(const char * arg, ...) {
+			vector<Symbol> vec;
+			va_list args;
+			va_start(args, arg);
+			const char * str = NULL;
+			while ((str = (const char*)va_arg(args, const char *)) != NULL) {
+				vec.push_back(Symbol(str));
+			}
+			va_end(args);
+			return vec;
+		}
+		void _read_for(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_VAR vars = _map[Symbol("for")];
+			if (_contains(_map, Symbol("="))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("=", (const char *)NULL));
+				_VAR stmt = _map[Symbol("=")];
+			} else if (_contains(_map, Symbol("in"))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("in", (const char *)NULL));
+				_VAR lst = eval(env, scope, _map[Symbol("in")]);
+			} else if (_contains(_map, Symbol("downfrom"))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("downfrom", "to", "above", "by", (const char *)NULL));
+				_VAR start = _map[Symbol("downfrom")];
+				
+			} else {
+				_test_allowed_keywords(_map, _make_symbol_vector("from", "to", "below", "by", (const char *)NULL));
+				_VAR start;
+				if (_map[Symbol("from")].nil() == false) {
+					start = _map[Symbol("from")];
+				}
+				if (start.nil()) {
+					start = _NIL(env);
+				}
+			}
+		}
+		void _read_while(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("while", (const char *)NULL));
+		}
+		void _read_unless(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("unless", (const char *)NULL));
+		}
+		void _read_when(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			_VAR test_stmt = stmt->r_list()[1];
+			if (stmt->r_list().size() > 2) {
+				_VAR action_stmt = stmt->r_list()[2];
+			}
+		}
+		void _read_do(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("do", (const char *)NULL));
+		}
+		void _read_collect(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("collect", (const char *)NULL));
+		}
+		void _read_thereis(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("thereis", (const char *)NULL));
+		}
+		void _read_always(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("always", (const char *)NULL));
+		}
+		void _read_never(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("never", (const char *)NULL));
+		}
+		void iterate(Env & env, AutoRef<Scope> scope) {
+			// eval(env, scope, _stmt);
+		}
+	};
+
+	/**
+	 * loop
+	 */
+	class _cls_loop {
+	private:
+		vector<_cls_iter> _iters;
+	public:
+		_cls_loop(Env & env, AutoRef<Scope> scope, Sequence & seq) {
+			Iterator<_VAR> iter = seq.iter();
+			while (iter.has()) {
+				_iters.push_back(_cls_iter(env, scope, *iter++));
+			}
+		}
+		virtual ~_cls_loop() {
+		}
+		_VAR loop(Env & env, AutoRef<Scope> scope) {
+			_VAR ret;
+			try {
+				vector<_cls_iter>::iterator iter = _iters.begin();
+				for (; iter != _iters.end(); iter++) {
+					(*iter).iterate(env, scope);
+				}
+			} catch (ReturnLispException e) {
+				if (e.tag()->isNil() == false) {
+					throw e;
+				}
+				return e.var();
+			}
+			return _NIL_OR_PASS(env, ret);
+		}
+	};
+
 	void builtin_essential(Env & env) {
 		BEGIN_DECL_NATIVE(env, "eval");
 		{
@@ -2886,7 +3091,7 @@ namespace LISP {
 			// test ; eval each loop
 			//     while:
 			//       while (< y 100) ; eval each loop
-			//     until:
+			//     unless:
 			//     when:
 			//       when (oddp x) do (print x)
 			//       when (oddp x) collect x
@@ -2899,6 +3104,7 @@ namespace LISP {
 			//     thereis
 			//     never
 			//     always
+			
 			throw LispException("Not implemented");
 
 		}END_DECL_NATIVE;
@@ -3190,7 +3396,7 @@ namespace LISP {
 				return _HEAP_ALLOC(env, lst);
 			}
 
-			_VAR nil = _NIL(env);
+			_VAR nil;
 			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
 				for (size_t i = 0; i < lst.size() - 1; i++) {
 					Sequence fargs;
@@ -3209,7 +3415,7 @@ namespace LISP {
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
 			_VAR sum = (lst.size() > 0 ? lst[0] : _NIL(env));
-			_VAR nil = _NIL(env);
+			_VAR nil;
 			for (size_t i = 1; i < lst.size(); i++) {
 				Sequence fargs;
 				fargs.push_back(sum);
@@ -3256,7 +3462,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
-			_VAR nil = _NIL(env);
+			_VAR nil;
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				Sequence fargs;
 				fargs.push_back(*iter);
@@ -3274,7 +3480,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR func = _function(env, scope, eval(env, scope, args[0]));
 			Sequence lst = eval(env, scope, args[1])->r_list(); // copy
-			_VAR nil = _NIL(env);
+			_VAR nil;
 			for (vector<_VAR>::iterator iter = lst.begin(); iter != lst.end();) {
 				Sequence fargs;
 				fargs.push_back(*iter);
