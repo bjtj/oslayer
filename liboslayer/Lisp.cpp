@@ -200,6 +200,10 @@ namespace LISP {
 	Registry & Scope::registry(const REG_ID & id) {
 		return _registries[id];
 	}
+
+	_VAR Scope::search_var(const Symbol & sym) {
+		return search(REG_VARIABLE, sym);
+	}
 	
 	_VAR Scope::rsearch_var(const Symbol & sym) {
 		return rsearch(REG_VARIABLE, sym);
@@ -212,6 +216,10 @@ namespace LISP {
 	_VAR Scope::rput_var(const Symbol & sym, const _VAR & var) {
 		return rput(REG_VARIABLE, sym, var);
 	}
+
+	_VAR Scope::search_func(const Symbol & sym) {
+		return search(REG_FUNCTION, sym);
+	}
 	
 	_VAR Scope::rsearch_func(const Symbol & sym) {
 		return rsearch(REG_FUNCTION, sym);
@@ -223,6 +231,13 @@ namespace LISP {
 
 	_VAR Scope::rput_func(const Symbol & sym, const _VAR & var) {
 		return rput(REG_FUNCTION, sym, var);
+	}
+
+	_VAR Scope::search(const REG_ID & id, const Symbol & sym) {
+		if (registry(id).contains(sym)) {
+			return registry(id)[sym];
+		}
+		return _VAR();
 	}
 
 	_VAR Scope::rsearch(const REG_ID & id, const Symbol & sym) {
@@ -1598,6 +1613,42 @@ namespace LISP {
 		numberOperationCheck(other);
 		return (isInteger() ? r_integer() : r_float()) != (other.isInteger() ? other.r_integer() : other.r_float());
 	}
+	bool Var::operator> (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) > other;
+	}
+	bool Var::operator< (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) < other;
+	}
+	bool Var::operator>= (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) >= other;
+	}
+	bool Var::operator<= (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) <= other;
+	}
+	bool Var::operator== (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) == other;
+	}
+	bool Var::operator!= (const Integer & other) const {
+		return (isInteger() ? r_integer() : r_float()) != other;
+	}
+	bool Var::operator> (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) > other;
+	}
+	bool Var::operator< (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) < other;
+	}
+	bool Var::operator>= (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) >= other;
+	}
+	bool Var::operator<= (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) <= other;
+	}
+	bool Var::operator== (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) == other;
+	}
+	bool Var::operator!= (const Float & other) const {
+		return (isInteger() ? r_integer() : r_float()) != other;
+	}
 
 	/**
 	 * @brief parameters
@@ -2636,19 +2687,256 @@ namespace LISP {
 	}
 
 	/**
+	 * 
+	 */
+	class _cls_iter_base {
+	public:
+		_cls_iter_base() {}
+		virtual ~_cls_iter_base() {}
+		void _bind_vars(AutoRef<Scope> scope, const vector<Symbol> & syms, _VAR item) {
+			if (syms.size() == 1) {
+				scope->put_var(syms[0], item);
+				return;
+			}
+			for (size_t i = 0; i < syms.size(); i++) {
+				scope->put_var(syms[i], item->r_list()[i]);
+			}
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) = 0;
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) = 0;
+	};
+
+
+	/**
+	 * iter range
+	 */
+	class _cls_iter_range : public _cls_iter_base {
+	private:
+		bool _downfrom;
+		_VAR _curr;
+		_VAR _from;
+		_VAR _to;
+		_VAR _under;
+		_VAR _by;
+	public:
+		_cls_iter_range() : _downfrom(false) {
+		}
+		_cls_iter_range(Env & env, bool downfrom, _VAR from, _VAR to, _VAR under, _VAR by)
+			: _downfrom(downfrom), _from(from), _to(to), _under(under), _by(by) {
+			if (_from.nil()) {
+				_from = _HEAP_ALLOC(env, Integer(0));
+			}
+			_curr = _from;
+			if (downfrom) {
+				if (_by.nil()) {
+					_by = _HEAP_ALLOC(env, Integer(-1));
+				}
+				if ((*_by) == Integer(0)) {
+					throw LispException("'by' cannot be 0");
+				}
+				if ((*_by) > Integer(0)) {
+					throw LispException("'by' cannot be greater than 0");
+				}
+			} else {
+				if (_by.nil()) {
+					_by = _HEAP_ALLOC(env, Integer(1));
+				}
+				if ((*_by) == Integer(0)) {
+					throw LispException("'by' cannot be 0");
+				}
+				if ((*_by) < Integer(0)) {
+					throw LispException("'by' cannot be less than 0");
+				}
+			}
+		}
+		virtual ~_cls_iter_range() {
+		}
+		bool & downfrom() {
+			return _downfrom;
+		}
+		_VAR & curr() {
+			return _curr;
+		}
+		_VAR & from() {
+			return _from;
+		}
+		_VAR & to() {
+			return _to;
+		}
+		_VAR & under() {
+			return _under;
+		}
+		_VAR & by() {
+			return _by;
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			_curr = _plus(env, _curr, _by);
+			if (_downfrom) {
+				if (_to.nil() == false) {
+					if ((*_curr) < (*_to)) {
+						return false;
+					}
+				}
+				if (_under.nil() == false) {
+					if ((*_curr) <= (*_under)) {
+						return false;
+					}
+				}
+			} else {
+				if (_to.nil() == false) {
+					if ((*_curr) > (*_to)) {
+						return false;
+					}
+				}
+				if (_under.nil() == false) {
+					if ((*_curr) >= (*_under)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * iter list
+	 */
+	class _cls_iter_list : public _cls_iter_base {
+	private:
+		size_t _idx;
+		vector<Symbol> _syms;
+		Sequence _seq;
+	public:
+		_cls_iter_list() : _idx(0) {
+		}
+		_cls_iter_list(const vector<Symbol> & syms, _VAR seq) : _idx(0), _syms(syms), _seq(seq->r_list()) {
+		}
+		virtual ~_cls_iter_list() {
+		}
+		Sequence & seq() {
+			return _seq;
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (_idx >= _seq.size()) {
+				return false;
+			}
+			_bind_vars(scope, _syms, _seq[_idx++]);
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_assign : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+		vector<Symbol> _syms;
+	public:
+		_cls_iter_assign(const vector<Symbol> & syms, _VAR stmt) : _syms(syms), _stmt(stmt) {}
+		virtual ~_cls_iter_assign() {}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			_bind_vars(scope, _syms, eval(env, scope, _stmt));
+			return true;
+		}
+	};
+
+
+	/**
+	 * 
+	 */
+	class _cls_iter_collect : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_collect(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_collect() {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			Symbol sym_ret("!ret");
+			if (scope->search_var(sym_ret).nil() == true) {
+				scope->put_var(sym_ret, _HEAP_ALLOC(env, Sequence()));
+			}
+			_VAR ret = scope->get_var(sym_ret);
+			ret->r_list().push_back(eval(env, scope, _stmt));
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_thereis : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_thereis(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_thereis() {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			_VAR v = eval(env, scope, _stmt);
+			if(v->isNil() == false) {
+				throw ReturnLispException(_NIL(env), v);
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_always : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_always(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_always() {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if(eval(env, scope, _stmt)->isNil() == false) {
+				throw ReturnLispException(_NIL(env), _NIL(env));
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_never : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_never(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_never() {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if(eval(env, scope, _stmt)->isNil() == true) {
+				throw ReturnLispException(_NIL(env), _NIL(env));
+			}
+			return true;
+		}
+	};
+
+	/**
 	 * iter
 	 */
-	class _cls_iter {
-		Sequence _vars;
-		_VAR _stmt;
+	class _cls_iter : public _cls_iter_base {
+		vector<Symbol> _syms;
+		AutoRef<_cls_iter_base> _iter;
 	public:
 		_cls_iter(Env & env, AutoRef<Scope> scope, _VAR stmt) {
 			read_statement(env, scope, stmt);
 		}
 		virtual ~_cls_iter() {
-		}
-		Sequence & vars() {
-			return _vars;
 		}
 		void read_statement(Env & env, AutoRef<Scope> scope, _VAR stmt) {
 			_VAR sym = _car(stmt);
@@ -2727,28 +3015,43 @@ namespace LISP {
 			va_end(args);
 			return vec;
 		}
+		vector<Symbol> _read_var_syms(_VAR vars) {
+			vector<Symbol> syms;
+			if (vars->isList()) {
+				Iterator<_VAR> iter = vars->r_list().iter();
+				for (; iter.has(); iter++) {
+					syms.push_back((*iter)->r_symbol());
+				}
+			} else {
+				syms.push_back(vars->r_symbol());
+			}
+		}
 		void _read_for(Env & env, AutoRef<Scope> scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
-			_VAR vars = _map[Symbol("for")];
+			_syms = _read_var_syms(_map[Symbol("for")]);
 			if (_contains(_map, Symbol("="))) {
 				_test_allowed_keywords(_map, _make_symbol_vector("=", (const char *)NULL));
-				_VAR stmt = _map[Symbol("=")];
+				_VAR test_stmt = _map[Symbol("=")];
 			} else if (_contains(_map, Symbol("in"))) {
 				_test_allowed_keywords(_map, _make_symbol_vector("in", (const char *)NULL));
-				_VAR lst = eval(env, scope, _map[Symbol("in")]);
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_list(_syms,
+																   eval(env, scope, _map[Symbol("in")])));
 			} else if (_contains(_map, Symbol("downfrom"))) {
 				_test_allowed_keywords(_map, _make_symbol_vector("downfrom", "to", "above", "by", (const char *)NULL));
-				_VAR start = _map[Symbol("downfrom")];
-				
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
+																	true,
+																	_map[Symbol("downfrom")],
+																	_map[Symbol("to")],
+																	_map[Symbol("above")],
+																	_map[Symbol("by")]));
 			} else {
 				_test_allowed_keywords(_map, _make_symbol_vector("from", "to", "below", "by", (const char *)NULL));
-				_VAR start;
-				if (_map[Symbol("from")].nil() == false) {
-					start = _map[Symbol("from")];
-				}
-				if (start.nil()) {
-					start = _NIL(env);
-				}
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
+																	false,
+																	_map[Symbol("downfrom")],
+																	_map[Symbol("to")],
+																	_map[Symbol("above")],
+																	_map[Symbol("by")]));
 			}
 		}
 		void _read_while(Env & env, AutoRef<Scope> scope, _VAR stmt) {
@@ -2785,8 +3088,11 @@ namespace LISP {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("never", (const char *)NULL));
 		}
-		void iterate(Env & env, AutoRef<Scope> scope) {
-			// eval(env, scope, _stmt);
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+			_iter->on_start(env, scope);
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			return _iter->iterate(env, scope);
 		}
 	};
 
@@ -2805,12 +3111,19 @@ namespace LISP {
 		}
 		virtual ~_cls_loop() {
 		}
+		void start(Env & env, AutoRef<Scope> scope) {
+			vector<_cls_iter>::iterator iter = _iters.begin();
+			for (; iter != _iters.end(); iter++) {
+				iter->on_start(env, scope);
+			}
+		}
 		_VAR loop(Env & env, AutoRef<Scope> scope) {
-			_VAR ret;
 			try {
 				vector<_cls_iter>::iterator iter = _iters.begin();
 				for (; iter != _iters.end(); iter++) {
-					(*iter).iterate(env, scope);
+					if ((*iter).iterate(env, scope) == false) {
+						return scope->get_var(Symbol("!ret"));
+					}
 				}
 			} catch (ReturnLispException e) {
 				if (e.tag()->isNil() == false) {
@@ -2818,7 +3131,7 @@ namespace LISP {
 				}
 				return e.var();
 			}
-			return _NIL_OR_PASS(env, ret);
+			return _NIL(env);
 		}
 	};
 

@@ -126,12 +126,15 @@ namespace LISP {
 		void clear();
 		std::map<REG_ID, Registry> & registries();
 		Registry & registry(const REG_ID & id);
+		OS::GCRef<Var> search_var(const Symbol & sym);
 		OS::GCRef<Var> rsearch_var(const Symbol & sym);
 		OS::GCRef<Var> rget_var(const Symbol & sym);
 		OS::GCRef<Var> rput_var(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> search_func(const Symbol & sym);
 		OS::GCRef<Var> rsearch_func(const Symbol & sym);
 		OS::GCRef<Var> rget_func(const Symbol & sym);
 		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		OS::GCRef<Var> search(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rsearch(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rget(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rput(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
@@ -673,6 +676,18 @@ namespace LISP {
 		bool operator<= (const Var & other) const;
         bool operator== (const Var & other) const;
         bool operator!= (const Var & other) const;
+		bool operator> (const Integer & other) const;
+		bool operator< (const Integer & other) const;
+		bool operator>= (const Integer & other) const;
+		bool operator<= (const Integer & other) const;
+        bool operator== (const Integer & other) const;
+        bool operator!= (const Integer & other) const;
+		bool operator> (const Float & other) const;
+		bool operator< (const Float & other) const;
+		bool operator>= (const Float & other) const;
+		bool operator<= (const Float & other) const;
+        bool operator== (const Float & other) const;
+        bool operator!= (const Float & other) const;
 		
 		std::string toString() const;
 		std::string toPrintString() const;
