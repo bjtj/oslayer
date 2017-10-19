@@ -2096,6 +2096,7 @@ namespace LISP {
 	static void builtin_date(Env & env);
 	static void builtin_macro(Env & env);
 	static void builtin_db(Env & env);
+	static void builtin_benchmark(Env & env);
 	
 	static string format(Env & env, AutoRef<Scope> scope, const string & fmt, vector<_VAR> & args) {
 		string ret;
@@ -2726,6 +2727,7 @@ namespace LISP {
 		builtin_date(env);
 		builtin_macro(env);
 		builtin_db(env);
+		builtin_benchmark(env);
 	}
 
 	void builtin_essential(Env & env) {
@@ -5003,6 +5005,22 @@ namespace LISP {
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
 			string sql = eval(env, scope, args[0])->toPrintString();
 			return _HEAP_ALLOC(env, wrap_text(Text::replaceAll(sql, "'", "\\'")));
+		}END_DECL_NATIVE;
+	}
+
+	void builtin_benchmark(Env & env) {
+		BEGIN_DECL_NATIVE(env, "benchmark:time");
+		{
+			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			unsigned long tick = tick_milli();
+			try {
+				_VAR ret = eval(env, scope, args[0]);
+				printf("BENCHMARK time: %ld ms.\n", (tick_milli() - tick));
+				return ret;
+			} catch (LispException e) {
+				printf("BENCHMARK time: %ld ms.\n", (tick_milli() - tick));
+				throw e;
+			}
 		}END_DECL_NATIVE;
 	}
 
