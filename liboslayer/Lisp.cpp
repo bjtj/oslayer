@@ -1052,13 +1052,15 @@ namespace LISP {
 	}
 	string FileDescriptor::readline() {
 		testFd();
-		char buffer[1024] = {0,};
-		if (fgets(buffer, sizeof(buffer), _fd)) {
-			if (buffer[strlen(buffer) - 1] == '\n') {
-				buffer[strlen(buffer) - 1] = '\0';
-			}
+		string line;
+		while (true) {
+			int ch = fgetc(_fd);
+            if (ch < 0 || ch == '\n') {
+                break;
+            }
+			line.append(1, (char)ch);
 		}
-		return string(buffer);
+		return line;
 	}
 	void FileDescriptor::write(const string & data) {
 		testFd();
