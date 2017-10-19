@@ -121,6 +121,7 @@ namespace LISP {
 		std::map<REG_ID, Registry> _registries;
 	public:
 		Scope();
+		Scope(OS::AutoRef<Scope> parent);
 		virtual ~Scope();
 		OS::AutoRef<Scope> & parent();
 		void clear();
