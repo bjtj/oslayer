@@ -76,8 +76,6 @@ namespace LISP {
 	using namespace OS;
 	using namespace UTIL;
 
-	static string _printVar(_VAR var);
-
 	static string _to_string(_VAR var) {
 		if (var.nil()) {
 			return "(undefined)";
@@ -422,7 +420,7 @@ namespace LISP {
 			if (iter != _lst.begin()) {
 				ret += " ";
 			}
-			ret += _printVar(*iter);
+			ret += (*iter)->toString();
 		}
 		ret += ")";
 		return ret;
@@ -1486,7 +1484,8 @@ namespace LISP {
 	AutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
 	_VAR Var::expand(Env & env, AutoRef<Scope> scope, _VAR name, Sequence & args) {
 		if (!isFunction()) {
-			throw LispException("Not Function / name: " + _SAFE_STRING(name) + " / type : '" + getTypeString() + "'");
+			throw LispException("Not Function / name: " + _SAFE_STRING(name) +
+								" / type : '" + getTypeString() + "'");
 		}
 		if (r_func().macro() == false) {
 			throw LispException("Not Macro");
@@ -1495,7 +1494,6 @@ namespace LISP {
 		params.bind(env, scope, r_func().closure_scope(), args, false);
 		r_func().closure_scope()->parent() = scope;
 		return eval(env, r_func().closure_scope(), r_func().form());
-
 	}
 	_VAR Var::proc(Env & env, AutoRef<Scope> scope, _VAR name, Sequence & args) {
 		if (!isCallable()) {
@@ -2062,6 +2060,7 @@ namespace LISP {
 	static void builtin_io(Env & env);
 	static void builtin_pathname(Env & env);
 	static void builtin_file(Env & env);
+	static void builtin_facility(Env & env);
 	static void builtin_socket(Env & env);
 	static void builtin_concurrent(Env & env);
 	static void builtin_system(Env & env);
@@ -2691,6 +2690,7 @@ namespace LISP {
 		builtin_io(env);
 		builtin_pathname(env);
 		builtin_file(env);
+		builtin_facility(env);
 		builtin_socket(env);
 		builtin_concurrent(env);
 		builtin_system(env);
@@ -2698,602 +2698,6 @@ namespace LISP {
 		builtin_macro(env);
 		builtin_db(env);
 	}
-
-	/**
-	 * 
-	 */
-	class _cls_iter_base {
-	public:
-		_cls_iter_base() {}
-		virtual ~_cls_iter_base() {}
-		void _bind_vars(AutoRef<Scope> scope, const vector<Symbol> & syms, _VAR item) {
-			if (syms.size() == 1) {
-				scope->put_var(syms[0], item);
-				return;
-			}
-			for (size_t i = 0; i < syms.size(); i++) {
-				scope->put_var(syms[i], item->r_list()[i]);
-			}
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) = 0;
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) = 0;
-	};
-
-
-	/**
-	 * iter range
-	 */
-	class _cls_iter_range : public _cls_iter_base {
-	private:
-		bool _first;
-		vector<Symbol> _vars;
-		bool _downfrom;
-		_VAR _curr;
-		_VAR _from;
-		_VAR _to;
-		_VAR _under;
-		_VAR _by;
-	public:
-		_cls_iter_range(Env & env, bool downfrom, vector<Symbol> vars, _VAR from, _VAR to, _VAR under, _VAR by)
-			: _first(true), _downfrom(downfrom), _vars(vars), _from(from), _to(to), _under(under), _by(by) {
-			if (_from.nil()) {
-				_from = _HEAP_ALLOC(env, Integer(0));
-			}
-			_curr = _from;
-			if (downfrom) {
-				if (_by.nil()) {
-					_by = _HEAP_ALLOC(env, Integer(-1));
-				}
-				if ((*_by) == Integer(0)) {
-					throw LispException("'by' cannot be 0");
-				}
-				if ((*_by) > Integer(0)) {
-					throw LispException("'by' cannot be greater than 0");
-				}
-			} else {
-				if (_by.nil()) {
-					_by = _HEAP_ALLOC(env, Integer(1));
-				}
-				if ((*_by) == Integer(0)) {
-					throw LispException("'by' cannot be 0");
-				}
-				if ((*_by) < Integer(0)) {
-					throw LispException("'by' cannot be less than 0");
-				}
-			}
-		}
-		virtual ~_cls_iter_range() {
-		}
-		bool & downfrom() {
-			return _downfrom;
-		}
-		_VAR & curr() {
-			return _curr;
-		}
-		_VAR & from() {
-			return _from;
-		}
-		_VAR & to() {
-			return _to;
-		}
-		_VAR & under() {
-			return _under;
-		}
-		_VAR & by() {
-			return _by;
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if (_first) {
-				_first = false;
-			} else {
-				_curr = _plus(env, _curr, _by);
-			}
-			_bind_vars(scope, _vars, _curr);
-			if (_downfrom) {
-				if (_to.nil() == false) {
-					if ((*_curr) < (*_to)) {
-						return false;
-					}
-				}
-				if (_under.nil() == false) {
-					if ((*_curr) <= (*_under)) {
-						return false;
-					}
-				}
-			} else {
-				if (_to.nil() == false) {
-					if ((*_curr) > (*_to)) {
-						return false;
-					}
-				}
-				if (_under.nil() == false) {
-					if ((*_curr) >= (*_under)) {
-						return false;
-					}
-				}
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * iter list
-	 */
-	class _cls_iter_list : public _cls_iter_base {
-	private:
-		size_t _idx;
-		vector<Symbol> _syms;
-		Sequence _seq;
-	public:
-		_cls_iter_list(const vector<Symbol> & syms, _VAR seq)
-			: _idx(0), _syms(syms), _seq(seq->r_list()) {
-		}
-		virtual ~_cls_iter_list() {
-		}
-		Sequence & seq() {
-			return _seq;
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if (_idx >= _seq.size()) {
-				return false;
-			}
-			_bind_vars(scope, _syms, _seq[_idx++]);
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_while : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_while(_VAR stmt) : _stmt(stmt) {}
-		virtual ~_cls_iter_while() {}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if (eval(env, scope, _stmt)->isNil() == false) {
-				return false;
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_unless : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_unless(_VAR stmt) : _stmt(stmt) {}
-		virtual ~_cls_iter_unless() {}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if (eval(env, scope, _stmt)->isNil() == true) {
-				return false;
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_when : public _cls_iter_base {
-	private:
-		_VAR _test_stmt;
-		_VAR _eval_stmt;
-	public:
-		_cls_iter_when(_VAR test_stmt, _VAR eval_stmt)
-			: _test_stmt(test_stmt), _eval_stmt(eval_stmt) {}
-		virtual ~_cls_iter_when() {}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if (eval(env, scope, _test_stmt)->isNil() == false && _eval_stmt.nil() == false) {
-				eval(env, scope, _eval_stmt);
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_assign : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-		vector<Symbol> _syms;
-	public:
-		_cls_iter_assign(const vector<Symbol> & syms, _VAR stmt) : _syms(syms), _stmt(stmt) {}
-		virtual ~_cls_iter_assign() {}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			_bind_vars(scope, _syms, eval(env, scope, _stmt));
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_do : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_do(_VAR stmt) : _stmt(stmt) {}
-		virtual ~_cls_iter_do() {}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			eval(env, scope, _stmt);
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_collect : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_collect(_VAR stmt) : _stmt(stmt) {
-		}
-		virtual ~_cls_iter_collect() {
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-			Symbol sym_ret("!ret");
-			scope->put_var(sym_ret, _HEAP_ALLOC(env, Sequence()));
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			Symbol sym_ret("!ret");
-			_VAR ret = scope->get_var(sym_ret);
-			_VAR item = eval(env, scope, _stmt);
-			ret->r_list().push_back(item);
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_thereis : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_thereis(_VAR stmt) : _stmt(stmt) {
-		}
-		virtual ~_cls_iter_thereis() {
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			_VAR v = eval(env, scope, _stmt);
-			if(v->isNil() == false) {
-				throw ReturnLispException(_NIL(env), v);
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_always : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_always(_VAR stmt) : _stmt(stmt) {
-		}
-		virtual ~_cls_iter_always() {
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if(eval(env, scope, _stmt)->isNil() == false) {
-				throw ReturnLispException(_NIL(env), _NIL(env));
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * 
-	 */
-	class _cls_iter_never : public _cls_iter_base {
-	private:
-		_VAR _stmt;
-	public:
-		_cls_iter_never(_VAR stmt) : _stmt(stmt) {
-		}
-		virtual ~_cls_iter_never() {
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			if(eval(env, scope, _stmt)->isNil() == true) {
-				throw ReturnLispException(_NIL(env), _NIL(env));
-			}
-			return true;
-		}
-	};
-
-	/**
-	 * iter
-	 */
-	class _cls_iter : public _cls_iter_base {
-		Symbol _base_symbol;
-		AutoRef<_cls_iter_base> _iter;
-	public:
-		_cls_iter(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			read_statement(env, scope, stmt);
-		}
-		virtual ~_cls_iter() {
-		}
-		void read_statement(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			_VAR sym = _car(stmt);
-			_base_symbol = sym->r_symbol();
-			if (sym->r_symbol() == "for") {
-				_read_for(env, scope, stmt);
-			} else if (sym->r_symbol() == "while") {
-				_read_while(env, scope, stmt);
-			} else if (sym->r_symbol() == "unless") {
-				_read_unless(env, scope, stmt);
-			} else if (sym->r_symbol() == "when") {
-				_read_when(env, scope, stmt);
-			} else if (sym->r_symbol() == "do") {
-				_read_do(env, scope, stmt);
-			} else if (sym->r_symbol() == "collect") {
-				_read_collect(env, scope, stmt);
-			} else if (sym->r_symbol() == "thereis") {
-				_read_thereis(env, scope, stmt);
-			} else if (sym->r_symbol() == "always") {
-				_read_always(env, scope, stmt);
-			} else if (sym->r_symbol() == "never") {
-				_read_never(env, scope, stmt);
-			} else {
-				throw LispException("Unexpected keyword - '" + sym->r_symbol().toString() +
-									"' for loop facility");
-			}
-		}
-		map<Symbol, _VAR> _read_map(_VAR stmt) {
-			map<Symbol, _VAR> _map;
-			Iterator<_VAR> iter = stmt->r_list().iter();
-			while (iter.has()) {
-				_VAR & var = *iter++;
-				_VAR & val = *iter++;
-				_map[var->r_symbol()] = val;
-			}
-			return _map;
-		}
-		void _set_var(AutoRef<Scope> scope, _VAR var, _VAR val) {
-			if (var->isList()) {
-				Iterator<_VAR> iter = var->r_list().iter();
-				for (; iter.has(); iter++) {
-					if (scope->rget_var((*iter)->r_symbol()).nil() == false) {
-						throw LispException("Duplicated variable declaration");
-					}
-					scope->put_var((*iter)->r_symbol(), val);
-				}
-			} else if (var->isSymbol()) {
-				if (scope->rget_var(var->r_symbol()).nil() == false) {
-					throw LispException("Duplicated variable declaration");
-				}
-				scope->put_var(var->r_symbol(), val);
-			} else {
-				throw LispException("Not allowed var type - " + var->getTypeString());
-			}
-		}
-		string _join(const vector<Symbol> & vec, const string & glue) {
-			string ret;
-			for (size_t i = 0; i < vec.size(); i++) {
-				if (i > 0) {
-					ret += glue;
-				}
-				ret += vec[i].toString();
-			}
-			return ret;
-		}
-		void _test_allowed_keywords(const map<Symbol, _VAR> & _map, const vector<Symbol> & keywords) {
-			for (map<Symbol, _VAR>::const_iterator iter = _map.begin(); iter != _map.end(); iter++) {
-				const Symbol & sym = iter->first;
-				if (_contains(keywords, sym) == false) {
-					throw LispException("Not in allowed keywords - '" + sym.toString() +
-										"', allowed list [" + _join(keywords, ", ") + "]");
-				}
-			}
-		}
-		vector<Symbol> _make_symbol_vector(const char * arg, ...) {
-			vector<Symbol> vec;
-			if (arg != NULL) {
-				vec.push_back(Symbol(arg));
-			}
-			va_list args;
-			va_start(args, arg);
-			const char * str = NULL;
-			while ((str = (const char*)va_arg(args, const char *)) != NULL) {
-				vec.push_back(Symbol(str));
-			}
-			va_end(args);
-			return vec;
-		}
-		vector<Symbol> _read_var_syms(_VAR vars) {
-			vector<Symbol> syms;
-			if (vars->isList()) {
-				Iterator<_VAR> iter = vars->r_list().iter();
-				for (; iter.has(); iter++) {
-					syms.push_back((*iter)->r_symbol());
-				}
-			} else {
-				syms.push_back(vars->r_symbol());
-			}
-			return syms;
-		}
-		void _read_for(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			vector<Symbol> _syms = _read_var_syms(_map[Symbol("for")]);
-			if (_contains(_map, Symbol("="))) {
-				_test_allowed_keywords(_map, _make_symbol_vector("for", "=", (const char *)NULL));
-				_VAR test_stmt = _map[Symbol("=")];
-				_iter = AutoRef<_cls_iter_base>(new _cls_iter_assign(_syms, test_stmt));
-			} else if (_contains(_map, Symbol("in"))) {
-				_test_allowed_keywords(_map, _make_symbol_vector("for", "in", (const char *)NULL));
-				_iter = AutoRef<_cls_iter_base>(new _cls_iter_list(_syms,
-																   eval(env, scope, _map[Symbol("in")])));
-			} else if (_contains(_map, Symbol("downfrom"))) {
-				_test_allowed_keywords(_map, _make_symbol_vector("for", "downfrom", "to", "above", "by", (const char *)NULL));
-				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
-																	true,
-																	_syms,
-																	_map[Symbol("downfrom")],
-																	_map[Symbol("to")],
-																	_map[Symbol("above")],
-																	_map[Symbol("by")]));
-			} else {
-				_test_allowed_keywords(_map, _make_symbol_vector("for", "from", "to", "below", "by", (const char *)NULL));
-				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
-																	false,
-																	_syms,
-																	_map[Symbol("downfrom")],
-																	_map[Symbol("to")],
-																	_map[Symbol("above")],
-																	_map[Symbol("by")]));
-			}
-		}
-		void _read_while(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("while", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("while")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_while(_stmt));
-		}
-		void _read_unless(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("unless", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("unless")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_unless(_stmt));
-		}
-		void _read_when(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			_VAR test_stmt = stmt->r_list()[1];
-			_VAR eval_stmt;
-			if (stmt->r_list().size() > 2) {
-				eval_stmt = stmt->r_list()[2];
-			}
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_when(test_stmt, eval_stmt));
-		}
-		void _read_do(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("do", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("do")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_do(_stmt));
-		}
-		void _read_collect(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("collect", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("collect")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_collect(_stmt));
-		}
-		void _read_thereis(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("thereis", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("thereis")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_thereis(_stmt));
-		}
-		void _read_always(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("always", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("always")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_always(_stmt));
-		}
-		void _read_never(Env & env, AutoRef<Scope> scope, _VAR stmt) {
-			map<Symbol, _VAR> _map = _read_map(stmt);
-			_test_allowed_keywords(_map, _make_symbol_vector("never", (const char *)NULL));
-			_VAR _stmt = _map[Symbol("never")];
-			_iter = AutoRef<_cls_iter_base>(new _cls_iter_never(_stmt));
-		}
-		virtual void on_start(Env & env, AutoRef<Scope> scope) {
-			_iter->on_start(env, scope);
-		}
-		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
-			return _iter->iterate(env, scope);
-		}
-		string toString() const {
-			return _base_symbol.toString();
-		}
-	};
-
-	/**
-	 * loop
-	 */
-	class _cls_loop {
-	private:
-		vector<_cls_iter> _iters;
-	public:
-		_cls_loop(Env & env, AutoRef<Scope> scope, _VAR seq) {
-			Iterator<_VAR> iter = seq->r_list().iter();
-			while (iter.has()) {
-				_iters.push_back(_cls_iter(env, scope, *iter++));
-			}
-		}
-		_cls_loop(Env & env, AutoRef<Scope> scope, Sequence & seq) {
-			Iterator<_VAR> iter = seq.iter();
-			while (iter.has()) {
-				_iters.push_back(_cls_iter(env, scope, *iter++));
-			}
-		}
-		virtual ~_cls_loop() {
-		}
-		void start(Env & env, AutoRef<Scope> scope) {
-			vector<_cls_iter>::iterator iter = _iters.begin();
-			for (; iter != _iters.end(); iter++) {
-				iter->on_start(env, scope);
-			}
-		}
-		_VAR loop(Env & env, AutoRef<Scope> scope) {
-			try {
-				start(env, scope);
-				while (1) {
-					vector<_cls_iter>::iterator iter = _iters.begin();
-					for (; iter != _iters.end(); iter++) {
-						if ((*iter).iterate(env, scope) == false) {
-							if (scope->search_var(Symbol("!ret")).nil()) {
-								return _NIL(env);
-							} else {
-								return scope->get_var(Symbol("!ret"));
-							}
-						}
-					}
-				}
-			} catch (ReturnLispException e) {
-				if (e.tag()->isNil() == false) {
-					throw e;
-				}
-				return e.var();
-			}
-			return _NIL(env);
-		}
-
-		string toString() const {
-			string str;
-			vector<_cls_iter>::const_iterator iter = _iters.begin();
-			for (int i = 0; iter != _iters.end(); iter++, i++) {
-				if (i > 0) {
-					str += ", ";
-				}
-				str += iter->toString();
-			}
-			return str;
-		}
-	};
 
 	void builtin_essential(Env & env) {
 		BEGIN_DECL_NATIVE(env, "eval");
@@ -3525,60 +2929,6 @@ namespace LISP {
 			}
 			return _NIL(env);
 		}END_DECL_NATIVE;
-		BEGIN_DECL_NATIVE(env, "loop");
-		{
-			// TODO: implement
-			// [http://www.ai.sri.com/pkarp/loop.html]
-			// code:
-			//  (loop for x in '(a b c d e) do (print x))
-			throw LispException("not implemeneted");
-		}END_DECL_NATIVE;
-		BEGIN_DECL_NATIVE(env, "iterate");
-		{
-			// TODO: implement
-			// * [https://common-lisp.net/project/iterate/doc/Don_0027t-Loop-Iterate.html]
-			// code:
-			//  (iterate (for x in '(a b c d e)) (do (print x)))
-			//  
-			// pseudo:
-			// while (update_iter()) {
-			// 	eval(env, scope, actions);
-			// }
-			// 
-			// spec:
-			// for
-			//     for x in '(1 2 3 4 5) ; eval once
-			//     for (x . y) in '((1 . 1) (2 . 4) (3 . 9))
-			//     --
-			//     for x from 1
-			//     for x to 10
-			//     for x below 9
-			//     for x from 1 to 5 below 9
-			//     for x from 0 below (length s) ; eval once
-			//     --
-			//     for y = (* x 10) ; eval each loop
-			//     --
-			// test ; eval each loop
-			//     while:
-			//       while (< y 100) ; eval each loop
-			//     unless:
-			//     when:
-			//       when (oddp x) do (print x)
-			//       when (oddp x) collect x
-			//       when (> x 10) return x
-			// do
-			//     user action
-			// shorthands ; not allow mix
-			//     collect
-			//     sum
-			//     thereis
-			//     never
-			//     always
-
-			AutoRef<Scope> local_scope(new Scope(scope));
-			_cls_loop loop(env, local_scope, args);
-			return loop.loop(env, local_scope);
-		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "list");
 		{
 			vector<_VAR> elts;
@@ -3725,7 +3075,8 @@ namespace LISP {
 				doc = _NIL(env);
 				form = args[2];
 			}
-			return scope->rput_func(args[0]->r_symbol(), _HEAP_ALLOC(env, new Func(true, doc, lambda_list, form)));
+			return scope->rput_func(args[0]->r_symbol(),
+									_HEAP_ALLOC(env, new Func(true, doc, lambda_list, form)));
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "macroexpand");
 		{
@@ -4641,6 +3992,674 @@ namespace LISP {
 			return _NIL(env);
 		}END_DECL_NATIVE;
 	}
+
+	/**
+	 * 
+	 */
+	class _cls_iter_base {
+	public:
+		_cls_iter_base() {}
+		virtual ~_cls_iter_base() {}
+		void _bind_vars(AutoRef<Scope> scope, const vector<Symbol> & syms, _VAR item) {
+			if (syms.size() == 1) {
+				scope->put_var(syms[0], item);
+				return;
+			}
+			for (size_t i = 0; i < syms.size(); i++) {
+				scope->put_var(syms[i], item->r_list()[i]);
+			}
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) = 0;
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) = 0;
+	};
+
+
+	/**
+	 * iter range
+	 */
+	class _cls_iter_range : public _cls_iter_base {
+	private:
+		bool _first;
+		vector<Symbol> _vars;
+		bool _downfrom;
+		_VAR _curr;
+		_VAR _from;
+		_VAR _to;
+		_VAR _under;
+		_VAR _by;
+	public:
+		_cls_iter_range(Env & env, bool downfrom, vector<Symbol> vars, _VAR from, _VAR to, _VAR under, _VAR by)
+			: _first(true), _downfrom(downfrom), _vars(vars), _from(from), _to(to), _under(under), _by(by) {
+			if (_from.nil()) {
+				_from = _HEAP_ALLOC(env, Integer(0));
+			}
+			_curr = _from;
+			if (downfrom) {
+				if (_by.nil()) {
+					_by = _HEAP_ALLOC(env, Integer(-1));
+				}
+				if ((*_by) == Integer(0)) {
+					throw LispException("'by' cannot be 0");
+				}
+				if ((*_by) > Integer(0)) {
+					throw LispException("'by' cannot be greater than 0");
+				}
+			} else {
+				if (_by.nil()) {
+					_by = _HEAP_ALLOC(env, Integer(1));
+				}
+				if ((*_by) == Integer(0)) {
+					throw LispException("'by' cannot be 0");
+				}
+				if ((*_by) < Integer(0)) {
+					throw LispException("'by' cannot be less than 0");
+				}
+			}
+		}
+		virtual ~_cls_iter_range() {
+		}
+		bool & downfrom() {
+			return _downfrom;
+		}
+		_VAR & curr() {
+			return _curr;
+		}
+		_VAR & from() {
+			return _from;
+		}
+		_VAR & to() {
+			return _to;
+		}
+		_VAR & under() {
+			return _under;
+		}
+		_VAR & by() {
+			return _by;
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (_first) {
+				_first = false;
+			} else {
+				_curr = _plus(env, _curr, _by);
+			}
+			_bind_vars(scope, _vars, _curr);
+			if (_downfrom) {
+				if (_to.nil() == false) {
+					if ((*_curr) < (*_to)) {
+						return false;
+					}
+				}
+				if (_under.nil() == false) {
+					if ((*_curr) <= (*_under)) {
+						return false;
+					}
+				}
+			} else {
+				if (_to.nil() == false) {
+					if ((*_curr) > (*_to)) {
+						return false;
+					}
+				}
+				if (_under.nil() == false) {
+					if ((*_curr) >= (*_under)) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * iter list
+	 */
+	class _cls_iter_list : public _cls_iter_base {
+	private:
+		size_t _idx;
+		vector<Symbol> _syms;
+		Sequence _seq;
+	public:
+		_cls_iter_list(const vector<Symbol> & syms, _VAR seq)
+			: _idx(0), _syms(syms), _seq(seq->r_list()) {
+		}
+		virtual ~_cls_iter_list() {
+		}
+		Sequence & seq() {
+			return _seq;
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (_idx >= _seq.size()) {
+				return false;
+			}
+			_bind_vars(scope, _syms, _seq[_idx++]);
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_while : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_while(_VAR stmt) : _stmt(stmt) {}
+		virtual ~_cls_iter_while() {}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (eval(env, scope, _stmt)->isNil() == false) {
+				return false;
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_unless : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_unless(_VAR stmt) : _stmt(stmt) {}
+		virtual ~_cls_iter_unless() {}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (eval(env, scope, _stmt)->isNil() == true) {
+				return false;
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_when : public _cls_iter_base {
+	private:
+		_VAR _test_stmt;
+		_VAR _eval_stmt;
+	public:
+		_cls_iter_when(_VAR test_stmt, _VAR eval_stmt)
+			: _test_stmt(test_stmt), _eval_stmt(eval_stmt) {}
+		virtual ~_cls_iter_when() {}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if (eval(env, scope, _test_stmt)->isNil() == false && _eval_stmt.nil() == false) {
+				eval(env, scope, _eval_stmt);
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_assign : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+		vector<Symbol> _syms;
+	public:
+		_cls_iter_assign(const vector<Symbol> & syms, _VAR stmt) : _syms(syms), _stmt(stmt) {}
+		virtual ~_cls_iter_assign() {}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			_bind_vars(scope, _syms, eval(env, scope, _stmt));
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_do : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_do(_VAR stmt) : _stmt(stmt) {}
+		virtual ~_cls_iter_do() {}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			eval(env, scope, _stmt);
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_collect : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_collect(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_collect() {
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+			Symbol sym_ret("!ret");
+			scope->put_var(sym_ret, _HEAP_ALLOC(env, Sequence()));
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			Symbol sym_ret("!ret");
+			_VAR ret = scope->get_var(sym_ret);
+			_VAR item = eval(env, scope, _stmt);
+			ret->r_list().push_back(item);
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_thereis : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_thereis(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_thereis() {
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			_VAR v = eval(env, scope, _stmt);
+			if(v->isNil() == false) {
+				throw ReturnLispException(_NIL(env), v);
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_always : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_always(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_always() {
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if(eval(env, scope, _stmt)->isNil() == false) {
+				throw ReturnLispException(_NIL(env), _NIL(env));
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * 
+	 */
+	class _cls_iter_never : public _cls_iter_base {
+	private:
+		_VAR _stmt;
+	public:
+		_cls_iter_never(_VAR stmt) : _stmt(stmt) {
+		}
+		virtual ~_cls_iter_never() {
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			if(eval(env, scope, _stmt)->isNil() == true) {
+				throw ReturnLispException(_NIL(env), _NIL(env));
+			}
+			return true;
+		}
+	};
+
+	/**
+	 * iter
+	 */
+	class _cls_iter : public _cls_iter_base {
+		Symbol _base_symbol;
+		AutoRef<_cls_iter_base> _iter;
+	public:
+		_cls_iter(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			read_statement(env, scope, stmt);
+		}
+		virtual ~_cls_iter() {
+		}
+		void read_statement(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			_VAR sym = _car(stmt);
+			_base_symbol = sym->r_symbol();
+			if (sym->r_symbol() == "for") {
+				_read_for(env, scope, stmt);
+			} else if (sym->r_symbol() == "while") {
+				_read_while(env, scope, stmt);
+			} else if (sym->r_symbol() == "unless") {
+				_read_unless(env, scope, stmt);
+			} else if (sym->r_symbol() == "when") {
+				_read_when(env, scope, stmt);
+			} else if (sym->r_symbol() == "do") {
+				_read_do(env, scope, stmt);
+			} else if (sym->r_symbol() == "collect") {
+				_read_collect(env, scope, stmt);
+			} else if (sym->r_symbol() == "thereis") {
+				_read_thereis(env, scope, stmt);
+			} else if (sym->r_symbol() == "always") {
+				_read_always(env, scope, stmt);
+			} else if (sym->r_symbol() == "never") {
+				_read_never(env, scope, stmt);
+			} else {
+				throw LispException("Unexpected keyword - '" + sym->r_symbol().toString() +
+									"' for loop facility");
+			}
+		}
+		map<Symbol, _VAR> _read_map(_VAR stmt) {
+			map<Symbol, _VAR> _map;
+			Iterator<_VAR> iter = stmt->r_list().iter();
+			while (iter.has()) {
+				_VAR & var = *iter++;
+				_VAR & val = *iter++;
+				_map[var->r_symbol()] = val;
+			}
+			return _map;
+		}
+		void _set_var(AutoRef<Scope> scope, _VAR var, _VAR val) {
+			if (var->isList()) {
+				Iterator<_VAR> iter = var->r_list().iter();
+				for (; iter.has(); iter++) {
+					if (scope->rget_var((*iter)->r_symbol()).nil() == false) {
+						throw LispException("Duplicated variable declaration");
+					}
+					scope->put_var((*iter)->r_symbol(), val);
+				}
+			} else if (var->isSymbol()) {
+				if (scope->rget_var(var->r_symbol()).nil() == false) {
+					throw LispException("Duplicated variable declaration");
+				}
+				scope->put_var(var->r_symbol(), val);
+			} else {
+				throw LispException("Not allowed var type - " + var->getTypeString());
+			}
+		}
+		string _join(const vector<Symbol> & vec, const string & glue) {
+			string ret;
+			for (size_t i = 0; i < vec.size(); i++) {
+				if (i > 0) {
+					ret += glue;
+				}
+				ret += vec[i].toString();
+			}
+			return ret;
+		}
+		void _test_allowed_keywords(const map<Symbol, _VAR> & _map, const vector<Symbol> & keywords) {
+			for (map<Symbol, _VAR>::const_iterator iter = _map.begin(); iter != _map.end(); iter++) {
+				const Symbol & sym = iter->first;
+				if (_contains(keywords, sym) == false) {
+					throw LispException("Not in allowed keywords - '" + sym.toString() +
+										"', allowed list [" + _join(keywords, ", ") + "]");
+				}
+			}
+		}
+		vector<Symbol> _make_symbol_vector(const char * arg, ...) {
+			vector<Symbol> vec;
+			if (arg != NULL) {
+				vec.push_back(Symbol(arg));
+			}
+			va_list args;
+			va_start(args, arg);
+			const char * str = NULL;
+			while ((str = (const char*)va_arg(args, const char *)) != NULL) {
+				vec.push_back(Symbol(str));
+			}
+			va_end(args);
+			return vec;
+		}
+		vector<Symbol> _read_var_syms(_VAR vars) {
+			vector<Symbol> syms;
+			if (vars->isList()) {
+				Iterator<_VAR> iter = vars->r_list().iter();
+				for (; iter.has(); iter++) {
+					syms.push_back((*iter)->r_symbol());
+				}
+			} else {
+				syms.push_back(vars->r_symbol());
+			}
+			return syms;
+		}
+		void _read_for(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			vector<Symbol> _syms = _read_var_syms(_map[Symbol("for")]);
+			if (_contains(_map, Symbol("="))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("for",
+																 "=",
+																 (const char *)NULL));
+				_VAR test_stmt = _map[Symbol("=")];
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_assign(_syms, test_stmt));
+			} else if (_contains(_map, Symbol("in"))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("for",
+																 "in",
+																 (const char *)NULL));
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_list(_syms,
+																   eval(env, scope,
+																		_map[Symbol("in")])));
+			} else if (_contains(_map, Symbol("downfrom"))) {
+				_test_allowed_keywords(_map, _make_symbol_vector("for",
+																 "downfrom",
+																 "to",
+																 "above",
+																 "by",
+																 (const char *)NULL));
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
+																	true,
+																	_syms,
+																	_map[Symbol("downfrom")],
+																	_map[Symbol("to")],
+																	_map[Symbol("above")],
+																	_map[Symbol("by")]));
+			} else {
+				_test_allowed_keywords(_map, _make_symbol_vector("for",
+																 "from",
+																 "to",
+																 "below",
+																 "by",
+																 (const char *)NULL));
+				_iter = AutoRef<_cls_iter_base>(new _cls_iter_range(env,
+																	false,
+																	_syms,
+																	_map[Symbol("downfrom")],
+																	_map[Symbol("to")],
+																	_map[Symbol("below")],
+																	_map[Symbol("by")]));
+			}
+		}
+		void _read_while(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("while", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("while")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_while(_stmt));
+		}
+		void _read_unless(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("unless", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("unless")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_unless(_stmt));
+		}
+		void _read_when(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			_VAR test_stmt = stmt->r_list()[1];
+			_VAR eval_stmt;
+			if (stmt->r_list().size() > 2) {
+				eval_stmt = stmt->r_list()[2];
+			}
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_when(test_stmt, eval_stmt));
+		}
+		void _read_do(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("do", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("do")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_do(_stmt));
+		}
+		void _read_collect(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("collect", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("collect")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_collect(_stmt));
+		}
+		void _read_thereis(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("thereis", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("thereis")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_thereis(_stmt));
+		}
+		void _read_always(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("always", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("always")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_always(_stmt));
+		}
+		void _read_never(Env & env, AutoRef<Scope> scope, _VAR stmt) {
+			map<Symbol, _VAR> _map = _read_map(stmt);
+			_test_allowed_keywords(_map, _make_symbol_vector("never", (const char *)NULL));
+			_VAR _stmt = _map[Symbol("never")];
+			_iter = AutoRef<_cls_iter_base>(new _cls_iter_never(_stmt));
+		}
+		virtual void on_start(Env & env, AutoRef<Scope> scope) {
+			_iter->on_start(env, scope);
+		}
+		virtual bool iterate(Env & env, AutoRef<Scope> scope) {
+			return _iter->iterate(env, scope);
+		}
+		string toString() const {
+			return _base_symbol.toString();
+		}
+	};
+
+	/**
+	 * loop
+	 */
+	class _cls_loop {
+	private:
+		vector<_cls_iter> _iters;
+	public:
+		_cls_loop(Env & env, AutoRef<Scope> scope, _VAR seq) {
+			Iterator<_VAR> iter = seq->r_list().iter();
+			while (iter.has()) {
+				_iters.push_back(_cls_iter(env, scope, *iter++));
+			}
+		}
+		_cls_loop(Env & env, AutoRef<Scope> scope, Sequence & seq) {
+			Iterator<_VAR> iter = seq.iter();
+			while (iter.has()) {
+				_iters.push_back(_cls_iter(env, scope, *iter++));
+			}
+		}
+		virtual ~_cls_loop() {
+		}
+		void start(Env & env, AutoRef<Scope> scope) {
+			vector<_cls_iter>::iterator iter = _iters.begin();
+			for (; iter != _iters.end(); iter++) {
+				iter->on_start(env, scope);
+			}
+		}
+		_VAR loop(Env & env, AutoRef<Scope> scope) {
+			try {
+				start(env, scope);
+				while (1) {
+					vector<_cls_iter>::iterator iter = _iters.begin();
+					for (; iter != _iters.end(); iter++) {
+						if ((*iter).iterate(env, scope) == false) {
+							if (scope->search_var(Symbol("!ret")).nil()) {
+								return _NIL(env);
+							} else {
+								return scope->get_var(Symbol("!ret"));
+							}
+						}
+					}
+				}
+			} catch (ReturnLispException e) {
+				if (e.tag()->isNil() == false) {
+					throw e;
+				}
+				return e.var();
+			}
+			return _NIL(env);
+		}
+
+		string toString() const {
+			string str;
+			vector<_cls_iter>::const_iterator iter = _iters.begin();
+			for (int i = 0; iter != _iters.end(); iter++, i++) {
+				if (i > 0) {
+					str += ", ";
+				}
+				str += iter->toString();
+			}
+			return str;
+		}
+	};
+	
+	void builtin_facility(Env & env) {
+		// BEGIN_DECL_NATIVE(env, "loop");
+		// {
+		// 	// TODO: implement
+		// 	// [http://www.ai.sri.com/pkarp/loop.html]
+		// 	// code:
+		// 	//  (loop for x in '(a b c d e) do (print x))
+		// 	throw LispException("not implemeneted");
+		// }END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "iterate");
+		{
+			// TODO: implement
+			// * [https://common-lisp.net/project/iterate/doc/Don_0027t-Loop-Iterate.html]
+			// code:
+			//  (iterate (for x in '(a b c d e)) (do (print x)))
+			//  
+			// pseudo:
+			// while (update_iter()) {
+			// 	eval(env, scope, actions);
+			// }
+			// 
+			// spec:
+			// for
+			//     for x in '(1 2 3 4 5) ; eval once
+			//     for (x . y) in '((1 . 1) (2 . 4) (3 . 9))
+			//     --
+			//     for x from 1
+			//     for x to 10
+			//     for x below 9
+			//     for x from 1 to 5 below 9
+			//     for x from 0 below (length s) ; eval once
+			//     --
+			//     for y = (* x 10) ; eval each loop
+			//     --
+			// test ; eval each loop
+			//     while:
+			//       while (< y 100) ; eval each loop
+			//     unless:
+			//     when:
+			//       when (oddp x) do (print x)
+			//       when (oddp x) collect x
+			//       when (> x 10) return x
+			// do
+			//     user action
+			// shorthands ; not allow mix
+			//     collect
+			//     sum
+			//     thereis
+			//     never
+			//     always
+
+			AutoRef<Scope> local_scope(new Scope(scope));
+			_cls_loop loop(env, local_scope, args);
+			return loop.loop(env, local_scope);
+		}END_DECL_NATIVE;
+	}
 	void builtin_socket(Env & env) {
 		BEGIN_DECL_NATIVE(env, "server-open");
 		{
@@ -5082,19 +5101,17 @@ namespace LISP {
 		return commands[idx];
 	}
 
-	static string _printVar(_VAR var) {
-		return var->toString();
-	}
-
 	void repl(Env & env) {
 		BufferedCommandReader reader;
-		char line[4096] = {0,};
+		FileStream in(stdin);
 		fputs("> ", stdout);
-		while (fgets(line, sizeof(line), stdin)) {
+		while (1) {
+			string line = in.readline() + "\n";
 			if (reader.read(line) > 0) {
 				vector<string> & commands = reader.getCommands();
-				for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
-					fputs(_printVar(compile(env, *iter)).c_str(), stdout);
+				vector<string>::iterator iter = commands.begin();
+				for (; iter != commands.end(); iter++) {
+					fputs(compile(env, *iter)->toString().c_str(), stdout);
 					fputs("\n", stdout);
 					env.gc();
 				}
