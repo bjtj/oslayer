@@ -3299,7 +3299,7 @@ namespace LISP {
 		BEGIN_DECL_NATIVE(env, "eval");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			return eval(env, scope, parse(env, eval(env, scope, args[0])->toPrintString()));
+			return eval(env, scope, eval(env, scope, args[0]));
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "boundp");
 		{
@@ -4415,6 +4415,12 @@ namespace LISP {
 			}
 			string line = fd.readline();
 			return _HEAP_ALLOC(env, wrap_text(line));
+		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "read-from-string");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			string str = eval(env, scope, args[0])->r_string().toPrintString();
+			return parse(env, str);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "print");
 		{
