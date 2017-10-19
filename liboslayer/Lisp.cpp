@@ -3297,7 +3297,7 @@ namespace LISP {
 		BEGIN_DECL_NATIVE(env, "eval");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
-			return eval(env, scope, eval(env, scope, args[0]));
+			return eval(env, scope, parse(env, eval(env, scope, args[0])->toPrintString()));
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "boundp");
 		{
