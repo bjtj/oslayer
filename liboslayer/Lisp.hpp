@@ -36,6 +36,18 @@ namespace LISP {
 	/**
 	 * 
 	 */
+	class NativeLispException : public LispException {
+	private:
+		Exception _e;
+	public:
+		explicit NativeLispException(Exception & e);
+		virtual ~NativeLispException() throw();
+		virtual std::string toString() const;
+	};
+
+	/**
+	 * 
+	 */
 	class ExitLispException : public LispException {
 	private:
 		int _code;

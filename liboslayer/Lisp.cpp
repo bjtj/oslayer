@@ -84,6 +84,19 @@ namespace LISP {
 	}
 
 	/**
+	 * @brief native exception wrapper
+	 */
+
+	NativeLispException::NativeLispException(Exception & e)
+		: _e(e) {
+	}
+	NativeLispException::~NativeLispException() throw() {
+	}
+	string NativeLispException::toString() const {
+		return "{NATIVE EXCEPTION: '" + _e.message() + "'}";
+	}
+
+	/**
 	 * @brief exit lisp exception
 	 */
 
@@ -995,16 +1008,32 @@ namespace LISP {
 		return _file.isDirectory();
 	}
 	bool Pathname::is_file() {
-		return _file.isFile();
+		try {
+			return _file.isFile();
+		} catch (Exception e) {
+			throw NativeLispException(e);
+		}
 	}
 	long long Pathname::size() {
-		return _file.getSize();
+		try {
+			return _file.getSize();
+		} catch (Exception e) {
+			throw NativeLispException(e);
+		}
 	}
 	osl_time_t Pathname::creation_time() {
-		return _file.creationTime();
+		try {
+			return _file.creationTime();
+		} catch (Exception e) {
+			throw NativeLispException(e);
+		}
 	}
 	osl_time_t Pathname::last_modified_time(){
-		return _file.lastModifiedTime();
+		try {
+			return _file.lastModifiedTime();
+		} catch (Exception e) {
+			throw NativeLispException(e);
+		}
 	}
 	string Pathname::toString() const {
 		return "#p\"" + _file.getPath() + "\"";

@@ -156,10 +156,19 @@ namespace OS {
 		int & error_code() {
 			return _error_code;
 		}
+		int error_code() const {
+			return _error_code;
+		}
 		int & sub_error_code() {
 			return _sub_error_code;
 		}
+		int sub_error_code() const {
+			return _sub_error_code;
+		}
 		std::string & message() {
+			return _message;
+		}
+		std::string message() const {
 			return _message;
 		}
 		virtual std::string toString() const {
