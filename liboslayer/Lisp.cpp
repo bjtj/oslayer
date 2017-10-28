@@ -11,7 +11,8 @@
 
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
-#define _NIL(E) _HEAP_ALLOC(E,"nil")
+#define _NIL(E) E.scope()->rget_const(Symbol("!nil"))
+#define _TRUE(E) E.scope()->rget_const(Symbol("!t"))
 #define _NIL_OR_PASS(E,V) ((V).nil() ? _NIL(E) : (V))
 #define _SAFE_STRING(V) ((V).nil() ? "(null)" : (V)->toString())
 #define _CHECK_ARGS_MIN_COUNT(L,C)										\
@@ -165,6 +166,8 @@ namespace LISP {
 		switch (id) {
 		case REG_VARIABLE:
 			return "REG_VARIABLE";
+		case REG_CONST:
+			return "REG_CONST";
 		case REG_FUNCTION:
 			return "REG_FUNCTION";
 		default:
@@ -214,7 +217,8 @@ namespace LISP {
 	Registry & Scope::registry(const REG_ID & id) {
 		return _registries[id];
 	}
-
+	
+	// var
 	_VAR Scope::search_var(const Symbol & sym) {
 		return search(REG_VARIABLE, sym);
 	}
@@ -231,6 +235,24 @@ namespace LISP {
 		return rput(REG_VARIABLE, sym, var);
 	}
 
+	// const
+	_VAR Scope::search_const(const Symbol & sym) {
+		return search(REG_CONST, sym);
+	}
+	
+	_VAR Scope::rsearch_const(const Symbol & sym) {
+		return rsearch(REG_CONST, sym);
+	}
+	
+	_VAR Scope::rget_const(const Symbol & sym) {
+		return rget(REG_CONST, sym);
+	}
+	
+	_VAR Scope::rput_const(const Symbol & sym, const _VAR & var) {
+		return rput(REG_CONST, sym, var);
+	}
+
+	// func
 	_VAR Scope::search_func(const Symbol & sym) {
 		return search(REG_FUNCTION, sym);
 	}
@@ -285,6 +307,7 @@ namespace LISP {
 		return var;
 	}
 
+	// var
 	_VAR Scope::get_var(const Symbol & sym) {
 		return get(REG_VARIABLE, sym);
 	}
@@ -293,6 +316,16 @@ namespace LISP {
 		put(REG_VARIABLE, sym, var);
 	}
 
+	// const
+	_VAR Scope::get_const(const Symbol & sym) {
+		return get(REG_CONST, sym);
+	}
+	
+	void Scope::put_const(const Symbol & sym, const _VAR & var) {
+		put(REG_CONST, sym, var);
+	}
+
+	// func
 	_VAR Scope::get_func(const Symbol & sym) {
 		return get(REG_FUNCTION, sym);
 	}
@@ -1150,7 +1183,8 @@ namespace LISP {
 		size_t size = _heap.size();
 		unsigned long elapsed = _heap.gc();
 		if (_debug) {
-			printf(" # GC / %d, dealloc: %d (%ld ms.) #\n", (int)_heap.size(), (int)(size - _heap.size()), elapsed);
+			printf(" # GC / %d, dealloc: %d (%ld ms.) #\n",
+				   (int)_heap.size(), (int)(size - _heap.size()), elapsed);
 		}
 	}
 	void Env::clear() {
@@ -2731,6 +2765,10 @@ namespace LISP {
 	}
 
 	void builtin_essential(Env & env) {
+
+		env.scope()->put_const(Symbol("!nil"), _HEAP_ALLOC(env, "nil"));
+		env.scope()->put_const(Symbol("!t"), _HEAP_ALLOC(env, true));
+		
 		BEGIN_DECL_NATIVE(env, "eval");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
@@ -2742,7 +2780,7 @@ namespace LISP {
 			if (scope->rsearch_var(eval(env, scope, args[0])->r_symbol()).nil()) {
 				return _NIL(env);
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "fboundp");
 		{
@@ -2751,7 +2789,7 @@ namespace LISP {
 			if (scope->rsearch_func(eval(env, scope, args[0])->r_symbol()).nil()) {
 				return _NIL(env);
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "lambda");
 		{
@@ -3238,13 +3276,18 @@ namespace LISP {
 
 			_VAR nil;
 			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
+				int swap_count = 0;
 				for (size_t i = 0; i < lst.size() - 1; i++) {
 					Sequence fargs;
 					fargs.push_back(lst[i]);
 					fargs.push_back(lst[i+1]);
-					if (func->proc(env, scope, nil, fargs)->isNil() == false) {
+					if (func->proc(env, scope, nil, fargs)->isNil() == false) { // TODO: big operation
 						lst.swap(i, i+1);
+						swap_count++;
 					}
+				}
+				if (swap_count == 0) {
+					break;
 				}
 			}
 			return _HEAP_ALLOC(env, lst);
@@ -3362,7 +3405,7 @@ namespace LISP {
 		BEGIN_DECL_NATIVE(env, "and");
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 0);
-			_VAR var = _HEAP_ALLOC(env, "t");
+			_VAR var = _TRUE(env);
 			for (vector<_VAR>::iterator iter = args.begin(); iter != args.end(); iter++) {
 				var = eval(env, scope, *iter);
 				if (var->isNil()) {
@@ -3472,7 +3515,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char/=");
 		{
@@ -3487,7 +3530,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char>");
 		{
@@ -3498,7 +3541,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char<=");
 		{
@@ -3509,7 +3552,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "char>=");
 		{
@@ -3520,7 +3563,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 	}
 
@@ -3550,7 +3593,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "string-prefix-p");
 		{
@@ -3669,7 +3712,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, ">");
 		{
@@ -3680,7 +3723,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "<");
 		{
@@ -3691,7 +3734,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, ">=");
 		{
@@ -3702,7 +3745,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "<=");
 		{
@@ -3713,7 +3756,7 @@ namespace LISP {
 					return _NIL(env);
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "oddp");
 		{
@@ -3775,7 +3818,7 @@ namespace LISP {
 			_VAR ret;
 			FileDescriptor & fd = eval(env, scope, args[0])->r_fileDescriptor();
 			if (fd.eof()) {
-				return _HEAP_ALLOC(env, true);
+				return _TRUE(env);
 			}
 			BufferedCommandReader reader;
 			while (!fd.eof() && reader.read(string(1, (char)fd.read())) < 1) {}
@@ -4834,7 +4877,7 @@ namespace LISP {
 					}
 				}
 			}
-			return _HEAP_ALLOC(env, true);
+			return _TRUE(env);
 		}END_DECL_NATIVE;
 	}
 	
@@ -5011,14 +5054,15 @@ namespace LISP {
 	void builtin_benchmark(Env & env) {
 		BEGIN_DECL_NATIVE(env, "benchmark:time");
 		{
-			_CHECK_ARGS_EXACT_COUNT(args, 1);
+			_CHECK_ARGS_EXACT_COUNT(args, 2);
+			string name = eval(env, scope, args[0])->toPrintString();
 			unsigned long tick = tick_milli();
 			try {
-				_VAR ret = eval(env, scope, args[0]);
-				printf("BENCHMARK time: %ld ms.\n", (tick_milli() - tick));
+				_VAR ret = eval(env, scope, args[1]);
+				printf("[%s] BENCHMARK time: %ld ms.\n", name.c_str(), (tick_milli() - tick));
 				return ret;
 			} catch (LispException e) {
-				printf("BENCHMARK time: %ld ms.\n", (tick_milli() - tick));
+				printf("[%s] BENCHMARK time: %ld ms.\n", name.c_str(), (tick_milli() - tick));
 				throw e;
 			}
 		}END_DECL_NATIVE;

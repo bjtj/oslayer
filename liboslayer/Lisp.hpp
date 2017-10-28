@@ -109,7 +109,7 @@ namespace LISP {
 	 */
 
 	typedef enum _REG_ID {
-		REG_VARIABLE, REG_FUNCTION
+		REG_VARIABLE, REG_CONST, REG_FUNCTION
 	} REG_ID;
 
 	/**
@@ -139,22 +139,36 @@ namespace LISP {
 		void clear();
 		std::map<REG_ID, Registry> & registries();
 		Registry & registry(const REG_ID & id);
+		// var
 		OS::GCRef<Var> search_var(const Symbol & sym);
 		OS::GCRef<Var> rsearch_var(const Symbol & sym);
 		OS::GCRef<Var> rget_var(const Symbol & sym);
 		OS::GCRef<Var> rput_var(const Symbol & sym, const OS::GCRef<Var> & var);
+		// const
+		OS::GCRef<Var> search_const(const Symbol & sym);
+		OS::GCRef<Var> rsearch_const(const Symbol & sym);
+		OS::GCRef<Var> rget_const(const Symbol & sym);
+		OS::GCRef<Var> rput_const(const Symbol & sym, const OS::GCRef<Var> & var);
+		// func
 		OS::GCRef<Var> search_func(const Symbol & sym);
 		OS::GCRef<Var> rsearch_func(const Symbol & sym);
 		OS::GCRef<Var> rget_func(const Symbol & sym);
 		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		// 
 		OS::GCRef<Var> search(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rsearch(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rget(const REG_ID & id, const Symbol & sym);
 		OS::GCRef<Var> rput(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
+		// var
 		OS::GCRef<Var> get_var(const Symbol & sym);
 	    void put_var(const Symbol & sym, const OS::GCRef<Var> & var);
+		// const
+		OS::GCRef<Var> get_const(const Symbol & sym);
+	    void put_const(const Symbol & sym, const OS::GCRef<Var> & var);
+		// func
 		OS::GCRef<Var> get_func(const Symbol & sym);
 	    void put_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		// 
 		OS::GCRef<Var> get(const REG_ID & id, const Symbol & sym);
 	    void put(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
 		int depth();
