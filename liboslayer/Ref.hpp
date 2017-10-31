@@ -71,7 +71,7 @@ namespace OS {
 		return _t == NULL;
 	}
 	template <typename T>
-	void Ref<T>::release() const {
+	void Ref<T>::release() {
 		if (_t) {
 			delete _t;
 			_t == NULL;
