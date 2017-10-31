@@ -20,6 +20,7 @@ namespace OS {
         T * operator-> () const;
         T * operator& ();
 		bool nil() const;
+		void release();
 	};
 
 	template <typename T>
@@ -68,6 +69,13 @@ namespace OS {
 	template <typename T>
 	bool Ref<T>::nil() const {
 		return _t == NULL;
+	}
+	template <typename T>
+	void Ref<T>::release() const {
+		if (_t) {
+			delete _t;
+			_t == NULL;
+		}
 	}
 
 	template<>

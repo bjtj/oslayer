@@ -1,27 +1,55 @@
 #include "AutoRef.hpp"
+#include "AutoLock.hpp"
 
 namespace OS {
-	
-    SharedRefCounter::SharedRefCounter() : _count(0) {
+
+	/**
+	 * 
+	 */
+    RefCounter::RefCounter() : _count(0) {
     }
+
+	RefCounter::RefCounter(int count) : _count(count) {
+    }
+	
+    RefCounter::~RefCounter() {
+    }
+
+	int RefCounter::ref() {
+		_count++;
+		return _count;
+	}
+	
+	int RefCounter::unref() {
+		if (_count > 0) {
+			_count--;
+		}
+		return _count;
+	}
+	
+	int & RefCounter::ref_count() {
+		return _count;
+	}
+
+	/**
+	 * 
+	 */
+	SharedRefCounter::SharedRefCounter() {
+    }
+
+	SharedRefCounter::SharedRefCounter(int count) : RefCounter(count) {
+    }
+	
     SharedRefCounter::~SharedRefCounter() {
     }
 
 	int SharedRefCounter::ref() {
-		_mutex.lock();
-		_count++;
-		_mutex.unlock();
-		return _count;
+		AutoLock _lock(Ref<Mutex>(&_mutex));
+		return RefCounter::ref();
 	}
+	
 	int SharedRefCounter::unref() {
-		_mutex.lock();
-		if (_count > 0) {
-			_count--;
-		}
-		_mutex.unlock();
-		return _count;
-	}
-	int SharedRefCounter::ref_count() {
-		return _count;
+		AutoLock _lock(Ref<Mutex>(&_mutex));
+		return RefCounter::unref();
 	}
 }

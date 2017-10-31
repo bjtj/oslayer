@@ -129,13 +129,13 @@ namespace LISP {
 	 */
 	class Scope {
 	private:
-		OS::AutoRef<Scope> _parent;
+		OS::UnsafeAutoRef<Scope> _parent;
 		std::map<REG_ID, Registry> _registries;
 	public:
 		Scope();
-		Scope(OS::AutoRef<Scope> parent);
+		Scope(OS::UnsafeAutoRef<Scope> parent);
 		virtual ~Scope();
-		OS::AutoRef<Scope> & parent();
+		OS::UnsafeAutoRef<Scope> & parent();
 		void clear();
 		std::map<REG_ID, Registry> & registries();
 		Registry & registry(const REG_ID & id);
@@ -188,7 +188,7 @@ namespace LISP {
 		virtual std::string type_str() {
 			return "BaseObject";
 		}
-		virtual OS::AutoRef<Object> call(const std::string & cmd, std::vector< OS::AutoRef<Object> > & args) {
+		virtual OS::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< OS::UnsafeAutoRef<Object> > & args) {
 			throw LispException("no operation implemented - '" + cmd + "'");
 		}
 		virtual std::string toString() const {
@@ -451,7 +451,7 @@ namespace LISP {
 		String(const std::string & str);
 		virtual ~String();
 		std::string & str();
-		virtual OS::AutoRef<Object> call(const std::string & cmd, std::vector< OS::AutoRef<Object> > & args);
+		virtual OS::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< OS::UnsafeAutoRef<Object> > & args);
 		const char operator[] (const size_t & idx) const;
 		virtual std::string toString() const;
 		virtual std::string toPrintString() const;
@@ -529,14 +529,14 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		OS::AutoRef<Scope> _scope;
+		OS::UnsafeAutoRef<Scope> _scope;
 		OS::SharedHeap<Var> _heap;
 	public:
 		Env();
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		OS::AutoRef<Scope> & scope();
+		OS::UnsafeAutoRef<Scope> & scope();
 		OS::SharedHeap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
@@ -551,7 +551,7 @@ namespace LISP {
 	public:
 		Procedure();
 		virtual ~Procedure();
-		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args) = 0;
+		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args) = 0;
 		virtual std::string toString() const;
 	};
 
@@ -561,7 +561,7 @@ namespace LISP {
 	class Func : public Object {
 	private:
 		bool _macro;
-		OS::AutoRef<Scope> _closure_scope;
+		OS::UnsafeAutoRef<Scope> _closure_scope;
 		OS::GCRef<Var> _doc;
 		OS::GCRef<Var> _params;
 		OS::GCRef<Var> _form;
@@ -575,11 +575,11 @@ namespace LISP {
 		bool empty() const;
 		bool & macro();
 		bool macro() const;
-		OS::AutoRef<Scope> & closure_scope();
+		OS::UnsafeAutoRef<Scope> & closure_scope();
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & form();
-		virtual OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args);
+		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args);
 		std::string toString() const;
 	};
 
@@ -606,7 +606,7 @@ namespace LISP {
 	private:
 		static bool _debug;
 		int _type;
-		OS::AutoRef<Object> _obj;
+		OS::UnsafeAutoRef<Object> _obj;
 		
 	public:
 		explicit Var();
@@ -631,7 +631,7 @@ namespace LISP {
 		explicit Var(Pathname & pathname);
 		explicit Var(std::FILE * fd);
 		explicit Var(std::FILE * fd, bool autoclose);
-		explicit Var(OS::AutoRef<Object> obj);
+		explicit Var(OS::UnsafeAutoRef<Object> obj);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -680,11 +680,11 @@ namespace LISP {
 		Func & r_func();
 		Procedure & r_procedure();
 		FileDescriptor & r_fileDescriptor();
-		OS::AutoRef<Object> & r_obj();
+		OS::UnsafeAutoRef<Object> & r_obj();
 
-		OS::GCRef<Var> expand(Env & env, OS::AutoRef<Scope> scope,
+		OS::GCRef<Var> expand(Env & env, OS::UnsafeAutoRef<Scope> scope,
 							  OS::GCRef<Var> name, Sequence & args);
-		OS::GCRef<Var> proc(Env & env, OS::AutoRef<Scope> scope,
+		OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope,
 							OS::GCRef<Var> name, Sequence & args);
 
 		void numberCheck() const;
@@ -787,11 +787,11 @@ namespace LISP {
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
 		std::map<Keyword, Parameter> & keywords();
-		static Parameters read(Env & env, OS::AutoRef<Scope> scope, OS::GCRef<Var> tokens);
-		static Parameters read(Env & env, OS::AutoRef<Scope> scope, Sequence & tokens);
-		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
+		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> tokens);
+		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, Sequence & tokens);
+		void bind(Env & env, OS::UnsafeAutoRef<Scope> global_scope, OS::UnsafeAutoRef<Scope> lex_scope,
 				  Sequence & tokens);
-		void bind(Env & env, OS::AutoRef<Scope> global_scope, OS::AutoRef<Scope> lex_scope,
+		void bind(Env & env, OS::UnsafeAutoRef<Scope> global_scope, OS::UnsafeAutoRef<Scope> lex_scope,
 				  Sequence & tokens, bool proc_eval);
 		std::string toString() const;
 	};
@@ -804,7 +804,7 @@ namespace LISP {
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, OS::AutoRef<Scope> scope, const OS::GCRef<Var> & var);
+	extern OS::GCRef<Var> eval(Env & env, OS::UnsafeAutoRef<Scope> scope, const OS::GCRef<Var> & var);
 	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 

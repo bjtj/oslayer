@@ -3,74 +3,97 @@
 
 #include "os.hpp"
 #include "Mutex.hpp"
+#include "Ref.hpp"
 
 namespace OS {
 
 	/**
-	 * shared reference counter
+	 * Reference counter
 	 */
-    class SharedRefCounter {
+    class RefCounter {
     private:
         int _count;
+    public:
+        RefCounter();
+		RefCounter(int count);
+        virtual ~RefCounter();
+		virtual int ref();
+		virtual int unref();
+		virtual int & ref_count();
+    };
+
+	/**
+	 * Shared reference counter
+	 */
+    class SharedRefCounter : public RefCounter {
+    private:
         Mutex _mutex;
     public:
         SharedRefCounter();
+		SharedRefCounter(int count);
         virtual ~SharedRefCounter();
-		int ref();
-		int unref();
-		int ref_count();
+		virtual int ref();
+		virtual int unref();
     };
 
 	/**
 	 * auto ref
 	 */
-    template <typename T>
-    class AutoRef {
+    template <typename T, typename S>
+    class AutoRefBase {
     private:
-        SharedRefCounter * _counter;
+        Ref<RefCounter> _counter;
         T * _t;
     public:
-        explicit AutoRef();
-		explicit AutoRef(T * _t);
-        AutoRef(const AutoRef<T> & other);
-        virtual ~AutoRef();        
-        AutoRef<T> & operator= (T * t);
-        AutoRef<T> & operator= (const AutoRef<T> & other);
+        explicit AutoRefBase();
+		explicit AutoRefBase(T * _t);
+		explicit AutoRefBase(T * _t, const Ref<RefCounter> & counter);
+        AutoRefBase(const AutoRefBase<T, S> & other);
+        virtual ~AutoRefBase();
+        AutoRefBase<T, S> & operator= (T * t);
+        AutoRefBase<T, S> & operator= (const AutoRefBase<T, S> & other);
         const T & operator* () const;
 		T & operator* ();
 		T * operator-> () const;
         T * operator& ();
-		bool operator== (const AutoRef<T> & other) const;
+		T * operator& () const;
+		bool operator== (const AutoRefBase<T, S> & other) const;
         int ref_count();
 		bool nil() const;
+		Ref<RefCounter> & counter();
+		const Ref<RefCounter> & counter() const;
     private:
         void _retain();
         void _release();
-        void _copy(const AutoRef<T> & other);
+        void _copy(const AutoRefBase<T, S> & other);
     };
 
-
-	template <typename T>
-	AutoRef<T>::AutoRef() : _counter(NULL), _t(NULL) {
+	template <typename T, typename S>
+	AutoRefBase<T, S>::AutoRefBase() : _t(NULL) {
     }
         
-	template <typename T>
-    AutoRef<T>::AutoRef(T * _t) : _counter(NULL), _t(_t) {
+	template <typename T, typename S>
+    AutoRefBase<T, S>::AutoRefBase(T * _t) : _t(_t) {
+        _retain();
+    }
+
+	template <typename T, typename S>
+    AutoRefBase<T, S>::AutoRefBase(T * _t, const Ref<RefCounter> & counter) : _counter(counter), _t(_t) {
         _retain();
     }
         
-	template <typename T>
-    AutoRef<T>::AutoRef(const AutoRef<T> & other) : _counter(NULL), _t(NULL) {
+	template <typename T, typename S>
+    AutoRefBase<T, S>::AutoRefBase(const AutoRefBase<T, S> & other) : _t(NULL) {
         _copy(other);
     }
         
-	template <typename T>
-    AutoRef<T>::~AutoRef() {
+	template <typename T, typename S>
+    AutoRefBase<T, S>::~AutoRefBase() {
         _release();
     }
     
-	template <typename T>
-    AutoRef<T> & AutoRef<T>::operator= (T * t) {
+	template <typename T, typename S>
+    AutoRefBase<T, S> & AutoRefBase<T, S>::operator= (T * t) {
         _release();
         _counter = NULL;
         _t = t;
@@ -78,73 +101,87 @@ namespace OS {
         return *this;
     }
 	
-	template <typename T>
-    AutoRef<T> & AutoRef<T>::operator= (const AutoRef<T> & other) {
+	template <typename T, typename S>
+    AutoRefBase<T, S> & AutoRefBase<T, S>::operator= (const AutoRefBase<T, S> & other) {
         _copy(other);
         return *this;
     }
 	
-	template <typename T>
-    const T & AutoRef<T>::operator* () const {
+	template <typename T, typename S>
+    const T & AutoRefBase<T, S>::operator* () const {
         if (!_t) {
             throw OS::NullException("null exception (operator*)");
         }
         return *_t;
     }
 
-	template <typename T>
-	T & AutoRef<T>::operator* () {
+	template <typename T, typename S>
+	T & AutoRefBase<T, S>::operator* () {
         if (!_t) {
             throw OS::NullException("null exception (operator*)");
         }
         return *_t;
     }
 
-	template <typename T>
-	T * AutoRef<T>::operator-> () const {
+	template <typename T, typename S>
+	T * AutoRefBase<T, S>::operator-> () const {
         if (!_t) {
             throw OS::NullException("null exception (operator->)");
         }
         return _t;
     }
     
-	template <typename T>
-    T * AutoRef<T>::operator& () {
+	template <typename T, typename S>
+    T * AutoRefBase<T, S>::operator& () {
         return _t;
     }
 
-	template <typename T>
-	bool AutoRef<T>::operator== (const AutoRef<T> & other) const {
+	template <typename T, typename S>
+	T * AutoRefBase<T, S>::operator& () const {
+        return _t;
+    }
+
+	template <typename T, typename S>
+	bool AutoRefBase<T, S>::operator== (const AutoRefBase<T, S> & other) const {
 		return _t == other._t;
 	}
         
-	template <typename T>
-    int AutoRef<T>::ref_count() {
-        return _counter ? _counter->ref_count() : -1;
+	template <typename T, typename S>
+    int AutoRefBase<T, S>::ref_count() {
+        return _counter.nil() == false ? _counter->ref_count() : -1;
     }
 
-	template <typename T>
-    bool AutoRef<T>::nil() const {
+	template <typename T, typename S>
+    bool AutoRefBase<T, S>::nil() const {
         return _t == NULL;
     }
+
+	template <typename T, typename S>
+	Ref<RefCounter> & AutoRefBase<T, S>::counter() {
+		return _counter;
+	}
+
+	template <typename T, typename S>
+	const Ref<RefCounter> & AutoRefBase<T, S>::counter() const {
+		return _counter;
+	}
         
-	template <typename T>
-    void AutoRef<T>::_retain() {
+	template <typename T, typename S>
+    void AutoRefBase<T, S>::_retain() {
         if (_t == NULL) {
 			return;
 		}
-		if (!_counter) {
-			_counter = new SharedRefCounter;
+		if (_counter.nil()) {
+			_counter = Ref<RefCounter>(new S);
 		}
 		_counter->ref();
     }
         
-	template <typename T>
-    void AutoRef<T>::_release() {
-        if (_counter && _counter->unref() == 0) {
-            if (_counter) {
-				delete _counter;
-				_counter = NULL;
+	template <typename T, typename S>
+    void AutoRefBase<T, S>::_release() {
+        if (_counter.nil() == false && _counter->unref() == 0) {
+            if (_counter.nil() == false) {
+				_counter.release();
 			}
 			if (_t) {
 				delete _t;
@@ -153,13 +190,13 @@ namespace OS {
         }
     }
         
-	template <typename T>
-    void AutoRef<T>::_copy(const AutoRef<T> & other) {
+	template <typename T, typename S>
+    void AutoRefBase<T, S>::_copy(const AutoRefBase<T, S> & other) {
         if (_t == other._t) {
 			return;
 		}
 
-		SharedRefCounter * x_counter = _counter;
+		Ref<RefCounter> x_counter = _counter;
 		T * x_t = _t;
 
 		_counter = other._counter;
@@ -167,17 +204,45 @@ namespace OS {
 		_retain();
 
 		//
-		if (x_counter && x_counter->unref() == 0) {
-            if (x_counter) {
-				delete x_counter;
-				x_counter = NULL;
+		if (x_counter.nil() == false && x_counter->unref() == 0) {
+            if (x_counter.nil() == false) {
+				x_counter.release();
 			}
 			if (x_t) {
 				delete x_t;
-				x_t = NULL;
+				x_t = NULL;		// TODO: ?
 			}
         }
     }
+
+	/**
+	 * not allow void
+	 */
+    template<>
+    class AutoRefBase<void, void> {
+    private:
+    public:
+    };
+	
+	template <typename T>
+	class AutoRef : public AutoRefBase<T, SharedRefCounter> {
+	public:
+		AutoRef() {}
+		AutoRef(T * t)
+			: AutoRefBase<T, SharedRefCounter>(t) {}
+		virtual ~AutoRef() {}
+	};
+
+	template <typename T>
+	class UnsafeAutoRef : public AutoRefBase<T, RefCounter> {
+	public:
+		UnsafeAutoRef() {}
+		UnsafeAutoRef(T * t)
+			: AutoRefBase<T, RefCounter>(t) {}
+		UnsafeAutoRef(const AutoRef<T> & ref)
+			: AutoRefBase<T, RefCounter>(&ref, ref.counter()) {}
+		virtual ~UnsafeAutoRef() {}
+	};
 
 	/**
 	 * not allow void
@@ -187,7 +252,15 @@ namespace OS {
     private:
     public:
     };
-    
+
+	/**
+	 * not allow void
+	 */
+    template<>
+    class UnsafeAutoRef<void> {
+    private:
+    public:
+    };
 }
 
 #endif
