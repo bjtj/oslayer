@@ -44,12 +44,12 @@ namespace OS {
     }
 
 	int SharedRefCounter::ref() {
-		AutoLock _lock(Ref<Mutex>(&_mutex));
+        AutoLock _lock((Ref<Mutex>(&_mutex)));
 		return RefCounter::ref();
 	}
 	
 	int SharedRefCounter::unref() {
-		AutoLock _lock(Ref<Mutex>(&_mutex));
+        AutoLock _lock((Ref<Mutex>(&_mutex)));
 		return RefCounter::unref();
 	}
 }

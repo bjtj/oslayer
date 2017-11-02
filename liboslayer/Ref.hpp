@@ -74,7 +74,7 @@ namespace OS {
 	void Ref<T>::release() {
 		if (_t) {
 			delete _t;
-			_t == NULL;
+            _t = NULL;
 		}
 	}
 
