@@ -529,19 +529,26 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		OS::UnsafeAutoRef<Scope> _scope;
-		OS::SharedHeap<Var> _heap;
+		OS::UnsafeAutoRef< Scope > _scope;
+		OS::Heap<Var> _heap;
 	public:
 		Env();
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		OS::UnsafeAutoRef<Scope> & scope();
-		OS::SharedHeap<Var> & heap();
+		OS::UnsafeAutoRef< Scope > & scope();
+	    OS::Heap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();
 		void clear();
 	};
+
+
+#define LISP_PROCEDURE_PROC(E,S,N,A)								\
+	virtual OS::GCRef<LISP::Var> proc(LISP::Env & E,				\
+								OS::UnsafeAutoRef<LISP::Scope> & S,	\
+								OS::GCRef<LISP::Var> & N,			\
+								LISP::Sequence & A)
 
 	/**
 	 * @brief procedure (built-in function)
@@ -551,7 +558,7 @@ namespace LISP {
 	public:
 		Procedure();
 		virtual ~Procedure();
-		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args) = 0;
+		LISP_PROCEDURE_PROC(env, scope, name, args) = 0;
 		virtual std::string toString() const;
 	};
 
@@ -579,7 +586,7 @@ namespace LISP {
 		OS::GCRef<Var> & doc();
 		OS::GCRef<Var> & params();
 		OS::GCRef<Var> & form();
-		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> name, Sequence & args);
+		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> & scope, OS::GCRef<Var> & name, Sequence & args);
 		std::string toString() const;
 	};
 
@@ -682,10 +689,10 @@ namespace LISP {
 		FileDescriptor & r_fileDescriptor();
 		OS::UnsafeAutoRef<Object> & r_obj();
 
-		OS::GCRef<Var> expand(Env & env, OS::UnsafeAutoRef<Scope> scope,
-							  OS::GCRef<Var> name, Sequence & args);
-		OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> scope,
-							OS::GCRef<Var> name, Sequence & args);
+		OS::GCRef<Var> expand(Env & env, OS::UnsafeAutoRef<Scope> & scope,
+							  OS::GCRef<Var> & name, Sequence & args);
+		OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> & scope,
+							OS::GCRef<Var> & name, Sequence & args);
 
 		void numberCheck() const;
 		void numberOperationCheck(const Var & other) const;
@@ -789,9 +796,9 @@ namespace LISP {
 		std::map<Keyword, Parameter> & keywords();
 		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> tokens);
 		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, Sequence & tokens);
-		void bind(Env & env, OS::UnsafeAutoRef<Scope> global_scope, OS::UnsafeAutoRef<Scope> lex_scope,
+		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
 				  Sequence & tokens);
-		void bind(Env & env, OS::UnsafeAutoRef<Scope> global_scope, OS::UnsafeAutoRef<Scope> lex_scope,
+		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
 				  Sequence & tokens, bool proc_eval);
 		std::string toString() const;
 	};

@@ -459,7 +459,7 @@ static void test_procedure() {
 	public:
 		MyProc() {}
 		virtual ~MyProc() {}
-		virtual GCRef<Var> proc(Env & env, UnsafeAutoRef<Scope> scope, GCRef<Var> name, Sequence & args) {
+		LISP_PROCEDURE_PROC(env, scope, name, args) {
 			return env.alloc(new Var((int)args.size()));
 		}
 	};

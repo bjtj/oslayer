@@ -64,7 +64,7 @@
 	public:															\
 	_cls() {}					\
 	virtual ~_cls() {}												\
-	virtual _VAR proc(Env & env, UnsafeAutoRef<Scope> scope, _VAR name, Sequence & args) {
+	LISP_PROCEDURE_PROC(env, scope, name, args) {
 #define END_DECL_NATIVE												\
 	}																\
 	};																\
@@ -389,7 +389,8 @@ namespace LISP {
 
 	Sequence::Sequence() {
 	}
-	Sequence::Sequence(const vector<_VAR> & lst) : _lst(lst) {
+	Sequence::Sequence(const vector<_VAR> & lst)
+		: _lst(lst) {
 	}
 	Sequence::Sequence(vector<_VAR>::iterator begin, vector<_VAR>::iterator end)
 		: _lst(begin, end) {
@@ -1173,24 +1174,24 @@ namespace LISP {
 	UnsafeAutoRef<Scope> & Env::scope() {
 		return _scope;
 	}
-	SharedHeap<Var> & Env::heap() {
+	Heap<Var> & Env::heap() {
 		return _heap;
 	}
 	_VAR Env::alloc(Var * var) {
 		return heap().alloc(var);
 	}
 	void Env::gc() {
-		size_t size = _heap.size();
-		unsigned long elapsed = _heap.gc();
+		size_t size = heap().size();
+		unsigned long elapsed = heap().gc();
 		if (_debug) {
 			printf(" # GC / %d, dealloc: %d (%ld ms.) #\n",
-				   (int)_heap.size(), (int)(size - _heap.size()), elapsed);
+				   (int)heap().size(), (int)(size - heap().size()), elapsed);
 		}
 	}
 	void Env::clear() {
 		_scope->clear();
 		gc();
-		_heap.clear();
+		heap().clear();
 	}
 
 	/**
@@ -1247,7 +1248,7 @@ namespace LISP {
 	_VAR & Func::form() {
 		return _form;
 	}
-	_VAR Func::proc(Env & env, UnsafeAutoRef<Scope> scope, _VAR name, Sequence & args) {
+	_VAR Func::proc(Env & env, UnsafeAutoRef<Scope> & scope, _VAR & name, Sequence & args) {
 		Parameters p_params = Parameters::read(env, scope, params());
 		if (macro()) {
 			p_params.bind(env, scope, closure_scope(), args, false);
@@ -1545,7 +1546,7 @@ namespace LISP {
 		return (FileDescriptor&)(*_obj);
 	}
 	UnsafeAutoRef<Object> & Var::r_obj() {typeCheck(OBJECT); return _obj;}
-	_VAR Var::expand(Env & env, UnsafeAutoRef<Scope> scope, _VAR name, Sequence & args) {
+	_VAR Var::expand(Env & env, UnsafeAutoRef<Scope> & scope, _VAR & name, Sequence & args) {
 		if (!isFunction()) {
 			throw LispException("Not Function / name: " + _SAFE_STRING(name) +
 								" / type : '" + getTypeString() + "'");
@@ -1558,7 +1559,7 @@ namespace LISP {
 		r_func().closure_scope()->parent() = scope;
 		return eval(env, r_func().closure_scope(), r_func().form());
 	}
-	_VAR Var::proc(Env & env, UnsafeAutoRef<Scope> scope, _VAR name, Sequence & args) {
+	_VAR Var::proc(Env & env, UnsafeAutoRef<Scope> & scope, _VAR & name, Sequence & args) {
 		if (!isCallable()) {
 			throw LispException("not a callable / name: " + _SAFE_STRING(name) +
 								" / type : '" + getTypeString() + "'");
@@ -1857,11 +1858,11 @@ namespace LISP {
 		return params;
 	}
 
-	void Parameters::bind(Env & env, UnsafeAutoRef<Scope> global_scope, UnsafeAutoRef<Scope> lex_scope,
+	void Parameters::bind(Env & env, UnsafeAutoRef<Scope> & global_scope, UnsafeAutoRef<Scope> & lex_scope,
 						  Sequence & tokens) {
 		bind(env, global_scope, lex_scope, tokens, true);
 	}
-	void Parameters::bind(Env & env, UnsafeAutoRef<Scope> global_scope, UnsafeAutoRef<Scope> lex_scope,
+	void Parameters::bind(Env & env, UnsafeAutoRef<Scope> & global_scope, UnsafeAutoRef<Scope> & lex_scope,
 						  Sequence & tokens, bool proc_eval) {
 		
 #define _PROC_VAR(E,S,T) (proc_eval ? eval(E,S,(T)) : (T))
@@ -3274,19 +3275,18 @@ namespace LISP {
 				return _HEAP_ALLOC(env, lst);
 			}
 
+			// http://www.cplusplus.com/reference/algorithm/sort/
+
+			// bubble sort
 			_VAR nil;
 			Sequence fargs;
+			fargs.push_back(_VAR());
+			fargs.push_back(_VAR());
 			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
 				int swap_count = 0;
-				for (size_t i = 0; i < lst.size() - 1; i++) {
-					if (fargs.size() == 0) {
-						fargs.push_back(lst[i]);
-						fargs.push_back(lst[i+1]);
-					} else {
-						fargs[0] = lst[i];
-						fargs[1] = lst[i+1];
-					}
-					
+				for (size_t i = 0; i < lst.size() - 1 - loop; i++) {
+					fargs[0] = lst[i];
+					fargs[1] = lst[i+1];
 					bool test = (func->proc(env, scope, nil, fargs)->isNil() == false); // TODO: optimize
 					if (test) {
 						lst.swap(i, i+1);
