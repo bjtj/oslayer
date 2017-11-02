@@ -181,7 +181,7 @@ namespace OS {
     void AutoRefBase<T, S>::_release() {
         if (_counter.nil() == false && _counter->unref() == 0) {
             if (_counter.nil() == false) {
-				_counter.release();
+				_counter.dealloc();
 			}
 			if (_t) {
 				delete _t;
@@ -206,7 +206,7 @@ namespace OS {
 		//
 		if (x_counter.nil() == false && x_counter->unref() == 0) {
             if (x_counter.nil() == false) {
-				x_counter.release();
+				x_counter.dealloc();
 			}
 			if (x_t) {
 				delete x_t;

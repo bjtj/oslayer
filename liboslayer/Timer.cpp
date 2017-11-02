@@ -159,6 +159,21 @@ namespace UTIL {
 
 	//
 
+	Duration::Duration() : _milli(0) {
+	}
+	Duration::Duration(unsigned long milli) : _milli(milli) {
+	}
+	Duration::~Duration() {
+	}
+	void Duration::add(unsigned long milli) {
+		_milli += milli;
+	}
+	unsigned long & Duration::milli() {
+		return _milli;
+	}
+
+	//
+
 	TimeoutChecker::TimeoutChecker() : _timeout(0) {
 		_tick = tick_milli();
 	}

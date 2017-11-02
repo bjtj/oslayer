@@ -20,7 +20,7 @@ namespace OS {
         T * operator-> () const;
         T * operator& ();
 		bool nil() const;
-		void release();
+		void dealloc();
 	};
 
 	template <typename T>
@@ -71,7 +71,7 @@ namespace OS {
 		return _t == NULL;
 	}
 	template <typename T>
-	void Ref<T>::release() {
+	void Ref<T>::dealloc() {
 		if (_t) {
 			delete _t;
 			_t == NULL;

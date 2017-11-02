@@ -19,9 +19,11 @@ namespace UTIL {
 		typename std::vector<T>::iterator _iter;
 	private:
 	public:
-		Iterator(std::vector<T> & vec) : _idx(0), _vec(vec), _iter(vec.begin()) {
+		Iterator(std::vector<T> & vec)
+			: _idx(0), _vec(vec), _iter(vec.begin()) {
 		}
-		Iterator(std::vector<T> & vec, typename std::vector<T>::iterator iter) : _idx(0), _vec(vec), _iter(iter) {
+		Iterator(std::vector<T> & vec, typename std::vector<T>::iterator iter)
+			: _idx(0), _vec(vec), _iter(iter) {
 		}
 		virtual ~Iterator() {
 		}
@@ -126,9 +128,11 @@ namespace UTIL {
 		typename std::vector<T>::const_iterator _iter;
 	private:
 	public:
-		ConstIterator(const std::vector<T> & vec) : _idx(0), _vec(vec), _iter(vec.begin()) {
+		ConstIterator(const std::vector<T> & vec)
+			: _idx(0), _vec(vec), _iter(vec.begin()) {
 		}
-		ConstIterator(const std::vector<T> & vec, typename std::vector<T>::const_iterator iter) : _idx(0), _vec(vec), _iter(iter) {
+		ConstIterator(const std::vector<T> & vec, typename std::vector<T>::const_iterator iter)
+			: _idx(0), _vec(vec), _iter(iter) {
 		}
 		virtual ~ConstIterator() {
 		}

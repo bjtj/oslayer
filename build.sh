@@ -49,7 +49,7 @@ install() {
 
 check() {
 	cd $DIR_BUILD
-	make check
+	make check # TESTS='test-iterator'
 }
 
 check_valgrind() {

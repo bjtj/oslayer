@@ -115,6 +115,20 @@ namespace UTIL {
 	/**
 	 * @brief
 	 */
+	class Duration {
+	private:
+		unsigned long _milli;
+	public:
+		Duration();
+		Duration(unsigned long milli);
+		virtual ~Duration();
+		void add(unsigned long milli);
+		unsigned long & milli();
+	};
+
+	/**
+	 * @brief
+	 */
 	class TimeoutChecker {
 	private:
 		unsigned long _timeout;
