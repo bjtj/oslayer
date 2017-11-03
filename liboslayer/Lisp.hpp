@@ -153,6 +153,7 @@ namespace LISP {
 		OS::GCRef<Var> search_func(const Symbol & sym);
 		OS::GCRef<Var> rsearch_func(const Symbol & sym);
 		OS::GCRef<Var> rget_func(const Symbol & sym);
+		OS::GCRef<Var> rget_func(Symbol & sym);
 		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
 		// 
 		OS::GCRef<Var> search(const REG_ID & id, const Symbol & sym);
@@ -794,8 +795,8 @@ namespace LISP {
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
 		std::map<Keyword, Parameter> & keywords();
-		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, OS::GCRef<Var> tokens);
-		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> scope, Sequence & tokens);
+		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> & scope, const OS::GCRef<Var> & tokens);
+		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> & scope, Sequence & tokens);
 		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
 				  Sequence & tokens);
 		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
@@ -806,12 +807,12 @@ namespace LISP {
 	/**
 	 * @brief lisp extern
 	 */
-	extern OS::GCRef<Var> pathname(Env & env, OS::GCRef<Var> path);
+	extern OS::GCRef<Var> pathname(Env & env, const OS::GCRef<Var> & path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
 	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, OS::UnsafeAutoRef<Scope> scope, const OS::GCRef<Var> & var);
+	extern OS::GCRef<Var> eval(Env & env, OS::UnsafeAutoRef<Scope> & scope, const OS::GCRef<Var> & var);
 	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 

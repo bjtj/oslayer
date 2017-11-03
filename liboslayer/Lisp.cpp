@@ -8,6 +8,7 @@
 #include "Process.hpp"
 #include "DatabaseDriver.hpp"
 #include "DatabaseConnection.hpp"
+#include "Timer.hpp"
 
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
@@ -77,7 +78,7 @@ namespace LISP {
 	using namespace OS;
 	using namespace UTIL;
 
-	static string _to_string(_VAR var) {
+	inline static string _to_string(_VAR var) {
 		if (var.nil()) {
 			return "(undefined)";
 		}
@@ -162,7 +163,7 @@ namespace LISP {
 	 * @brief
 	 */
 
-	static string _reg_id_to_string(const REG_ID & id) {
+	inline static string _reg_id_to_string(const REG_ID & id) {
 		switch (id) {
 		case REG_VARIABLE:
 			return "REG_VARIABLE";
@@ -262,6 +263,10 @@ namespace LISP {
 	}
 
 	_VAR Scope::rget_func(const Symbol & sym) {
+		return rget(REG_FUNCTION, sym);
+	}
+
+	_VAR Scope::rget_func(Symbol & sym) {
 		return rget(REG_FUNCTION, sym);
 	}
 
@@ -1782,7 +1787,7 @@ namespace LISP {
 		return _keywords;
 	}
 
-	static bool _is_special_keyword(const Symbol & token) {
+	inline static bool _is_special_keyword(const Symbol & token) {
 		vector<string> lst = tokenize("&optional &rest &key");
 		for (vector<string>::iterator iter = lst.begin(); iter != lst.end(); iter++) {
 			if (*iter == token) {
@@ -1792,7 +1797,7 @@ namespace LISP {
 		return false;
 	}
 
-	static vector<_VAR> s_read_tokens(Iterator<_VAR> & iter) {
+	inline static vector<_VAR> s_read_tokens(Iterator<_VAR> & iter) {
 		vector<_VAR> ret;
 		while (iter.has()) {
 			if ((*iter)->isSymbol() && _is_special_keyword((*iter)->r_symbol())) {
@@ -1803,11 +1808,11 @@ namespace LISP {
 		return ret;
 	}
 
-	Parameters Parameters::read(Env & env, UnsafeAutoRef<Scope> scope, _VAR tokens) {
+	Parameters Parameters::read(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & tokens) {
 		return Parameters::read(env, scope, tokens->r_list());
 	}
 
-	Parameters Parameters::read(Env & env, UnsafeAutoRef<Scope> scope, Sequence & tokens) {
+	Parameters Parameters::read(Env & env, UnsafeAutoRef<Scope> & scope, Sequence & tokens) {
 		Parameters params;
 		Iterator<_VAR> iter = tokens.iter();
 		
@@ -2112,28 +2117,28 @@ namespace LISP {
 	};
 
 	// built-in
-	static void builtin_essential(Env & env);
-	static void builtin_type(Env & env);
-	static void builtin_algorithm(Env & env);
-	static void builtin_list(Env & env);
-	static void builtin_logic(Env & env);
-	static void builtin_character(Env & env);
-	static void builtin_string(Env & env);
-	static void builtin_arithmetic(Env & env);
-	static void builtin_mathematic(Env & env);
-	static void builtin_io(Env & env);
-	static void builtin_pathname(Env & env);
-	static void builtin_file(Env & env);
-	static void builtin_facility(Env & env);
-	static void builtin_socket(Env & env);
-	static void builtin_concurrent(Env & env);
-	static void builtin_system(Env & env);
-	static void builtin_date(Env & env);
-	static void builtin_macro(Env & env);
-	static void builtin_db(Env & env);
-	static void builtin_benchmark(Env & env);
+	inline static void builtin_essential(Env & env);
+	inline static void builtin_type(Env & env);
+	inline static void builtin_algorithm(Env & env);
+	inline static void builtin_list(Env & env);
+	inline static void builtin_logic(Env & env);
+	inline static void builtin_character(Env & env);
+	inline static void builtin_string(Env & env);
+	inline static void builtin_arithmetic(Env & env);
+	inline static void builtin_mathematic(Env & env);
+	inline static void builtin_io(Env & env);
+	inline static void builtin_pathname(Env & env);
+	inline static void builtin_file(Env & env);
+	inline static void builtin_facility(Env & env);
+	inline static void builtin_socket(Env & env);
+	inline static void builtin_concurrent(Env & env);
+	inline static void builtin_system(Env & env);
+	inline static void builtin_date(Env & env);
+	inline static void builtin_macro(Env & env);
+	inline static void builtin_db(Env & env);
+	inline static void builtin_benchmark(Env & env);
 	
-	static string format(Env & env, UnsafeAutoRef<Scope> scope, const string & fmt, vector<_VAR> & args) {
+	inline static string format(Env & env, UnsafeAutoRef<Scope> & scope, const string & fmt, vector<_VAR> & args) {
 		string ret;
 		size_t f = 0;
 		size_t s = 0;
@@ -2178,7 +2183,7 @@ namespace LISP {
 		return ret;
 	}
 
-	_VAR pathname(Env & env, _VAR path) {
+	_VAR pathname(Env & env, const _VAR & path) {
 		if (path->isPathname()) {
 			return path;
 		}
@@ -2195,7 +2200,7 @@ namespace LISP {
 	}
 
 	template <typename T>
-	static bool _contains(const vector<T> & _vec, const T & val) {
+	inline static bool _contains(const vector<T> & _vec, const T & val) {
 		typename vector<T>::const_iterator iter = _vec.begin();
 		for (; iter != _vec.end(); iter++) {
 			if (*iter == val) {
@@ -2206,13 +2211,13 @@ namespace LISP {
 	}
 
 	template <typename T, typename U>
-	static bool _contains(const map<T, U> & _map, const T & val) {
+	inline static bool _contains(const map<T, U> & _map, const T & val) {
 		return (_map.find(val) != _map.end());
 	}
 
 	
 
-	static bool _zero_p(_VAR v) {
+	inline static bool _zero_p(_VAR v) {
 		if (v->isInteger()) {
 			return v->r_integer().zero_p();
 		} else if (v->isFloat()) {
@@ -2221,14 +2226,14 @@ namespace LISP {
 		throw LispException("Not a number type - " + v->toString());
 	}
 
-	static _VAR _toFloat(Env & env, _VAR v) {
+	inline static _VAR _toFloat(Env & env, _VAR v) {
 		if (v->isInteger()) {
 			return _HEAP_ALLOC(env, (double)(_INT(v)));
 		}
 		return v;
 	}
 
-	static bool _eq(Env & env, _VAR v1, _VAR v2) {
+	inline static bool _eq(Env & env, _VAR v1, _VAR v2) {
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = _toFloat(env, v1);
 			v2 = _toFloat(env, v2);
@@ -2237,7 +2242,7 @@ namespace LISP {
 		return v1->r_integer() == v2->r_integer();
 	}
 
-	static bool _gt(Env & env, _VAR v1, _VAR v2) {
+	inline static bool _gt(Env & env, _VAR v1, _VAR v2) {
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = _toFloat(env, v1);
 			v2 = _toFloat(env, v2);
@@ -2246,7 +2251,7 @@ namespace LISP {
 		return v1->r_integer() > v2->r_integer();
 	}
 
-	static bool _lt(Env & env, _VAR v1, _VAR v2) {
+	inline static bool _lt(Env & env, _VAR v1, _VAR v2) {
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = _toFloat(env, v1);
 			v2 = _toFloat(env, v2);
@@ -2255,7 +2260,7 @@ namespace LISP {
 		return v1->r_integer() < v2->r_integer();
 	}
 
-	static bool _gteq(Env & env, _VAR v1, _VAR v2) {
+	inline static bool _gteq(Env & env, _VAR v1, _VAR v2) {
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = _toFloat(env, v1);
 			v2 = _toFloat(env, v2);
@@ -2264,7 +2269,7 @@ namespace LISP {
 		return v1->r_integer() >= v2->r_integer();
 	}
 
-	static bool _lteq(Env & env, _VAR v1, _VAR v2) {
+	inline static bool _lteq(Env & env, _VAR v1, _VAR v2) {
 		if (v1->isFloat() || v2->isFloat()) {
 			v1 = _toFloat(env, v1);
 			v2 = _toFloat(env, v2);
@@ -2273,7 +2278,7 @@ namespace LISP {
 		return v1->r_integer() <= v2->r_integer();
 	}
 
-	static _VAR _plus(Env & env, _VAR v1, _VAR v2) {
+	inline static _VAR _plus(Env & env, _VAR v1, _VAR v2) {
 		v1->numberCheck();
 		v2->numberCheck();
 
@@ -2292,7 +2297,7 @@ namespace LISP {
         throw LispException("Weird: should not be reachable place");
 	}
 
-	static _VAR _minus(Env & env, _VAR v1, _VAR v2) {
+	inline static _VAR _minus(Env & env, _VAR v1, _VAR v2) {
 		v1->numberCheck();
 		v2->numberCheck();
 
@@ -2311,7 +2316,7 @@ namespace LISP {
         throw LispException("Weird: should not be reachable place");
 	}
 
-	static _VAR _multiply(Env & env, _VAR v1, _VAR v2) {
+	inline static _VAR _multiply(Env & env, _VAR v1, _VAR v2) {
 		v1->numberCheck();
 		v2->numberCheck();
 
@@ -2330,7 +2335,7 @@ namespace LISP {
         throw LispException("Weird: should not be reachable place");
 	}
 
-	static _VAR _divide(Env & env, _VAR v1, _VAR v2) {
+	inline static _VAR _divide(Env & env, _VAR v1, _VAR v2) {
 		v1->numberCheck();
 		v2->numberCheck();
 		if (_zero_p(v2)) {
@@ -2352,7 +2357,7 @@ namespace LISP {
         throw LispException("Weird: should not be reachable place");
 	}
 
-	static _VAR _cos(Env & env, _VAR v) {
+	inline static _VAR _cos(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2367,7 +2372,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _sin(Env & env, _VAR v) {
+	inline static _VAR _sin(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2382,7 +2387,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _tan(Env & env, _VAR v) {
+	inline static _VAR _tan(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2397,7 +2402,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _acos(Env & env, _VAR v) {
+	inline static _VAR _acos(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2412,7 +2417,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _asin(Env & env, _VAR v) {
+	inline static _VAR _asin(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2427,7 +2432,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _atan(Env & env, _VAR v) {
+	inline static _VAR _atan(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2442,7 +2447,7 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static _VAR _abs(Env & env, _VAR v) {
+	inline static _VAR _abs(Env & env, _VAR v) {
 		if (v->isNumber() == false) {
 			throw LispException("numberp failed");
 		}
@@ -2457,15 +2462,15 @@ namespace LISP {
 		throw LispException("unknown exception");
 	}
 
-	static size_t _length(_VAR lst) {
+	inline static size_t _length(_VAR lst) {
 		return lst->r_list().size();
 	}
 
-	static _VAR _car(_VAR lst) {
+	inline static _VAR _car(_VAR lst) {
 		return lst->r_list()[0];
 	}
 
-	static Sequence _cdr(_VAR lst) {
+	inline static Sequence _cdr(_VAR lst) {
 		Sequence rest;
 		if (_length(lst) > 1) {
 			Iterator<_VAR> iter = lst->r_list().iter();
@@ -2476,7 +2481,7 @@ namespace LISP {
 		return rest;
 	}
 
-	static _VAR _progn(Env & env, UnsafeAutoRef<Scope> scope, const Sequence & forms,
+	inline static _VAR _progn(Env & env, UnsafeAutoRef<Scope> & scope, const Sequence & forms,
 					   size_t start_index) {
 		_VAR ret;
 		_FORI(forms, i, start_index) {
@@ -2485,18 +2490,18 @@ namespace LISP {
 		return ret.nil() ? _NIL(env) : ret;
 	}
 
-	static _VAR _progn(Env & env, UnsafeAutoRef<Scope> scope, const Sequence & forms) {
+	inline static _VAR _progn(Env & env, UnsafeAutoRef<Scope> & scope, const Sequence & forms) {
 		return _progn(env, scope, forms, 0);
 	}
 
-	static _VAR _progn1(Env & env, UnsafeAutoRef<Scope> scope, const Sequence & forms) {
+	inline static _VAR _progn1(Env & env, UnsafeAutoRef<Scope> & scope, const Sequence & forms) {
 		return _progn(env, scope, forms, 1);
 	}
 
 	/**
 	 * get function
 	 */
-	static _VAR _function(Env & env, UnsafeAutoRef<Scope> scope, const _VAR & var) {
+	inline static _VAR _function(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & var) {
 		if (var->isFunction()) {
 			return var;
 		}
@@ -2510,7 +2515,7 @@ namespace LISP {
 		throw LispException("invalid function - " + var->toString());
 	}
 
-	static bool _isSpace(const char ch) {
+	inline static bool _isSpace(const char ch) {
 		return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r';
 	}
 
@@ -2593,7 +2598,7 @@ namespace LISP {
 		return tokens;
 	}
 
-	static _VAR _read_from_tokens(Env & env, vector<string>::iterator & iter, vector<string>::iterator & end) {
+	inline static _VAR _read_from_tokens(Env & env, vector<string>::iterator & iter, vector<string>::iterator & end) {
 		if (iter == end) {
 			throw ParseLispException("syntax error - unexpected EOF");
 		}
@@ -2653,22 +2658,22 @@ namespace LISP {
 		return _read_from_tokens(env, iter, end);
 	}
 
-	static bool _silentsymboleq(const _VAR & var, const string & sym) {
+	inline static bool _silentsymboleq(const _VAR & var, const string & sym) {
 		return (var->isSymbol() && var->r_symbol() == sym);
 	}
 
-	static bool _silentkeywordeq(const _VAR & var, const string & key) {
+	inline static bool _silentkeywordeq(const _VAR & var, const string & key) {
 		return (var->isKeyword() && var->r_keyword() == key);
 	}
 
-	static _VAR _quoty(Env & env, _VAR var) {
+	inline static _VAR _quoty(Env & env, const _VAR & var) {
 		vector<_VAR> qa;
 		qa.push_back(_HEAP_ALLOC(env, "quote"));
 		qa.push_back(var);
 		return _HEAP_ALLOC(env, qa);
 	}
 
-	static _VAR _quote(Env & env, UnsafeAutoRef<Scope> scope, _VAR var) {
+	inline static _VAR _quote(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & var) {
 		if (var->isList()) {
 			Sequence lst = var->r_list(); // copy
 			if (lst.empty()) {
@@ -2686,7 +2691,7 @@ namespace LISP {
 		return var;
 	}
 	
-	static _VAR _quasi(Env & env, UnsafeAutoRef<Scope> scope, _VAR var) {
+	inline static _VAR _quasi(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & var) {
 		if (var->isList()) {
 			Sequence lst = var->r_list(); // copy
 			if (lst.empty()) {
@@ -2717,7 +2722,7 @@ namespace LISP {
 		return var;
 	}
 
-	_VAR eval(Env & env, UnsafeAutoRef<Scope> scope, const _VAR & var) {
+	_VAR eval(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & var) {
 		if (var->isSymbol()) {
 			return scope->rget_var(var->r_symbol());
 		} else if (var->isList() == false) {
@@ -3211,6 +3216,106 @@ namespace LISP {
 		}END_DECL_NATIVE;
 	}
 
+
+	inline static void _bubble_sort(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & comp, Sequence & lst) {
+		_VAR nil;
+		Sequence fargs;
+		fargs.push_back(_VAR());
+		fargs.push_back(_VAR());
+		for (size_t loop = 0; loop < lst.size() - 1; loop++) {
+			int swap_count = 0;
+			for (size_t i = 0; i < lst.size() - 1 - loop; i++) {
+				fargs[0] = lst[i];
+				fargs[1] = lst[i+1];
+				bool test = comp->proc(env, scope, nil, fargs)->isNil(); // TODO: optimize
+				if (test) {
+					lst.swap(i, i+1);
+					swap_count++;
+				}
+			}
+			if (swap_count == 0) {
+				break;
+			}
+		}
+	}
+
+	// int partition(int arr[], int l, int r) {
+	// 	int pivot, i, j, t;
+	// 	pivot = arr[l];
+	// 	i = l; j = r+1;
+
+	// 	while (1) {
+	// 		do ++i; while (arr[i] <= pivot && i <= r);
+	// 		do --j; while (arr[j] > pivot);
+	// 		if (i >= j) break;
+	// 		t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+	// 	}
+
+	// 	t = arr[l]; arr[l] = arr[j]; arr[j] = t;
+	// 	return j;
+	// }
+
+	// void quicksort(int arr[], int l, int r) {
+	// 	int j;
+	// 	if (l < r) {
+	// 		j = partition(arr, l, r);
+	// 		quicksort(arr, l, j-1);
+	// 		quicksort(arr, j+1, r);
+	// 	}
+	// }
+
+	inline static void _quicksort(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & comp,
+						   Sequence & lst, int left, int right) {
+		int i = left, j = right;
+		_VAR pivot = lst[(left + right) / 2];
+
+		_VAR nil;
+		
+		Sequence fargs;
+		fargs.push_back(_VAR());
+		fargs.push_back(_VAR());
+ 
+		/* partition */
+		do {
+			while (true) {
+				fargs[0] = lst[i];
+				fargs[1] = pivot;
+				bool test = (comp->proc(env, scope, nil, fargs)->isNil() == false); // arr[i] < pivot == false
+				if (test == false) {
+					break;
+				}
+				i++;
+			}
+
+			while (true) {
+				fargs[0] = lst[j];
+				fargs[1] = pivot;
+				bool test = (comp->proc(env, scope, nil, fargs)->isNil() == false); // arr[i] > pivot == false
+				if (test != false) {
+					break;
+				}
+				j--;
+			}
+				
+            if (i <= j) {
+				lst.swap(i, j);
+				i++;
+				j--;
+            }
+		} while (i <= j);
+
+		printf("i: %d, j: %d, left: %d, right: %d\n", i, j, left, right);
+ 
+		/* recursion */
+		if (left < j) {
+            _quicksort(env, scope, comp, lst, left, j);
+		}
+		
+		if (i < right) {
+            _quicksort(env, scope, comp, lst, i, right);
+		}
+	}
+
 	void builtin_algorithm(Env & env) {
 		// TODO: refer - [http://www.lispworks.com/documentation/lw60/CLHS/Body/f_map.htm]
 		BEGIN_DECL_NATIVE(env, "map");
@@ -3268,8 +3373,8 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			Sequence lst = eval(env, scope, args[0])->r_list(); // copy
-			_VAR func = eval(env, scope, args[1]);
-			func = _function(env, scope, func);
+			_VAR comp = eval(env, scope, args[1]);
+			comp = _function(env, scope, comp);
 
 			if (lst.size() <= 1) {
 				return _HEAP_ALLOC(env, lst);
@@ -3278,25 +3383,11 @@ namespace LISP {
 			// http://www.cplusplus.com/reference/algorithm/sort/
 
 			// bubble sort
-			_VAR nil;
-			Sequence fargs;
-			fargs.push_back(_VAR());
-			fargs.push_back(_VAR());
-			for (size_t loop = 0; loop < lst.size() - 1; loop++) {
-				int swap_count = 0;
-				for (size_t i = 0; i < lst.size() - 1 - loop; i++) {
-					fargs[0] = lst[i];
-					fargs[1] = lst[i+1];
-					bool test = (func->proc(env, scope, nil, fargs)->isNil() == false); // TODO: optimize
-					if (test) {
-						lst.swap(i, i+1);
-						swap_count++;
-					}
-				}
-				if (swap_count == 0) {
-					break;
-				}
-			}
+			_bubble_sort(env, scope, comp, lst);
+
+			// quick sort
+			// _quicksort(env, scope, comp, lst, 0, lst.size() - 1);
+			
 			return _HEAP_ALLOC(env, lst);
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "reduce");
@@ -4081,7 +4172,7 @@ namespace LISP {
 	public:
 		_cls_iter_base() {}
 		virtual ~_cls_iter_base() {}
-		void _bind_vars(UnsafeAutoRef<Scope> scope, const vector<Symbol> & syms, _VAR item) {
+		void _bind_vars(UnsafeAutoRef<Scope> & scope, const vector<Symbol> & syms, _VAR item) {
 			if (syms.size() == 1) {
 				scope->put_var(syms[0], item);
 				return;
@@ -4090,8 +4181,8 @@ namespace LISP {
 				scope->put_var(syms[i], item->r_list()[i]);
 			}
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) = 0;
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) = 0;
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) = 0;
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) = 0;
 	};
 
 
@@ -4157,9 +4248,9 @@ namespace LISP {
 		_VAR & by() {
 			return _by;
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if (_first) {
 				_first = false;
 			} else {
@@ -4210,9 +4301,9 @@ namespace LISP {
 		Sequence & seq() {
 			return _seq;
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if (_idx >= _seq.size()) {
 				return false;
 			}
@@ -4230,9 +4321,9 @@ namespace LISP {
 	public:
 		_cls_iter_while(_VAR stmt) : _stmt(stmt) {}
 		virtual ~_cls_iter_while() {}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if (eval(env, scope, _stmt)->isNil() == false) {
 				return false;
 			}
@@ -4249,9 +4340,9 @@ namespace LISP {
 	public:
 		_cls_iter_unless(_VAR stmt) : _stmt(stmt) {}
 		virtual ~_cls_iter_unless() {}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if (eval(env, scope, _stmt)->isNil() == true) {
 				return false;
 			}
@@ -4270,9 +4361,9 @@ namespace LISP {
 		_cls_iter_when(_VAR test_stmt, _VAR eval_stmt)
 			: _test_stmt(test_stmt), _eval_stmt(eval_stmt) {}
 		virtual ~_cls_iter_when() {}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if (eval(env, scope, _test_stmt)->isNil() == false && _eval_stmt.nil() == false) {
 				eval(env, scope, _eval_stmt);
 			}
@@ -4290,9 +4381,9 @@ namespace LISP {
 	public:
 		_cls_iter_assign(const vector<Symbol> & syms, _VAR stmt) : _syms(syms), _stmt(stmt) {}
 		virtual ~_cls_iter_assign() {}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			_bind_vars(scope, _syms, eval(env, scope, _stmt));
 			return true;
 		}
@@ -4307,9 +4398,9 @@ namespace LISP {
 	public:
 		_cls_iter_do(_VAR stmt) : _stmt(stmt) {}
 		virtual ~_cls_iter_do() {}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			eval(env, scope, _stmt);
 			return true;
 		}
@@ -4326,11 +4417,11 @@ namespace LISP {
 		}
 		virtual ~_cls_iter_collect() {
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 			Symbol sym_ret("!ret");
 			scope->put_var(sym_ret, _HEAP_ALLOC(env, Sequence()));
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			Symbol sym_ret("!ret");
 			_VAR ret = scope->get_var(sym_ret);
 			_VAR item = eval(env, scope, _stmt);
@@ -4350,9 +4441,9 @@ namespace LISP {
 		}
 		virtual ~_cls_iter_thereis() {
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			_VAR v = eval(env, scope, _stmt);
 			if(v->isNil() == false) {
 				throw ReturnLispException(_NIL(env), v);
@@ -4372,9 +4463,9 @@ namespace LISP {
 		}
 		virtual ~_cls_iter_always() {
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if(eval(env, scope, _stmt)->isNil() == false) {
 				throw ReturnLispException(_NIL(env), _NIL(env));
 			}
@@ -4393,9 +4484,9 @@ namespace LISP {
 		}
 		virtual ~_cls_iter_never() {
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			if(eval(env, scope, _stmt)->isNil() == true) {
 				throw ReturnLispException(_NIL(env), _NIL(env));
 			}
@@ -4410,12 +4501,12 @@ namespace LISP {
 		Symbol _base_symbol;
 		UnsafeAutoRef<_cls_iter_base> _iter;
 	public:
-		_cls_iter(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		_cls_iter(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			read_statement(env, scope, stmt);
 		}
 		virtual ~_cls_iter() {
 		}
-		void read_statement(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void read_statement(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			_VAR sym = _car(stmt);
 			_base_symbol = sym->r_symbol();
 			if (sym->r_symbol() == "for") {
@@ -4451,7 +4542,7 @@ namespace LISP {
 			}
 			return _map;
 		}
-		void _set_var(UnsafeAutoRef<Scope> scope, _VAR var, _VAR val) {
+		void _set_var(UnsafeAutoRef<Scope> & scope, _VAR var, _VAR val) {
 			if (var->isList()) {
 				Iterator<_VAR> iter = var->r_list().iter();
 				for (; iter.has(); iter++) {
@@ -4514,7 +4605,7 @@ namespace LISP {
 			}
 			return syms;
 		}
-		void _read_for(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_for(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			vector<Symbol> _syms = _read_var_syms(_map[Symbol("for")]);
 			if (_contains(_map, Symbol("="))) {
@@ -4560,19 +4651,19 @@ namespace LISP {
 																	_map[Symbol("by")]));
 			}
 		}
-		void _read_while(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_while(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("while", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("while")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_while(_stmt));
 		}
-		void _read_unless(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_unless(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("unless", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("unless")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_unless(_stmt));
 		}
-		void _read_when(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_when(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			_VAR test_stmt = stmt->r_list()[1];
 			_VAR eval_stmt;
 			if (stmt->r_list().size() > 2) {
@@ -4580,40 +4671,40 @@ namespace LISP {
 			}
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_when(test_stmt, eval_stmt));
 		}
-		void _read_do(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_do(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("do", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("do")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_do(_stmt));
 		}
-		void _read_collect(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_collect(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("collect", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("collect")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_collect(_stmt));
 		}
-		void _read_thereis(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_thereis(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("thereis", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("thereis")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_thereis(_stmt));
 		}
-		void _read_always(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_always(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("always", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("always")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_always(_stmt));
 		}
-		void _read_never(Env & env, UnsafeAutoRef<Scope> scope, _VAR stmt) {
+		void _read_never(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
 			map<Symbol, _VAR> _map = _read_map(stmt);
 			_test_allowed_keywords(_map, _make_symbol_vector("never", (const char *)NULL));
 			_VAR _stmt = _map[Symbol("never")];
 			_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_never(_stmt));
 		}
-		virtual void on_start(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual void on_start(Env & env, UnsafeAutoRef<Scope> & scope) {
 			_iter->on_start(env, scope);
 		}
-		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> scope) {
+		virtual bool iterate(Env & env, UnsafeAutoRef<Scope> & scope) {
 			return _iter->iterate(env, scope);
 		}
 		string toString() const {
@@ -4628,13 +4719,13 @@ namespace LISP {
 	private:
 		vector<_cls_iter> _iters;
 	public:
-		_cls_loop(Env & env, UnsafeAutoRef<Scope> scope, _VAR seq) {
+		_cls_loop(Env & env, UnsafeAutoRef<Scope> & scope, _VAR seq) {
 			Iterator<_VAR> iter = seq->r_list().iter();
 			while (iter.has()) {
 				_iters.push_back(_cls_iter(env, scope, *iter++));
 			}
 		}
-		_cls_loop(Env & env, UnsafeAutoRef<Scope> scope, Sequence & seq) {
+		_cls_loop(Env & env, UnsafeAutoRef<Scope> & scope, Sequence & seq) {
 			Iterator<_VAR> iter = seq.iter();
 			while (iter.has()) {
 				_iters.push_back(_cls_iter(env, scope, *iter++));
@@ -4642,13 +4733,13 @@ namespace LISP {
 		}
 		virtual ~_cls_loop() {
 		}
-		void start(Env & env, UnsafeAutoRef<Scope> scope) {
+		void start(Env & env, UnsafeAutoRef<Scope> & scope) {
 			vector<_cls_iter>::iterator iter = _iters.begin();
 			for (; iter != _iters.end(); iter++) {
 				iter->on_start(env, scope);
 			}
 		}
-		_VAR loop(Env & env, UnsafeAutoRef<Scope> scope) {
+		_VAR loop(Env & env, UnsafeAutoRef<Scope> & scope) {
 			try {
 				start(env, scope);
 				while (1) {
