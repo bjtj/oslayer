@@ -531,6 +531,18 @@ static void test_cond() {
 	compile(env, "(setq a 5)");
 	ASSERT(*compile(env, "(cond ((= a 5) 1) (t \"default\"))")->r_integer(), ==, 1);
 	ASSERT(compile(env, "(cond ((string= a \"hack\") \"foo\") (t \"default\"))")->toPrintString(), ==, "default");
+	
+	ASSERT(compile(env, "(string< \"a\" \"b\")")->isNil(), ==, false);
+	ASSERT(compile(env, "(string< \"b\" \"a\")")->isNil(), ==, true);
+	
+	ASSERT(compile(env, "(string> \"a\" \"b\")")->isNil(), ==, true);
+	ASSERT(compile(env, "(string> \"b\" \"a\")")->isNil(), ==, false);
+	
+	ASSERT(compile(env, "(string<= \"a\" \"b\")")->isNil(), ==, false);
+	ASSERT(compile(env, "(string<= \"b\" \"a\")")->isNil(), ==, true);
+	
+	ASSERT(compile(env, "(string>= \"a\" \"b\")")->isNil(), ==, true);
+	ASSERT(compile(env, "(string>= \"b\" \"a\")")->isNil(), ==, false);
 }
 
 static void test_loop() {
@@ -753,46 +765,30 @@ static void test_algorithm() {
 	ASSERT(compile(env, "(sort (list 1 2 3 4) (lambda (a b) (> a b)))")->r_list().size(), ==, 4);
 
 	string lst = "1 2 3 4";
-	string cmp = "(lambda (a b) (> a b))";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
-		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
-		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
-		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
-		   ==, 4);
+	string cmp = "(lambda (a b) (< a b))";
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(), ==, 4);
 
 	lst = "4 3 2 1";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
-		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
-		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
-		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
-		   ==, 4);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(), ==, 4);
 
 	lst = "2 4 1 3";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
-		   ==, 1);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
-		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
-		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
-		   ==, 4);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(), ==, 1);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(), ==, 4);
 
 	lst = "2 4 1 3";
-	cmp = "(lambda (a b) (< a b))";
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(),
-		   ==, 4);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(),
-		   ==, 3);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(),
-		   ==, 2);
-	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(),
-		   ==, 1);
+	cmp = "(lambda (a b) (> a b))";
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[0]->r_integer(), ==, 4);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[1]->r_integer(), ==, 3);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[2]->r_integer(), ==, 2);
+	ASSERT(*compile(env, "(sort (list " + lst + ") " + cmp + ")")->r_list()[3]->r_integer(), ==, 1);
 }
 
 static void test_file() {

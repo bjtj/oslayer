@@ -3692,7 +3692,51 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			string val = eval(env, scope, args[0])->toPrintString();
 			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
-				if (val != eval(env, scope, *iter)->toPrintString()) {
+				if ((val == eval(env, scope, *iter)->toPrintString()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _TRUE(env);
+		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "string<");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			string val = eval(env, scope, args[0])->toPrintString();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if ((val < eval(env, scope, *iter)->toPrintString()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _TRUE(env);
+		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "string>");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			string val = eval(env, scope, args[0])->toPrintString();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if ((val > eval(env, scope, *iter)->toPrintString()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _TRUE(env);
+		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "string<=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			string val = eval(env, scope, args[0])->toPrintString();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if ((val <= eval(env, scope, *iter)->toPrintString()) == false) {
+					return _NIL(env);
+				}
+			}
+			return _TRUE(env);
+		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "string>=");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			string val = eval(env, scope, args[0])->toPrintString();
+			for (vector<_VAR>::iterator iter = args.begin() + 1; iter != args.end(); iter++) {
+				if ((val >= eval(env, scope, *iter)->toPrintString()) == false) {
 					return _NIL(env);
 				}
 			}
