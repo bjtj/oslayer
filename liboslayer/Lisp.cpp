@@ -5172,13 +5172,15 @@ namespace LISP {
 		BEGIN_DECL_NATIVE(env, "db:fetch");
 		{
 			_CHECK_ARGS_EXACT_COUNT(args, 1);
-			LispResultSet * resultSet = ((LispResultSet *)&eval(env, scope, args[0])->r_obj());
+            _VAR ret = eval(env, scope, args[0]);
+			LispResultSet * resultSet = ((LispResultSet *)&ret->r_obj());
 			if (resultSet->next() == false) {
 				return _NIL(env);
 			}
 			vector<_VAR> row;
 			for (int i = 0; i < resultSet->fieldCount(); i++) {
-				row.push_back(_HEAP_ALLOC(env, wrap_text(resultSet->getString(i))));
+                string val = resultSet->getString(i);
+				row.push_back(_HEAP_ALLOC(env, wrap_text(val)));
 			}
 			return _HEAP_ALLOC(env, row);
 		}END_DECL_NATIVE;
