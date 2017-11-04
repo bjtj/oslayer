@@ -2091,7 +2091,8 @@ namespace LISP {
 		}
 
 		virtual string toString() const {
-			return "<LispDatabaseConnection>";
+			string status = _conn->isConnected() ? "connected" : "disconnected";
+			return "<LispDatabaseConnection/status:'" + status + "'>";
 		}			
 	};
 
