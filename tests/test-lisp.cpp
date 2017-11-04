@@ -104,9 +104,9 @@ static void test_scope() {
 	Env env;
 	native(env);
 
-	AutoRef<Scope> global_scope(new Scope);
-	AutoRef<Scope> local_scope(new Scope);
-	AutoRef<Scope> leaf_scope(new Scope);
+	UnsafeAutoRef<Scope> global_scope(new Scope);
+	UnsafeAutoRef<Scope> local_scope(new Scope);
+	UnsafeAutoRef<Scope> leaf_scope(new Scope);
 
 	global_scope->put_var(Symbol("a"), env.alloc(new Var("A")));
 	local_scope->put_var(Symbol("b"), env.alloc(new Var("B")));

@@ -2047,12 +2047,12 @@ namespace LISP {
 	 */
 	class LispDatabaseConnection : public Object, public Closeable {
 	private:
-		UnsafeAutoRef<DatabaseConnection> _conn;
+		AutoRef<DatabaseConnection> _conn;
 	private:
 		LispDatabaseConnection(const LispDatabaseConnection & other);
 		LispDatabaseConnection & operator= (const LispDatabaseConnection & other);
 	public:
-		LispDatabaseConnection(UnsafeAutoRef<DatabaseConnection> conn)
+		LispDatabaseConnection(AutoRef<DatabaseConnection> conn)
 			: _conn(conn) {
 		}
 		virtual ~LispDatabaseConnection() {
@@ -2076,11 +2076,11 @@ namespace LISP {
 			disconnect();
 		}
 
-		UnsafeAutoRef<ResultSet> query(const string & sql) {
+		AutoRef<ResultSet> query(const string & sql) {
 			if (_conn->isConnected() == false) {
 				throw LispException("Not connected yet");
 			}
-			return UnsafeAutoRef<ResultSet>(_conn->query(sql));
+			return _conn->query(sql);
 		}
 
 		int queryUpdate(const string & sql) {
@@ -2100,9 +2100,9 @@ namespace LISP {
 	 */
 	class LispResultSet : public Object {
 	private:
-		UnsafeAutoRef<ResultSet> _resultSet;
+		AutoRef<ResultSet> _resultSet;
 	public:
-		LispResultSet(UnsafeAutoRef<ResultSet> resultSet)
+		LispResultSet(const AutoRef<ResultSet> & resultSet)
 			: _resultSet(resultSet) {
 		}
 		virtual ~LispResultSet() {

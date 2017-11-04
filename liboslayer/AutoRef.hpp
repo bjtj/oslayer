@@ -239,8 +239,6 @@ namespace OS {
 		UnsafeAutoRef() {}
 		UnsafeAutoRef(T * t)
 			: AutoRefBase<T, RefCounter>(t) {}
-		UnsafeAutoRef(const AutoRef<T> & ref)
-			: AutoRefBase<T, RefCounter>(&ref, ref.counter()) {}
 		virtual ~UnsafeAutoRef() {}
 	};
 
