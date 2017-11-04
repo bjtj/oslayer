@@ -63,7 +63,7 @@
 	class _cls : public Procedure {								\
 	private:														\
 	public:															\
-	_cls() {}					\
+	_cls() : Procedure(NAME) {}										\
 	virtual ~_cls() {}												\
 	LISP_PROCEDURE_PROC(env, scope, name, args) {
 #define END_DECL_NATIVE												\
@@ -1205,10 +1205,15 @@ namespace LISP {
 
 	Procedure::Procedure() {
 	}
+	Procedure::Procedure(const string & name) : _name(name) {
+	}
 	Procedure::~Procedure() {
 	}
 	string Procedure::toString() const {
-		return "#<COMPILED FUNCTION>";
+		if (_name.empty()) {
+			return "#<COMPILED FUNCTION/'NIL'>";
+		}
+		return "#<COMPILED FUNCTION/'" + _name  +"'>";
 	}
 
 	/**

@@ -556,8 +556,10 @@ namespace LISP {
 	 */
 	class Procedure : public Object {
 	private:
+		std::string _name;
 	public:
 		Procedure();
+		Procedure(const std::string & name);
 		virtual ~Procedure();
 		LISP_PROCEDURE_PROC(env, scope, name, args) = 0;
 		virtual std::string toString() const;
