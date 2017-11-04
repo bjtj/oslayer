@@ -73,10 +73,10 @@ namespace OS {
 		bool compareExtension(std::string extension) const;
 		int mkdir() const;
 		bool remove();
-		Date creationDate();
-		Date lastModifiedDate();
-		osl_time_t creationTime();
-		osl_time_t lastModifiedTime();
+		Date creationDate() const;
+		Date lastModifiedDate() const;
+		osl_time_t creationTime() const;
+		osl_time_t lastModifiedTime() const;
 		filesize_t getSize() const;
 		std::vector<File> list() const;
 		virtual std::string toString() const;

@@ -756,16 +756,16 @@ namespace OS {
 	bool File::remove() {
 		return File::remove(path);
 	}
-	Date File::creationDate() {
+	Date File::creationDate() const {
 		return creationDate(path);
 	}
-	Date File::lastModifiedDate() {
+	Date File::lastModifiedDate() const {
 		return lastModifiedDate(path);
 	}
-	osl_time_t File::creationTime() {
+	osl_time_t File::creationTime() const {
 		return creationDate(path).getTime();
 	}
-	osl_time_t File::lastModifiedTime() {
+	osl_time_t File::lastModifiedTime() const {
 		return lastModifiedDate(path).getTime();
 	}
 	filesize_t File::getSize() const {
