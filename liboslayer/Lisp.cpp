@@ -3220,6 +3220,11 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			return _HEAP_ALLOC(env, eval(env, scope, args[0])->isFileDescriptor());
 		}END_DECL_NATIVE;
+		BEGIN_DECL_NATIVE(env, "parse-integer");
+		{
+			_CHECK_ARGS_MIN_COUNT(args, 1);
+			return _HEAP_ALLOC(env, Integer::toInteger(eval(env, scope, args[0])->toPrintString()));
+		}END_DECL_NATIVE;
 	}
 
 
@@ -3242,83 +3247,6 @@ namespace LISP {
 			if (swap_count == 0) {
 				break;
 			}
-		}
-	}
-
-	// int partition(int arr[], int l, int r) {
-	// 	int pivot, i, j, t;
-	// 	pivot = arr[l];
-	// 	i = l; j = r+1;
-
-	// 	while (1) {
-	// 		do ++i; while (arr[i] <= pivot && i <= r);
-	// 		do --j; while (arr[j] > pivot);
-	// 		if (i >= j) break;
-	// 		t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-	// 	}
-
-	// 	t = arr[l]; arr[l] = arr[j]; arr[j] = t;
-	// 	return j;
-	// }
-
-	// void quicksort(int arr[], int l, int r) {
-	// 	int j;
-	// 	if (l < r) {
-	// 		j = partition(arr, l, r);
-	// 		quicksort(arr, l, j-1);
-	// 		quicksort(arr, j+1, r);
-	// 	}
-	// }
-
-	inline static void _quicksort(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & comp,
-						   Sequence & lst, int left, int right) {
-		int i = left, j = right;
-		_VAR pivot = lst[(left + right) / 2];
-
-		_VAR nil;
-		
-		Sequence fargs;
-		fargs.push_back(_VAR());
-		fargs.push_back(_VAR());
- 
-		/* partition */
-		do {
-			while (true) {
-				fargs[0] = lst[i];
-				fargs[1] = pivot;
-				bool test = (comp->proc(env, scope, nil, fargs)->isNil() == false); // arr[i] < pivot == false
-				if (test == false) {
-					break;
-				}
-				i++;
-			}
-
-			while (true) {
-				fargs[0] = lst[j];
-				fargs[1] = pivot;
-				bool test = (comp->proc(env, scope, nil, fargs)->isNil() == false); // arr[i] > pivot == false
-				if (test != false) {
-					break;
-				}
-				j--;
-			}
-				
-            if (i <= j) {
-				lst.swap(i, j);
-				i++;
-				j--;
-            }
-		} while (i <= j);
-
-		printf("i: %d, j: %d, left: %d, right: %d\n", i, j, left, right);
- 
-		/* recursion */
-		if (left < j) {
-            _quicksort(env, scope, comp, lst, left, j);
-		}
-		
-		if (i < right) {
-            _quicksort(env, scope, comp, lst, i, right);
 		}
 	}
 
@@ -3390,9 +3318,6 @@ namespace LISP {
 
 			// bubble sort
 			_bubble_sort(env, scope, comp, lst);
-
-			// quick sort
-			// _quicksort(env, scope, comp, lst, 0, lst.size() - 1);
 			
 			return _HEAP_ALLOC(env, lst);
 		}END_DECL_NATIVE;
