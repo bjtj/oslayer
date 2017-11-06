@@ -2729,7 +2729,9 @@ namespace LISP {
 	}
 
 	_VAR eval(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & var) {
-		if (var->isSymbol()) {
+		if (var.nil()) {
+			return var;
+		} else if (var->isSymbol()) {
 			return scope->rget_var(var->r_symbol());
 		} else if (var->isList() == false) {
 			return var;
@@ -3226,7 +3228,6 @@ namespace LISP {
 			return _HEAP_ALLOC(env, Integer::toInteger(eval(env, scope, args[0])->toPrintString()));
 		}END_DECL_NATIVE;
 	}
-
 
 	inline static void _bubble_sort(Env & env, UnsafeAutoRef<Scope> & scope, const _VAR & comp, Sequence & lst) {
 		_VAR nil;
@@ -4604,12 +4605,12 @@ namespace LISP {
 																 "by",
 																 (const char *)NULL));
 				_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_range(env,
-																	true,
-																	_syms,
-																	_map[Symbol("downfrom")],
-																	_map[Symbol("to")],
-																	_map[Symbol("above")],
-																	_map[Symbol("by")]));
+																		  true,
+																		  _syms,
+																		  eval(env, scope, _map[Symbol("downfrom")]),
+																		  eval(env, scope, _map[Symbol("to")]),
+																		  eval(env, scope, _map[Symbol("above")]),
+																		  eval(env, scope, _map[Symbol("by")])));
 			} else {
 				_test_allowed_keywords(_map, _make_symbol_vector("for",
 																 "from",
@@ -4618,12 +4619,12 @@ namespace LISP {
 																 "by",
 																 (const char *)NULL));
 				_iter = UnsafeAutoRef<_cls_iter_base>(new _cls_iter_range(env,
-																	false,
-																	_syms,
-																	_map[Symbol("downfrom")],
-																	_map[Symbol("to")],
-																	_map[Symbol("below")],
-																	_map[Symbol("by")]));
+																		  false,
+																		  _syms,
+																		  eval(env, scope, _map[Symbol("downfrom")]),
+																		  eval(env, scope, _map[Symbol("to")]),
+																		  eval(env, scope, _map[Symbol("below")]),
+																		  eval(env, scope, _map[Symbol("by")])));
 			}
 		}
 		void _read_while(Env & env, UnsafeAutoRef<Scope> & scope, _VAR stmt) {
