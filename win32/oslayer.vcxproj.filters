@@ -129,6 +129,12 @@
     <ClCompile Include="..\liboslayer\AutoLock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\liboslayer\DatabaseDriver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\liboslayer\Uri.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\liboslayer\os.hpp">
@@ -294,6 +300,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\liboslayer\Pool.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\DatabaseDriver.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\liboslayer\Uri.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

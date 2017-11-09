@@ -3080,7 +3080,7 @@ namespace LISP {
 			long long start = _INT(eval(env, scope, args[1]));
 			long long end = _INT(eval(env, scope, args[2]));
 			vector<_VAR> ret;
-			for (size_t i = start; i < end && i < lst.size(); i++) {
+			for (size_t i = (size_t)start; i < end && i < lst.size(); i++) {
 				ret.push_back(lst[i]);
 			}
 			return _HEAP_ALLOC(env, ret);
