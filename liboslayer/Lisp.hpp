@@ -538,6 +538,8 @@ namespace LISP {
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
 		OS::UnsafeAutoRef< Scope > & scope();
+		OS::GCRef<Var> nil();
+		OS::GCRef<Var> t();
 	    OS::Heap<Var> & heap();
 		OS::GCRef<Var> alloc(Var * var);
 		void gc();

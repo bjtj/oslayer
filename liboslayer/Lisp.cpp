@@ -12,8 +12,10 @@
 
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
-#define _NIL(E) E.scope()->rget_const(Symbol("!nil"))
-#define _TRUE(E) E.scope()->rget_const(Symbol("!t"))
+// #define _NIL(E) E.scope()->rget_const(Symbol("!nil"))
+// #define _TRUE(E) E.scope()->rget_const(Symbol("!t"))
+#define _NIL(E) E.nil()
+#define _TRUE(E) E.t()
 #define _NIL_OR_PASS(E,V) ((V).nil() ? _NIL(E) : (V))
 #define _SAFE_STRING(V) ((V).nil() ? "(null)" : (V)->toString())
 #define _CHECK_ARGS_MIN_COUNT(L,C)										\
@@ -1178,6 +1180,12 @@ namespace LISP {
 
 	UnsafeAutoRef<Scope> & Env::scope() {
 		return _scope;
+	}
+	_VAR Env::nil() {
+		return scope()->rget_const(Symbol("!nil"));
+	}
+	_VAR Env::t() {
+		return scope()->rget_const(Symbol("!t"));
 	}
 	Heap<Var> & Env::heap() {
 		return _heap;
