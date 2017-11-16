@@ -12,8 +12,6 @@
 
 #define _HEAP_ALLOC(E,...) E.alloc(new Var(__VA_ARGS__))
 #define _VAR GCRef<Var>
-// #define _NIL(E) E.scope()->rget_const(Symbol("!nil"))
-// #define _TRUE(E) E.scope()->rget_const(Symbol("!t"))
 #define _NIL(E) E.nil()
 #define _TRUE(E) E.t()
 #define _NIL_OR_PASS(E,V) ((V).nil() ? _NIL(E) : (V))
@@ -3903,8 +3901,12 @@ namespace LISP {
 				return _TRUE(env);
 			}
 			BufferedCommandReader reader;
-			while (!fd.eof() && reader.read(string(1, (char)fd.read())) < 1) {}
-                
+			while (!fd.eof()) {
+				string line = fd.readline();
+				if (reader.read(line) > 0) {
+					break;
+				}
+			}
 			vector<string> commands = reader.getCommands();
 			for (vector<string>::iterator iter = commands.begin(); iter != commands.end(); iter++) {
 				ret = parse(env, *iter);
