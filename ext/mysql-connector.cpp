@@ -1,4 +1,5 @@
 #include <liboslayer/DatabaseConnection.hpp>
+#include <liboslayer/Text.hpp>
 #include <mysql.h>
 
 using namespace std;
@@ -28,7 +29,10 @@ public:
 		return string(mysql_fetch_field_direct(_res, (unsigned int)idx)->name);
 	}
 	virtual string getString(size_t idx) {
-		return _row[idx];
+        if (fieldCount() <= idx) {
+            throw DatabaseException("index not allow '" + Text::toString(idx) + "'");
+        }
+        return _row[idx] ? _row[idx] : "";
 	}
 	virtual void close() {
 		if (_res) {
