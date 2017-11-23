@@ -73,6 +73,8 @@ namespace UTIL {
 		
 	public:
 		ArgumentParser();
+		ArgumentParser(int argc, char * args[]);
+		ArgumentParser(int argc, const char * args[]);
 		virtual ~ArgumentParser();
 		static Arguments parse(int argc, char * args[]);
 		static Arguments parse(int argc, const char * args[]);

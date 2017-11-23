@@ -210,6 +210,14 @@ namespace UTIL {
 	
 	ArgumentParser::ArgumentParser() {
 	}
+
+	ArgumentParser::ArgumentParser(int argc, char * args[]) {
+		parse(argc, args);
+	}
+
+	ArgumentParser::ArgumentParser(int argc, const char * args[]) {
+		parse(argc, args);
+	}
 	
 	ArgumentParser::~ArgumentParser() {
 	}
