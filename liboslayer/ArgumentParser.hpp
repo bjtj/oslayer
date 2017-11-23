@@ -70,21 +70,22 @@ namespace UTIL {
 	 */
 	class ArgumentParser {
 	private:
-		
+		Arguments _arguments;
 	public:
 		ArgumentParser();
 		ArgumentParser(int argc, char * args[]);
 		ArgumentParser(int argc, const char * args[]);
 		virtual ~ArgumentParser();
-		static Arguments parse(int argc, char * args[]);
-		static Arguments parse(int argc, const char * args[]);
-		static Arguments parse(const std::vector<std::string> & args);
-		static std::string trimIndicator(const std::string & token);
-		static bool testLongIndicator(const std::string & token);
-		static bool testShortIndicator(const std::string & token);
-		static bool testText(const std::string & token);
-		static bool testInlineSetter(const std::string & token);
-		static std::string getIndicatorName(const std::string & indicator);
+		Arguments parse(int argc, char * args[]);
+		Arguments parse(int argc, const char * args[]);
+		Arguments parse(const std::vector<std::string> & args);
+		std::string trimIndicator(const std::string & token);
+		bool testLongIndicator(const std::string & token);
+		bool testShortIndicator(const std::string & token);
+		bool testText(const std::string & token);
+		bool testInlineSetter(const std::string & token);
+		std::string getIndicatorName(const std::string & indicator);
+		Arguments & arguments();
 	};
 }
 

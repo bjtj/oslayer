@@ -212,11 +212,11 @@ namespace UTIL {
 	}
 
 	ArgumentParser::ArgumentParser(int argc, char * args[]) {
-		parse(argc, args);
+		_arguments = parse(argc, args);
 	}
 
 	ArgumentParser::ArgumentParser(int argc, const char * args[]) {
-		parse(argc, args);
+		_arguments = parse(argc, args);
 	}
 	
 	ArgumentParser::~ArgumentParser() {
@@ -307,5 +307,9 @@ namespace UTIL {
 			return indicator.substr(1);
 		}
 		throw Exception("Unknown indicator type");
+	}
+
+	Arguments & ArgumentParser::arguments() {
+		return _arguments;
 	}
 }

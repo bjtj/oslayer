@@ -21,7 +21,8 @@ public:
 				"b"
 			};
 
-			Arguments arguments = ArgumentParser::parse(3, args);
+			ArgumentParser parser;
+			Arguments arguments = parser.parse(3, args);
 
 			ASSERT(arguments.programName(), ==, "program");
 			ASSERT(arguments.texts().size(), ==, 2);
@@ -37,7 +38,8 @@ public:
 				"b"
 			};
 
-			Arguments arguments = ArgumentParser::parse(3, args);
+			ArgumentParser parser;
+			Arguments arguments = parser.parse(3, args);
 			arguments.obtainVar("greeting") = "hello";
 			
 			ASSERT(arguments.programName(), ==, "program");
@@ -58,8 +60,9 @@ public:
 
 			Arguments arguments;
 			arguments.obtainVar("greeting") = "hello";
-			
-			arguments = ArgumentParser::parse(5, args);
+
+			ArgumentParser parser;
+			arguments = parser.parse(5, args);
 
 			ASSERT(arguments.programName(), ==, "program");
 			ASSERT(arguments.texts().size(), ==, 2);
@@ -74,7 +77,8 @@ public:
 				"--oneline"
 			};
 
-			Arguments arguments = ArgumentParser::parse(2, args);
+			ArgumentParser parser;
+			Arguments arguments = parser.parse(2, args);
 
 			ASSERT(arguments.programName(), ==, "program");
 			ASSERT(arguments.varWithAlias("oneline").value(), ==, "yes");
@@ -86,7 +90,8 @@ public:
 				"--oneline="
 			};
 
-			Arguments arguments = ArgumentParser::parse(2, args);
+			ArgumentParser parser;
+			Arguments arguments = parser.parse(2, args);
 
 			ASSERT(arguments.programName(), ==, "program");
 			ASSERT(arguments.varWithAlias("oneline").value(), ==, "");
@@ -107,7 +112,8 @@ public:
 				"overwritten"
 			};
 
-			Arguments arguments = ArgumentParser::parse(11, args);
+			ArgumentParser parser;
+			Arguments arguments = parser.parse(11, args);
 
 			ASSERT(arguments.programName(), ==, "program");
 			ASSERT(arguments.texts().size(), ==, 2);
