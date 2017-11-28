@@ -21,6 +21,7 @@ namespace UTIL {
 	public:
 		virtual ~DatabaseDriver();
 		static DatabaseDriver & instance();
+        bool isLoaded(const std::string & name);
 		void load(const std::string & name, const OS::AutoRef<OS::Library> & lib);
 		void unload(const std::string & name);
 		OS::AutoRef<DatabaseConnection> getConnection(const std::string & name);

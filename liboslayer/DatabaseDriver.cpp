@@ -14,6 +14,9 @@ namespace UTIL {
 	DatabaseDriver & DatabaseDriver::instance() {
 		return _instance;
 	}
+    bool DatabaseDriver::isLoaded(const string &name) {
+        return (_drivers.find(name) != _drivers.end());
+    }
 	void DatabaseDriver::load(const std::string & name, const AutoRef<Library> & lib) {
 		lib->load();
 		_drivers[name] = lib;

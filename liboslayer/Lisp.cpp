@@ -5074,6 +5074,17 @@ namespace LISP {
 			DatabaseDriver::instance().load(name, AutoRef<Library>(new Library(path, name)));
 			return _HEAP_ALLOC(env, name);
 		}END_DECL_NATIVE;
+        
+        BEGIN_DECL_NATIVE(env, "db:load-if-not");
+        {
+            _CHECK_ARGS_EXACT_COUNT(args, 2);
+            string path = eval(env, scope, args[0])->toPrintString();
+            string name = eval(env, scope, args[1])->toPrintString();
+            if (DatabaseDriver::instance().isLoaded(name) == false) {
+                DatabaseDriver::instance().load(name, AutoRef<Library>(new Library(path, name)));
+            }
+            return _HEAP_ALLOC(env, name);
+        }END_DECL_NATIVE;
 
 		BEGIN_DECL_NATIVE(env, "db:connect");
 		{
