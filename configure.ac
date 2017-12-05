@@ -67,8 +67,7 @@ AC_ARG_ENABLE([openssl],
 
 if test "x$enable_openssl" = "xyes"; then
   if test $ac_cv_func_SSL_library_init = no; then
-    AC_CHECK_LIB(ssl, SSL_library_init, [LIBS="-lssl -lcrypto $LIBS"
-    	AC_DEFINE(HAVE_OPENSSL, 1, [Define to 1 if you have the 'SSL_library_init' function.])])
+    PKG_CHECK_MODULES([LIBOPENSSL],[openssl],[HAVE_OPENSSL=1],[HAVE_OPENSSL=0])
   fi
 fi
 
