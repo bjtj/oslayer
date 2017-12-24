@@ -155,9 +155,12 @@ int main(int argc, char *args[]) {
 
 #else
 
+using namespace std;
 int main(int argc, char *args[]) {
 
 	// no ssl
+
+	cout << "no ssl" << endl;
     
     return 0;
 }

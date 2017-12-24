@@ -159,5 +159,9 @@ liboslayer_la_SOURCES= \
 	os.hpp \
 	platform.hpp
 
+# cxxflags
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
+liboslayer_la_CXXFLAGS+=$(LIBOPENSSL_CFLAGS)
+# libs
 liboslayer_la_LDFLAGS=$(PTHREAD_CFLAGS)
+liboslayer_la_LDFLAGS+=$(LIBOPENSSL_LIBS)
