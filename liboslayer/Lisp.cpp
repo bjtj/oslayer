@@ -3709,7 +3709,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 2);
 			_VAR test = eval(env, scope, args[0]);
 			vector<_VAR> fargs(args.begin() + 2, args.end());
-			string str = format(env, scope, args[1]->toPrintString(), fargs);
+			string str = format(env, scope, eval(env, scope, args[1])->toPrintString(), fargs);
 			if (!test->isNil()) {
 				fputs(str.c_str(), stdout);
 				fputs("\n", stdout);

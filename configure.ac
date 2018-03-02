@@ -85,11 +85,17 @@ if test "x$enable_sqlite3" = "xyes"; then
   fi
 fi
 
-# mysqlclient
-PKG_CHECK_MODULES([LIBMYSQLCLIENT],[mysqlclient],
-  [HAVE_PKG_MYSQLCLIENT=yes], [HAVE_PKG_MYSQLCLIENT=no])
-AS_IF([test "x$HAVE_PKG_MYSQLCLIENT" = xyes],
-  [AC_DEFINE([HAVE_MYSQLCLIENT],1,[support mysqlclient])])
+# mysql client
+AC_ARG_ENABLE([mysql-client],
+  [AS_HELP_STRING([--enable-mysql-client], [enable mysql-client build @<:@default: no@:>@])],
+    [enable_mysql_client=${enableval}], [enable_mysql_client=no])
+
+AS_IF([test "x$enable_mysql_client" = xyes],
+  [PKG_CHECK_MODULES([LIBMYSQLCLIENT],[mysqlclient],
+    [HAVE_PKG_MYSQLCLIENT=yes],[HAVE_PKG_MYSQLCLIENT=no])],
+  [HAVE_PKG_MYSQLCLIENT=no])
+
+AS_IF([test "x$HAVE_PKG_MYSQLCLIENT" = xyes], [AC_DEFINE([HAVE_MYSQLCLIENT],1,[support mysql-client])])
 AM_CONDITIONAL([SUPPORT_MYSQLCLIENT], [test "x$HAVE_PKG_MYSQLCLIENT" = xyes])
 
 # misc.
