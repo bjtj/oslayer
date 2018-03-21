@@ -2,7 +2,7 @@ lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS= \
-	ArgumentParser.hpp \
+	Arguments.hpp \
 	AutoLock.hpp \
 	AutoRef.hpp \
 	AutoRelease.hpp \
@@ -52,7 +52,6 @@ liboslayerinc_HEADERS= \
 	ThreadPool.hpp \
 	Timer.hpp \
 	Tree.hpp \
-	Utils.hpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
 	XmlParser.hpp \
@@ -61,8 +60,8 @@ liboslayerinc_HEADERS= \
 	platform.hpp
 
 liboslayer_la_SOURCES= \
-	ArgumentParser.cpp \
-	ArgumentParser.hpp \
+	Arguments.hpp \
+	Arguments.cpp \
 	AutoLock.cpp \
 	AutoLock.hpp \
 	AutoRef.cpp \
@@ -148,7 +147,6 @@ liboslayer_la_SOURCES= \
 	Timer.hpp \
 	Tree.cpp \
 	Tree.hpp \
-	Utils.hpp \
 	Uuid.cpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \

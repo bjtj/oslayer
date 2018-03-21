@@ -15,7 +15,7 @@ check_PROGRAMS = \
 	test-random \
 	test-tree \
 	test-regex \
-	test-argument-parser \
+	test-arguments \
 	test-text \
 	test-logger \
 	test-iterator \
@@ -64,7 +64,7 @@ test_event_SOURCES=test-event.cpp
 test_random_SOURCES=test-random.cpp
 test_tree_SOURCES=test-tree.cpp
 test_regex_SOURCES=test-regex.cpp
-test_argument_parser_SOURCES=test-argument-parser.cpp
+test_arguments_SOURCES=test-arguments.cpp
 test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
 test_iterator_SOURCES=test-iterator.cpp
