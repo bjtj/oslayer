@@ -12,6 +12,12 @@ namespace OS {
 	}
 	ArgumentDeclaration::~ArgumentDeclaration() {
 	}
+	string & ArgumentDeclaration::longname() {
+		return _longname;
+	}
+	string & ArgumentDeclaration::shortname() {
+		return _shortname;
+	}
 	bool & ArgumentDeclaration::must() {
 		return _must;
 	}
@@ -183,7 +189,11 @@ namespace OS {
 				string phase = is_longname(cand) ? get_longname(cand) : get_shortname(cand);
 				if (is_inline(phase)) {
 					vector<string> tokens = Text::split(phase, "=");
-					args.set(tokens[0], tokens[1]);
+					if (tokens.size() >= 2) {
+						args.set(tokens[0], tokens[1]);
+					} else {
+						args.set(tokens[0]);
+					}
 				} else {
 					if ((i + 1 >= argc) || is_longname(argv[i+1]) || is_shortname(argv[i+1])) {
 						args.set(phase);
