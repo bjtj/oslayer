@@ -41,7 +41,7 @@ build() {
 	mkdir -p $DIR_BUILD
 	mkdir -p $DIR_WORLD
 	cd $DIR_BUILD
-	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl --enable-mysql-client
+	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl
 	make -j$CPU_COUNT
 	make install
 }
@@ -50,7 +50,7 @@ build32() {
 	mkdir -p $DIR_BUILD
 	mkdir -p $DIR_WORLD
 	cd $DIR_BUILD
-	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl --enable-mysql-client --build=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
+	$BASE/configure --prefix="$DIR_WORLD" --enable-openssl --build=i686-pc-linux-gnu "CFLAGS=-m32" "CXXFLAGS=-m32" "LDFLAGS=-m32"
 	make -j$CPU_COUNT
 	make install
 }
@@ -59,7 +59,7 @@ install() {
 	clean
 	mkdir -p $DIR_BUILD
 	cd $DIR_BUILD
-	$BASE/configure --enable-openssl --enable-mysql-client
+	$BASE/configure --enable-openssl
 	make -j$CPU_COUNT
 	sudo make install
 }
