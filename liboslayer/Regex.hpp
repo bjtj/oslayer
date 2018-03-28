@@ -49,10 +49,10 @@ namespace UTIL {
 	 */
 	class MatchType {
 	public:
-		static const int UNMATCHED;
+		static const int NOT_MATCHED;
 		static const int FULL_MATCHED;
 		static const int PARTIAL_MATCHED;
-		static const std::string UNMATCHED_STR;
+		static const std::string NOT_MATCHED_STR;
 		static const std::string FULL_MATCHED_STR;
 		static const std::string PARTIAL_MATCHED_STR;
 		int _type;
@@ -82,6 +82,9 @@ namespace UTIL {
 	public:
 		MatchResult();
 		virtual ~MatchResult();
+		bool fully_matched();
+		bool not_matched();
+		bool partial_matched();
 		MatchType & matchType();
 		size_t & length();
 		std::vector<std::string> & groups();
@@ -127,7 +130,22 @@ namespace UTIL {
 	};
 
 	/**
-	 * @brief 
+	 * @brief Range
+	 */
+	class Range {
+	private:
+		int _start;
+		MatchResult _match_result;
+	public:
+		Range();
+		Range(int start, MatchResult match_result);
+		virtual ~Range();
+		int & start();
+		MatchResult & matchResult();
+	};
+
+	/**
+	 * @brief Regex
 	 */
 	class Regex {
 	private:
@@ -139,6 +157,8 @@ namespace UTIL {
 		virtual ~Regex();
 		static bool & debug();
 		std::string & regex();
+		MatchResult match(const std::string & text);
+		Range search(const std::string & text);
 		OS::AutoRef<Matcher> makeMatcher();
 		static OS::AutoRef<Matcher> makeMatcher(const std::string & regex);
 		static OS::AutoRef<Matcher> makeMatcher(Iterator<std::string> & tokens_iter);

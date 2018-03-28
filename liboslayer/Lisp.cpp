@@ -1810,7 +1810,7 @@ namespace LISP {
 
 	inline static vector<_VAR> s_read_tokens(Iterator<_VAR> & iter) {
 		vector<_VAR> ret;
-		while (iter.has()) {
+		while (iter.avail()) {
 			if ((*iter)->isSymbol() && _is_special_keyword((*iter)->r_symbol())) {
 				break;
 			}
@@ -1831,7 +1831,7 @@ namespace LISP {
 		for (vector<_VAR>::iterator it = names.begin(); it != names.end(); it++) {
 			params.names().push_back(Parameter(*it));
 		}
-		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&optional") {
+		if (iter.avail() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&optional") {
 			vector<_VAR> optionals = s_read_tokens(++iter);
 			if (optionals.size() == 0) {
 				throw LispException("&optional without any element");
@@ -1844,7 +1844,7 @@ namespace LISP {
 				}
 			}
 		}
-		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&rest") {
+		if (iter.avail() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&rest") {
 			vector<_VAR> rest = s_read_tokens(++iter);
 			if (rest.size() == 0) {
 				throw LispException("&rest without var name");
@@ -1854,7 +1854,7 @@ namespace LISP {
 			}
 			params.rest() = Parameter(rest[0]);
 		}
-		if (iter.has() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&key") {
+		if (iter.avail() && (*iter)->isSymbol() && (*iter)->r_symbol() == "&key") {
 			vector<_VAR> keys = s_read_tokens(++iter);
 			if (keys.size() == 0) {
 				throw LispException("&key without any element");
@@ -1891,7 +1891,7 @@ namespace LISP {
 		}
 
 		for (vector<Parameter>::iterator iter = _optionals.begin(); iter != _optionals.end(); iter++) {
-			_VAR v = (tokens_iter.has() ? _PROC_VAR(env, global_scope, *tokens_iter++) :
+			_VAR v = (tokens_iter.avail() ? _PROC_VAR(env, global_scope, *tokens_iter++) :
 					  (iter->initial().nil() ? _NIL(env) : _PROC_VAR(env, global_scope, iter->initial())));
 			lex_scope->put_var(iter->name()->r_symbol(), v);
 		}
@@ -1906,7 +1906,7 @@ namespace LISP {
 			lex_scope->put_var(iter->first.toSymbol(), v);
 		}
 		
-		if (tokens_iter.has() == false) {
+		if (tokens_iter.avail() == false) {
 			return;
 		}
 		
@@ -2486,7 +2486,7 @@ namespace LISP {
 		Sequence rest;
 		if (_length(lst) > 1) {
 			Iterator<_VAR> iter = lst->r_list().iter();
-			for (iter++; iter.has(); iter++) {
+			for (iter++; iter.avail(); iter++) {
 				rest.push_back(*iter);
 			}
 		}
@@ -4521,7 +4521,7 @@ namespace LISP {
 		map<Symbol, _VAR> _read_map(_VAR stmt) {
 			map<Symbol, _VAR> _map;
 			Iterator<_VAR> iter = stmt->r_list().iter();
-			while (iter.has()) {
+			while (iter.avail()) {
 				_VAR & var = *iter++;
 				_VAR & val = *iter++;
 				_map[var->r_symbol()] = val;
@@ -4531,7 +4531,7 @@ namespace LISP {
 		void _set_var(UnsafeAutoRef<Scope> & scope, _VAR var, _VAR val) {
 			if (var->isList()) {
 				Iterator<_VAR> iter = var->r_list().iter();
-				for (; iter.has(); iter++) {
+				for (; iter.avail(); iter++) {
 					if (scope->rget_var((*iter)->r_symbol()).nil() == false) {
 						throw LispException("Duplicated variable declaration");
 					}
@@ -4583,7 +4583,7 @@ namespace LISP {
 			vector<Symbol> syms;
 			if (vars->isList()) {
 				Iterator<_VAR> iter = vars->r_list().iter();
-				for (; iter.has(); iter++) {
+				for (; iter.avail(); iter++) {
 					syms.push_back((*iter)->r_symbol());
 				}
 			} else {
@@ -4707,13 +4707,13 @@ namespace LISP {
 	public:
 		_cls_loop(Env & env, UnsafeAutoRef<Scope> & scope, _VAR seq) {
 			Iterator<_VAR> iter = seq->r_list().iter();
-			while (iter.has()) {
+			while (iter.avail()) {
 				_iters.push_back(_cls_iter(env, scope, *iter++));
 			}
 		}
 		_cls_loop(Env & env, UnsafeAutoRef<Scope> & scope, Sequence & seq) {
 			Iterator<_VAR> iter = seq.iter();
-			while (iter.has()) {
+			while (iter.avail()) {
 				_iters.push_back(_cls_iter(env, scope, *iter++));
 			}
 		}

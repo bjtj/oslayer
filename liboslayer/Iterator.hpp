@@ -31,14 +31,14 @@ namespace UTIL {
 			_idx = 0;
 			_iter = _vec.begin();
 		}
-		bool has() {
+		bool avail() {
 			return (_iter != _vec.end());
 		}
 		bool has_next() {
 			return (_iter + 1) != _vec.end();
 		}
 		T & next() {
-			if (!has()) {
+			if (!avail()) {
 				throw OS::Exception("out of bound");
 			}
 			_idx++;
@@ -58,7 +58,7 @@ namespace UTIL {
 		}
 		std::vector<T> collect(Condition * condition) {
 			std::vector<T> lst;
-			while (has()) {
+			while (avail()) {
 				T & t = next();
 				if (condition == NULL || condition->test(&t)) {
 					lst.push_back(t);
@@ -140,14 +140,14 @@ namespace UTIL {
 			_idx = 0;
 			_iter = _vec.begin();
 		}
-		bool has() {
+		bool avail() {
 			return (_iter != _vec.end());
 		}
 		bool has_next() {
 			return (_iter + 1) != _vec.end();
 		}
 		T & next() {
-			if (!has()) {
+			if (!avail()) {
 				throw OS::Exception("out of bound");
 			}
 			_idx++;
@@ -167,7 +167,7 @@ namespace UTIL {
 		}
 		std::vector<T> collect(Condition * condition) {
 			std::vector<T> lst;
-			while (has()) {
+			while (avail()) {
 				T & t = next();
 				if (condition == NULL || condition->test(&t)) {
 					lst.push_back(t);

@@ -13,8 +13,9 @@ static MatchType s_test(const string & regex, const string & text) {
 		Regex::debug() = true;
 		Matcher::debug() = true;
 		Regex r(regex);
-		AutoRef<Matcher> matcher = r.makeMatcher();
-		MatchResult result = matcher->match(text);
+		// AutoRef<Matcher> matcher = r.makeMatcher();
+		// MatchResult result = matcher->match(text);
+		MatchResult result = r.match(text);
 		cout << " # matched : " << result.matchType().toString() << " - " << regex << " / " << text << endl;
 		vector<string> groups = result.groups();
 		if (groups.size() > 0) {
@@ -74,7 +75,7 @@ public:
 	virtual void test() {
 		ASSERT(s_test("hello", "hello"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("xa*", "x"), ==, MatchType::FULL_MATCHED);
-		ASSERT(s_test("xa+", "x"), ==, MatchType::UNMATCHED);
+		ASSERT(s_test("xa+", "x"), ==, MatchType::NOT_MATCHED);
 		ASSERT(s_test("xa+", "xa"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("xa+", "xaa"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("hello?", "hello"), ==, MatchType::FULL_MATCHED);
@@ -87,7 +88,7 @@ public:
 		ASSERT(s_test("a1?", "a1"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("-?0", "-0"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("-?0", "0"), ==, MatchType::FULL_MATCHED);
-		ASSERT(s_test("[1-9][0-9]*", "0"), ==, MatchType::UNMATCHED);
+		ASSERT(s_test("[1-9][0-9]*", "0"), ==, MatchType::NOT_MATCHED);
 		ASSERT(s_test("[1-9][0-9]*", "1"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("([1-9][0-9]*|0)", "0"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("([1-9][0-9]*|0)", "1"), ==, MatchType::FULL_MATCHED);
@@ -115,7 +116,54 @@ public:
 		ASSERT(s_test("^^HELLO", "^HELLO"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test(".$.", "a$b"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test(".$.", "b$a"), ==, MatchType::FULL_MATCHED);
+		ASSERT(s_test("y..h", "yeah"), ==, MatchType::FULL_MATCHED);
 		ASSERT(s_test("HELLO$$", "HELLO$"), ==, MatchType::FULL_MATCHED);
+	}
+};
+
+
+class RegexSearchTest : public TestCase
+{
+public:
+    RegexSearchTest() : TestCase("regex-search") {
+	}
+    virtual ~RegexSearchTest() {
+	}
+
+	void test() {
+
+		Regex::debug() = false;
+		Matcher::debug() = false;
+		
+		string text = "say hello yeah!";
+		Range range = Regex("hello").search(text);
+		ASSERT(range.start(), ==, 4);
+		ASSERT(range.matchResult().length(), ==, 5);
+		
+		range = Regex("yeah").search(text);
+		ASSERT(range.start(), ==, 10);
+		ASSERT(range.matchResult().length(), ==, 4);
+
+		range = Regex("y..h").search(text);
+		ASSERT(range.start(), ==, 10);
+		ASSERT(range.matchResult().length(), ==, 4);
+
+		range = Regex("(hello yeah)").search(text);
+		ASSERT(range.start(), ==, 4);
+		ASSERT(range.matchResult().length(), ==, 10);
+
+		text = "http://youtube.googleapis.com/v/4e_kz79tjb8?version=3";
+		range = Regex("(vi/|v=|/v/|youtu\\.be/|/embed/)").search(text);
+		cout << " group[0] " << range.matchResult().groups()[0] << endl;
+		ASSERT(range.start(), ==, 29);
+		ASSERT(range.matchResult().groups().size(), ==, 1);
+		ASSERT(range.matchResult().groups()[0], ==, "/v/");
+
+		text = "http://youtu.be/.googleapis.com/v/4e_kz79tjb8?version=3";
+		range = Regex("(vi/|v=|/v/|youtu\\.be/|/embed/)").search(text);
+		ASSERT(range.start(), ==, 7);
+		ASSERT(range.matchResult().groups()[0], ==, "youtu.be/");
+		ASSERT(range.matchResult().groups()[0], ==, text.substr(range.start(), range.matchResult().length()));
 	}
 };
 
@@ -128,6 +176,7 @@ int main(int argc, char *args[]) {
 	TestSuite ts;
 	ts.addTestCase(AutoRef<TestCase>(new RegexInternalTestCase));
 	ts.addTestCase(AutoRef<TestCase>(new RegexTestCase));
+	ts.addTestCase(AutoRef<TestCase>(new RegexSearchTest));
 
 	TestReport report(ts.testAll());
 	report.validate();

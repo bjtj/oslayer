@@ -18,11 +18,11 @@ static void test_network_interface() {
 		unsigned char mac[6] = {0,};
 		cout << iter->getName() << endl;
 		iter->getMacAddress(mac, sizeof(mac));
-		cout << " - MAC: " << mac_address_to_string(mac) << endl;
-		cout << " - IP address(es)" << endl;
+		cout << " ** [MAC] \"" << mac_address_to_string(mac) << "\"" << endl;
+		cout << " ** [IP address(es)]" << endl;
 		vector<InetAddress> addrs = iter->getInetAddresses();
 		for (vector<InetAddress>::iterator ai = addrs.begin(); ai != addrs.end(); ai++) {
-			cout << "  * [" << ai->getHost() << "]" << endl;
+			cout << "  ** \"" << ai->getHost() << "\"" << endl;
 		}
 	}
 }

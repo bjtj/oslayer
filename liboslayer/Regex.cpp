@@ -52,7 +52,7 @@ namespace UTIL {
 		return (const_limit() < 0 || i < const_limit());
 	}
 	string Quantity::toString() const {
-		return "{" + Text::toString(_initial) + ", " + Text::toString(_limit) + "}";
+		return "{" + Text::toString(_initial) + "," + Text::toString(_limit) + "}";
 	}
 
 	/**
@@ -66,14 +66,14 @@ namespace UTIL {
 	/**
 	 * @brief match type
 	 */
-	const int MatchType::UNMATCHED = 0;
+	const int MatchType::NOT_MATCHED = 0;
 	const int MatchType::FULL_MATCHED = 1;
 	const int MatchType::PARTIAL_MATCHED = 2;
-	const std::string MatchType::UNMATCHED_STR = "UNMATCHED";
+	const std::string MatchType::NOT_MATCHED_STR = "NOT_MATCHED";
 	const std::string MatchType::FULL_MATCHED_STR = "FULL_MATCHED";
 	const std::string MatchType::PARTIAL_MATCHED_STR = "PARTIAL_MATCHED";
 	
-	MatchType::MatchType() : _type(UNMATCHED) {}
+	MatchType::MatchType() : _type(NOT_MATCHED) {}
 	MatchType::MatchType(int type) : _type(type) {}
 	MatchType::~MatchType() {}
 	string MatchType::toString() const {
@@ -93,8 +93,8 @@ namespace UTIL {
 	}
 	string MatchType::toString(int type) {
 		switch (type) {
-		case UNMATCHED:
-			return UNMATCHED_STR;
+		case NOT_MATCHED:
+			return NOT_MATCHED_STR;
 		case FULL_MATCHED:
 			return FULL_MATCHED_STR;
 		case PARTIAL_MATCHED:
@@ -103,8 +103,8 @@ namespace UTIL {
 		throw OS::Exception("unknown match type - " + UTIL::Text::toString(type));
 	}
 	MatchType MatchType::toType(const string & type) {
-		if (type == UNMATCHED_STR) {
-			return MatchType(UNMATCHED);
+		if (type == NOT_MATCHED_STR) {
+			return MatchType(NOT_MATCHED);
 		} else if (type == FULL_MATCHED_STR) {
 			return MatchType(FULL_MATCHED);
 		} else if (type == PARTIAL_MATCHED_STR) {
@@ -126,6 +126,15 @@ namespace UTIL {
 	MatchResult::~MatchResult() {}
 	MatchType & MatchResult::matchType() { return _matchType; }
 	size_t & MatchResult::length() { return _length; }
+	bool MatchResult::fully_matched() {
+		return _matchType == MatchType::FULL_MATCHED;
+	}
+	bool MatchResult::not_matched() {
+		return _matchType == MatchType::NOT_MATCHED;
+	}
+	bool MatchResult::partial_matched() {
+		return _matchType == MatchType::PARTIAL_MATCHED;
+	}
 	vector<string> & MatchResult::groups() { return _groups; }
 	void MatchResult::appendGroup(const string & group) {
 		_groups.push_back(group);
@@ -169,17 +178,17 @@ namespace UTIL {
 	}
 	MatchResult Matcher::match(const string & text) {
 		MatchResult result;
-		LOGD(_debug, " @@ MATCH -- {{{" << toString() << "}}}");
+		LOGD(_debug, " @:@ match() begin -- " << toString());
 		if (!_elements.empty()) {
 			int i = 0;
 			size_t len = 0;
 			for (size_t s = len; s < text.size() && _quantity.testUnderLimit(i); i++) {
 				bool br = false;
 				for (vector<AutoRef<Matcher> >::iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
-					LOGD(_debug, " @@ 2-MATCHER -- {" << (*iter)->toString() << " => " << text.substr(s) << "}");
+					LOGD(_debug, " @@ 2-MATCHER -- " << (*iter)->toString() << " := \"" << text.substr(s) << "\"");
 					MatchResult ret = (*iter)->match(text.substr(s));
-					if (ret.matchType() == MatchType::UNMATCHED) {
-						LOGD(_debug, "  >> UNMATCHED");
+					if (ret.matchType() == MatchType::NOT_MATCHED) {
+						LOGD(_debug, "  >> NOT_MATCHED");
 						br = true;
 						break;
 					}
@@ -219,9 +228,9 @@ namespace UTIL {
 		} else if (!_charset.empty()) {
 			int i = 0;
 			for (; i < (int)text.size() && _quantity.testUnderLimit(i); i++) {
-				LOGD(_debug, " @@ CHARSET -- '" << text[i] << "' IN '" << _charset << "'");
+				LOGD(_debug, " @@ CHARSET matching -- '" << text[i] << "' IN '" << _charset << "'");
 				if (ch_in(text[i], _charset) == (reverse() ? true:false)) {
-					LOGD(_debug, "  >> NOT MEMBER");
+					LOGD(_debug, "  >> NOT a MEMBER");
 					break;
 				}
 			}
@@ -238,11 +247,13 @@ namespace UTIL {
 			if (getParent()) {
 				next = getParent()->nextMatcher(this);
 			}
-			LOGD(_debug, " @@ [ANY] NEXT MATCHER -- " << (next.nil() == true ? "(nil)" : next->toString()));
+			LOGD(_debug, " @@ [ANY] NEXT MATCHER -- " << (next.nil() ? "(nil)" : next->toString()));
 			for (; i < (int)text.size() && _quantity.testUnderLimit(i); i++) {
-				LOGD(_debug, " @@ [ANY] TARGET -- " << text.substr(i));
-				if (next.nil() == false && next->match(text.substr(i)).matchType() != MatchType::UNMATCHED) {
-					LOGD(_debug, "  >> break - NEXT MATCHED");
+				LOGD(_debug, " @@ [ANY:" << i << "] TARGET -- \"" << text.substr(i) << "\"");
+				if (next.nil() == false && next->any() == false
+					&& next->match(text.substr(i)).matchType() != MatchType::NOT_MATCHED)
+				{
+					LOGD(_debug, "  >> break - NEXT MATCH first");
 					break;
 				}
 			}
@@ -254,6 +265,7 @@ namespace UTIL {
 				}
 			}
 		}
+		LOGD(_debug, " @:@ match() end\n");
 		return result;
 	}
 
@@ -280,14 +292,14 @@ namespace UTIL {
 		} else if (_any) {
 			ret.append("|*|" + _quantity.toString());
 		} else if (_charset.size() == 1) {
-			ret.append("\"" + _charset + "\"" + _quantity.toString());
+			ret.append("'" + _charset + "'" + _quantity.toString());
 		} else if (!_charset.empty()) {
 			ret.append("[" + _charset + "]" + _quantity.toString());
 		} else if (!_elements.empty()) {
 			ret.append("(");
 			for (vector<AutoRef<Matcher> >::const_iterator iter = _elements.begin(); iter != _elements.end(); iter++) {
 				if (iter != _elements.begin()) {
-					ret.append(", ");
+					ret.append(" ");
 				}
 				ret.append((*iter)->toString());
 			}
@@ -349,7 +361,7 @@ namespace UTIL {
 			string s;
 			string e;
 			bool comma = false;
-			while (tokens_iter.has() && tokens_iter.next() != "}") {
+			while (tokens_iter.avail() && tokens_iter.next() != "}") {
 				string t = *tokens_iter;
 				if (numberp(t)) {
 					switch (i) {
@@ -392,6 +404,29 @@ namespace UTIL {
 
 
 	/**
+	 * @brief Range
+	 */
+	
+	Range::Range() : _start(-1) {
+	}
+
+	Range::Range(int start, MatchResult match_result)
+		: _start(start), _match_result(match_result) {
+	}
+	
+	Range::~Range() {
+	}
+	
+	int & Range::start() {
+		return _start;
+	}
+	
+	MatchResult & Range::matchResult() {
+		return _match_result;
+	}
+
+
+	/**
 	 * @brief regex
 	 */
 
@@ -408,6 +443,19 @@ namespace UTIL {
 	}
 	std::string & Regex::regex() {
 		return _regex;
+	}
+	MatchResult Regex::match(const string & text) {
+		return makeMatcher()->match(text);
+	}
+	Range Regex::search(const string & text) {
+		AutoRef<Matcher> matcher = makeMatcher();
+		for (size_t i = 0; i < text.size() - 1; ++i) {
+			MatchResult ret = matcher->match(text.substr(i));
+			if (ret.not_matched() == false) {
+				return Range((int)i, ret);
+			}
+		}
+		return Range();
 	}
 	AutoRef<Matcher> Regex::makeMatcher() {
 		return Regex::makeMatcher(_regex);
@@ -427,7 +475,7 @@ namespace UTIL {
 		// ?*+{}()[]|-^$.
 		// ?*+{
 	
-		for (;tokens_iter.has(); tokens_iter++) {
+		for (;tokens_iter.avail(); tokens_iter++) {
 		
 			string token = *tokens_iter;
 
@@ -445,7 +493,7 @@ namespace UTIL {
 				string charset;
 				size_t i = 0;
 				tokens_iter++;
-				while (tokens_iter.has() && *tokens_iter != "]") {
+				while (tokens_iter.avail() && *tokens_iter != "]") {
 					string t = tokens_iter.next();
 					if (i == 0 && t == "^") {
 						matcher->reverse() = true;

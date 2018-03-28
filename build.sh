@@ -66,7 +66,7 @@ install() {
 
 check() {
 	cd $DIR_BUILD
-	make check  -j$CPU_COUNT # TESTS='test-secure-socket'
+	make check  -j$CPU_COUNT # TESTS='test-regex'
 }
 
 check_valgrind() {
