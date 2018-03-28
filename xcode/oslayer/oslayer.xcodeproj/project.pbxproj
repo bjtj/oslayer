@@ -33,13 +33,13 @@
 		E846C7891F0E753200F7EA38 /* DatabaseDriver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */; };
 		E846C78A1F0E753200F7EA38 /* Uri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7861F0E753200F7EA38 /* Uri.cpp */; };
 		E846C78B1F0E753200F7EA38 /* Uri.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E846C7861F0E753200F7EA38 /* Uri.cpp */; };
+		E8525FAF206BD593004D1571 /* Arguments.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8525FAE206BD593004D1571 /* Arguments.cpp */; };
+		E8525FB0206BD593004D1571 /* Arguments.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E8525FAE206BD593004D1571 /* Arguments.cpp */; };
 		E857BB6B1BECD09800D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
 		E857BB6C1BECD0A500D2022F /* Logger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E857BB691BECD09800D2022F /* Logger.cpp */; };
-		E86940391D19F97100192CBB /* ArgumentParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940301D19F97100192CBB /* ArgumentParser.cpp */; };
 		E869403A1D19F97100192CBB /* Random.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940331D19F97100192CBB /* Random.cpp */; };
 		E869403B1D19F97100192CBB /* Regex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940351D19F97100192CBB /* Regex.cpp */; };
 		E869403C1D19F97100192CBB /* StringElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940371D19F97100192CBB /* StringElements.cpp */; };
-		E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940301D19F97100192CBB /* ArgumentParser.cpp */; };
 		E86940441D19F9F400192CBB /* Random.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940331D19F97100192CBB /* Random.cpp */; };
 		E86940451D19F9F400192CBB /* StringElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E86940371D19F97100192CBB /* StringElements.cpp */; };
 		E86940621D2A66B900192CBB /* DatabaseConnection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E869405D1D2A66B900192CBB /* DatabaseConnection.cpp */; };
@@ -117,7 +117,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		6C4A9F4B1C0BEE7800A45604 /* Utils.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Utils.hpp; path = ../../liboslayer/Utils.hpp; sourceTree = "<group>"; };
 		6C59ABEB1C76CCD900F814A4 /* XmlParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = XmlParser.hpp; path = ../../liboslayer/XmlParser.hpp; sourceTree = "<group>"; };
 		6C9FC7471C1168CD00B292B8 /* DatagramSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = DatagramSocket.cpp; path = ../../liboslayer/DatagramSocket.cpp; sourceTree = "<group>"; };
 		6C9FC7481C1168CD00B292B8 /* DatagramSocket.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = DatagramSocket.hpp; path = ../../liboslayer/DatagramSocket.hpp; sourceTree = "<group>"; };
@@ -149,11 +148,11 @@
 		E846C7871F0E753200F7EA38 /* Uri.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Uri.hpp; path = ../../liboslayer/Uri.hpp; sourceTree = "<group>"; };
 		E84737DC1C1D387F008350CD /* platform.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = platform.hpp; path = ../../liboslayer/platform.hpp; sourceTree = "<group>"; };
 		E84DE9A41D901A2100EE539A /* Condition.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Condition.hpp; path = ../../liboslayer/Condition.hpp; sourceTree = "<group>"; };
+		E8525FAD206BD593004D1571 /* Arguments.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Arguments.hpp; path = ../../liboslayer/Arguments.hpp; sourceTree = "<group>"; };
+		E8525FAE206BD593004D1571 /* Arguments.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Arguments.cpp; path = ../../liboslayer/Arguments.cpp; sourceTree = "<group>"; };
 		E85690101D560E9100F7517B /* Heap.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Heap.hpp; path = ../../liboslayer/Heap.hpp; sourceTree = "<group>"; };
 		E857BB691BECD09800D2022F /* Logger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Logger.cpp; path = ../../liboslayer/Logger.cpp; sourceTree = "<group>"; };
 		E857BB6A1BECD09800D2022F /* Logger.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Logger.hpp; path = ../../liboslayer/Logger.hpp; sourceTree = "<group>"; };
-		E86940301D19F97100192CBB /* ArgumentParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ArgumentParser.cpp; path = ../../liboslayer/ArgumentParser.cpp; sourceTree = "<group>"; };
-		E86940311D19F97100192CBB /* ArgumentParser.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = ArgumentParser.hpp; path = ../../liboslayer/ArgumentParser.hpp; sourceTree = "<group>"; };
 		E86940321D19F97100192CBB /* Iterator.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Iterator.hpp; path = ../../liboslayer/Iterator.hpp; sourceTree = "<group>"; };
 		E86940331D19F97100192CBB /* Random.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Random.cpp; path = ../../liboslayer/Random.cpp; sourceTree = "<group>"; };
 		E86940341D19F97100192CBB /* Random.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Random.hpp; path = ../../liboslayer/Random.hpp; sourceTree = "<group>"; };
@@ -268,6 +267,8 @@
 		E882FEA51BD6872600E1C8C7 /* liboslayer_c++ */ = {
 			isa = PBXGroup;
 			children = (
+				E8525FAE206BD593004D1571 /* Arguments.cpp */,
+				E8525FAD206BD593004D1571 /* Arguments.hpp */,
 				E846C7841F0E753200F7EA38 /* DatabaseDriver.cpp */,
 				E846C7851F0E753200F7EA38 /* DatabaseDriver.hpp */,
 				E846C7861F0E753200F7EA38 /* Uri.cpp */,
@@ -310,8 +311,6 @@
 				E869405F1D2A66B900192CBB /* Register.hpp */,
 				E86940601D2A66B900192CBB /* Uuid.cpp */,
 				E86940611D2A66B900192CBB /* Uuid.hpp */,
-				E86940301D19F97100192CBB /* ArgumentParser.cpp */,
-				E86940311D19F97100192CBB /* ArgumentParser.hpp */,
 				E86940321D19F97100192CBB /* Iterator.hpp */,
 				E86940331D19F97100192CBB /* Random.cpp */,
 				E86940341D19F97100192CBB /* Random.hpp */,
@@ -364,7 +363,6 @@
 				E882FE8D1BD5315300E1C8C7 /* Text.hpp */,
 				E8B1613E1BFDF8DA002D68C7 /* ThreadPool.cpp */,
 				E8B1613F1BFDF8DA002D68C7 /* ThreadPool.hpp */,
-				6C4A9F4B1C0BEE7800A45604 /* Utils.hpp */,
 			);
 			name = "liboslayer_c++";
 			sourceTree = "<group>";
@@ -461,6 +459,7 @@
 				E824CD7C1DB6CEFE00EA2518 /* File.cpp in Sources */,
 				E882FE8F1BD5315300E1C8C7 /* Text.cpp in Sources */,
 				E8C1D4311E9EECD900AA8905 /* Thread.cpp in Sources */,
+				E8525FAF206BD593004D1571 /* Arguments.cpp in Sources */,
 				E8848EAD1E55F14A00FFA522 /* Selector.cpp in Sources */,
 				E882FE841BD5312600E1C8C7 /* oslayer.mm in Sources */,
 				E8E048FC1C6381B500144731 /* Lisp.cpp in Sources */,
@@ -478,7 +477,6 @@
 				E824CD7B1DB6CEFE00EA2518 /* Date.cpp in Sources */,
 				E8AC4F801C9569CE00504E50 /* Process.cpp in Sources */,
 				E869403B1D19F97100192CBB /* Regex.cpp in Sources */,
-				E86940391D19F97100192CBB /* ArgumentParser.cpp in Sources */,
 				E87F364D1C4CF2AF00970869 /* SecureSocket.cpp in Sources */,
 				E8B161421BFDF8DA002D68C7 /* ThreadPool.cpp in Sources */,
 				6C9FC7491C1168CD00B292B8 /* DatagramSocket.cpp in Sources */,
@@ -506,10 +504,10 @@
 				E86940661D2A66ED00192CBB /* Regex.cpp in Sources */,
 				E846C78B1F0E753200F7EA38 /* Uri.cpp in Sources */,
 				E815B9EA1EBD4F0E001E8E22 /* Mutex.cpp in Sources */,
-				E86940431D19F9F400192CBB /* ArgumentParser.cpp in Sources */,
 				E86940441D19F9F400192CBB /* Random.cpp in Sources */,
 				E86940451D19F9F400192CBB /* StringElements.cpp in Sources */,
 				E8C1D4321E9EECD900AA8905 /* Thread.cpp in Sources */,
+				E8525FB0206BD593004D1571 /* Arguments.cpp in Sources */,
 				E8848EAE1E55F14A00FFA522 /* Selector.cpp in Sources */,
 				E88A80051CB4453F00241D44 /* TaskThreadPool.cpp in Sources */,
 				E81FE3A11CC78532003D3F15 /* Observer.cpp in Sources */,
