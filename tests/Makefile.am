@@ -50,10 +50,6 @@ if SUPPORT_OPENSSL
 check_PROGRAMS += test-secure-socket
 endif
 
-if SUPPORT_MYSQLCLIENT
-check_PROGRAMS += test-mysqlclient-database-connector
-endif
-
 test_os_SOURCES=test-os.cpp
 test_file_SOURCES=test-file.cpp
 test_ref_SOURCES=test-ref.cpp
@@ -85,7 +81,6 @@ test_xml_SOURCES=test-xml.cpp
 test_string_elements_SOURCES=test-string-elements.cpp
 test_property_map_SOURCES=test-property-map.cpp
 test_database_connection_SOURCES=test-database-connection.cpp
-test_mysqlclient_database_connector_SOURCES=test-mysqlclient-database-connector.cpp
 test_socket_SOURCES=test-socket.cpp
 test_echo_server_client_SOURCES=test-echo-server-client.cpp
 test_datagramsocket_SOURCES=test-datagramsocket.cpp
@@ -106,12 +101,10 @@ AM_CPPFLAGS=-I$(top_srcdir)
 AM_CXXFLAGS=$(PTHREAD_CXXFLAGS)
 AM_CXXFLAGS+=-DDATA_PATH="\"$(builddir)/data\""
 AM_CXXFLAGS+=$(LIBOPENSSL_CFLAGS)
-AM_CXXFLAGS+=$(LIBMYSQLCLIENT_CFLAGS)
 
 # libs
 AM_LDFLAGS=$(PTHREAD_CFLAGS)
 AM_LDFLAGS+=$(LIBOPENSSL_LIBS)
-AM_LDFLAGS+=$(LIBMYSQLCLIENT_LIBS)
 
 # 
 LDADD=../liboslayer/liboslayer.la

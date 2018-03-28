@@ -24,9 +24,6 @@
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
 
-/* support mysql-client */
-#undef HAVE_MYSQLCLIENT
-
 /* Define to 1 if you have the <netdb.h> header file. */
 #undef HAVE_NETDB_H
 
