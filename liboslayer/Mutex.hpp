@@ -8,7 +8,7 @@ namespace OS {
 	class Mutex
 	{
 	private:
-#if defined(USE_PTHREAD)
+#if defined(USE_PTHREAD)		// apple also
 		pthread_mutex_t _mutex;
 		pthread_cond_t _cond;
 #elif defined(USE_MS_WIN)
