@@ -14,34 +14,34 @@ class LoggerFactoryObserver : public Observer {
 private:
 	bool _updated;
 public:
-    LoggerFactoryObserver() : _updated(false) {}
-    virtual ~LoggerFactoryObserver() {}
-
+    LoggerFactoryObserver() : _updated(false) {
+	}
+    virtual ~LoggerFactoryObserver() {
+	}
 	virtual void onUpdate(Observable * target) {
 		_updated = true;
 	}
-
 	bool & updated() {
 		return _updated;
 	}
 };
 
 /**
- * static printer
+ * static writer
  */
-class StaticPrinter : public LogPrinter {
+class StaticWriter : public LogWriter {
 public:
 	static vector<string> logs;
 public:
-	StaticPrinter() {}
-	virtual ~StaticPrinter() {}
-	virtual void print(const LogSession & session, const string & msg) {
-		cout << "[StaticPrinter] :: " << msg << endl;
+	StaticWriter() {}
+	virtual ~StaticWriter() {}
+	virtual void write(const LogSession & session, const string & msg) {
+		cout << "[StaticWriter] :: " << msg << endl;
 		logs.push_back(msg);
 	}
 };
 
-vector<string> StaticPrinter::logs;
+vector<string> StaticWriter::logs;
 
 /**
  * logger test case
@@ -54,23 +54,23 @@ public:
 	LoggerTestCase() : TestCase("LoggerTestCase") {}
 	virtual ~LoggerTestCase() {}
 	virtual void setUp(TestEnvironment & env) {
-		LoggerFactory::getInstance().addObserver(&observer);
-		LoggerFactory::getInstance().setPrinter("static", AutoRef<LogPrinter>(new StaticPrinter));
-		logger = LoggerFactory::getInstance().getObservingLogger(__FILE__);
+		LoggerFactory::inst().addObserver(&observer);
+		LoggerFactory::inst().registerWriter("static", AutoRef<LogWriter>(new StaticWriter));
+		logger = LoggerFactory::inst().getObservingLogger(__FILE__);
 	}
 	virtual void tearDown() {
 	}
 	
 	virtual void test() {
-		LoggerFactory::getInstance().setLoggerDescriptorSimple("*", "basic", "static");
-		ASSERT(LoggerFactory::getInstance().getPrinter("static").nil(), ==, false);
-		ASSERT(LoggerFactory::getInstance().observerCount(), ==, 2);
+		LoggerFactory::inst().setProfile("*", "basic", "static");
+		ASSERT(LoggerFactory::inst().writer("static").nil(), ==, false);
+		ASSERT(LoggerFactory::inst().observerCount(), ==, 2);
 		ASSERT(observer.updated(), ==, true);
-		logger->logd("debug1");
-		logger->logd("debug2");
-		ASSERT(StaticPrinter::logs.size(), ==, 2);
-		ASSERT(Text::endsWith(StaticPrinter::logs[0], "debug1"), ==, true);
-		ASSERT(Text::endsWith(StaticPrinter::logs[1], "debug2"), ==, true);
+		logger->debug("debug1");
+		logger->debug("debug2");
+		ASSERT(StaticWriter::logs.size(), ==, 2);
+		ASSERT(Text::endsWith(StaticWriter::logs[0], "debug1"), ==, true);
+		ASSERT(Text::endsWith(StaticWriter::logs[1], "debug2"), ==, true);
 	}
 };
 
