@@ -17,12 +17,15 @@ namespace OS {
 	Mutex::~Mutex() {
 #if defined(USE_PTHREAD)
 		if (pthread_mutex_destroy(&_mutex) != 0) {
-			throw Exception("pthread_mutex_destroy() error");
+            // do not throw
+            // https://stackoverflow.com/a/130123
+			// - throw Exception("pthread_mutex_destroy() error");
 		}
 #elif defined(USE_MS_WIN)
 		CloseHandle(_mutex);
 #else
-		throw NotSupportedPlatformException("not supported platform");
+        // do not throw and not reachable by constructor
+		// - throw NotSupportedPlatformException("not supported platform");
 #endif
 	}
 	
