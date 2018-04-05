@@ -469,10 +469,10 @@ namespace LISP {
 		Pathname(const OS::File & file);
 		virtual ~Pathname();
 		OS::File & file();
-		std::string basename_without_ext();
 		std::string ext();
 		std::string path();
 		std::string dirname();
+		std::string name();
 		std::string basename();
 		bool exists();
 		bool is_dir();

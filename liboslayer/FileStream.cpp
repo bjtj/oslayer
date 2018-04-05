@@ -23,7 +23,7 @@ namespace UTIL {
 
 	FileStream::FileStream(File file, const string & flags) : _fp(NULL) {
 		_init();
-		_fp = s_open(file.getPath(), flags);
+		_fp = s_open(file.path(), flags);
 	}
 
 	FileStream::FileStream(const string & path, const string & flags) : _fp(NULL) {

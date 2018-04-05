@@ -575,21 +575,21 @@ namespace OS {
 	File::File() {
 	}
 	
-	File::File(const string & path) : path(path) {
+	File::File(const string & path) : _path(path) {
 	}
 
 	File::~File() {
 	}
 
-	string File::getSeparators() {
+	string File::separators() {
 		return s_get_separators();
 	}
 
-	string File::mergePaths(const string & dir, const string & filename) {
+	string File::merge(const string & dir, const string & filename) {
 		return fullpath(dir, filename);
 	}
 
-	string File::mergePaths(const string & dir, const string & filename, const string & separators) {
+	string File::merge(const string & dir, const string & filename, const string & separators) {
 		return fullpath(dir, filename, separators);
 	}
 
@@ -640,42 +640,29 @@ namespace OS {
 		return s_is_writable(path);
 	}
 
-	string File::getAbsolutePath(const string & path) {
+	string File::absolutePath(const string & path) {
 		return s_get_absolute_path(path);
 	}
 
-	string File::getDirectoryName(const string & path){
+	string File::dirname(const string & path){
 		return s_get_path_part(path);
 	}
 
-	string File::getFileName(const string & path){
+	string File::name(const string & path){
+		string name = basename(path);
+		size_t dot = name.find_last_of(".");
+		if (dot != string::npos && dot > 0) {
+			return name.substr(0, dot);
+		}
+		return name;
+	}
+
+	string File::basename(const string & path){
 		return s_get_filename_part(path);
 	}
 
-	string File::getFileNameWithoutExtension(const string & path) {
-		string fn = getFileName(path);
-		size_t dot = fn.find_last_of(".");
-		if (dot != string::npos && dot > 0) {
-			return fn.substr(0, dot);
-		}
-
-		return fn;
-	}
-
-	string File::getExtension(const string & path){
+	string File::extension(const string & path){
 		return s_get_ext(path);
-	}
-
-	bool File::compareExtension(const string & path, string extension){
-		
-		string a = s_get_ext(path);
-		string b = s_get_ext(extension);
-
-		if (a.empty() || b.empty()) {
-			return false;
-		}
-
-		return (!a.compare(b));
 	}
 
 	int File::mkdir(const string & path) {
@@ -698,78 +685,75 @@ namespace OS {
 	osl_time_t File::lastModifiedTime(const string & path) {
 		return lastModifiedDate(path).getTime();
 	}
-	filesize_t File::getSize(const string & path) {
+	filesize_t File::size(const string & path) {
 		return s_get_file_size(path);
 	}
 	vector<File> File::list(const string & path) {
 		return s_list(path);
 	}
-	string File::getPath() const {
-		return path;
+	string File::path() const {
+		return _path;
 	}
 	bool File::isRootPath() const {
-		return File::isRootPath(path);
+		return File::isRootPath(_path);
 	}
 	bool File::isAbsolutePath() const {
-		return File::isAbsolutePath(path);
+		return File::isAbsolutePath(_path);
 	}
 	bool File::exists() const {
-		return File::exists(path);
+		return File::exists(_path);
 	}
 	bool File::isFile() const {
-		return File::isFile(path);
+		return File::isFile(_path);
 	}
 	bool File::isDirectory() const {
-		return File::isDirectory(path);
+		return File::isDirectory(_path);
 	}
 	bool File::isWritable() const {
-		return File::isWritable(path);
+		return File::isWritable(_path);
 	}
-	string File::getAbsolutePath() {
-		return File::getAbsolutePath(path);
+	string File::absolutePath() {
+		return File::absolutePath(_path);
 	}
-	string File::getDirectoryName() const {
-		return File::getDirectoryName(path);
+	string File::dirname() const {
+		return File::dirname(_path);
 	}
-	string File::getFileName() const {
-		return File::getFileName(path);
+	string File::name() const {
+		return File::name(_path);
 	}
-	string File::getFileNameWithoutExtension() const {
-		return File::getFileNameWithoutExtension(path);
+	string File::basename() const {
+		return File::basename(_path);
 	}
-	string File::getExtension() const {
-		return File::getExtension(path);
-	}
-	bool File::compareExtension(string extension) const {
-		return File::compareExtension(path, extension);
+	string File::extension() const {
+		return File::extension(_path);
 	}
 	int File::mkdir() const {
-		return File::mkdir(path);
+		return File::mkdir(_path);
 	}
 	bool File::remove() {
-		return File::remove(path);
+		return File::remove(_path);
 	}
 	Date File::creationDate() const {
-		return creationDate(path);
+		return creationDate(_path);
 	}
 	Date File::lastModifiedDate() const {
-		return lastModifiedDate(path);
+		return lastModifiedDate(_path);
 	}
 	osl_time_t File::creationTime() const {
-		return creationDate(path).getTime();
+		return creationDate(_path).getTime();
 	}
 	osl_time_t File::lastModifiedTime() const {
-		return lastModifiedDate(path).getTime();
+		return lastModifiedDate(_path).getTime();
 	}
-	filesize_t File::getSize() const {
-		return File::getSize(path);
+	filesize_t File::size() const {
+		return File::size(_path);
 	}
 	vector<File> File::list() const {
-		return File::list(path);
+		return File::list(_path);
 	}
 
 	string File::toString() const {
-		return path;
+		return _path;
 	}
 	
 }

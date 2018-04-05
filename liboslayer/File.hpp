@@ -19,17 +19,17 @@ namespace OS {
 	 */
 	class File {
 	private:
-		std::string path;
+		std::string _path;
 
 	public:
 		File();
 		File(const std::string & path);
 		virtual ~File();
 
-		static std::string getSeparators();
+		static std::string separators();
 
-		static std::string mergePaths(const std::string & dir, const std::string & filename);
-		static std::string mergePaths(const std::string & dir, const std::string & filename, const std::string & separators);
+		static std::string merge(const std::string & dir, const std::string & filename);
+		static std::string merge(const std::string & dir, const std::string & filename, const std::string & separators);
 		static std::string fullpath(const std::string & dir, const std::string & filename);
 		static std::string fullpath(const std::string & dir, const std::string & filename, const std::string & separators);
 		static std::string getCwd();
@@ -41,41 +41,39 @@ namespace OS {
 		static bool isFile(const std::string & path);
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
-		static std::string getAbsolutePath(const std::string & path);
-		static std::string getDirectoryName(const std::string & path);
-		static std::string getFileName(const std::string & path);
-		static std::string getFileNameWithoutExtension(const std::string & path);
-		static std::string getExtension(const std::string & path);
-		static bool compareExtension(const std::string & path, std::string extension);
+		static std::string absolutePath(const std::string & path);
+		static std::string dirname(const std::string & path);
+		static std::string name(const std::string & path);
+		static std::string basename(const std::string & path);
+		static std::string extension(const std::string & path);
 		static int mkdir(const std::string & path);
 		static bool remove(const std::string & path);
 		static Date creationDate(const std::string & path);
 		static Date lastModifiedDate(const std::string & path);
 		static osl_time_t creationTime(const std::string & path);
 		static osl_time_t lastModifiedTime(const std::string & path);
-		static filesize_t getSize(const std::string & path);
+		static filesize_t size(const std::string & path);
 		static std::vector<File> list(const std::string & path);
 
-		std::string getPath() const;
+		std::string path() const;
 		bool isRootPath() const;
 		bool isAbsolutePath() const;
 		bool exists() const;
 		bool isFile() const;
 		bool isDirectory() const;
 		bool isWritable() const;
-		std::string getAbsolutePath();
-		std::string getDirectoryName() const;
-		std::string getFileName() const;
-		std::string getFileNameWithoutExtension() const;
-		std::string getExtension() const;
-		bool compareExtension(std::string extension) const;
+		std::string absolutePath();
+		std::string dirname() const;
+		std::string name() const;
+		std::string basename() const;
+		std::string extension() const;
 		int mkdir() const;
 		bool remove();
 		Date creationDate() const;
 		Date lastModifiedDate() const;
 		osl_time_t creationTime() const;
 		osl_time_t lastModifiedTime() const;
-		filesize_t getSize() const;
+		filesize_t size() const;
 		std::vector<File> list() const;
 		virtual std::string toString() const;
 	};	

@@ -45,41 +45,41 @@ public:
 	}
 
 	void testPath() {
-		ASSERT(File::getDirectoryName(""), ==, "");
-		ASSERT(File::getDirectoryName("/"), ==, "/");
-		ASSERT(File::getDirectoryName("/hello/"), ==, "/hello/");
-		ASSERT(File::getDirectoryName("/hello"), ==, "/");
+		ASSERT(File::dirname(""), ==, "");
+		ASSERT(File::dirname("/"), ==, "/");
+		ASSERT(File::dirname("/hello/"), ==, "/hello/");
+		ASSERT(File::dirname("/hello"), ==, "/");
 
-		ASSERT(File::getExtension("."), ==, "");
-		ASSERT(File::getExtension(".."), ==, "");
+		ASSERT(File::extension("."), ==, "");
+		ASSERT(File::extension(".."), ==, "");
 
-		ASSERT(File::getFileName("."), ==, ".");
-		ASSERT(File::getFileName(".."), ==, "..");
+		ASSERT(File::basename("."), ==, ".");
+		ASSERT(File::basename(".."), ==, "..");
 
-		ASSERT(File::getFileName(""), ==, "");
-		ASSERT(File::getFileName("file.mp4"), ==, "file.mp4");
-		ASSERT(File::getFileName("./videos/file.mp4"), ==, "file.mp4");
-		ASSERT(File::getFileNameWithoutExtension(".file.mp4"), ==, ".file");
-		ASSERT(File::getFileNameWithoutExtension("file.mp4"), ==, "file");
-		ASSERT(File::getFileNameWithoutExtension("file.orig.mp4"), ==, "file.orig");
-		ASSERT(File::getFileNameWithoutExtension("./videos/file.mp4"), ==, "file");
-		ASSERT(File::getFileNameWithoutExtension("./videos/.file.mp4"), ==, ".file");
-		ASSERT(File::getFileNameWithoutExtension("./videos/.file.orig.mp4"), ==, ".file.orig");
+		ASSERT(File::basename(""), ==, "");
+		ASSERT(File::basename("file.mp4"), ==, "file.mp4");
+		ASSERT(File::basename("./videos/file.mp4"), ==, "file.mp4");
+		ASSERT(File::name(".file.mp4"), ==, ".file");
+		ASSERT(File::name("file.mp4"), ==, "file");
+		ASSERT(File::name("file.orig.mp4"), ==, "file.orig");
+		ASSERT(File::name("./videos/file.mp4"), ==, "file");
+		ASSERT(File::name("./videos/.file.mp4"), ==, ".file");
+		ASSERT(File::name("./videos/.file.orig.mp4"), ==, ".file.orig");
 	
-		ASSERT(File::getDirectoryName("file.mp4"), ==, "");
-		ASSERT(File::getDirectoryName("/path/to/file.mp4"), ==, "/path/to/");
-		ASSERT(File::getDirectoryName("/file.mp4"), ==, "/");
-		ASSERT(File::mergePaths("/", "file.mp4"), ==, "/file.mp4");
-		ASSERT(File::mergePaths("./", "file.mp4"), ==, "./file.mp4");
+		ASSERT(File::dirname("file.mp4"), ==, "");
+		ASSERT(File::dirname("/path/to/file.mp4"), ==, "/path/to/");
+		ASSERT(File::dirname("/file.mp4"), ==, "/");
+		ASSERT(File::merge("/", "file.mp4"), ==, "/file.mp4");
+		ASSERT(File::merge("./", "file.mp4"), ==, "./file.mp4");
 
-		string path = File::mergePaths(".", "file.mp4");
+		string path = File::merge(".", "file.mp4");
 
 		ASSERT((path == "./file.mp4" || path == ".\\file.mp4"), ==, true);
-		ASSERT(File::mergePaths("", "file.mp4"), ==, "file.mp4");
+		ASSERT(File::merge("", "file.mp4"), ==, "file.mp4");
 
-		cout << File::getAbsolutePath("..") << endl;
-		ASSERT(File::getAbsolutePath("."), ==, File::getCwd());
-		ASSERT(File::getAbsolutePath("./not exists"), ==, File::getCwd() + File::getSeparators()[0] + "not exists");
+		cout << File::absolutePath("..") << endl;
+		ASSERT(File::absolutePath("."), ==, File::getCwd());
+		ASSERT(File::absolutePath("./not exists"), ==, File::getCwd() + File::separators()[0] + "not exists");
 	}
 };
 

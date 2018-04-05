@@ -70,7 +70,7 @@ namespace OS {
 		close();
 	}
 	void Library::load() {
-		string fullpath = File::mergePaths(_path, s_to_lib_name(_name));
+		string fullpath = File::merge(_path, s_to_lib_name(_name));
 #if defined(USE_UNIX_STD)
 		_handle = dlopen(fullpath.c_str(), RTLD_LAZY);
 		if (!_handle) {

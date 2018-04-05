@@ -1025,20 +1025,20 @@ namespace LISP {
 	File & Pathname::file() {
 		return _file;
 	}
-	string Pathname::basename_without_ext() {
-		return _file.getFileNameWithoutExtension();
-	}
 	string Pathname::ext() {
-		return _file.getExtension();
+		return _file.extension();
 	}
 	string Pathname::path() {
-		return _file.getPath();
+		return _file.path();
 	}
 	string Pathname::dirname() {
-		return _file.getDirectoryName();
+		return _file.dirname();
+	}
+	string Pathname::name() {
+		return _file.name();
 	}
 	string Pathname::basename() {
-		return _file.getFileName();
+		return _file.basename();
 	}
 	bool Pathname::exists() {
 		return _file.exists();
@@ -1055,7 +1055,7 @@ namespace LISP {
 	}
 	long long Pathname::size() {
 		try {
-			return _file.getSize();
+			return _file.size();
 		} catch (Exception e) {
 			throw NativeLispException(e);
 		}
@@ -1075,10 +1075,10 @@ namespace LISP {
 		}
 	}
 	string Pathname::toString() const {
-		return "#p\"" + _file.getPath() + "\"";
+		return "#p\"" + _file.path() + "\"";
 	}
 	string Pathname::toPrintString() const {
-		return _file.getPath();
+		return _file.path();
 	}
 
 	/**
@@ -3994,7 +3994,7 @@ namespace LISP {
 		{
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
-			return _HEAP_ALLOC(env, wrap_text(p.basename_without_ext()));
+			return _HEAP_ALLOC(env, wrap_text(p.name()));
 		}END_DECL_NATIVE;
 		BEGIN_DECL_NATIVE(env, "pathname-type");
 		{
@@ -4031,7 +4031,7 @@ namespace LISP {
 			if (path.empty()) {
 				return _NIL(env);
 			}
-			if (File::getSeparators().find(*path.rbegin()) != string::npos) {
+			if (File::separators().find(*path.rbegin()) != string::npos) {
 				return _HEAP_ALLOC(env, wrap_text(path.substr(0, path.size() - 1)));
 			}
 			return _HEAP_ALLOC(env, wrap_text(path));
@@ -4041,7 +4041,7 @@ namespace LISP {
 			_CHECK_ARGS_MIN_COUNT(args, 1);
 			Pathname & p = pathname(env, eval(env, scope, args[0]))->r_pathname();
 			string path = p.path();
-			size_t f = path.find_last_of(File::getSeparators());
+			size_t f = path.find_last_of(File::separators());
 			if (f == string::npos) {
 				return _NIL(env);
 			}
