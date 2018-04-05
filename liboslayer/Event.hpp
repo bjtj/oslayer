@@ -22,12 +22,10 @@ namespace OS {
 #elif defined(USE_MS_WIN)
 		HANDLE _mutex;
 		HANDLE _evt;
-#else
-		// not support
 #endif
 	private:
-		Event(const Event & other); // not allow
-		Event & operator=(const Event & other); // not allow
+		Event(const Event & other); // not allowed
+		Event & operator=(const Event & other); // not allowed
 	public:
 		Event();
 		virtual ~Event();
@@ -36,6 +34,7 @@ namespace OS {
 		void wait();
 		void wait(unsigned long timeout);
 		void notify();
+		static bool support_wait_with_timeout();
 	};
 }
 

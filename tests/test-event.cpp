@@ -55,6 +55,12 @@ public:
     virtual ~EventTestCase() {
 	}
 	virtual void test() {
+
+		if (Event::support_wait_with_timeout() == false) {
+			cout << "[skip] not supported feature found" << endl;
+			return;
+		}
+		
 		Event e;
 		for (int i = 0; i < 2; i++) {
 			WorkerThread w(e, i * 2000);

@@ -45,10 +45,10 @@ public:
 	}
 
 	void testPath() {
-		ASSERT(File::getDirectory(""), ==, "");
-		ASSERT(File::getDirectory("/"), ==, "/");
-		ASSERT(File::getDirectory("/hello/"), ==, "/hello/");
-		ASSERT(File::getDirectory("/hello"), ==, "/");
+		ASSERT(File::getDirectoryName(""), ==, "");
+		ASSERT(File::getDirectoryName("/"), ==, "/");
+		ASSERT(File::getDirectoryName("/hello/"), ==, "/hello/");
+		ASSERT(File::getDirectoryName("/hello"), ==, "/");
 
 		ASSERT(File::getExtension("."), ==, "");
 		ASSERT(File::getExtension(".."), ==, "");
@@ -66,9 +66,9 @@ public:
 		ASSERT(File::getFileNameWithoutExtension("./videos/.file.mp4"), ==, ".file");
 		ASSERT(File::getFileNameWithoutExtension("./videos/.file.orig.mp4"), ==, ".file.orig");
 	
-		ASSERT(File::getDirectory("file.mp4"), ==, "");
-		ASSERT(File::getDirectory("/path/to/file.mp4"), ==, "/path/to/");
-		ASSERT(File::getDirectory("/file.mp4"), ==, "/");
+		ASSERT(File::getDirectoryName("file.mp4"), ==, "");
+		ASSERT(File::getDirectoryName("/path/to/file.mp4"), ==, "/path/to/");
+		ASSERT(File::getDirectoryName("/file.mp4"), ==, "/");
 		ASSERT(File::mergePaths("/", "file.mp4"), ==, "/file.mp4");
 		ASSERT(File::mergePaths("./", "file.mp4"), ==, "./file.mp4");
 

@@ -89,7 +89,7 @@ namespace OS {
 		// TODO: https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms686927(v=vs.85).aspx
 		WaitForSingleObject(_mutex, INFINITE);
 #else
-		throw NotSupportedPlatformException("not supported platform");
+		throw NotSupportedPlatformException("Event::lock() is not supported on platform");
 #endif
 	}
 	
@@ -101,7 +101,7 @@ namespace OS {
 #elif defined(USE_MS_WIN)
 		ReleaseMutex(_mutex);
 #else
-		throw NotSupportedPlatformException("not supported platform");
+		throw NotSupportedPlatformException("Event::unlock() is not supported on this platform");
 #endif
 	}
 	
@@ -112,7 +112,7 @@ namespace OS {
 	void Event::wait(unsigned long timeout) {
 #if defined(USE_APPLE_STD)
         if (timeout > 0) {
-            throw NotSupportedPlatformException("not supported platform");
+            throw NotSupportedPlatformException("Event::wait() with timeout is not supported on this platform");
         }
         pthread_cond_wait(&_cond, &_mutex);
 #elif defined(USE_PTHREAD)
@@ -166,6 +166,18 @@ namespace OS {
 		SetEvent(_evt);
 #else
 		throw NotSupportedPlatformException("not supported platform");
+#endif
+	}
+
+	bool Event::support_wait_with_timeout() {
+#if defined(USE_APPLE_STD)
+		return false;
+#elif defined(USE_PTHREAD)
+		return true;
+#elif defined(USE_MS_WIN)
+		return true;
+#else
+		return false;
 #endif
 	}
 }

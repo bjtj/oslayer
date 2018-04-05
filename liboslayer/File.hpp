@@ -36,14 +36,13 @@ namespace OS {
 
 		/* */
 		static bool isRootPath(const std::string & path);
-		static bool isFullpath(const std::string & path);
+		static bool isAbsolutePath(const std::string & path);
 		static bool exists(const std::string & path);
 		static bool isFile(const std::string & path);
 		static bool isDirectory(const std::string & path);
 		static bool isWritable(const std::string & path);
 		static std::string getAbsolutePath(const std::string & path);
-		static std::string getDirectory(const std::string & path);
-		static std::string getName(const std::string & path);
+		static std::string getDirectoryName(const std::string & path);
 		static std::string getFileName(const std::string & path);
 		static std::string getFileNameWithoutExtension(const std::string & path);
 		static std::string getExtension(const std::string & path);
@@ -59,14 +58,13 @@ namespace OS {
 
 		std::string getPath() const;
 		bool isRootPath() const;
-		bool isFullpath() const;
+		bool isAbsolutePath() const;
 		bool exists() const;
 		bool isFile() const;
 		bool isDirectory() const;
 		bool isWritable() const;
 		std::string getAbsolutePath();
-		std::string getDirectory() const;
-		std::string getName() const;
+		std::string getDirectoryName() const;
 		std::string getFileName() const;
 		std::string getFileNameWithoutExtension() const;
 		std::string getExtension() const;

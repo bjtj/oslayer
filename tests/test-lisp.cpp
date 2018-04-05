@@ -392,7 +392,7 @@ static void test_func() {
 		compile(env, "(dolist (x (list 1 2 3)) (wr x))");
 		ASSERT(env.scope()->get_var(Symbol("*str*"))->toPrintString(), ==, "123");
 
-		compile(env, "(system \"touch .temp\")");
+		compile(env, "(run-process \"touch .temp\")");
 		compile(env, "(defun foo (x) (filep x))");
 		ASSERT(compile(env, "(foo \".temp\")")->r_boolean().val(), ==, true);
 	}
@@ -505,7 +505,7 @@ static void test_type() {
 	ASSERT(compile(env, "(integerp 1)")->isNil(), ==, false);
 	ASSERT(compile(env, "(floatp 1.0)")->isNil(), ==, false);
 	ASSERT(compile(env, "(stringp \"hello\")")->isNil(), ==, false);
-	compile(env, "(system \"touch xxx\")");
+	compile(env, "(run-process \"touch xxx\")");
 	compile(env, "(setq *f* (open \"xxx\"))");
 	ASSERT(compile(env, "(streamp *f*)")->isNil(), ==, false);
 }
@@ -796,7 +796,7 @@ static void test_file() {
 		Env env;
 		native(env);
 
-		compile(env, "(system \"rm hello.txt\")");
+		compile(env, "(run-process \"rm hello.txt\")");
 		ASSERT(compile(env, "(open \"hello.txt\" :if-does-not-exist nil)")->isNil(), ==, true);
 		ASSERT(!compile(env, "(open \"hello.txt\" :if-does-not-exist :create)")->isNil(), ==, true);
 		ASSERT(compile(env, "(let ((out (open \"hello.txt\" :if-does-not-exist :create))) "
@@ -822,7 +822,7 @@ static void test_file() {
 		native(env);
 
 		// append test
-		compile(env, "(system \"rm -rf message.txt\")");
+		compile(env, "(run-process \"rm -rf message.txt\")");
 		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-does-not-exist :create))) "
 					   "(write-string \"hello \" f) (close f))")->isNil(), ==, true);
 		ASSERT(compile(env, "(let ((f (open \"message.txt\" :if-exists :append))) "
@@ -859,21 +859,21 @@ static void test_load() {
 	Env env;
 	native(env);
 
-	compile(env, "(system \"rm code.lsp\")");
+	compile(env, "(run-process \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *temp* 1)\" out) (close out))");
 	compile(env, "(let ((in (open \"code.lsp\"))) (eval (read in)) (close in))");
 	ASSERT(*compile(env, "*temp*")->r_integer(), ==, 1);
 
 	//
-	compile(env, "(system \"rm code.lsp\")");
+	compile(env, "(run-process \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *a* \" out) (write-line \"1)\" out) (close out))");
 	compile(env, "(let ((in (open \"code.lsp\"))) (eval (read in)) (close in))");
 	ASSERT(*compile(env, "*a*")->r_integer(), ==, 1);
 
 	//
-	compile(env, "(system \"rm code.lsp\")");
+	compile(env, "(run-process \"rm code.lsp\")");
 
 	compile(env, "(let ((out (open \"code.lsp\" :if-does-not-exist :create))) (write-line \"(setq *b* \" out) (write-line \"1)\" out) (close out))");
 	compile(env, "(load \"code.lsp\")");

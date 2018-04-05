@@ -620,7 +620,7 @@ namespace OS {
 		return s_is_root_path(path);
 	}
 
-	bool File::isFullpath(const string & path) {
+	bool File::isAbsolutePath(const string & path) {
 		return s_is_fullpath(path);
 	}
 	
@@ -644,12 +644,8 @@ namespace OS {
 		return s_get_absolute_path(path);
 	}
 
-	string File::getDirectory(const string & path){
+	string File::getDirectoryName(const string & path){
 		return s_get_path_part(path);
-	}
-
-	string File::getName(const string & path) {
-		return getFileName(path);
 	}
 
 	string File::getFileName(const string & path){
@@ -714,8 +710,8 @@ namespace OS {
 	bool File::isRootPath() const {
 		return File::isRootPath(path);
 	}
-	bool File::isFullpath() const {
-		return File::isFullpath(path);
+	bool File::isAbsolutePath() const {
+		return File::isAbsolutePath(path);
 	}
 	bool File::exists() const {
 		return File::exists(path);
@@ -732,11 +728,8 @@ namespace OS {
 	string File::getAbsolutePath() {
 		return File::getAbsolutePath(path);
 	}
-	string File::getDirectory() const {
-		return File::getDirectory(path);
-	}
-	string File::getName() const {
-		return getFileName();
+	string File::getDirectoryName() const {
+		return File::getDirectoryName(path);
 	}
 	string File::getFileName() const {
 		return File::getFileName(path);

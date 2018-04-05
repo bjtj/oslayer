@@ -1035,7 +1035,7 @@ namespace LISP {
 		return _file.getPath();
 	}
 	string Pathname::dirname() {
-		return _file.getDirectory();
+		return _file.getDirectoryName();
 	}
 	string Pathname::basename() {
 		return _file.getFileName();
