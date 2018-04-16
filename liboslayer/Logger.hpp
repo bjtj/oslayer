@@ -11,6 +11,7 @@ namespace UTIL {
 
 	class LoggerFactory;
 	class LogSession;
+	class Logger;
 
 	/**
 	 * log level
@@ -42,13 +43,34 @@ namespace UTIL {
 	};
 
 	/**
+	 * 
+	 */
+	class Log {
+	private:
+		LogLevel _level;
+		std::string _name;
+		std::string _msg;
+	public:
+		Log(const LogLevel & level, const std::string & name, const std::string & msg);
+		Log(int level, const std::string & name, const std::string & msg);
+		virtual ~Log();
+		LogLevel & level();
+		LogLevel level() const;
+		std::string & name();
+		std::string name() const;
+		std::string & msg();
+		std::string msg() const;
+	};
+
+
+	/**
 	 * log formatter
 	 */
 	class LogFormatter {
 	public:
 		LogFormatter();
 		virtual ~LogFormatter();
-		virtual std::string format(const LogSession & session, const std::string & msg) = 0;
+		virtual std::string format(const Log & log) = 0;
 	};
 	
 
@@ -59,7 +81,7 @@ namespace UTIL {
 	public:
 		LogWriter();
 		virtual ~LogWriter();
-		virtual void write(const LogSession & session, const std::string & msg) = 0;
+		virtual void write(const std::string & str) = 0;
 	};
 	
 
@@ -68,22 +90,16 @@ namespace UTIL {
 	 */
 	class LogSession {
 	private:
-		bool _enable;
-		LogLevel _level;
 		OS::AutoRef<LogFormatter> _formatter;
 		OS::AutoRef<LogWriter> _writer;
 		
 	public:
-		LogSession(const LogLevel & level);
-		LogSession(int level);
+		LogSession();
 		virtual ~LogSession();
-		void log(const std::string & msg) const;
-		void enable(bool enable);
-		bool enable() const;
+		void log(const Log & log) const;
+		std::string name() const;
 		OS::AutoRef<LogFormatter> & formatter();
 		OS::AutoRef<LogWriter> & writer();
-		void formatter(OS::AutoRef<LogFormatter> formatter);
-		void writer(OS::AutoRef<LogWriter> writer);
 		void level(const LogLevel & level);
 		LogLevel level() const;
 	};
@@ -94,7 +110,7 @@ namespace UTIL {
 	 */
 	class Logger : public Observer {
 	private:
-		std::string name;
+		std::string _name;
 		OS::AutoRef<LogSession> _fatal;
 		OS::AutoRef<LogSession> _error;
 		OS::AutoRef<LogSession> _warning;
@@ -111,6 +127,8 @@ namespace UTIL {
 		void _init();
 		
 	public:
+		std::string & name();
+		std::string name() const;
 		virtual void fatal(const std::string & msg) const;
 		virtual void error(const std::string & msg) const;
 		virtual void warning(const std::string & msg) const;
@@ -138,7 +156,7 @@ namespace UTIL {
 		virtual ~LoggerProfile();
 		bool match(const std::string & keyword) const;
 		OS::AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
-		OS::AutoRef<LogSession> makeSession(LoggerFactory & factory, int level);
+		void setSession(LoggerFactory & factory, int level, OS::AutoRef<LogSession> session);
 		void formatter(int level, const std::string & name);
 		void writer(int level, const std::string & name);
 		void allFormatters(const std::string & name);
@@ -159,8 +177,10 @@ namespace UTIL {
 		
 	public:
 		virtual ~LoggerFactory();
-		static LoggerFactory & inst();
+		static LoggerFactory & instance();
+		OS::AutoRef<Logger> getObservingLogger(const char * name);
 		OS::AutoRef<Logger> getObservingLogger(const std::string & name);
+		OS::AutoRef<Logger> getLogger(const char * name);
 		OS::AutoRef<Logger> getLogger(const std::string & name);
 		void setProfile(const std::string & pattern,
 						const std::string & formatterName,

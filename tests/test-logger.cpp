@@ -2,6 +2,7 @@
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/Text.hpp>
 #include <liboslayer/Logger.hpp>
+#include <liboslayer/File.hpp>
 
 using namespace std;
 using namespace OS;
@@ -35,9 +36,9 @@ public:
 public:
 	StaticWriter() {}
 	virtual ~StaticWriter() {}
-	virtual void write(const LogSession & session, const string & msg) {
-		cout << "[StaticWriter] :: " << msg << endl;
-		logs.push_back(msg);
+	virtual void write(const string & str) {
+		cout << "[StaticWriter] :: " << str << endl;
+		logs.push_back(str);
 	}
 };
 
@@ -54,17 +55,17 @@ public:
 	LoggerTestCase() : TestCase("LoggerTestCase") {}
 	virtual ~LoggerTestCase() {}
 	virtual void setUp(TestEnvironment & env) {
-		LoggerFactory::inst().addObserver(&observer);
-		LoggerFactory::inst().registerWriter("static", AutoRef<LogWriter>(new StaticWriter));
-		logger = LoggerFactory::inst().getObservingLogger(__FILE__);
+		LoggerFactory::instance().addObserver(&observer);
+		LoggerFactory::instance().registerWriter("static", AutoRef<LogWriter>(new StaticWriter));
+		logger = LoggerFactory::instance().getObservingLogger(File::basename(__FILE__));
 	}
 	virtual void tearDown() {
 	}
 	
 	virtual void test() {
-		LoggerFactory::inst().setProfile("*", "basic", "static");
-		ASSERT(LoggerFactory::inst().writer("static").nil(), ==, false);
-		ASSERT(LoggerFactory::inst().observerCount(), ==, 2);
+		LoggerFactory::instance().setProfile("*", "basic", "static");
+		ASSERT(LoggerFactory::instance().writer("static").nil(), ==, false);
+		ASSERT(LoggerFactory::instance().observerCount(), ==, 2);
 		ASSERT(observer.updated(), ==, true);
 		logger->debug("debug1");
 		logger->debug("debug2");

@@ -102,24 +102,67 @@ namespace UTIL {
 		levels.push_back(LEVEL_VERBOSE);
 		return levels;
 	}
+
+	/**
+	 * log
+	 */
+
+	Log::Log(const LogLevel & level, const string & name, const string & msg)
+		: _level(level), _name(name), _msg(msg) {
+	}
+
+	Log::Log(int level, const string & name, const string & msg)
+		: _level(level), _name(name), _msg(msg) {
+	}
+	
+	Log::~Log() {
+	}
+	
+	LogLevel & Log::level() {
+		return _level;
+	}
+	
+	LogLevel Log::level() const {
+		return _level;
+	}
+	
+	string & Log::name() {
+		return _name;
+	}
+	
+	string Log::name() const {
+		return _name;
+	}
+	
+	string & Log::msg() {
+		return _msg;
+	}
+	
+	string Log::msg() const {
+		return _msg;
+	}
 	
 	/**
 	 * log formatter
 	 */
 	LogFormatter::LogFormatter() {
 	}
+	
 	LogFormatter::~LogFormatter() {
 	}
+	
 
-
-	class DummyLogFormatter : public LogFormatter
+	/**
+	 * null log formatter
+	 */
+	class NullLogFormatter : public LogFormatter
 	{
 	public:
-		DummyLogFormatter() {
+		NullLogFormatter() {
 		}
-		virtual ~DummyLogFormatter() {
+		virtual ~NullLogFormatter() {
 		}
-		string format(const LogSession & session, const string & msg) {
+		string format(const Log & log) {
 			return "";
 		}
 	};
@@ -129,21 +172,22 @@ namespace UTIL {
 	 */
 	LogWriter::LogWriter() {
 	}
+	
 	LogWriter::~LogWriter() {
 	}
 
 
 	/**
-	 * dummy log writer
+	 * null log writer
 	 */
-	class DummyLogWriter : public LogWriter
+	class NullLogWriter : public LogWriter
 	{
 	public:
-		DummyLogWriter() {
+		NullLogWriter() {
 		}
-		virtual ~DummyLogWriter() {
+		virtual ~NullLogWriter() {
 		}
-		virtual void write(const LogSession & session, const std::string & msg) {
+		virtual void write(const string & str) {
 		}
 	};
 
@@ -152,81 +196,82 @@ namespace UTIL {
 	/**
 	 * log session
 	 */
-	LogSession::LogSession(const LogLevel & level) : _enable(false), _level(level) {
+	LogSession::LogSession() {
 	}
-	LogSession::LogSession(int level) : _enable(false), _level(level) {
-	}
+	
 	LogSession::~LogSession() {
 	}
-	void LogSession::log(const string & msg) const {
-		if (_enable) {
-			_writer->write(*this, _formatter->format(*this, msg));
-		}
+	
+	void LogSession::log(const Log & log) const {
+		_writer->write(_formatter->format(log));
 	}
-	void LogSession::enable(bool enable) {
-		this->_enable = enable;
-	}
-	bool LogSession::enable() const {
-		return _enable;
-	}
+	
 	AutoRef<LogFormatter> & LogSession::formatter() {
 		return _formatter;
 	}
+	
 	AutoRef<LogWriter> & LogSession::writer() {
 		return _writer;
 	}
-	void LogSession::formatter(AutoRef<LogFormatter> formatter) {
-		_formatter = formatter;
-	}
-	void LogSession::writer(AutoRef<LogWriter> writer) {
-		_writer = writer;
-	}
-	void LogSession::level(const LogLevel & level) {
-		_level = level;
-	}
-	LogLevel LogSession::level() const {
-		return _level;
-	}
+	
 
 	/**
 	 * logger
 	 */
-	Logger::Logger(const string & name) : name(name) {
+	Logger::Logger(const string & name) : _name(name) {
 		_init();
 	}
+	
 	Logger::~Logger() {
 		stopObserve();
 	}
+	
 	void Logger::_init() {
-		_fatal = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_FATAL));
-		_error = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_ERROR));
-		_warning = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_WARNING));
-		_info = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_INFO));
-		_debug = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_DEBUG));
-		_trace = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_TRACE));
-		_verbose = AutoRef<LogSession>(new LogSession(LogLevel::LEVEL_VERBOSE));
+		_fatal = AutoRef<LogSession>(new LogSession);
+		_error = AutoRef<LogSession>(new LogSession);
+		_warning = AutoRef<LogSession>(new LogSession);
+		_info = AutoRef<LogSession>(new LogSession);
+		_debug = AutoRef<LogSession>(new LogSession);
+		_trace = AutoRef<LogSession>(new LogSession);
+		_verbose = AutoRef<LogSession>(new LogSession);
 	}
+
+	string & Logger::name() {
+		return _name;
+	}
+
+	string Logger::name() const {
+		return _name;
+	}
+	
 	void Logger::fatal(const string & msg) const {
-		_fatal->log(msg);
+		_fatal->log(Log(LogLevel::LEVEL_FATAL, _name, msg));
 	}
+	
 	void Logger::error(const string & msg) const {
-		_error->log(msg);
+		_error->log(Log(LogLevel::LEVEL_ERROR, _name, msg));
 	}
+	
 	void Logger::warning(const string & msg) const {
-		_warning->log(msg);
+		_warning->log(Log(LogLevel::LEVEL_WARNING, _name, msg));
 	}
+	
 	void Logger::info(const string & msg) const {
-		_info->log(msg);
+		_info->log(Log(LogLevel::LEVEL_INFO, _name, msg));
 	}
+	
 	void Logger::debug(const string & msg) const {
-		_debug->log(msg);
+		_debug->log(Log(LogLevel::LEVEL_DEBUG, _name, msg));
 	}
+	
 	void Logger::trace(const string & msg) const {
-		_trace->log(msg);
+		_trace->log(Log(LogLevel::LEVEL_TRACE, _name, msg));
 	}
+	
 	void Logger::verbose(const string & msg) const {
-		_verbose->log(msg);
+		_verbose->log(Log(LogLevel::LEVEL_VERBOSE, _name, msg));
 	}
+	
 	AutoRef<LogSession> & Logger::session(int level) {
 		switch (level) {
 		case LogLevel::LEVEL_FATAL:
@@ -251,8 +296,9 @@ namespace UTIL {
 
 	void Logger::onUpdate(Observable * target) {
 		LoggerFactory * f = (LoggerFactory*)target;
-		updateLogger(f->getLogger(name));
+		updateLogger(f->getLogger(_name));
 	}
+	
 	void Logger::updateLogger(AutoRef<Logger> logger) {
 		_fatal = logger->session(LogLevel::LEVEL_FATAL);
 		_error = logger->session(LogLevel::LEVEL_ERROR);
@@ -268,50 +314,58 @@ namespace UTIL {
 	 */
 	LoggerProfile::LoggerProfile() {
 	}
+	
 	LoggerProfile::LoggerProfile(const string & pattern) : _pattern(pattern) {
 	}
+	
 	LoggerProfile::~LoggerProfile() {
 	}
+	
 	bool LoggerProfile::match(const string & keyword) const {
 		return Text::match(_pattern, keyword);
 	}
+	
 	AutoRef<Logger> LoggerProfile::makeLogger(LoggerFactory & factory, const string & name) {
 		AutoRef<Logger> logger(new Logger(name));
 		vector<int> levels = LogLevel::levels();
 		for (vector<int>::iterator iter = levels.begin(); iter != levels.end(); iter++) {
-			logger->session(*iter) = makeSession(factory, *iter);
+			AutoRef<LogSession> session = logger->session(*iter);
+			setSession(factory, *iter, session);
 		}
 		return logger;
 	}
-	AutoRef<LogSession> LoggerProfile::makeSession(LoggerFactory & factory, int level) {
-		AutoRef<LogSession> session(new LogSession(level));
-		session->enable(true);
+	
+	void LoggerProfile::setSession(LoggerFactory & factory, int level, AutoRef<LogSession> session) {
 		if (factory.formatter(_formatters[level]).nil()) {
-			session->formatter(AutoRef<LogFormatter>(new DummyLogFormatter));
+			session->formatter() = AutoRef<LogFormatter>(new NullLogFormatter);
 		} else {
-			session->formatter(factory.formatter(_formatters[level]));
+			session->formatter() = factory.formatter(_formatters[level]);
 		}
+		
 		if (factory.writer(_writers[level]).nil()) {
-			session->writer(AutoRef<LogWriter>(new DummyLogWriter));
+			session->writer() = AutoRef<LogWriter>(new NullLogWriter);
 		} else {
-			session->writer(factory.writer(_writers[level]));
+			session->writer() = factory.writer(_writers[level]);
 		}
-		return session;
 	}
+	
 	void LoggerProfile::formatter(int level, const string & name) {
 		LogLevel::validate(level);
 		_formatters[level] = name;
 	}
+	
 	void LoggerProfile::writer(int level, const string & name) {
 		LogLevel::validate(level);
 		_writers[level] = name;
 	}
+	
 	void LoggerProfile::allFormatters(const string & name) {
 		vector<int> levels = LogLevel::levels();
 		for (vector<int>::iterator iter = levels.begin(); iter != levels.end(); iter++) {
 			formatter(*iter, name);
 		}
 	}
+	
 	void LoggerProfile::allWriters(const string & name) {
 		vector<int> levels = LogLevel::levels();
 		for (vector<int>::iterator iter = levels.begin(); iter != levels.end(); iter++) {
@@ -326,8 +380,8 @@ namespace UTIL {
 	public:
 		PlainFormatter() {}
 		virtual ~PlainFormatter() {}
-		virtual string format(const LogSession & session, const string & msg) {
-			return msg;
+		virtual string format(const Log & log) {
+			return log.msg();
 		}
 	};
 
@@ -341,8 +395,9 @@ namespace UTIL {
 		string getDate() {
 			return Date::format(Date::now(), "%Y-%c-%d %H:%i:%s.%f");
 		}
-		virtual string format(const LogSession & session, const string & msg) {
-			return "[" + getDate() + "] " + session.level().shortName() + " " + msg;
+		virtual string format(const Log & log) {
+			return "[" + getDate() + "] " + log.name() + " "
+				+ log.level().shortName() + " " + log.msg();
 		}
 	};
 
@@ -353,8 +408,8 @@ namespace UTIL {
 	public:
 		ConsoleWriter() {}
 		virtual ~ConsoleWriter() {}
-		virtual void write(const LogSession & session, const string & msg) {
-			cout << msg << endl;
+		virtual void write(const string & str) {
+			cout << str << endl;
 		}
 	};
 
@@ -366,19 +421,33 @@ namespace UTIL {
 		registerFormatter("basic", AutoRef<LogFormatter>(new BasicFormatter));
 		registerWriter("console", AutoRef<LogWriter>(new ConsoleWriter));
 	}
+	
 	LoggerFactory::~LoggerFactory() {
 	}
-	LoggerFactory & LoggerFactory::inst() {
+	
+	LoggerFactory & LoggerFactory::instance() {
 		static LoggerFactory factory;
 		return factory;
 	}
+
+	AutoRef<Logger> LoggerFactory::getObservingLogger(const char * name) {
+		return getObservingLogger(string(name));
+	}
+	
 	AutoRef<Logger> LoggerFactory::getObservingLogger(const string & name) {
 		AutoRef<Logger> logger = getLogger(name);
 		logger->startObserve(this);
 		return logger;
 	}
+
+	AutoRef<Logger> LoggerFactory::getLogger(const char * name) {
+		return getLogger(string(name));
+	}
+	
 	AutoRef<Logger> LoggerFactory::getLogger(const string & name) {
-		for (vector<LoggerProfile>::iterator iter = _profiles.begin(); iter != _profiles.end(); iter++) {
+		for (vector<LoggerProfile>::iterator iter = _profiles.begin();
+			 iter != _profiles.end(); iter++)
+		{
 			if (iter->match(name)) {
 				return iter->makeLogger(*this, name);
 			}
@@ -386,6 +455,7 @@ namespace UTIL {
 		LoggerProfile profile;
 		return profile.makeLogger(*this, name);
 	}
+	
 	void LoggerFactory::setProfile(const string & pattern,
 								   const string & formatterName,
 								   const string & writerName) {
@@ -394,21 +464,26 @@ namespace UTIL {
 		profile.allWriters(writerName);
 		setProfile(profile);
 	}
+	
 	void LoggerFactory::setProfile(const LoggerProfile & profile) {
 		_profiles.push_back(profile);
 		notifyObservers();
 	}
+	
 	void LoggerFactory::registerFormatter(const string & name, AutoRef<LogFormatter> formatter) {
 		_formatters[name] = formatter;
 		notifyObservers();
 	}
+	
 	void LoggerFactory::registerWriter(const string & name, AutoRef<LogWriter> writer) {
 		_writers[name] = writer;
 		notifyObservers();
 	}
+	
 	AutoRef<LogFormatter> LoggerFactory::formatter(const string & name) {
 		return _formatters[name];
 	}
+	
 	AutoRef<LogWriter> LoggerFactory::writer(const string & name) {
 		return _writers[name];
 	}
