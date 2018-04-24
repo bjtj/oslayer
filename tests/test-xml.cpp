@@ -25,7 +25,7 @@ static void test_xml_parse2() {
 	XmlDocument doc = DomParser::parse(xml);
 	cout << " ** parsing time: " << tick_milli() - tick << " ms." << endl;
 	
-	ASSERT(doc.getRootNode()->getElementByTagName("Body").nil(), ==, false);
+	ASSERT(doc.rootNode()->getElementByTagName("Body").nil(), ==, false);
 }
 
 static void test_xml_decode() {
@@ -33,7 +33,7 @@ static void test_xml_decode() {
 	unsigned long tick = tick_milli();
 	XmlDocument doc = DomParser::parse(xml);
 	cout << " ** parsing time: " << tick_milli() - tick << " ms." << endl;
-	ASSERT(doc.getRootNode()->getFirstChild()->text(), ==, "a&b");
+	ASSERT(doc.rootNode()->getFirstChild()->text(), ==, "a&b");
 }
 
 int main(int argc, char *args[]) {

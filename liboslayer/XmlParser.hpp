@@ -231,11 +231,8 @@ namespace XML {
 		std::string & firstLine() {
 			return _firstLine;
 		}
-		OS::AutoRef<XmlNode> getRootNode() {
+		OS::AutoRef<XmlNode> & rootNode() {
 			return _rootNode;
-		}
-		void setRootNode(OS::AutoRef<XmlNode> root) {
-			_rootNode = root;
 		}
 		static std::string escapeString(const std::string & str) {
 			std::string ret;
@@ -489,7 +486,7 @@ namespace XML {
 				s = text.find("<", e + 1);
 			}
 
-			doc.setRootNode(OS::AutoRef<XmlNode>(cursor.root()));
+			doc.rootNode() = OS::AutoRef<XmlNode>(cursor.root());
 			return doc;
 		}
 	};
