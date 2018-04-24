@@ -13,13 +13,12 @@
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{62F62888-B617-D1C5-DD02-0CC27E78A455}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -72,7 +71,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\liboslayer\ArgumentParser.cpp" />
+    <ClCompile Include="..\liboslayer\Arguments.cpp" />
     <ClCompile Include="..\liboslayer\AutoLock.cpp" />
     <ClCompile Include="..\liboslayer\AutoRef.cpp" />
     <ClCompile Include="..\liboslayer\Base64.cpp" />
@@ -114,7 +113,7 @@
     <ClCompile Include="..\liboslayer\Uuid.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\liboslayer\ArgumentParser.hpp" />
+    <ClInclude Include="..\liboslayer\Arguments.hpp" />
     <ClInclude Include="..\liboslayer\AutoLock.hpp" />
     <ClInclude Include="..\liboslayer\AutoRef.hpp" />
     <ClInclude Include="..\liboslayer\AutoRelease.hpp" />
