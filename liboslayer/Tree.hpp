@@ -22,20 +22,20 @@ namespace osl {
 	 */
 	class TreeNode {
 	private:
-		osl::Ref<TreeNode> _parent;
-		std::vector< osl::AutoRef<TreeNode> > _children;
+		Ref<TreeNode> _parent;
+		std::vector< AutoRef<TreeNode> > _children;
 	public:
 		TreeNode();
 		virtual ~TreeNode();
-		osl::Ref<TreeNode> & parent();
-		osl::Ref<TreeNode> root();
-		std::vector< osl::AutoRef<TreeNode> > & children();
-		void addChild(osl::AutoRef<TreeNode> child);
-		void removeChild(osl::AutoRef<TreeNode> child);
-		osl::AutoRef<TreeNode> & childAt(size_t idx);
+		Ref<TreeNode> & parent();
+		Ref<TreeNode> root();
+		std::vector< AutoRef<TreeNode> > & children();
+		void addChild(AutoRef<TreeNode> child);
+		void removeChild(AutoRef<TreeNode> child);
+		AutoRef<TreeNode> & childAt(size_t idx);
 		size_t childCount();
-		osl::AutoRef<TreeNode> find(fn_treenode_equals fn, TreeNode * left);
-		std::vector< osl::AutoRef<TreeNode> > findAll(fn_treenode_equals fn, TreeNode * left);
+		AutoRef<TreeNode> find(fn_treenode_equals fn, TreeNode * left);
+		std::vector< AutoRef<TreeNode> > findAll(fn_treenode_equals fn, TreeNode * left);
 		size_t depth();
 	};
 
@@ -44,16 +44,16 @@ namespace osl {
 	 */
 	class TreeNodeCursor {
 	private:
-		osl::AutoRef<TreeNode> _root;
-		osl::Ref<TreeNode> _cursor;
+		AutoRef<TreeNode> _root;
+		Ref<TreeNode> _cursor;
 	public:
-		TreeNodeCursor(osl::AutoRef<TreeNode> root);
+		TreeNodeCursor(AutoRef<TreeNode> root);
 		virtual ~TreeNodeCursor();
-		osl::AutoRef<TreeNode> & root();
-		osl::Ref<TreeNode> & cursor();
-	    osl::Ref<TreeNodeCursor> enter(osl::AutoRef<TreeNode> node);
-		osl::Ref<TreeNodeCursor> leave();
-		osl::Ref<TreeNodeCursor> append(osl::AutoRef<TreeNode> node);
+		AutoRef<TreeNode> & root();
+		Ref<TreeNode> & cursor();
+	    Ref<TreeNodeCursor> enter(AutoRef<TreeNode> node);
+		Ref<TreeNodeCursor> leave();
+		Ref<TreeNodeCursor> append(AutoRef<TreeNode> node);
 	};
 
 	/**
@@ -61,11 +61,11 @@ namespace osl {
 	 */
 	class Tree {
 	private:
-		osl::AutoRef<TreeNode> _rootNode;
+		AutoRef<TreeNode> _rootNode;
 	public:
 		Tree();
 		virtual ~Tree();
-		osl::AutoRef<TreeNode> & rootNode();
+		AutoRef<TreeNode> & rootNode();
 	};
 }
 

@@ -16,7 +16,7 @@ namespace osl {
 	public:
 		FileStream();
 		FileStream(FILE * fp);
-		FileStream(osl::File file, const std::string & flags);
+		FileStream(File file, const std::string & flags);
 		FileStream(const std::string & path, const std::string & flags);
 		virtual ~FileStream();
 	private:

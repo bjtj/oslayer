@@ -9,7 +9,7 @@ namespace osl {
 	class CountDownLatch {
 	private:
 		size_t count;
-		osl::Semaphore sem;
+		Semaphore sem;
 	public:
 		CountDownLatch(size_t count);
 		virtual ~CountDownLatch();

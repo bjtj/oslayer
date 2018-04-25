@@ -192,7 +192,7 @@ namespace osl {
 	template <typename T>
 	unsigned long Heap<T>::gc() {
 		bool cont;
-		unsigned long tick = osl::tick_milli();
+		unsigned long tick = tick_milli();
 		do {
 			cont = false;
 			for (typename std::map<void *, Ref>::iterator iter = _mems.begin(); iter != _mems.end();) {
@@ -205,7 +205,7 @@ namespace osl {
 				}
 			}
 		} while (cont);
-		return osl::tick_milli() - tick;
+		return tick_milli() - tick;
 	}
 	template <typename T>
 	size_t Heap<T>::size() {

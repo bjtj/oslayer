@@ -13,17 +13,17 @@
 
 + (NSString*)nomeaningfulVesion
 {
-    return @(OS::nomeaningfulVesion().c_str());
+    return @(osl::nomeaningfulVesion().c_str());
 }
 
 + (void)idle:(unsigned long)timeout
 {
-    OS::idle(timeout);
+    osl::idle(timeout);
 }
 
 + (unsigned long)tick_milli
 {
-    return OS::tick_milli();
+    return osl::tick_milli();
 }
 
 @end

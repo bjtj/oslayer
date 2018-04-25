@@ -63,7 +63,7 @@ namespace lisp {
 	 */
 	class ReturnLispException : public LispException {
 	private:
-		osl::GCRef<Var> _tag;
+        osl::GCRef<Var> _tag;
 		osl::GCRef<Var> _var;
 	public:
 		explicit ReturnLispException(osl::GCRef<Var> tag, osl::GCRef<Var> var);
@@ -100,7 +100,7 @@ namespace lisp {
 	};
 
 	/**/
-	typedef osl::GCRef<Var> (*fn_proc)(Env & env, osl::GCRef<Var> name, std::vector<osl::GCRef<Var> > & args);
+	typedef osl::GCRef<Var> (*fn_proc)(Env & env, osl::GCRef<Var> name, std::vector< osl::GCRef<Var> > & args);
 	extern std::string wrap_text(const std::string & txt);
 	extern std::string unwrap_text(const std::string & txt);
 
@@ -624,7 +624,7 @@ namespace lisp {
 		explicit Var();
 		explicit Var(const char * token);
 		explicit Var(const std::string & token);
-		explicit Var(const std::vector<osl::GCRef<Var> > & lst);
+		explicit Var(const std::vector< osl::GCRef<Var> > & lst);
 		explicit Var(const Sequence & lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);

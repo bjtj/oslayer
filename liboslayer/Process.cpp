@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Process.hpp"
 
 namespace osl {

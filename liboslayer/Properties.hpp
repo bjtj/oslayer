@@ -21,10 +21,10 @@ namespace osl {
 		virtual ~Properties();
 
 		void loadFromFile(const std::string & filepath);
-		void loadFromFile(osl::File & file);
+		void loadFromFile(File & file);
 		void loadFromString(const std::string & text);
 		void writeToFile(const std::string & filepath);
-		void writeToFile(osl::File & file);
+		void writeToFile(File & file);
 
 	private:
 

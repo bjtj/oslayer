@@ -57,7 +57,7 @@ namespace osl {
 					return *iter;
 				}
 			}
-			throw osl::Exception("no item found");
+			throw Exception("no item found");
 		}
 		void set(const KeyValue & kv) {
 			get(kv.key()).value() = kv.value();

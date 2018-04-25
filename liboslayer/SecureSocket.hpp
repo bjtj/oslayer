@@ -38,7 +38,7 @@ namespace osl {
 		SSL_CTX * ctx;
 		SSL * ssl;
 		X509 * peerCert;
-		osl::AutoRef<CertificateVerifier> verifier;
+		AutoRef<CertificateVerifier> verifier;
 		bool peerCertRequired;
 		bool needHandshake;
 		unsigned long recvTimeout;
@@ -48,7 +48,7 @@ namespace osl {
 	public:
 		SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
-		SecureSocket(const osl::InetAddress & remoteAddr);
+		SecureSocket(const InetAddress & remoteAddr);
 		virtual ~SecureSocket();
 		virtual void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual void negotiate();
@@ -64,7 +64,7 @@ namespace osl {
 		virtual void setRecvTimeout(unsigned long timeout);
 		virtual unsigned long setRecvTimeout();
 		virtual void close();
-		void setVerifier(osl::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(AutoRef<CertificateVerifier> verifier);
 		void setPeertCertRequired(bool required);
 		std::string getErrorString(unsigned long err);
 	};
@@ -75,7 +75,7 @@ namespace osl {
 	class SecureServerSocket : public ServerSocket {
 	private:
 		SSL_CTX * ctx;
-		osl::AutoRef<CertificateVerifier> verifier;
+		AutoRef<CertificateVerifier> verifier;
 	public:
 		SecureServerSocket();
 		SecureServerSocket(int port);
@@ -85,7 +85,7 @@ namespace osl {
 		void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual Socket * accept();
 		virtual void close();
-		void setVerifier(osl::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(AutoRef<CertificateVerifier> verifier);
 	};
 
 

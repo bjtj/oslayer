@@ -16,16 +16,16 @@ namespace osl {
 	/**
 	 * @brief PoolThread
 	 */
-	class StatefulThread : public osl::Thread, public Observable {
+	class StatefulThread : public Thread, public Observable {
 	private:
-		osl::AutoRef<osl::Event> _evt;
+		AutoRef<Event> _evt;
 		bool _triggered;
 		bool _busy;
-		osl::AutoRef<Task> _task;
+		AutoRef<Task> _task;
 	public:
 		StatefulThread();
 		virtual ~StatefulThread();
-		osl::AutoRef<Task> & task();
+		AutoRef<Task> & task();
 		void preTask();
 		void postTask();
 		bool inBusy();

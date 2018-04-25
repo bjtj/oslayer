@@ -49,13 +49,13 @@ namespace osl {
 	class TimerSession {
 	private:
 		TimerSchedule schedule;
-		osl::AutoRef<TimerTask> task;
+		AutoRef<TimerTask> task;
 		unsigned int runCount;
 		unsigned long startTick;
 		unsigned long lastLapseTick;
 	
 	public:
-		TimerSession(TimerSchedule & schedule, osl::AutoRef<TimerTask> task);
+		TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task);
 		virtual ~TimerSession();
 		void start();
 		void process();
@@ -69,17 +69,17 @@ namespace osl {
 	private:
 		std::vector<TimerSession> sessions;
 		bool done;
-		osl::Semaphore sem;
+		Semaphore sem;
 	
 	public:
 		TimerLooper();
 		virtual ~TimerLooper();
 		void addSession(TimerSession & session);
-		void delay(unsigned long delay, osl::AutoRef<TimerTask> task);
-		void interval(unsigned long interval, osl::AutoRef<TimerTask> task);
-		void intervalWithCount(unsigned long interval, int count, osl::AutoRef<TimerTask> task);
-		void delayAndInterval(unsigned long delay, unsigned long interval, osl::AutoRef<TimerTask> task);
-		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, osl::AutoRef<TimerTask> task);
+		void delay(unsigned long delay, AutoRef<TimerTask> task);
+		void interval(unsigned long interval, AutoRef<TimerTask> task);
+		void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
+		void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
+		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
 		void loop();
 		void stop();
 	};
@@ -87,7 +87,7 @@ namespace osl {
 	/**
 	 * @brief
 	 */
-	class TimerLooperThread : public osl::Thread {
+	class TimerLooperThread : public Thread {
 	private:
 		TimerLooper _looper;
 	public:

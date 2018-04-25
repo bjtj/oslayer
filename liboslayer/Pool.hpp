@@ -10,8 +10,8 @@ namespace osl {
 	template <typename T>
 	class Pool {
 	private:
-		osl::Mutex _avail_lock;
-		osl::Mutex _work_lock;
+		Mutex _avail_lock;
+		Mutex _work_lock;
 		std::deque<T*> _avails;
 		std::deque<T*> _works;
 		size_t _size;

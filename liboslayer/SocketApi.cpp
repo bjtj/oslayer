@@ -143,7 +143,7 @@ namespace osl {
 		snprintf(portStr, sizeof(portStr), "%d", port);
 		memset(&hints, 0, sizeof(hints));
 		if (getaddrinfo(host, (port == 0 ? NULL : portStr), &hints, &res) != 0) {
-			throw osl::IOException("getaddrinfo() error", -1, 0);
+			throw IOException("getaddrinfo() error", -1, 0);
 		}
 		return res;
 	}
@@ -182,7 +182,7 @@ namespace osl {
 			in = (struct sockaddr *)&in6;
 			len = sizeof(in6);
 		} else {
-			throw osl::IOException("Unknown family", -1, 0);
+			throw IOException("Unknown family", -1, 0);
 		}
 	}
 	struct sockaddr * SocketAddress::getAddr() {

@@ -51,7 +51,7 @@ namespace osl {
 					std::string enc;
 					for (; *iter != ';'; iter++) {
 						if (iter == text.end()) {
-							throw osl::Exception("unexpected end of string");
+							throw Exception("unexpected end of string");
 						}
 						enc.append(1, *iter);
 					}

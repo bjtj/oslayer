@@ -15,9 +15,9 @@ namespace osl {
 	public:
 		TaskThreadPool(size_t count);
 		virtual ~TaskThreadPool();
-		void setTask(osl::AutoRef<Task> task);
-		void setTaskWaitIfFull(osl::AutoRef<Task> task);
-		void setTaskWaitIfFullWithTimeout(osl::AutoRef<Task> task, unsigned long timeout);
+		void setTask(AutoRef<Task> task);
+		void setTaskWaitIfFull(AutoRef<Task> task);
+		void setTaskWaitIfFullWithTimeout(AutoRef<Task> task, unsigned long timeout);
 	};
 }
 

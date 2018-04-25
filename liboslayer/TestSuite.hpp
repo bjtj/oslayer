@@ -16,7 +16,7 @@
 			std::stringstream ss;										\
 			ss << (#A) << " should be [" << (#CMP) << " " << (B) << "] but [" << (A) << "]"; \
 			std::cerr << " [!] " << ss.str() << std::endl << std::endl;	\
-			throw osl::AssertException(ss.str());						\
+			throw AssertException(ss.str());						\
 		} else {														\
 			std::cout << " - PASS" << std::endl << std::endl;			\
 		}																\
@@ -77,15 +77,15 @@ namespace osl {
 	class TestSuite {
 	private:
 		TestEnvironment env;
-		std::vector< osl::AutoRef<TestCase> > testCases;
+		std::vector< AutoRef<TestCase> > testCases;
 	public:
 		TestSuite(TestEnvironment & env);
 		TestSuite();
 		virtual ~TestSuite();
-		void addTestCase(osl::AutoRef<TestCase> testCase);
-		void removeTestCase(osl::AutoRef<TestCase> testCase);
+		void addTestCase(AutoRef<TestCase> testCase);
+		void removeTestCase(AutoRef<TestCase> testCase);
 		std::vector<TestResult> testAll();
-		TestResult test(osl::AutoRef<TestCase> testCase);
+		TestResult test(AutoRef<TestCase> testCase);
 	};
 
 	class TestReport {

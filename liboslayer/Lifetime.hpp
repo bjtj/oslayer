@@ -20,10 +20,10 @@ namespace osl {
 			return _startTick;
 		}
 		unsigned long lifetime() {
-			return osl::tick_milli() - _startTick;;
+			return tick_milli() - _startTick;;
 		}
 		void resetLifetime() {
-			_startTick = osl::tick_milli();
+			_startTick = tick_milli();
 		}
 	};
 }

@@ -366,7 +366,7 @@ namespace osl {
 		Socket * ServerSocket::accept() {
 			return getImpl().accept();
 		}
-		SOCK_HANDLE ServerSocket::accept(osl::SocketAddress & addr) {
+		SOCK_HANDLE ServerSocket::accept(SocketAddress & addr) {
 			return getImpl().accept(addr);
 		}
 		void ServerSocket::close() {

@@ -90,16 +90,16 @@ namespace osl {
 	 */
 	class LogSession {
 	private:
-		osl::AutoRef<LogFormatter> _formatter;
-		osl::AutoRef<LogWriter> _writer;
+		AutoRef<LogFormatter> _formatter;
+		AutoRef<LogWriter> _writer;
 		
 	public:
 		LogSession();
 		virtual ~LogSession();
 		void log(const Log & log) const;
 		std::string name() const;
-		osl::AutoRef<LogFormatter> & formatter();
-		osl::AutoRef<LogWriter> & writer();
+		AutoRef<LogFormatter> & formatter();
+		AutoRef<LogWriter> & writer();
 		void level(const LogLevel & level);
 		LogLevel level() const;
 	};
@@ -111,13 +111,13 @@ namespace osl {
 	class Logger : public Observer {
 	private:
 		std::string _name;
-		osl::AutoRef<LogSession> _fatal;
-		osl::AutoRef<LogSession> _error;
-		osl::AutoRef<LogSession> _warning;
-		osl::AutoRef<LogSession> _info;
-		osl::AutoRef<LogSession> _debug;
-		osl::AutoRef<LogSession> _trace;
-		osl::AutoRef<LogSession> _verbose;
+		AutoRef<LogSession> _fatal;
+		AutoRef<LogSession> _error;
+		AutoRef<LogSession> _warning;
+		AutoRef<LogSession> _info;
+		AutoRef<LogSession> _debug;
+		AutoRef<LogSession> _trace;
+		AutoRef<LogSession> _verbose;
 		
 	public:
 		Logger(const std::string & name);
@@ -136,9 +136,9 @@ namespace osl {
 		virtual void debug(const std::string & msg) const;
 		virtual void trace(const std::string & msg) const;
 		virtual void verbose(const std::string & msg) const;
-		osl::AutoRef<LogSession> & session(int level);
+		AutoRef<LogSession> & session(int level);
 		virtual void onUpdate(Observable * target);
-		void updateLogger(osl::AutoRef<Logger> logger);
+		void updateLogger(AutoRef<Logger> logger);
 	};
 
 	/**
@@ -155,8 +155,8 @@ namespace osl {
 		LoggerProfile(const std::string & pattern);
 		virtual ~LoggerProfile();
 		bool match(const std::string & keyword) const;
-		osl::AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
-		void setSession(LoggerFactory & factory, int level, osl::AutoRef<LogSession> session);
+		AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
+		void setSession(LoggerFactory & factory, int level, AutoRef<LogSession> session);
 		void formatter(int level, const std::string & name);
 		void writer(int level, const std::string & name);
 		void allFormatters(const std::string & name);
@@ -168,8 +168,8 @@ namespace osl {
 	 */
 	class LoggerFactory : public Observable {
 	private:
-		std::map<std::string, osl::AutoRef<LogFormatter> > _formatters;
-		std::map<std::string, osl::AutoRef<LogWriter> > _writers;
+		std::map<std::string, AutoRef<LogFormatter> > _formatters;
+		std::map<std::string, AutoRef<LogWriter> > _writers;
 		std::vector<LoggerProfile> _profiles;
 		
 	private:
@@ -178,18 +178,18 @@ namespace osl {
 	public:
 		virtual ~LoggerFactory();
 		static LoggerFactory & instance();
-		osl::AutoRef<Logger> getObservingLogger(const char * name);
-		osl::AutoRef<Logger> getObservingLogger(const std::string & name);
-		osl::AutoRef<Logger> getLogger(const char * name);
-		osl::AutoRef<Logger> getLogger(const std::string & name);
+		AutoRef<Logger> getObservingLogger(const char * name);
+		AutoRef<Logger> getObservingLogger(const std::string & name);
+		AutoRef<Logger> getLogger(const char * name);
+		AutoRef<Logger> getLogger(const std::string & name);
 		void setProfile(const std::string & pattern,
 						const std::string & formatterName,
 						const std::string & writerName);
 		void setProfile(const LoggerProfile & descriptor);
-		void registerFormatter(const std::string & name, osl::AutoRef<LogFormatter> formatter);
-		void registerWriter(const std::string & name, osl::AutoRef<LogWriter> writer);
-		osl::AutoRef<LogFormatter> formatter(const std::string & name);
-		osl::AutoRef<LogWriter> writer(const std::string & name);
+		void registerFormatter(const std::string & name, AutoRef<LogFormatter> formatter);
+		void registerWriter(const std::string & name, AutoRef<LogWriter> writer);
+		AutoRef<LogFormatter> formatter(const std::string & name);
+		AutoRef<LogWriter> writer(const std::string & name);
 	};
 }
 

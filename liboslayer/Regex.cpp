@@ -99,7 +99,7 @@ namespace osl {
 		case PARTIAL_MATCHED:
 			return PARTIAL_MATCHED_STR;
 		}
-		throw osl::Exception("unknown match type - " + Text::toString(type));
+		throw Exception("unknown match type - " + Text::toString(type));
 	}
 	MatchType MatchType::toType(const string & type) {
 		if (type == NOT_MATCHED_STR) {
@@ -109,7 +109,7 @@ namespace osl {
 		} else if (type == PARTIAL_MATCHED_STR) {
 			return MatchType(PARTIAL_MATCHED);
 		}
-		throw osl::Exception("unknown match type - " + type);
+		throw Exception("unknown match type - " + type);
 	}
 
 	ostream & operator<<(ostream & stream, const MatchType & type) {

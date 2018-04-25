@@ -21,7 +21,7 @@ namespace osl {
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
-		virtual void setRemoteAddress(const osl::InetAddress & remoteAddr);
+		virtual void setRemoteAddress(const InetAddress & remoteAddr);
 		virtual void negotiate();
 		virtual void connect();
 		virtual void connect(unsigned long timeout);
@@ -60,7 +60,7 @@ namespace osl {
 		virtual void bind();
 		virtual void listen(int backlog);
 		virtual Socket * accept();
-		virtual SOCK_HANDLE accept(osl::SocketAddress & addr);
+		virtual SOCK_HANDLE accept(SocketAddress & addr);
 		virtual void close();
 		virtual bool isClosed();
 		virtual InetAddress getLocalInetAddress();

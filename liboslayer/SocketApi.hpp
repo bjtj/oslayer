@@ -193,7 +193,7 @@ namespace osl {
 	 */
 	class DatagramPacket {
 	private:
-		osl::ByteArray _array;
+		ByteArray _array;
 		size_t position;
 		size_t length;
 		InetAddress remoteAddr;

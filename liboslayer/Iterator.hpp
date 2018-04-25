@@ -39,7 +39,7 @@ namespace osl {
 		}
 		T & next() {
 			if (!avail()) {
-				throw osl::Exception("out of bound");
+				throw Exception("out of bound");
 			}
 			_idx++;
 			return *(_iter++);
@@ -148,7 +148,7 @@ namespace osl {
 		}
 		T & next() {
 			if (!avail()) {
-				throw osl::Exception("out of bound");
+				throw Exception("out of bound");
 			}
 			_idx++;
 			return *(_iter++);
