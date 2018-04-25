@@ -3,9 +3,8 @@
 #include "utils.hpp"
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
-using namespace LISP;
+using namespace osl;
+using namespace lisp;
 
 #define _VAR GCRef<Var> 
 

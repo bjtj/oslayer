@@ -1,6 +1,6 @@
 #include "Mutex.hpp"
 
-namespace OS {
+namespace osl {
 
 	Mutex::Mutex() {
 #if defined(USE_PTHREAD)

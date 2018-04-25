@@ -5,8 +5,8 @@
 #if defined(USE_OPENSSL)
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class KindVerifier : public CertificateVerifier {
 public:

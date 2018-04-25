@@ -3,7 +3,7 @@
 
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief lifetime
@@ -20,10 +20,10 @@ namespace UTIL {
 			return _startTick;
 		}
 		unsigned long lifetime() {
-			return OS::tick_milli() - _startTick;;
+			return osl::tick_milli() - _startTick;;
 		}
 		void resetLifetime() {
-			_startTick = OS::tick_milli();
+			_startTick = osl::tick_milli();
 		}
 	};
 }

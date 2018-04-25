@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * named

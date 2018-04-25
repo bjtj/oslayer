@@ -6,7 +6,7 @@
 #include <vector>
 #include "Condition.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * 
@@ -39,7 +39,7 @@ namespace UTIL {
 		}
 		T & next() {
 			if (!avail()) {
-				throw OS::Exception("out of bound");
+				throw osl::Exception("out of bound");
 			}
 			_idx++;
 			return *(_iter++);
@@ -148,7 +148,7 @@ namespace UTIL {
 		}
 		T & next() {
 			if (!avail()) {
-				throw OS::Exception("out of bound");
+				throw osl::Exception("out of bound");
 			}
 			_idx++;
 			return *(_iter++);

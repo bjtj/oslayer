@@ -2,7 +2,8 @@
 #include "utils.hpp"
 
 using namespace std;
-using namespace UTIL;
+using namespace osl;
+
 
 static void test_filestream() {
 	FileStream fs;

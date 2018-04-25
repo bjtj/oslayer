@@ -11,21 +11,21 @@
 #include "Semaphore.hpp"
 #include "Pool.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief PoolThread
 	 */
-	class StatefulThread : public OS::Thread, public Observable {
+	class StatefulThread : public osl::Thread, public Observable {
 	private:
-		OS::AutoRef<OS::Event> _evt;
+		osl::AutoRef<osl::Event> _evt;
 		bool _triggered;
 		bool _busy;
-		OS::AutoRef<Task> _task;
+		osl::AutoRef<Task> _task;
 	public:
 		StatefulThread();
 		virtual ~StatefulThread();
-		OS::AutoRef<Task> & task();
+		osl::AutoRef<Task> & task();
 		void preTask();
 		void postTask();
 		bool inBusy();

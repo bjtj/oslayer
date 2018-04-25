@@ -5,7 +5,7 @@
 #include "ThreadPool.hpp"
 #include "AutoRef.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief task trhead pool
@@ -15,9 +15,9 @@ namespace UTIL {
 	public:
 		TaskThreadPool(size_t count);
 		virtual ~TaskThreadPool();
-		void setTask(OS::AutoRef<Task> task);
-		void setTaskWaitIfFull(OS::AutoRef<Task> task);
-		void setTaskWaitIfFullWithTimeout(OS::AutoRef<Task> task, unsigned long timeout);
+		void setTask(osl::AutoRef<Task> task);
+		void setTaskWaitIfFull(osl::AutoRef<Task> task);
+		void setTaskWaitIfFullWithTimeout(osl::AutoRef<Task> task, unsigned long timeout);
 	};
 }
 

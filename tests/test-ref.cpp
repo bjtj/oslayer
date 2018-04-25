@@ -1,8 +1,8 @@
 #include <liboslayer/TestSuite.hpp>
 #include <liboslayer/Ref.hpp>
 
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class _cls {
 private:

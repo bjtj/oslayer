@@ -5,7 +5,7 @@
 #include "Mutex.hpp"
 #include "Ref.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
      * @brief auto lock

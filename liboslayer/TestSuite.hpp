@@ -16,13 +16,13 @@
 			std::stringstream ss;										\
 			ss << (#A) << " should be [" << (#CMP) << " " << (B) << "] but [" << (A) << "]"; \
 			std::cerr << " [!] " << ss.str() << std::endl << std::endl;	\
-			throw UTIL::AssertException(ss.str());						\
+			throw osl::AssertException(ss.str());						\
 		} else {														\
 			std::cout << " - PASS" << std::endl << std::endl;			\
 		}																\
 	} while(0);
 
-namespace UTIL {
+namespace osl {
 
 	DECL_NAMED_EXCEPTION(AssertException);
 
@@ -77,15 +77,15 @@ namespace UTIL {
 	class TestSuite {
 	private:
 		TestEnvironment env;
-		std::vector< OS::AutoRef<TestCase> > testCases;
+		std::vector< osl::AutoRef<TestCase> > testCases;
 	public:
 		TestSuite(TestEnvironment & env);
 		TestSuite();
 		virtual ~TestSuite();
-		void addTestCase(OS::AutoRef<TestCase> testCase);
-		void removeTestCase(OS::AutoRef<TestCase> testCase);
+		void addTestCase(osl::AutoRef<TestCase> testCase);
+		void removeTestCase(osl::AutoRef<TestCase> testCase);
 		std::vector<TestResult> testAll();
-		TestResult test(OS::AutoRef<TestCase> testCase);
+		TestResult test(osl::AutoRef<TestCase> testCase);
 	};
 
 	class TestReport {

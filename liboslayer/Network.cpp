@@ -1,6 +1,6 @@
 #include "Network.hpp"
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 

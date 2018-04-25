@@ -2,11 +2,9 @@
 #include "os.hpp"
 #include "Text.hpp"
 
-using namespace std;
-using namespace UTIL;
+namespace osl {
 
-
-namespace OS {
+	using namespace std;
 	
 	ArgumentDeclaration::ArgumentDeclaration() : _must(false), _optional(false) {
 	}

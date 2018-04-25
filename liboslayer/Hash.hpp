@@ -1,7 +1,7 @@
 #ifndef __HASH_HPP__
 #define __HASH_HPP__
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief 

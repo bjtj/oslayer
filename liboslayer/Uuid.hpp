@@ -5,7 +5,7 @@
 #include <vector>
 #include <stdint.h>
 
-namespace UTIL {
+namespace osl {
     
 	/**
 	 * @brief uuid

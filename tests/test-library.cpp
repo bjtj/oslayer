@@ -2,8 +2,8 @@
 #include <liboslayer/Library.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class LoadLibraryTestCase : public TestCase {
 public:

@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace OS {
+namespace osl {
 
 	
 	class ArgumentDeclaration {

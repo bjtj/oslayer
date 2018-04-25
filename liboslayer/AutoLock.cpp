@@ -1,6 +1,6 @@
 #include "AutoLock.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
      * @breif auto lock

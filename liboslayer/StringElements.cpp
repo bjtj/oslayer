@@ -2,10 +2,10 @@
 #include "os.hpp"
 #include "Text.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	/**
 	 * key value

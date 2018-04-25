@@ -3,7 +3,7 @@
 #include <liboslayer/Network.hpp>
 
 using namespace std;
-using namespace OS;
+using namespace osl;
 
 static string mac_address_to_string(const unsigned char * addr) {
 	char str[30] = {0,};

@@ -7,7 +7,7 @@
 #include "Iterator.hpp"
 #include "AutoRef.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief quantity
@@ -104,8 +104,8 @@ namespace UTIL {
 		bool _any;
 		Position _position;
 		std::string _charset;
-		std::vector< OS::AutoRef<Matcher> > _elements;
-		std::vector< OS::AutoRef<Matcher> > _alters;
+		std::vector< osl::AutoRef<Matcher> > _elements;
+		std::vector< osl::AutoRef<Matcher> > _alters;
 		bool _group;
 	public:
 		Matcher();
@@ -118,14 +118,14 @@ namespace UTIL {
 		std::string & charset();
 		void setParent(Matcher * parent);
 		Matcher * getParent();
-		std::vector< OS::AutoRef<Matcher> > & elements();
-		std::vector< OS::AutoRef<Matcher> > & alters();
-		void addChild(OS::AutoRef<Matcher> child);
+		std::vector< osl::AutoRef<Matcher> > & elements();
+		std::vector< osl::AutoRef<Matcher> > & alters();
+		void addChild(osl::AutoRef<Matcher> child);
 		bool & group();
 		void altering();
 		MatchResult match(const std::string & text);
 		MatchResult match(Matcher * parent, const std::string & text);
-		OS::AutoRef<Matcher> nextMatcher(Matcher * target);
+		osl::AutoRef<Matcher> nextMatcher(Matcher * target);
 		std::string toString() const;
 	};
 
@@ -159,10 +159,10 @@ namespace UTIL {
 		std::string & regex();
 		MatchResult match(const std::string & text);
 		Range search(const std::string & text);
-		OS::AutoRef<Matcher> makeMatcher();
-		static OS::AutoRef<Matcher> makeMatcher(const std::string & regex);
-		static OS::AutoRef<Matcher> makeMatcher(Iterator<std::string> & tokens_iter);
-		static void makeMatcher_r(Iterator<std::string> & tokens_iter, OS::AutoRef<Matcher> parent);
+		osl::AutoRef<Matcher> makeMatcher();
+		static osl::AutoRef<Matcher> makeMatcher(const std::string & regex);
+		static osl::AutoRef<Matcher> makeMatcher(Iterator<std::string> & tokens_iter);
+		static void makeMatcher_r(Iterator<std::string> & tokens_iter, osl::AutoRef<Matcher> parent);
 		static std::vector<std::string> tokenize(const std::string & regex);
 	};
 }

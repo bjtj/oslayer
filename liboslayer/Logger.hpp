@@ -7,7 +7,7 @@
 #include "AutoRef.hpp"
 #include "Observer.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	class LoggerFactory;
 	class LogSession;
@@ -90,16 +90,16 @@ namespace UTIL {
 	 */
 	class LogSession {
 	private:
-		OS::AutoRef<LogFormatter> _formatter;
-		OS::AutoRef<LogWriter> _writer;
+		osl::AutoRef<LogFormatter> _formatter;
+		osl::AutoRef<LogWriter> _writer;
 		
 	public:
 		LogSession();
 		virtual ~LogSession();
 		void log(const Log & log) const;
 		std::string name() const;
-		OS::AutoRef<LogFormatter> & formatter();
-		OS::AutoRef<LogWriter> & writer();
+		osl::AutoRef<LogFormatter> & formatter();
+		osl::AutoRef<LogWriter> & writer();
 		void level(const LogLevel & level);
 		LogLevel level() const;
 	};
@@ -111,13 +111,13 @@ namespace UTIL {
 	class Logger : public Observer {
 	private:
 		std::string _name;
-		OS::AutoRef<LogSession> _fatal;
-		OS::AutoRef<LogSession> _error;
-		OS::AutoRef<LogSession> _warning;
-		OS::AutoRef<LogSession> _info;
-		OS::AutoRef<LogSession> _debug;
-		OS::AutoRef<LogSession> _trace;
-		OS::AutoRef<LogSession> _verbose;
+		osl::AutoRef<LogSession> _fatal;
+		osl::AutoRef<LogSession> _error;
+		osl::AutoRef<LogSession> _warning;
+		osl::AutoRef<LogSession> _info;
+		osl::AutoRef<LogSession> _debug;
+		osl::AutoRef<LogSession> _trace;
+		osl::AutoRef<LogSession> _verbose;
 		
 	public:
 		Logger(const std::string & name);
@@ -136,9 +136,9 @@ namespace UTIL {
 		virtual void debug(const std::string & msg) const;
 		virtual void trace(const std::string & msg) const;
 		virtual void verbose(const std::string & msg) const;
-		OS::AutoRef<LogSession> & session(int level);
+		osl::AutoRef<LogSession> & session(int level);
 		virtual void onUpdate(Observable * target);
-		void updateLogger(OS::AutoRef<Logger> logger);
+		void updateLogger(osl::AutoRef<Logger> logger);
 	};
 
 	/**
@@ -155,8 +155,8 @@ namespace UTIL {
 		LoggerProfile(const std::string & pattern);
 		virtual ~LoggerProfile();
 		bool match(const std::string & keyword) const;
-		OS::AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
-		void setSession(LoggerFactory & factory, int level, OS::AutoRef<LogSession> session);
+		osl::AutoRef<Logger> makeLogger(LoggerFactory & factory, const std::string & name);
+		void setSession(LoggerFactory & factory, int level, osl::AutoRef<LogSession> session);
 		void formatter(int level, const std::string & name);
 		void writer(int level, const std::string & name);
 		void allFormatters(const std::string & name);
@@ -168,8 +168,8 @@ namespace UTIL {
 	 */
 	class LoggerFactory : public Observable {
 	private:
-		std::map<std::string, OS::AutoRef<LogFormatter> > _formatters;
-		std::map<std::string, OS::AutoRef<LogWriter> > _writers;
+		std::map<std::string, osl::AutoRef<LogFormatter> > _formatters;
+		std::map<std::string, osl::AutoRef<LogWriter> > _writers;
 		std::vector<LoggerProfile> _profiles;
 		
 	private:
@@ -178,18 +178,18 @@ namespace UTIL {
 	public:
 		virtual ~LoggerFactory();
 		static LoggerFactory & instance();
-		OS::AutoRef<Logger> getObservingLogger(const char * name);
-		OS::AutoRef<Logger> getObservingLogger(const std::string & name);
-		OS::AutoRef<Logger> getLogger(const char * name);
-		OS::AutoRef<Logger> getLogger(const std::string & name);
+		osl::AutoRef<Logger> getObservingLogger(const char * name);
+		osl::AutoRef<Logger> getObservingLogger(const std::string & name);
+		osl::AutoRef<Logger> getLogger(const char * name);
+		osl::AutoRef<Logger> getLogger(const std::string & name);
 		void setProfile(const std::string & pattern,
 						const std::string & formatterName,
 						const std::string & writerName);
 		void setProfile(const LoggerProfile & descriptor);
-		void registerFormatter(const std::string & name, OS::AutoRef<LogFormatter> formatter);
-		void registerWriter(const std::string & name, OS::AutoRef<LogWriter> writer);
-		OS::AutoRef<LogFormatter> formatter(const std::string & name);
-		OS::AutoRef<LogWriter> writer(const std::string & name);
+		void registerFormatter(const std::string & name, osl::AutoRef<LogFormatter> formatter);
+		void registerWriter(const std::string & name, osl::AutoRef<LogWriter> writer);
+		osl::AutoRef<LogFormatter> formatter(const std::string & name);
+		osl::AutoRef<LogWriter> writer(const std::string & name);
 	};
 }
 

@@ -1,7 +1,7 @@
 #include "SocketApi.hpp"
 #include "Text.hpp"
 
-namespace OS {
+namespace osl {
 
 	/* InetAddress */
 
@@ -143,7 +143,7 @@ namespace OS {
 		snprintf(portStr, sizeof(portStr), "%d", port);
 		memset(&hints, 0, sizeof(hints));
 		if (getaddrinfo(host, (port == 0 ? NULL : portStr), &hints, &res) != 0) {
-			throw OS::IOException("getaddrinfo() error", -1, 0);
+			throw osl::IOException("getaddrinfo() error", -1, 0);
 		}
 		return res;
 	}
@@ -161,7 +161,7 @@ namespace OS {
 	}
 
 	string InetAddress::toString() const {
-		return getHost() + ":" + UTIL::Text::toString(getPort());
+		return getHost() + ":" + Text::toString(getPort());
 	}
 
 	/* Socket Address */
@@ -182,7 +182,7 @@ namespace OS {
 			in = (struct sockaddr *)&in6;
 			len = sizeof(in6);
 		} else {
-			throw OS::IOException("Unknown family", -1, 0);
+			throw osl::IOException("Unknown family", -1, 0);
 		}
 	}
 	struct sockaddr * SocketAddress::getAddr() {

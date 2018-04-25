@@ -2,7 +2,7 @@
 
 #include "AutoRelease.hpp"
 
-namespace OS {
+namespace osl {
 
 	DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
 

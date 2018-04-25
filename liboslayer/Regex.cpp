@@ -2,10 +2,9 @@
 #include "Regex.hpp"
 #include "Text.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
 
 #define LOGD(D,M) if (D) cout << M << endl;
 	
@@ -100,7 +99,7 @@ namespace UTIL {
 		case PARTIAL_MATCHED:
 			return PARTIAL_MATCHED_STR;
 		}
-		throw OS::Exception("unknown match type - " + UTIL::Text::toString(type));
+		throw osl::Exception("unknown match type - " + Text::toString(type));
 	}
 	MatchType MatchType::toType(const string & type) {
 		if (type == NOT_MATCHED_STR) {
@@ -110,7 +109,7 @@ namespace UTIL {
 		} else if (type == PARTIAL_MATCHED_STR) {
 			return MatchType(PARTIAL_MATCHED);
 		}
-		throw OS::Exception("unknown match type - " + type);
+		throw osl::Exception("unknown match type - " + type);
 	}
 
 	ostream & operator<<(ostream & stream, const MatchType & type) {

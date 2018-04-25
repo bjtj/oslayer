@@ -1,10 +1,10 @@
 #include "ThreadPool.hpp"
 #include <algorithm>
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	/**
 	 *

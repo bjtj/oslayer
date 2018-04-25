@@ -4,7 +4,7 @@
 #include "os.hpp"
 #include "Semaphore.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
      * @brief selection

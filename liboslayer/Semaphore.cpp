@@ -1,6 +1,6 @@
 #include "Semaphore.hpp"
 
-namespace OS {
+namespace osl {
 
 	/* SEMAPHORE */
 

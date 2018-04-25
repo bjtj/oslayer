@@ -3,8 +3,8 @@
 #include <string>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 /**
  * 

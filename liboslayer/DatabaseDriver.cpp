@@ -1,9 +1,9 @@
 #include "DatabaseDriver.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	DatabaseDriver DatabaseDriver::_instance;
 

@@ -1,7 +1,7 @@
 #ifndef __AUTO_RELEASE_HPP__
 #define __AUTO_RELEASE_HPP__
 
-namespace UTIL {
+namespace osl {
 
 #define DECL_AUTO_RELEASE(CLS_NAME, TYPE, RELEASE_FUNC) \
 class CLS_NAME { \

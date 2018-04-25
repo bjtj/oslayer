@@ -3,7 +3,7 @@
 
 #include "os.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
 	 * @brief unknown endian contant exception

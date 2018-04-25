@@ -10,7 +10,7 @@
 #endif
 
 /*
-* Predefined OS macros
+* Predefined osl macros
 * ====================
 * http://stackoverflow.com/questions/142508/how-do-i-check-os-with-a-preprocessor-directive
 */

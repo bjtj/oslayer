@@ -4,7 +4,7 @@
 #include <string>
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * underflow exception

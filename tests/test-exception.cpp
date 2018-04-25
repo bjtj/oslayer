@@ -3,7 +3,7 @@
 #include "utils.hpp"
 
 using namespace std;
-using namespace OS;
+using namespace osl;
 
 
 DECL_NAMED_EXCEPTION(MyException);

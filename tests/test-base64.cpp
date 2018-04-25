@@ -2,8 +2,8 @@
 #include <liboslayer/Base64.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class Base64TestCase : public TestCase {
 private:

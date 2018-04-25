@@ -9,7 +9,7 @@
 #include <utility>
 #include "StringElements.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	class Text {
 	private:

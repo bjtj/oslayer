@@ -4,8 +4,8 @@
 #include <liboslayer/AutoRef.hpp>
 #include <liboslayer/DatagramSocket.hpp>
 
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class DatagramServer : public Thread {
 private:

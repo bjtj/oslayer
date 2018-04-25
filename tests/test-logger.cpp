@@ -5,8 +5,8 @@
 #include <liboslayer/File.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 /**
  * logger factory observer

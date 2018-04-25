@@ -5,7 +5,7 @@
 #include <string>
 #include "AutoRef.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	// 
 	DECL_NAMED_EXCEPTION(DatabaseException);
@@ -37,7 +37,7 @@ namespace UTIL {
 		virtual ~PreparedStatement();
 		std::string & sql();
 		virtual bool execute();
-		virtual OS::AutoRef<ResultSet> executeQuery();
+		virtual osl::AutoRef<ResultSet> executeQuery();
 		virtual size_t executeUpdate();
 		virtual void setString(size_t idx, const std::string & str);
 		virtual void setInteger(size_t idx, const int & str);
@@ -55,10 +55,10 @@ namespace UTIL {
 		virtual void connect(const std::string & hostname, int port, const std::string & username, const std::string & password, const std::string & dbname);
 		virtual void disconnect();
 		virtual bool isConnected();
-		virtual OS::AutoRef<ResultSet> query(const std::string & sql);
+		virtual osl::AutoRef<ResultSet> query(const std::string & sql);
 		virtual size_t queryUpdate(const std::string & sql);
 		virtual size_t lastInsertId();
-		virtual OS::AutoRef<PreparedStatement> prepareStatement(const std::string & sql);
+		virtual osl::AutoRef<PreparedStatement> prepareStatement(const std::string & sql);
 		virtual bool getAutoCommit();
 		virtual void setAutoCommit(bool autoCommit);
 		virtual void beginTransaction();

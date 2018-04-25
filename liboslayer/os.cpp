@@ -3,9 +3,9 @@
 #define CHECK_NOT_IMPL_THROW(x) if(!x){throw NotImplementedException();}
 
 /**
- * @namespace OS
+ * @namespace osl
  */
-namespace OS {
+namespace osl {
 
 	using namespace std;
 

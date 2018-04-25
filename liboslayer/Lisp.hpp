@@ -16,7 +16,7 @@
 #include "Heap.hpp"
 #include "Iterator.hpp"
 
-namespace LISP {
+namespace lisp {
 
 	/**/
 	class Symbol;
@@ -63,13 +63,13 @@ namespace LISP {
 	 */
 	class ReturnLispException : public LispException {
 	private:
-		OS::GCRef<Var> _tag;
-		OS::GCRef<Var> _var;
+		osl::GCRef<Var> _tag;
+		osl::GCRef<Var> _var;
 	public:
-		explicit ReturnLispException(OS::GCRef<Var> tag, OS::GCRef<Var> var);
+		explicit ReturnLispException(osl::GCRef<Var> tag, osl::GCRef<Var> var);
 		virtual ~ReturnLispException() throw();
-		OS::GCRef<Var> tag();
-		OS::GCRef<Var> var();
+		osl::GCRef<Var> tag();
+		osl::GCRef<Var> var();
 	};
 
 	/**
@@ -77,13 +77,13 @@ namespace LISP {
 	 */
 	class ThrowLispException : public LispException {
 	private:
-		OS::GCRef<Var> _exc;
-		OS::GCRef<Var> _ret;
+		osl::GCRef<Var> _exc;
+		osl::GCRef<Var> _ret;
 	public:
-		explicit ThrowLispException(OS::GCRef<Var> except, OS::GCRef<Var> ret);
+		explicit ThrowLispException(osl::GCRef<Var> except, osl::GCRef<Var> ret);
 		virtual ~ThrowLispException() throw();
-		OS::GCRef<Var> except();
-		OS::GCRef<Var> ret();
+		osl::GCRef<Var> except();
+		osl::GCRef<Var> ret();
 	};
 
 	/**
@@ -100,7 +100,7 @@ namespace LISP {
 	};
 
 	/**/
-	typedef OS::GCRef<Var> (*fn_proc)(Env & env, OS::GCRef<Var> name, std::vector<OS::GCRef<Var> > & args);
+	typedef osl::GCRef<Var> (*fn_proc)(Env & env, osl::GCRef<Var> name, std::vector<osl::GCRef<Var> > & args);
 	extern std::string wrap_text(const std::string & txt);
 	extern std::string unwrap_text(const std::string & txt);
 
@@ -116,7 +116,7 @@ namespace LISP {
 	 * @brief registry
 	 */
 	
-	class Registry : public std::map< Symbol, OS::GCRef<Var> > {
+	class Registry : public std::map< Symbol, osl::GCRef<Var> > {
 	private:
 	public:
 		Registry();
@@ -129,49 +129,49 @@ namespace LISP {
 	 */
 	class Scope {
 	private:
-		OS::UnsafeAutoRef<Scope> _parent;
+		osl::UnsafeAutoRef<Scope> _parent;
 		std::map<REG_ID, Registry> _registries;
 	public:
 		Scope();
-		Scope(OS::UnsafeAutoRef<Scope> parent);
+		Scope(osl::UnsafeAutoRef<Scope> parent);
 		virtual ~Scope();
-		OS::UnsafeAutoRef<Scope> & parent();
+		osl::UnsafeAutoRef<Scope> & parent();
 		void clear();
 		std::map<REG_ID, Registry> & registries();
 		Registry & registry(const REG_ID & id);
 		// var
-		OS::GCRef<Var> search_var(const Symbol & sym);
-		OS::GCRef<Var> rsearch_var(const Symbol & sym);
-		OS::GCRef<Var> rget_var(const Symbol & sym);
-		OS::GCRef<Var> rput_var(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> search_var(const Symbol & sym);
+		osl::GCRef<Var> rsearch_var(const Symbol & sym);
+		osl::GCRef<Var> rget_var(const Symbol & sym);
+		osl::GCRef<Var> rput_var(const Symbol & sym, const osl::GCRef<Var> & var);
 		// const
-		OS::GCRef<Var> search_const(const Symbol & sym);
-		OS::GCRef<Var> rsearch_const(const Symbol & sym);
-		OS::GCRef<Var> rget_const(const Symbol & sym);
-		OS::GCRef<Var> rput_const(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> search_const(const Symbol & sym);
+		osl::GCRef<Var> rsearch_const(const Symbol & sym);
+		osl::GCRef<Var> rget_const(const Symbol & sym);
+		osl::GCRef<Var> rput_const(const Symbol & sym, const osl::GCRef<Var> & var);
 		// func
-		OS::GCRef<Var> search_func(const Symbol & sym);
-		OS::GCRef<Var> rsearch_func(const Symbol & sym);
-		OS::GCRef<Var> rget_func(const Symbol & sym);
-		OS::GCRef<Var> rget_func(Symbol & sym);
-		OS::GCRef<Var> rput_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> search_func(const Symbol & sym);
+		osl::GCRef<Var> rsearch_func(const Symbol & sym);
+		osl::GCRef<Var> rget_func(const Symbol & sym);
+		osl::GCRef<Var> rget_func(Symbol & sym);
+		osl::GCRef<Var> rput_func(const Symbol & sym, const osl::GCRef<Var> & var);
 		// 
-		OS::GCRef<Var> search(const REG_ID & id, const Symbol & sym);
-		OS::GCRef<Var> rsearch(const REG_ID & id, const Symbol & sym);
-		OS::GCRef<Var> rget(const REG_ID & id, const Symbol & sym);
-		OS::GCRef<Var> rput(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> search(const REG_ID & id, const Symbol & sym);
+		osl::GCRef<Var> rsearch(const REG_ID & id, const Symbol & sym);
+		osl::GCRef<Var> rget(const REG_ID & id, const Symbol & sym);
+		osl::GCRef<Var> rput(const REG_ID & id, const Symbol & sym, const osl::GCRef<Var> & var);
 		// var
-		OS::GCRef<Var> get_var(const Symbol & sym);
-	    void put_var(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> get_var(const Symbol & sym);
+	    void put_var(const Symbol & sym, const osl::GCRef<Var> & var);
 		// const
-		OS::GCRef<Var> get_const(const Symbol & sym);
-	    void put_const(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> get_const(const Symbol & sym);
+	    void put_const(const Symbol & sym, const osl::GCRef<Var> & var);
 		// func
-		OS::GCRef<Var> get_func(const Symbol & sym);
-	    void put_func(const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> get_func(const Symbol & sym);
+	    void put_func(const Symbol & sym, const osl::GCRef<Var> & var);
 		// 
-		OS::GCRef<Var> get(const REG_ID & id, const Symbol & sym);
-	    void put(const REG_ID & id, const Symbol & sym, const OS::GCRef<Var> & var);
+		osl::GCRef<Var> get(const REG_ID & id, const Symbol & sym);
+	    void put(const REG_ID & id, const Symbol & sym, const osl::GCRef<Var> & var);
 		int depth();
 		std::string toString() const;
 	};
@@ -189,7 +189,7 @@ namespace LISP {
 		virtual std::string type_str() {
 			return "BaseObject";
 		}
-		virtual OS::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< OS::UnsafeAutoRef<Object> > & args) {
+		virtual osl::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< osl::UnsafeAutoRef<Object> > & args) {
 			throw LispException("no operation implemented - '" + cmd + "'");
 		}
 		virtual std::string toString() const {
@@ -205,30 +205,30 @@ namespace LISP {
 	 */
 	class Sequence : public Object {
 	private:
-		std::vector< OS::GCRef<Var> > _lst;
+		std::vector< osl::GCRef<Var> > _lst;
 	public:
 		explicit Sequence();
-		explicit Sequence(const std::vector< OS::GCRef<Var> > & lst);
-		explicit Sequence(std::vector< OS::GCRef<Var> >::iterator begin,
-						  std::vector< OS::GCRef<Var> >::iterator end);
-		explicit Sequence(std::vector< OS::GCRef<Var> >::const_iterator begin,
-						  std::vector< OS::GCRef<Var> >::const_iterator end);
+		explicit Sequence(const std::vector< osl::GCRef<Var> > & lst);
+		explicit Sequence(std::vector< osl::GCRef<Var> >::iterator begin,
+						  std::vector< osl::GCRef<Var> >::iterator end);
+		explicit Sequence(std::vector< osl::GCRef<Var> >::const_iterator begin,
+						  std::vector< osl::GCRef<Var> >::const_iterator end);
 		virtual ~Sequence();
-		UTIL::Iterator< OS::GCRef<Var> > iter();
-		std::vector< OS::GCRef<Var> > & vec();
+		osl::Iterator< osl::GCRef<Var> > iter();
+		std::vector< osl::GCRef<Var> > & vec();
 		bool empty() const;
-		std::vector< OS::GCRef<Var> >::iterator begin();
-		std::vector< OS::GCRef<Var> >::iterator end();
-		std::vector< OS::GCRef<Var> >::const_iterator begin() const;
-		std::vector< OS::GCRef<Var> >::const_iterator end() const;
+		std::vector< osl::GCRef<Var> >::iterator begin();
+		std::vector< osl::GCRef<Var> >::iterator end();
+		std::vector< osl::GCRef<Var> >::const_iterator begin() const;
+		std::vector< osl::GCRef<Var> >::const_iterator end() const;
 		size_t size() const;
-		std::vector< OS::GCRef<Var> >::iterator erase(std::vector< OS::GCRef<Var> >::iterator iter);
-		void push_back(const OS::GCRef<Var> & var);
+		std::vector< osl::GCRef<Var> >::iterator erase(std::vector< osl::GCRef<Var> >::iterator iter);
+		void push_back(const osl::GCRef<Var> & var);
 		void testIndexValid(const size_t & idx) const;
 		void swap(const size_t & from, const size_t & to);
 		Sequence subseq(const size_t & start, const size_t & end) const;
-		OS::GCRef<Var> & operator[] (const size_t & idx);
-		const OS::GCRef<Var> & operator[] (const size_t & idx) const;
+		osl::GCRef<Var> & operator[] (const size_t & idx);
+		const osl::GCRef<Var> & operator[] (const size_t & idx) const;
 		virtual std::string toString() const;
 	};
 
@@ -452,7 +452,7 @@ namespace LISP {
 		String(const std::string & str);
 		virtual ~String();
 		std::string & str();
-		virtual OS::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< OS::UnsafeAutoRef<Object> > & args);
+		virtual osl::UnsafeAutoRef<Object> call(const std::string & cmd, std::vector< osl::UnsafeAutoRef<Object> > & args);
 		const char operator[] (const size_t & idx) const;
 		virtual std::string toString() const;
 		virtual std::string toPrintString() const;
@@ -463,12 +463,12 @@ namespace LISP {
 	 */
 	class Pathname : public Object {
 	private:
-		OS::File _file;
+		osl::File _file;
 	public:
 		Pathname();
-		Pathname(const OS::File & file);
+		Pathname(const osl::File & file);
 		virtual ~Pathname();
-		OS::File & file();
+		osl::File & file();
 		std::string ext();
 		std::string path();
 		std::string dirname();
@@ -478,8 +478,8 @@ namespace LISP {
 		bool is_dir();
 		bool is_file();
 		long long size();
-		OS::osl_time_t creation_time();
-		OS::osl_time_t last_modified_time();
+		osl::osl_time_t creation_time();
+		osl::osl_time_t last_modified_time();
 		virtual std::string toString() const;
 		virtual std::string toPrintString() const;
 	};
@@ -530,28 +530,28 @@ namespace LISP {
 	class Env {
 	private:
 		static bool _debug;
-		OS::UnsafeAutoRef< Scope > _scope;
-		OS::Heap<Var> _heap;
+		osl::UnsafeAutoRef< Scope > _scope;
+		osl::Heap<Var> _heap;
 	public:
 		Env();
 		virtual ~Env();
 		static void setDebug(bool debug);
 		void _trace(const std::string & msg);
-		OS::UnsafeAutoRef< Scope > & scope();
-		OS::GCRef<Var> nil();
-		OS::GCRef<Var> t();
-	    OS::Heap<Var> & heap();
-		OS::GCRef<Var> alloc(Var * var);
+		osl::UnsafeAutoRef< Scope > & scope();
+		osl::GCRef<Var> nil();
+		osl::GCRef<Var> t();
+	    osl::Heap<Var> & heap();
+		osl::GCRef<Var> alloc(Var * var);
 		void gc();
 		void clear();
 	};
 
 
 #define LISP_PROCEDURE_PROC(E,S,N,A)								\
-	virtual OS::GCRef<LISP::Var> proc(LISP::Env & E,				\
-								OS::UnsafeAutoRef<LISP::Scope> & S,	\
-								OS::GCRef<LISP::Var> & N,			\
-								LISP::Sequence & A)
+	virtual osl::GCRef<lisp::Var> proc(lisp::Env & E,				\
+								osl::UnsafeAutoRef<lisp::Scope> & S,	\
+								osl::GCRef<lisp::Var> & N,			\
+								lisp::Sequence & A)
 
 	/**
 	 * @brief procedure (built-in function)
@@ -573,25 +573,25 @@ namespace LISP {
 	class Func : public Object {
 	private:
 		bool _macro;
-		OS::UnsafeAutoRef<Scope> _closure_scope;
-		OS::GCRef<Var> _doc;
-		OS::GCRef<Var> _params;
-		OS::GCRef<Var> _form;
+		osl::UnsafeAutoRef<Scope> _closure_scope;
+		osl::GCRef<Var> _doc;
+		osl::GCRef<Var> _params;
+		osl::GCRef<Var> _form;
 	public:
 		Func();
-		Func(const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
-		Func(bool macro, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
-		Func(const OS::GCRef<Var> & description, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
-		Func(bool macro, const OS::GCRef<Var> & description, const OS::GCRef<Var> & params, const OS::GCRef<Var> & form);
+		Func(const osl::GCRef<Var> & params, const osl::GCRef<Var> & form);
+		Func(bool macro, const osl::GCRef<Var> & params, const osl::GCRef<Var> & form);
+		Func(const osl::GCRef<Var> & description, const osl::GCRef<Var> & params, const osl::GCRef<Var> & form);
+		Func(bool macro, const osl::GCRef<Var> & description, const osl::GCRef<Var> & params, const osl::GCRef<Var> & form);
 		virtual ~Func();
 		bool empty() const;
 		bool & macro();
 		bool macro() const;
-		OS::UnsafeAutoRef<Scope> & closure_scope();
-		OS::GCRef<Var> & doc();
-		OS::GCRef<Var> & params();
-		OS::GCRef<Var> & form();
-		virtual OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> & scope, OS::GCRef<Var> & name, Sequence & args);
+		osl::UnsafeAutoRef<Scope> & closure_scope();
+		osl::GCRef<Var> & doc();
+		osl::GCRef<Var> & params();
+		osl::GCRef<Var> & form();
+		virtual osl::GCRef<Var> proc(Env & env, osl::UnsafeAutoRef<Scope> & scope, osl::GCRef<Var> & name, Sequence & args);
 		std::string toString() const;
 	};
 
@@ -618,13 +618,13 @@ namespace LISP {
 	private:
 		static bool _debug;
 		int _type;
-		OS::UnsafeAutoRef<Object> _obj;
+		osl::UnsafeAutoRef<Object> _obj;
 		
 	public:
 		explicit Var();
 		explicit Var(const char * token);
 		explicit Var(const std::string & token);
-		explicit Var(const std::vector<OS::GCRef<Var> > & lst);
+		explicit Var(const std::vector<osl::GCRef<Var> > & lst);
 		explicit Var(const Sequence & lst);
 		explicit Var(bool bval);
 		explicit Var(const Boolean & bval);
@@ -639,11 +639,11 @@ namespace LISP {
 		explicit Var(const Float & fnum);
 		explicit Var(Func * func);
 		explicit Var(Procedure * procedure);
-		explicit Var(const OS::File & file);
+		explicit Var(const osl::File & file);
 		explicit Var(Pathname & pathname);
 		explicit Var(std::FILE * fd);
 		explicit Var(std::FILE * fd, bool autoclose);
-		explicit Var(OS::UnsafeAutoRef<Object> obj);
+		explicit Var(osl::UnsafeAutoRef<Object> obj);
 		virtual ~Var();
 
 		static void setDebug(bool debug);
@@ -692,12 +692,12 @@ namespace LISP {
 		Func & r_func();
 		Procedure & r_procedure();
 		FileDescriptor & r_fileDescriptor();
-		OS::UnsafeAutoRef<Object> & r_obj();
+		osl::UnsafeAutoRef<Object> & r_obj();
 
-		OS::GCRef<Var> expand(Env & env, OS::UnsafeAutoRef<Scope> & scope,
-							  OS::GCRef<Var> & name, Sequence & args);
-		OS::GCRef<Var> proc(Env & env, OS::UnsafeAutoRef<Scope> & scope,
-							OS::GCRef<Var> & name, Sequence & args);
+		osl::GCRef<Var> expand(Env & env, osl::UnsafeAutoRef<Scope> & scope,
+							  osl::GCRef<Var> & name, Sequence & args);
+		osl::GCRef<Var> proc(Env & env, osl::UnsafeAutoRef<Scope> & scope,
+							osl::GCRef<Var> & name, Sequence & args);
 
 		void numberCheck() const;
 		void numberOperationCheck(const Var & other) const;
@@ -766,16 +766,16 @@ namespace LISP {
 		class Parameter
 		{
 		private:
-			OS::GCRef<Var> _name;
-			OS::GCRef<Var> _initial;
+			osl::GCRef<Var> _name;
+			osl::GCRef<Var> _initial;
 		public:
 			Parameter();
-			Parameter(const OS::GCRef<Var> & name);
-			Parameter(const OS::GCRef<Var> & name, const OS::GCRef<Var> & initial);
+			Parameter(const osl::GCRef<Var> & name);
+			Parameter(const osl::GCRef<Var> & name, const osl::GCRef<Var> & initial);
 			virtual ~Parameter();
 			bool empty() const;
-			OS::GCRef<Var> & name();
-			OS::GCRef<Var> & initial();
+			osl::GCRef<Var> & name();
+			osl::GCRef<Var> & initial();
 			std::string toString() const;
 		};
 
@@ -799,11 +799,11 @@ namespace LISP {
 		std::vector<Parameter> & optionals();
 		Parameter & rest();
 		std::map<Keyword, Parameter> & keywords();
-		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> & scope, const OS::GCRef<Var> & tokens);
-		static Parameters read(Env & env, OS::UnsafeAutoRef<Scope> & scope, Sequence & tokens);
-		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
+		static Parameters read(Env & env, osl::UnsafeAutoRef<Scope> & scope, const osl::GCRef<Var> & tokens);
+		static Parameters read(Env & env, osl::UnsafeAutoRef<Scope> & scope, Sequence & tokens);
+		void bind(Env & env, osl::UnsafeAutoRef<Scope> & global_scope, osl::UnsafeAutoRef<Scope> & lex_scope,
 				  Sequence & tokens);
-		void bind(Env & env, OS::UnsafeAutoRef<Scope> & global_scope, OS::UnsafeAutoRef<Scope> & lex_scope,
+		void bind(Env & env, osl::UnsafeAutoRef<Scope> & global_scope, osl::UnsafeAutoRef<Scope> & lex_scope,
 				  Sequence & tokens, bool proc_eval);
 		std::string toString() const;
 	};
@@ -811,13 +811,13 @@ namespace LISP {
 	/**
 	 * @brief lisp extern
 	 */
-	extern OS::GCRef<Var> pathname(Env & env, const OS::GCRef<Var> & path);
+	extern osl::GCRef<Var> pathname(Env & env, const osl::GCRef<Var> & path);
 	extern void native(Env & env);
 	extern void repl(Env & env);
 	extern std::vector<std::string> tokenize(const std::string & s);
-	extern OS::GCRef<Var> parse(Env & env, const std::string & cmd);
-	extern OS::GCRef<Var> eval(Env & env, OS::UnsafeAutoRef<Scope> & scope, const OS::GCRef<Var> & var);
-	extern OS::GCRef<Var> compile(Env & env, const std::string & cmd);
+	extern osl::GCRef<Var> parse(Env & env, const std::string & cmd);
+	extern osl::GCRef<Var> eval(Env & env, osl::UnsafeAutoRef<Scope> & scope, const osl::GCRef<Var> & var);
+	extern osl::GCRef<Var> compile(Env & env, const std::string & cmd);
 }
 
 #endif

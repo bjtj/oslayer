@@ -1,7 +1,7 @@
 #include <iostream>
 #include <liboslayer/Lisp.hpp>
 
-using namespace LISP;
+using namespace lisp;
 using namespace std;
 
 int main(int argc, char *args[]) {

@@ -2,7 +2,7 @@
 
 #if defined(USE_OPENSSL)
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 	
@@ -433,7 +433,7 @@ namespace OS {
 
 #else
 
-namespace OS {
+namespace osl {
 	// no ssl
 	SecureServerSocket::SecureServerSocket() {
 		throw Exception("ssl not available");

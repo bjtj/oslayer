@@ -1,10 +1,10 @@
 #include "TestSuite.hpp"
 #include <sstream>
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	/**
 	 *

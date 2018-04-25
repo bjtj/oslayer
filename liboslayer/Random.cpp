@@ -1,6 +1,6 @@
 #include "Random.hpp"
 
-namespace OS {
+namespace osl {
 	
 	Random::Random() {
 	}

@@ -1,6 +1,6 @@
 #include "File.hpp"
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 	

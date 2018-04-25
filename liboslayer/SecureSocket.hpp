@@ -10,7 +10,7 @@
 #include <openssl/err.h>
 #include <openssl/x509.h>
 
-namespace OS {
+namespace osl {
 
 	class Certificate;
 	class X509Certificate;
@@ -38,7 +38,7 @@ namespace OS {
 		SSL_CTX * ctx;
 		SSL * ssl;
 		X509 * peerCert;
-		OS::AutoRef<CertificateVerifier> verifier;
+		osl::AutoRef<CertificateVerifier> verifier;
 		bool peerCertRequired;
 		bool needHandshake;
 		unsigned long recvTimeout;
@@ -48,7 +48,7 @@ namespace OS {
 	public:
 		SecureSocket(SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
 		SecureSocket(SSL_CTX * ctx, SOCK_HANDLE sock, struct sockaddr * addr, socklen_t addrlen);
-		SecureSocket(const OS::InetAddress & remoteAddr);
+		SecureSocket(const osl::InetAddress & remoteAddr);
 		virtual ~SecureSocket();
 		virtual void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual void negotiate();
@@ -64,7 +64,7 @@ namespace OS {
 		virtual void setRecvTimeout(unsigned long timeout);
 		virtual unsigned long setRecvTimeout();
 		virtual void close();
-		void setVerifier(OS::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(osl::AutoRef<CertificateVerifier> verifier);
 		void setPeertCertRequired(bool required);
 		std::string getErrorString(unsigned long err);
 	};
@@ -75,7 +75,7 @@ namespace OS {
 	class SecureServerSocket : public ServerSocket {
 	private:
 		SSL_CTX * ctx;
-		OS::AutoRef<CertificateVerifier> verifier;
+		osl::AutoRef<CertificateVerifier> verifier;
 	public:
 		SecureServerSocket();
 		SecureServerSocket(int port);
@@ -85,7 +85,7 @@ namespace OS {
 		void loadCert(const std::string & certPath, const std::string & keyPath);
 		virtual Socket * accept();
 		virtual void close();
-		void setVerifier(OS::AutoRef<CertificateVerifier> verifier);
+		void setVerifier(osl::AutoRef<CertificateVerifier> verifier);
 	};
 
 
@@ -139,7 +139,7 @@ namespace OS {
 
 #else
 
-namespace OS {
+namespace osl {
 	// no ssl
 	class SecureServerSocket { 
 		/* suppressing compile warning */ 

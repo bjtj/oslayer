@@ -1,7 +1,7 @@
 #ifndef __CONDITION_HPP__
 #define __CONDITION_HPP__
 
-namespace UTIL {
+namespace osl {
 
 	class Condition {
 	public:

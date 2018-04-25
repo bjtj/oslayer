@@ -2,8 +2,8 @@
 #include <liboslayer/Regex.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 /**
  * regex test and report

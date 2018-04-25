@@ -1,7 +1,7 @@
 #ifndef __REF_HPP__
 #define __REF_HPP__
 
-namespace OS {
+namespace osl {
 
 	template <typename T>
 	class Ref {

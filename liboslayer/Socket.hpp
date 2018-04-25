@@ -5,7 +5,7 @@
 #include "SocketApi.hpp"
 #include "Selector.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
 	 * @brief Socket
@@ -21,7 +21,7 @@ namespace OS {
 
 		virtual SOCK_HANDLE getSocket();
 		virtual int getFd();
-		virtual void setRemoteAddress(const OS::InetAddress & remoteAddr);
+		virtual void setRemoteAddress(const osl::InetAddress & remoteAddr);
 		virtual void negotiate();
 		virtual void connect();
 		virtual void connect(unsigned long timeout);
@@ -60,7 +60,7 @@ namespace OS {
 		virtual void bind();
 		virtual void listen(int backlog);
 		virtual Socket * accept();
-		virtual SOCK_HANDLE accept(OS::SocketAddress & addr);
+		virtual SOCK_HANDLE accept(osl::SocketAddress & addr);
 		virtual void close();
 		virtual bool isClosed();
 		virtual InetAddress getLocalInetAddress();

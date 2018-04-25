@@ -1,7 +1,7 @@
 #ifndef __XML_ENCODER_DECODER_HPP__
 #define __XML_ENCODER_DECODER_HPP__
 
-namespace XML {
+namespace osl {
 
 	/**
 	 *
@@ -46,27 +46,27 @@ namespace XML {
 			for (std::string::const_iterator iter = text.begin(); iter != text.end(); iter++) {
 				switch (*iter) {
 				case '&':
-					{
-						iter++;
-						std::string enc;
-						for (; *iter != ';'; iter++) {
-							if (iter == text.end()) {
-								throw OS::Exception("unexpected end of string");
-							}
-							enc.append(1, *iter);
+				{
+					iter++;
+					std::string enc;
+					for (; *iter != ';'; iter++) {
+						if (iter == text.end()) {
+							throw osl::Exception("unexpected end of string");
 						}
-
-						if (enc == "amp") {
-							ret.append(1, '&');
-						} else if (enc == "lt") {
-							ret.append(1, '<');
-						} else if (enc == "gt") {
-							ret.append(1, '>');
-						} else {
-							// unknown
-						}
+						enc.append(1, *iter);
 					}
-					break;
+
+					if (enc == "amp") {
+						ret.append(1, '&');
+					} else if (enc == "lt") {
+						ret.append(1, '<');
+					} else if (enc == "gt") {
+						ret.append(1, '>');
+					} else {
+						// unknown
+					}
+				}
+				break;
 				default:
 					ret.append(1, *iter);
 					break;

@@ -4,8 +4,8 @@
 #include <liboslayer/Thread.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 
 #define LOG(...) cout << "[" << tick_milli() << "]" << __VA_ARGS__ << endl;

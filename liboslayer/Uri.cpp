@@ -1,7 +1,7 @@
 #include "Uri.hpp"
 #include "Text.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
 

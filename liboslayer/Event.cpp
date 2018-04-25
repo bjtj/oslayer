@@ -1,6 +1,6 @@
 #include "Event.hpp"
 
-namespace OS {
+namespace osl {
 
 	Event::Event() {
 #if defined(USE_APPLE_STD)

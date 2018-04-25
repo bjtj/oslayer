@@ -1,6 +1,6 @@
 #include "Date.hpp"
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 

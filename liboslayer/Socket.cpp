@@ -1,7 +1,7 @@
 #include "Socket.hpp"
 #include "AutoRelease.hpp"
 
-namespace OS {
+namespace osl {
 
 	DECL_AUTO_RELEASE(AddrInfoAutoRelease, struct addrinfo, freeaddrinfo);
 
@@ -366,7 +366,7 @@ namespace OS {
 		Socket * ServerSocket::accept() {
 			return getImpl().accept();
 		}
-		SOCK_HANDLE ServerSocket::accept(OS::SocketAddress & addr) {
+		SOCK_HANDLE ServerSocket::accept(osl::SocketAddress & addr) {
 			return getImpl().accept(addr);
 		}
 		void ServerSocket::close() {

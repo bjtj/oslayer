@@ -2,7 +2,7 @@
 #include <liboslayer/PropertyMap.hpp>
 
 using namespace std;
-using namespace UTIL;
+using namespace osl;
 
 static void test_property_map() {
 	

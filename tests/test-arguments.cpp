@@ -2,8 +2,8 @@
 #include <liboslayer/Arguments.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 
 class ArgumentsTestCase : public TestCase {

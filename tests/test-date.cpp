@@ -2,8 +2,8 @@
 #include <liboslayer/TestSuite.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 
 class DateTestCase : public TestCase{
@@ -58,7 +58,7 @@ public:
 			date.setGmtOffset(0);
 			print_date(date.toGmt());
 
-			cout << "[OS date test]" << endl;
+			cout << "[osl date test]" << endl;
 			cout << " * offset: " << date.getGmtOffset() << " (" << ((double)date.getGmtOffset() / 60.0) << ")" << endl;
 			cout << " * time: " << date.getTime().sec << endl;
 		}

@@ -4,7 +4,7 @@
 #include "os.hpp"
 #include "SocketApi.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
      * @brief network interface

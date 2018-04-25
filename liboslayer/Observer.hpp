@@ -4,7 +4,7 @@
 #include "AutoRef.hpp"
 #include <vector>
 
-namespace UTIL {
+namespace osl {
 
 	class Observer;
 	

@@ -2,8 +2,8 @@
 #include <liboslayer/TaskThreadPool.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 /**
  * 

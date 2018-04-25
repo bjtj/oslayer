@@ -1,6 +1,6 @@
 #include "Endian.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
 	 * @brief endian

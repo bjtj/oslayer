@@ -5,7 +5,7 @@
 #include "File.hpp"
 #include <string>
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief file stream utility
@@ -16,7 +16,7 @@ namespace UTIL {
 	public:
 		FileStream();
 		FileStream(FILE * fp);
-		FileStream(OS::File file, const std::string & flags);
+		FileStream(osl::File file, const std::string & flags);
 		FileStream(const std::string & path, const std::string & flags);
 		virtual ~FileStream();
 	private:

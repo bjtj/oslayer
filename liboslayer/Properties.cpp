@@ -2,10 +2,10 @@
 #include "Text.hpp"
 #include "FileStream.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	Properties::Properties() {
 	}

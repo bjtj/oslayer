@@ -2,8 +2,8 @@
 #include <liboslayer/Observer.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 static int s_value = 0;
 static int s_monitored_value = 0;

@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
 

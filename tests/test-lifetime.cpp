@@ -2,8 +2,8 @@
 #include <liboslayer/Lifetime.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 class LifetimeTestCase : public TestCase {
 private:

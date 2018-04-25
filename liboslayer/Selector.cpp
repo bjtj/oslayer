@@ -1,7 +1,7 @@
 #include "Selector.hpp"
 #include "AutoLock.hpp"
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 

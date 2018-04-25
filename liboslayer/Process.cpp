@@ -1,7 +1,7 @@
 #include <iostream>
 #include "Process.hpp"
 
-namespace OS {
+namespace osl {
 
 	using namespace std;
 

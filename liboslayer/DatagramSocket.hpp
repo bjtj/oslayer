@@ -5,7 +5,7 @@
 #include "SocketApi.hpp"
 #include "Selector.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
 	 * @brief DatagramSocket

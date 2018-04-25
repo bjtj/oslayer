@@ -5,7 +5,7 @@
 #include "Mutex.hpp"
 #include "Ref.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
 	 * Reference counter
@@ -110,7 +110,7 @@ namespace OS {
 	template <typename T, typename S>
     const T & AutoRefBase<T, S>::operator* () const {
         if (!_t) {
-            throw OS::NullException("null exception (operator*)");
+            throw osl::NullException("null exception (operator*)");
         }
         return *_t;
     }
@@ -118,7 +118,7 @@ namespace OS {
 	template <typename T, typename S>
 	T & AutoRefBase<T, S>::operator* () {
         if (!_t) {
-            throw OS::NullException("null exception (operator*)");
+            throw osl::NullException("null exception (operator*)");
         }
         return *_t;
     }
@@ -126,7 +126,7 @@ namespace OS {
 	template <typename T, typename S>
 	T * AutoRefBase<T, S>::operator-> () const {
         if (!_t) {
-            throw OS::NullException("null exception (operator->)");
+            throw osl::NullException("null exception (operator->)");
         }
         return _t;
     }

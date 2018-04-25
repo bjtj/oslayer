@@ -1,7 +1,7 @@
 #include "ByteArray.hpp"
 #include <cstring>
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * byte array

@@ -5,7 +5,7 @@
 #include "Object.hpp"
 #include <deque>
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * message

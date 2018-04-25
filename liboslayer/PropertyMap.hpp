@@ -6,7 +6,7 @@
 #include "StringElements.hpp"
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief
@@ -57,7 +57,7 @@ namespace UTIL {
 					return *iter;
 				}
 			}
-			throw OS::Exception("no item found");
+			throw osl::Exception("no item found");
 		}
 		void set(const KeyValue & kv) {
 			get(kv.key()).value() = kv.value();

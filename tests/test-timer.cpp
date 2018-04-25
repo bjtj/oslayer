@@ -4,8 +4,8 @@
 #include "utils.hpp"
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 TimePin pin;
 

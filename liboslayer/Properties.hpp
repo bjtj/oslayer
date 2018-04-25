@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace UTIL {
+namespace osl {
 
 	/**
 	 * @brief 
@@ -21,10 +21,10 @@ namespace UTIL {
 		virtual ~Properties();
 
 		void loadFromFile(const std::string & filepath);
-		void loadFromFile(OS::File & file);
+		void loadFromFile(osl::File & file);
 		void loadFromString(const std::string & text);
 		void writeToFile(const std::string & filepath);
-		void writeToFile(OS::File & file);
+		void writeToFile(osl::File & file);
 
 	private:
 

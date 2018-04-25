@@ -5,13 +5,13 @@
 #include <deque>
 #include "Mutex.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	template <typename T>
 	class Pool {
 	private:
-		OS::Mutex _avail_lock;
-		OS::Mutex _work_lock;
+		osl::Mutex _avail_lock;
+		osl::Mutex _work_lock;
 		std::deque<T*> _avails;
 		std::deque<T*> _works;
 		size_t _size;

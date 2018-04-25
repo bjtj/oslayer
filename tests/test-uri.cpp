@@ -2,8 +2,8 @@
 #include <liboslayer/TestSuite.hpp>
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 
 class UriTestCase : public TestCase {

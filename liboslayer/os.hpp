@@ -111,7 +111,7 @@ typedef SOCKET SOCK_HANDLE;
 
 #endif
 
-namespace OS {
+namespace osl {
 
 #define DECL_EXCEPTION(NAME, BASE)										\
 	class NAME : public BASE {											\
@@ -126,7 +126,7 @@ namespace OS {
 	virtual ~NAME() throw() {/**/}										\
 	};
 
-#define DECL_NAMED_EXCEPTION(NAME) DECL_EXCEPTION(NAME, OS::Exception)
+#define DECL_NAMED_EXCEPTION(NAME) DECL_EXCEPTION(NAME, osl::Exception)
 
 	/**
 	 * @brief Exception

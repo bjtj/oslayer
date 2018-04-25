@@ -1,6 +1,6 @@
 #include "Thread.hpp"
 
-namespace OS {
+namespace osl {
 
 	/* THREAD */
 #if defined(USE_PTHREAD)

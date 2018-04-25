@@ -1,9 +1,9 @@
 #include "TaskThreadPool.hpp"
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 
-	using namespace OS;
+	
 
 	/**
 	 * @brief

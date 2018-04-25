@@ -1,9 +1,9 @@
 #include "Tree.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 
 	/**
 	 * 

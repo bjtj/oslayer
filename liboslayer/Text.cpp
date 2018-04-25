@@ -8,12 +8,11 @@
 #include "os.hpp"
 
 /**
- * @namespace UTIL
+ * @namespace osl
  */
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
 
 	/**
 	 * @brief constructor

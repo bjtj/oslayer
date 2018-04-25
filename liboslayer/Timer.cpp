@@ -1,9 +1,9 @@
 #include "Timer.hpp"
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 
-	using namespace OS;
+	
 	using namespace std;
 
 	//

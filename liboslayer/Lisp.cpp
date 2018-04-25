@@ -72,11 +72,10 @@
 	_E.scope()->put_func(_N, _E.alloc(new Var(new _cls)));			\
 	} while (0)
 
-namespace LISP {
+namespace lisp {
 
 	using namespace std;
-	using namespace OS;
-	using namespace UTIL;
+	using namespace osl;
 
 	inline static string _to_string(_VAR var) {
 		if (var.nil()) {

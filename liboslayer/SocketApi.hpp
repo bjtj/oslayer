@@ -4,7 +4,7 @@
 #include "os.hpp"
 #include "ByteArray.hpp"
 
-namespace OS {
+namespace osl {
 
 	/**
      * @brief InetAddress
@@ -193,7 +193,7 @@ namespace OS {
 	 */
 	class DatagramPacket {
 	private:
-		UTIL::ByteArray _array;
+		osl::ByteArray _array;
 		size_t position;
 		size_t length;
 		InetAddress remoteAddr;

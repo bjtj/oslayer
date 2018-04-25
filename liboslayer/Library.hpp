@@ -3,7 +3,7 @@
 
 #include "os.hpp"
 
-namespace OS {
+namespace osl {
 
 #if defined(USE_UNIX_STD)
 

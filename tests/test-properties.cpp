@@ -2,7 +2,8 @@
 #include <liboslayer/Properties.hpp>
 
 using namespace std;
-using namespace UTIL;
+using namespace osl;
+
 
 #define ASSERT(A,CMP,B) if (!(A CMP B)) {								\
 		cerr << #A <<  " expected " << #CMP << " " <<  B << " but " << A << endl; \

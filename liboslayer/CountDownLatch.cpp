@@ -1,9 +1,9 @@
 #include "CountDownLatch.hpp"
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 	
 	CountDownLatch::CountDownLatch(size_t count) : count(count), sem(1) {
 	}

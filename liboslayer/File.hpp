@@ -4,7 +4,7 @@
 #include "os.hpp"
 #include "Date.hpp"
 
-namespace OS {
+namespace osl {
 
 #if defined(USE_UNIX_STD)
 	typedef off_t filesize_t; // file size type

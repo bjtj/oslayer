@@ -1,10 +1,10 @@
 #include "Observer.hpp"
 #include "os.hpp"
 
-namespace UTIL {
+namespace osl {
 	
 	using namespace std;
-	using namespace OS;
+	
 	
 	Observable::Observable() {
 	}

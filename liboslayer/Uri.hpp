@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace UTIL {
+namespace osl {
 
 	class Uri {
 	private:

@@ -4,12 +4,12 @@
 #include "os.hpp"
 #include "Semaphore.hpp"
 
-namespace UTIL {
+namespace osl {
 	
 	class CountDownLatch {
 	private:
 		size_t count;
-		OS::Semaphore sem;
+		osl::Semaphore sem;
 	public:
 		CountDownLatch(size_t count);
 		virtual ~CountDownLatch();

@@ -8,8 +8,8 @@
 #define LOG cout << "[" << _t() << "] "
 
 using namespace std;
-using namespace OS;
-using namespace UTIL;
+using namespace osl;
+
 
 static string toString(InetAddress remoteAddr);
 static unsigned long _t();

@@ -5,10 +5,10 @@
 	typedef void * HANDLE;
 #endif
 
-namespace UTIL {
+namespace osl {
 
 	using namespace std;
-	using namespace OS;
+	
 	
 	FileStream::FileStream() : _fp(NULL) {
 		_init();
