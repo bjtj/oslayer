@@ -6,11 +6,11 @@ namespace osl {
 
 #if defined(USE_UNIX_STD)
 
-	Process::Process(const std::string & cmd) : pid(0), cmd(cmd), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)  {
+	Process::Process(const std::string & cmd) : _pid(0), _cmd(cmd), _fdin(NULL), _fdout(NULL), _fderr(NULL), _exitCode(0)  {
 		/**/
 	}
 	Process::Process(const std::string & cmd, const std::vector<std::string> & env) :
-		pid(0), cmd(cmd), env(env), fdin(NULL), fdout(NULL), fderr(NULL), _exitCode(0)
+		_pid(0), _cmd(cmd), _env(env), _fdin(NULL), _fdout(NULL), _fderr(NULL), _exitCode(0)
 	{
 		/**/
 	}
@@ -20,7 +20,7 @@ namespace osl {
 	void Process::start() {
 		pid_t pid = 0;
 
-		if (pipe(pipe_in) != 0 || pipe(pipe_out) != 0 || pipe(pipe_err) != 0) {
+		if (pipe(_pipe_in) != 0 || pipe(_pipe_out) != 0 || pipe(_pipe_err) != 0) {
 			throw IOException("pipe() error", -1, 0);
 		}
 	
@@ -29,19 +29,19 @@ namespace osl {
 
 			// child
 
-			::close(pipe_in[1]);
-			::close(pipe_out[0]);
-			::close(pipe_err[0]);
+			::close(_pipe_in[1]);
+			::close(_pipe_out[0]);
+			::close(_pipe_err[0]);
 
-			dup2(pipe_in[0], STDIN_FILENO);
-			dup2(pipe_out[1], STDOUT_FILENO);
-			dup2(pipe_err[1], STDERR_FILENO);
+			dup2(_pipe_in[0], STDIN_FILENO);
+			dup2(_pipe_out[1], STDOUT_FILENO);
+			dup2(_pipe_err[1], STDERR_FILENO);
 
-			::close(pipe_in[0]);
-			::close(pipe_out[1]);
-			::close(pipe_err[1]);
+			::close(_pipe_in[0]);
+			::close(_pipe_out[1]);
+			::close(_pipe_err[1]);
 
-			execlp("sh", "sh", "-c", cmd.c_str(), (char*)NULL);
+			execlp("sh", "sh", "-c", _cmd.c_str(), (char*)NULL);
 		
 			// execl do not return if successful
 			// -- http://stackoverflow.com/a/16089327/5676460
@@ -53,37 +53,41 @@ namespace osl {
 
 			// parent
 
-			this->pid = pid;
+			this->_pid = pid;
 			
-			fdin = fdopen(pipe_in[1], "w");
-			if (!fdin) {
+			_fdin = fdopen(_pipe_in[1], "w");
+			if (!_fdin) {
 				throw IOException("fdopen() error", -1, 0);
 			}
-			fdout = fdopen(pipe_out[0], "r");
-			if (!fdout) {
+			_fdout = fdopen(_pipe_out[0], "r");
+			if (!_fdout) {
 				throw IOException("fdopen() error", -1, 0);
 			}
-			fderr = fdopen(pipe_err[0], "r");
-			if (!fderr) {
+			_fderr = fdopen(_pipe_err[0], "r");
+			if (!_fderr) {
 				throw IOException("fdopen() error", -1, 0);
 			}
 
-			::close(pipe_in[0]);
-			::close(pipe_out[1]);
-			::close(pipe_err[1]);
+			::close(_pipe_in[0]);
+			::close(_pipe_out[1]);
+			::close(_pipe_err[1]);
 		}
+	}
+
+	long Process::pid() {
+		return (long)_pid;
 	}
 	
 	FILE * Process::in() {
-		return fdin;
+		return _fdin;
 	}
 	
 	FILE * Process::out() {
-		return fdout;
+		return _fdout;
 	}
 	
 	FILE * Process::err() {
-		return fderr;
+		return _fderr;
 	}
 
 	void Process::wait() {
@@ -98,7 +102,7 @@ namespace osl {
 		
 		bool ret = false;
 		int status;
-		if (waitpid(pid, &status, WUNTRACED | WCONTINUED) == -1) {
+		if (waitpid(_pid, &status, WUNTRACED | WCONTINUED) == -1) {
 			perror("waitpid() error");
 			throw IOException("waitpid() error", -1, 0);
 		}
@@ -117,23 +121,23 @@ namespace osl {
 	}
 
 	void Process::close() {
-		if (fdin) {
-			fclose(fdin);
-			fdin = NULL;
+		if (_fdin) {
+			fclose(_fdin);
+			_fdin = NULL;
 		}
-		if (fdout) {
-			fclose(fdout);
-			fdout = NULL;
+		if (_fdout) {
+			fclose(_fdout);
+			_fdout = NULL;
 		}
-		if (fderr) {
-			fclose(fderr);
-			fderr = NULL;
+		if (_fderr) {
+			fclose(_fderr);
+			_fderr = NULL;
 		}
 
-		::close(pipe_in[1]);
-		::close(pipe_out[0]);
-		::close(pipe_err[0]);
-		pid = 0;
+		::close(_pipe_in[1]);
+		::close(_pipe_out[0]);
+		::close(_pipe_err[0]);
+		_pid = 0;
 	}
 
 	int Process::exitCode() {
@@ -145,12 +149,12 @@ namespace osl {
 	// win32
 
 	Process::Process(const string & cmd)
-		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
+		: _cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
 	{
 		memset(&piProcInfo, 0, sizeof(PROCESS_INFORMATION));
 	}
 	Process::Process(const string & cmd, const vector<string> & env) 
-		: cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
+		: _cmd(cmd), in_read(NULL), in_write(NULL), out_read(NULL), out_write(NULL), err_read(NULL), err_write(NULL)
 	{
 		memset(&piProcInfo, 0, sizeof(PROCESS_INFORMATION));
 	}
@@ -194,10 +198,10 @@ namespace osl {
 		siStartInfo.hStdInput = in_read;		
 		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-		string _cmd = "cmd /C " + cmd;
+		string cmd = "cmd /C " + _cmd;
 		
 		bSuccess = CreateProcess(NULL, 
-			(LPSTR)_cmd.c_str(),
+			(LPSTR)cmd.c_str(),
 			NULL,          // process security attributes 
 			NULL,          // primary thread security attributes 
 			TRUE,          // handles are inherited 
@@ -215,23 +219,33 @@ namespace osl {
 		CloseHandle(out_write);
 		CloseHandle(in_read);
 	}
+
+	long Process::pid() {
+		return (long)piProcInfo.dwProcessId;
+	}
+	
 	HANDLE Process::in() {
 		return in_write;
 	}
+	
 	HANDLE Process::out() {
 		return out_read;
 	}
+	
 	HANDLE Process::err() {
 		return err_read;
 	}
+	
 	void Process::wait() {
 		while (!exited()) {
 			idle(10);
 		}
 	}
+	
 	bool Process::exited() {
 		return (exitCode() != STILL_ACTIVE);
 	}
+	
 	void Process::close() {
 		CloseHandle(piProcInfo.hProcess);
 		CloseHandle(piProcInfo.hThread);
@@ -239,6 +253,7 @@ namespace osl {
 		CloseHandle(out_read);
 		CloseHandle(err_read);
 	}
+	
 	int Process::exitCode() {
 		DWORD code;
 		if (!GetExitCodeProcess(piProcInfo.hProcess, &code)) {

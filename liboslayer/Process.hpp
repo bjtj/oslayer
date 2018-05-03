@@ -15,15 +15,15 @@ namespace osl {
 	 */
 	class Process {
 	private:
-		pid_t pid;
-		std::string cmd;
-		std::vector<std::string> env;
-		int pipe_in[2];
-		int pipe_out[2];
-		int pipe_err[2];
-		FILE * fdin;
-		FILE * fdout;
-		FILE * fderr;
+		pid_t _pid;
+		std::string _cmd;
+		std::vector<std::string> _env;
+		int _pipe_in[2];
+		int _pipe_out[2];
+		int _pipe_err[2];
+		FILE * _fdin;
+		FILE * _fdout;
+		FILE * _fderr;
 		int _exitCode;
 
 	private:
@@ -35,6 +35,7 @@ namespace osl {
 		Process(const std::string & cmd, const std::vector<std::string> & env);
 		virtual ~Process();
 		void start();
+		long pid();
 		FILE * in();
 		FILE * out();
 		FILE * err();
@@ -49,7 +50,7 @@ namespace osl {
 	class Process {
 	private:
 		PROCESS_INFORMATION piProcInfo;
-		std::string cmd;
+		std::string _cmd;
 		HANDLE in_read;
 		HANDLE in_write;
 		HANDLE out_read;
@@ -65,6 +66,7 @@ namespace osl {
 		Process(const std::string & cmd, const std::vector<std::string> & env);
 		virtual ~Process();
 		void start();
+		long pid();
 		HANDLE in();
 		HANDLE out();
 		HANDLE err();
