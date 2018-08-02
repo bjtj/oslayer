@@ -112,64 +112,64 @@ target_include_directories(oslayer PRIVATE .)
 include(GNUInstallDirs)
 set(DIR_HEADERS)
 list(APPEND DIR_HEADERS
-liboslayer/Arguments.hpp
-liboslayer/AutoLock.hpp
-liboslayer/AutoRef.hpp
-liboslayer/AutoRelease.hpp
-liboslayer/Base64.hpp
-liboslayer/ByteArray.hpp
-liboslayer/Condition.hpp
-liboslayer/CountDownLatch.hpp
-liboslayer/DatabaseConnection.hpp
-liboslayer/DatabaseDriver.hpp
-liboslayer/DatagramSocket.hpp
-liboslayer/Date.hpp
-liboslayer/Endian.hpp
-liboslayer/Event.hpp
-liboslayer/File.hpp
-liboslayer/FileStream.hpp
-liboslayer/Hash.hpp
-liboslayer/Heap.hpp
-liboslayer/Iterator.hpp
-liboslayer/Library.hpp
-liboslayer/Lifetime.hpp
-liboslayer/Lisp.hpp
-liboslayer/Logger.hpp
-liboslayer/MessageQueue.hpp
-liboslayer/Mutex.hpp
-liboslayer/Network.hpp
-liboslayer/Object.hpp
-liboslayer/Observer.hpp
-liboslayer/Pool.hpp
-liboslayer/Process.hpp
-liboslayer/Properties.hpp
-liboslayer/PropertyMap.hpp
-liboslayer/Random.hpp
-liboslayer/Ref.hpp
-liboslayer/Regex.hpp
-liboslayer/Register.hpp
-liboslayer/SecureSocket.hpp
-liboslayer/Selector.hpp
-liboslayer/Semaphore.hpp
-liboslayer/Socket.hpp
-liboslayer/SocketApi.hpp
-liboslayer/StringElements.hpp
-liboslayer/Task.hpp
-liboslayer/TaskThreadPool.hpp
-liboslayer/TestSuite.hpp
-liboslayer/Text.hpp
-liboslayer/Thread.hpp
-liboslayer/ThreadPool.hpp
-liboslayer/Timer.hpp
-liboslayer/Tokenizer.hpp
-liboslayer/Tree.hpp
-liboslayer/Uri.hpp
-liboslayer/Uuid.hpp
-liboslayer/XmlEncoderDecoder.hpp
-liboslayer/XmlParser.hpp
-liboslayer/os.hpp
-liboslayer/platform.hpp
-)
+  liboslayer/Arguments.hpp
+  liboslayer/AutoLock.hpp
+  liboslayer/AutoRef.hpp
+  liboslayer/AutoRelease.hpp
+  liboslayer/Base64.hpp
+  liboslayer/ByteArray.hpp
+  liboslayer/Condition.hpp
+  liboslayer/CountDownLatch.hpp
+  liboslayer/DatabaseConnection.hpp
+  liboslayer/DatabaseDriver.hpp
+  liboslayer/DatagramSocket.hpp
+  liboslayer/Date.hpp
+  liboslayer/Endian.hpp
+  liboslayer/Event.hpp
+  liboslayer/File.hpp
+  liboslayer/FileStream.hpp
+  liboslayer/Hash.hpp
+  liboslayer/Heap.hpp
+  liboslayer/Iterator.hpp
+  liboslayer/Library.hpp
+  liboslayer/Lifetime.hpp
+  liboslayer/Lisp.hpp
+  liboslayer/Logger.hpp
+  liboslayer/MessageQueue.hpp
+  liboslayer/Mutex.hpp
+  liboslayer/Network.hpp
+  liboslayer/Object.hpp
+  liboslayer/Observer.hpp
+  liboslayer/Pool.hpp
+  liboslayer/Process.hpp
+  liboslayer/Properties.hpp
+  liboslayer/PropertyMap.hpp
+  liboslayer/Random.hpp
+  liboslayer/Ref.hpp
+  liboslayer/Regex.hpp
+  liboslayer/Register.hpp
+  liboslayer/SecureSocket.hpp
+  liboslayer/Selector.hpp
+  liboslayer/Semaphore.hpp
+  liboslayer/Socket.hpp
+  liboslayer/SocketApi.hpp
+  liboslayer/StringElements.hpp
+  liboslayer/Task.hpp
+  liboslayer/TaskThreadPool.hpp
+  liboslayer/TestSuite.hpp
+  liboslayer/Text.hpp
+  liboslayer/Thread.hpp
+  liboslayer/ThreadPool.hpp
+  liboslayer/Timer.hpp
+  liboslayer/Tokenizer.hpp
+  liboslayer/Tree.hpp
+  liboslayer/Uri.hpp
+  liboslayer/Uuid.hpp
+  liboslayer/XmlEncoderDecoder.hpp
+  liboslayer/XmlParser.hpp
+  liboslayer/os.hpp
+  liboslayer/platform.hpp
+  )
 set_target_properties(oslayer PROPERTIES PUBLIC_HEADER "${DIR_HEADERS}")
 install(TARGETS oslayer
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
