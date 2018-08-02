@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(oslayer LANGUAGES CXX VERSION "1.0.0")
 
+enable_testing()
+
 add_library(oslayer SHARED
   liboslayer/Arguments.cpp
   liboslayer/Arguments.hpp
@@ -43,8 +45,6 @@ add_library(oslayer SHARED
   liboslayer/Lisp.hpp
   liboslayer/Logger.cpp
   liboslayer/Logger.hpp
-  liboslayer/Makefile.am
-  liboslayer/Makefile.in
   liboslayer/MessageQueue.hpp
   liboslayer/Mutex.cpp
   liboslayer/Mutex.hpp
@@ -102,17 +102,23 @@ add_library(oslayer SHARED
   liboslayer/os.hpp
   liboslayer/platform.hpp)
 
+# properties
 set_target_properties(oslayer PROPERTIES VERSION ${PROJECT_VERSION})
 set_target_properties(oslayer PROPERTIES SOVERSION 1)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(oslayer PRIVATE .)
 
 include(GNUInstallDirs)
-
 install(TARGETS oslayer
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+# pkgconfig
+set(VERSION "${PROJECT_VERSION}")
+set(prefix "${CMAKE_INSTALL_PREFIX}")
+set(exec_prefix "${CMAKE_INSTALL_PREFIX}")
+set(libdir "${prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir "${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 configure_file(oslayer.pc.in oslayer.pc @ONLY)
-
-install(FILES ${CMAKE_BINARY_DIR}/oslayer.pc DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/oslayer.pc" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
