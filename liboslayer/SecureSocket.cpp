@@ -102,7 +102,8 @@ namespace osl {
 		write_blocked_on_read(false)
 	{
 		SecureContext::getInstance();
-		ctx = SSL_CTX_new(TLSv1_server_method());
+		// version specific methods are deprecated in openssl 1.1.0
+		ctx = SSL_CTX_new(TLS_server_method());
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_new() failed");
@@ -353,7 +354,7 @@ namespace osl {
 	}
 	void SecureServerSocket::initOpenSSL() {
 		SecureContext::getInstance();
-		ctx = SSL_CTX_new(TLSv1_server_method());
+		ctx = SSL_CTX_new(TLS_server_method());
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_new() failed");
