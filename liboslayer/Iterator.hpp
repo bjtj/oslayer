@@ -107,12 +107,12 @@ namespace osl {
 			ret -= i;
 			return ret;
 		}
-		Iterator<T> & operator+= (const size_t & i) const {
+		Iterator<T> & operator+= (const size_t & i) {
 			_idx += i;
 			_iter += i;
 			return *this;
 		}
-		Iterator<T> & operator-= (const size_t & i) const {
+		Iterator<T> & operator-= (const size_t & i) {
 			_idx -= i;
 			_iter -= i;
 			return *this;
@@ -216,12 +216,12 @@ namespace osl {
 			ret -= i;
 			return ret;
 		}
-		ConstIterator<T> & operator+= (const size_t & i) const {
+		ConstIterator<T> & operator+= (const size_t & i) {
 			_idx += i;
 			_iter += i;
 			return *this;
 		}
-		ConstIterator<T> & operator-= (const size_t & i) const {
+		ConstIterator<T> & operator-= (const size_t & i) {
 			_idx -= i;
 			_iter -= i;
 			return *this;

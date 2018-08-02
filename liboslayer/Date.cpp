@@ -480,9 +480,10 @@ namespace osl {
 		return ret;
     }
 
-	// 2017-04-20T03:48:30+00:00
-	std::string Date::formatRfc8601(const Date & date) {
-		char buffer[30] = {0,};
+	// RFC-8601
+	// e.g.) 2017-04-20T03:48:30+00:00
+	string Date::formatRfc8601(const Date & date) {
+		char buffer[50] = {0,};
 		snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
 				 date.getYear(), date.getMonth() + 1, date.getDay(),
 				 date.getHour(), date.getMinute(), date.getSecond(),
@@ -491,12 +492,14 @@ namespace osl {
 				 ((int)abs(date.getGmtOffset())) % 60);
 		return string(buffer);
 	}
-	Date Date::parseRfc8601(const std::string & date) {
+	
+	Date Date::parseRfc8601(const string & date) {
 		// TODO: implement
 		throw NotImplementedException("Not implemented");
 	}
-	
-	// Wed, 09 Jun 2021 10:18:14 GMT
+
+	// RFC-1123
+	// e.g.) Wed, 09 Jun 2021 10:18:14 GMT
 	string Date::formatRfc1123(const Date & date) {
 		static const char * wkday[] = {"Sun", "Mon", "Tue",
 									   "Wed", "Thu", "Fri", "Sat"};
@@ -522,7 +525,8 @@ namespace osl {
 		throw NotImplementedException("Not implemented");
 	}
 
-	// Sunday, 06-Nov-94 08:49:37 GMT
+	// RFC-1036
+	// e.g.) Sunday, 06-Nov-94 08:49:37 GMT
 	string Date::formatRfc1036(const Date & date) {
 		static const char * wkday[] = {"Sunday", "Monday", "Tuesday",
 									   "Wednesday", "Thursday", "Friday", "Saturday"};

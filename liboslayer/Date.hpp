@@ -66,13 +66,10 @@ namespace osl {
 		static Date now();
 		static std::string format(const Date & date);
         static std::string format(const Date & date, const std::string & fmt);
-		// RFC-8601 e.g.) 2017-04-20T03:48:30+00:00
 		static std::string formatRfc8601(const Date & date);
 		static Date parseRfc8601(const std::string & date);
-		// RFC-1123 e.g.) Wed, 09 Jun 2021 10:18:14 GMT
 		static std::string formatRfc1123(const Date & date);
 		static Date parseRfc1123(const std::string & date);
-		// RFC-1036 e.g.) Sunday, 06-Nov-94 08:49:37 GMT
 		static std::string formatRfc1036(const Date & date);
 		static Date parseRfc1036(const std::string & date);
 		static int getSystemGmtOffset();
