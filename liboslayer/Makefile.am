@@ -51,6 +51,7 @@ liboslayerinc_HEADERS= \
 	Thread.hpp \
 	ThreadPool.hpp \
 	Timer.hpp \
+	Tokenizer.hpp \
 	Tree.hpp \
 	Uuid.hpp \
 	XmlEncoderDecoder.hpp \
@@ -145,6 +146,8 @@ liboslayer_la_SOURCES= \
 	ThreadPool.hpp \
 	Timer.cpp \
 	Timer.hpp \
+	Tokenizer.cpp \
+	Tokenizer.hpp \
 	Tree.cpp \
 	Tree.hpp \
 	Uuid.cpp \
