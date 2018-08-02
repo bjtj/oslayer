@@ -178,8 +178,8 @@ install(TARGETS oslayer
 # pkgconfig
 set(VERSION "${PROJECT_VERSION}")
 set(prefix "${CMAKE_INSTALL_PREFIX}")
-set(exec_prefix "${CMAKE_INSTALL_PREFIX}")
-set(libdir "${prefix}/${CMAKE_INSTALL_LIBDIR}")
-set(includedir "${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+set(exec_prefix "\${prefix}")
+set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 configure_file(oslayer.pc.in oslayer.pc @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/oslayer.pc" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
