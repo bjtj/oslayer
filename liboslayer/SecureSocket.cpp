@@ -29,6 +29,19 @@ namespace osl {
 	 */
 
 
+	/**
+	 * # OpenSSL 1.1.0 changes
+	 * 
+	 * * https://wiki.openssl.org/index.php/OpenSSL_1.1.0_Changes
+	 *
+	 * ## Backward compatibility
+	 * 
+	 * ```
+	 * #if OPENSSL_VERSION_NUMBER < 0x10100000L
+	 * ```
+	 */
+
+
 	static vector<AutoRef<Semaphore> > locks;
 
 	static unsigned long thread_id() {
@@ -102,8 +115,12 @@ namespace osl {
 		write_blocked_on_read(false)
 	{
 		SecureContext::getInstance();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ctx = SSL_CTX_new(TLSv1_server_method());
+#else
 		// version specific methods are deprecated in openssl 1.1.0
 		ctx = SSL_CTX_new(TLS_server_method());
+#endif
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_new() failed");
@@ -354,7 +371,12 @@ namespace osl {
 	}
 	void SecureServerSocket::initOpenSSL() {
 		SecureContext::getInstance();
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		ctx = SSL_CTX_new(TLSv1_server_method());
+#else
+		// version specific methods are deprecated in openssl 1.1.0
 		ctx = SSL_CTX_new(TLS_server_method());
+#endif
 		if (!ctx) {
 			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_new() failed");
