@@ -17,8 +17,6 @@ add_library(oslayer SHARED
   liboslayer/ByteArray.cpp
   liboslayer/ByteArray.hpp
   liboslayer/Condition.hpp
-  liboslayer/CountDownLatch.cpp
-  liboslayer/CountDownLatch.hpp
   liboslayer/DatabaseConnection.cpp
   liboslayer/DatabaseConnection.hpp
   liboslayer/DatabaseDriver.cpp
@@ -119,7 +117,6 @@ list(APPEND DIR_HEADERS
   liboslayer/Base64.hpp
   liboslayer/ByteArray.hpp
   liboslayer/Condition.hpp
-  liboslayer/CountDownLatch.hpp
   liboslayer/DatabaseConnection.hpp
   liboslayer/DatabaseDriver.hpp
   liboslayer/DatagramSocket.hpp
