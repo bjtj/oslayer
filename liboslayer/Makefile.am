@@ -9,7 +9,6 @@ liboslayerinc_HEADERS= \
 	Base64.hpp \
 	ByteArray.hpp \
 	Condition.hpp \
-	CountDownLatch.hpp \
 	DatabaseConnection.hpp \
 	DatabaseDriver.hpp \
 	DatagramSocket.hpp \
@@ -73,8 +72,6 @@ liboslayer_la_SOURCES= \
 	ByteArray.cpp \
 	ByteArray.hpp \
 	Condition.hpp \
-	CountDownLatch.cpp \
-	CountDownLatch.hpp \
 	DatabaseConnection.cpp \
 	DatabaseConnection.hpp \
 	DatabaseDriver.cpp \

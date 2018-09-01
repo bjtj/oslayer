@@ -22,7 +22,6 @@ check_PROGRAMS = \
 	test-library \
 	test-thread-pool \
 	test-task-thread-pool \
-	test-count-down-latch \
 	test-test-suite \
 	test-heap \
 	test-lisp \
@@ -65,7 +64,6 @@ test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
 test_iterator_SOURCES=test-iterator.cpp
 test_library_SOURCES=test-library.cpp
-test_count_down_latch_SOURCES=test-count-down-latch.cpp
 test_test_suite_SOURCES=test-test-suite.cpp
 test_lisp_SOURCES=test-lisp.cpp
 test_properties_SOURCES=test-properties.cpp
