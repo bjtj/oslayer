@@ -41,8 +41,10 @@ namespace osl {
 		std::string getProperty(const std::string & name) const;
 		std::string getProperty(const std::string & name, const std::string & def) const;
 		int getIntegerProperty(const std::string & name, int def = 0) const;
+		float getFloatProperty(const std::string & name, float def = 0) const;
 		void setProperty(const std::string & name, const std::string & value);
 		void setProperty(const std::string & name, int value);
+		void setProperty(const std::string & name, float value);
 		std::vector<std::string> getPropertyNames();
 		std::string & operator[] (const std::string & name);
 		const std::string operator[] (const std::string & name) const;
