@@ -21,6 +21,7 @@ namespace osl {
 			setRemoteAddress(remoteAddr);
 		}
 		virtual ~SocketImpl() {
+		    close();
 		}
 		SOCK_HANDLE getSocket() {
 			return sock;
@@ -258,6 +259,7 @@ namespace osl {
 				this->bindAddr.setAddress(bindAddr);
 			}
 			virtual ~ServerSocketImpl() {
+			    close();
 			}
 			SOCK_HANDLE getSocket() {
 				return sock;

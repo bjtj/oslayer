@@ -126,13 +126,14 @@ namespace osl {
 	class SocketUtil {
 	private:
 	public:
-		SocketUtil();
-		virtual ~SocketUtil();
-		static void checkValidSocket(SOCK_HANDLE sock);
-		static bool isValidSocket(SOCK_HANDLE sock);
-		static void throwSocketException(const std::string & message);
-		static void closeSocket(SOCK_HANDLE sock);
-        static void setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen);
+	    SocketUtil();
+	    virtual ~SocketUtil();
+	    static void checkValidSocket(SOCK_HANDLE sock);
+	    static bool isValidSocket(SOCK_HANDLE sock);
+	    static void throwSocketException(const std::string & message);
+	    static void closeSocket(SOCK_HANDLE sock);
+	    static void setSocketOption(SOCK_HANDLE sock, int level, int optname, const char * optval, int optlen);
+	    static std::string getLastError();
 	};
 
 	/**

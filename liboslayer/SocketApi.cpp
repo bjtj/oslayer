@@ -196,44 +196,44 @@ namespace osl {
 	 *
 	 */
 	void SocketUtil::checkValidSocket(SOCK_HANDLE sock) {
-		if (!isValidSocket(sock)) {
-			throw IOException("invalid socket", -1, 0);
-		}
+	    if (!isValidSocket(sock)) {
+		throw IOException("invalid socket -- " + getLastError());
+	    }
 	}
 
 	bool SocketUtil::isValidSocket(SOCK_HANDLE sock) {
 #if defined(USE_BSD_SOCKET)
-		if (sock < 0) {
-            return false;
-        }
+	    if (sock < 0) {
+		return false;
+	    }
 
 #elif defined(USE_WINSOCK2)
-		if (sock == INVALID_SOCKET) {
-			return false;
-		}
+	    if (sock == INVALID_SOCKET) {
+		return false;
+	    }
 #endif
-		return true;
+	    return true;
 	}
 
 	void SocketUtil::throwSocketException(const string & message) {
 
 #if defined(USE_BSD_SOCKET)
         
-        int err = errno;
-        // char text[1024] = {0,};
-        // if (strerror_r(err, text, sizeof(text))) {}
-		char * text = strerror(err);
-        throw IOException(message + " / " + string(text), err, 0);
+	    int err = errno;
+	    // char text[1024] = {0,};
+	    // if (strerror_r(err, text, sizeof(text))) {}
+	    char * text = strerror(err);
+	    throw IOException(message + " / " + string(text), err, 0);
         
 #elif defined(USE_WINSOCK2)
-		int err = WSAGetLastError();
-		char text[1024];
-		FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
-						FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err,
-						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
-		throw IOException(message + " / " + string(text), err, 0);
+	    int err = WSAGetLastError();
+	    char text[1024];
+	    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+			   FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err,
+			   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
+	    throw IOException(message + " / " + string(text), err, 0);
 #else
-		throw IOException("unknown socket exception", -1, 0);
+	    throw IOException("unknown socket exception", -1, 0);
 #endif
 	}
 
@@ -253,6 +253,22 @@ namespace osl {
             // throw IOException("setsockopt() error", -1, 0);
 			throwSocketException("setsockopt() error");
         }
+    }
+
+    string SocketUtil::getLastError() {
+#if defined(USE_BSD_SOCKET)
+	return string(strerror(errno));
+        
+#elif defined(USE_WINSOCK2)
+	int err = WSAGetLastError();
+	char text[1024];
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+		       FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, err,
+		       MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)text, 1024, NULL);
+	return string(text);
+#else
+	return "getLastError() - unknonw operation"
+#endif	
     }
 
 	/**

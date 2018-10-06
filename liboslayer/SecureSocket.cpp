@@ -190,6 +190,7 @@ namespace osl {
 	}
 	
 	SecureSocket::~SecureSocket() {
+	    close();
 	}
 
 	void SecureSocket::loadCert(const string & certPath, const string & keyPath) {
@@ -368,6 +369,7 @@ namespace osl {
 		initOpenSSL();
 	}
 	SecureServerSocket::~SecureServerSocket() {
+	    close();
 	}
 	void SecureServerSocket::initOpenSSL() {
 		SecureContext::getInstance();

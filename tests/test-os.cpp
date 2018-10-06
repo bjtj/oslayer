@@ -8,7 +8,7 @@ using namespace osl;
 
 static void test_time() {
 	osl_time_t ti = osl_get_time();
-	printf("%lu.%lu (0x%lx.0x%lx)\n", ti.sec, ti.nano, ti.sec, ti.nano);
+	printf("%llu.%llu (0x%llx.0x%llx)\n", ti.sec, ti.nano, ti.sec, ti.nano);
 }
 
 static void test_file_io() {
@@ -76,7 +76,7 @@ static void test_c_date() {
 	time_t base = {0,};
 	double offset;
 
-	printf(" * CLOCKS_PER_SEC : %ld\n", CLOCKS_PER_SEC);
+	printf(" * CLOCKS_PER_SEC : %d\n", CLOCKS_PER_SEC);
 
 	time(&currtime);
 	timeinfo = gmtime(&currtime);

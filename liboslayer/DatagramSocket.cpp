@@ -36,6 +36,7 @@ namespace osl {
         }
 		
 		virtual ~DatagramSocketImpl() {
+		    close();
 		}
 		
 		SOCK_HANDLE getSocket() {
