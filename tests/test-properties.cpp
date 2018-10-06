@@ -1,5 +1,6 @@
 #include <iostream>
 #include <liboslayer/Properties.hpp>
+#include <liboslayer/Text.hpp>
 
 using namespace std;
 using namespace osl;
@@ -35,7 +36,14 @@ static void test_properties() {
 	ASSERT(props["x"], ==, "");
 	ASSERT(props["x"].empty(), ==, true);
 	ASSERT(props.hasProperty("x"), ==, true);
-	
+
+	props.setProperty("int", 10);
+	ASSERT(props["int"], ==, "10");
+
+	props.setProperty("float", 1.2f);
+	ASSERT(Text::startsWith(props["float"], "1.2"), ==, true);
+
+	ASSERT(props.getFloatProperty("float"), ==, 1.2f);
 }
 
 int main(int argc, char *args[]) {

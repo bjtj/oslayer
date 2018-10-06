@@ -81,7 +81,7 @@ public:
 		{
 			Date a = Date::now();
 			Date _a = a;
-			idle(5000);
+			idle(5010);
 			Date b = Date::now();
 			ASSERT(a > b, ==, false);
 			ASSERT(a >= b, ==, false);

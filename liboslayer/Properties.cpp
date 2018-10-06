@@ -124,11 +124,22 @@ namespace osl {
 		return Text::toInt(getProperty(name));
 	}
 
+	float Properties::getFloatProperty(const std::string & name, float def) const {
+		if (!_props.contains(name)) {
+			return def;
+		}
+		return Text::toFloat(getProperty(name));
+	}
+
 	void Properties::setProperty(const string & name, const string & value) {
 		_props[name] = value;
 	}
 	
 	void Properties::setProperty(const string & name, int value) {
+		setProperty(name, Text::toString(value));
+	}
+
+	void Properties::setProperty(const string & name, float value) {
 		setProperty(name, Text::toString(value));
 	}
 
