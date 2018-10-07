@@ -195,6 +195,7 @@ namespace osl {
 
 	void SecureSocket::loadCert(const string & certPath, const string & keyPath) {
 		if (SSL_use_certificate_file(ssl, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_use_certificate_file() failed");
 		}
 		if (SSL_use_PrivateKey_file(ssl, keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
@@ -202,6 +203,7 @@ namespace osl {
 			throw IOException("SSL_use_PrivateKey_file() failed");
 		}
 		if (!SSL_check_private_key(ssl)) {
+			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_check_private_key() failed");
 		}
 	}
@@ -386,12 +388,15 @@ namespace osl {
 	}
 	void SecureServerSocket::loadCert(const string & certPath, const string & keyPath) {
 		if (SSL_CTX_use_certificate_file(ctx, certPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_use_certificate_file() failed");
 		}
 		if (SSL_CTX_use_PrivateKey_file(ctx, keyPath.c_str(), SSL_FILETYPE_PEM) <= 0) {
+			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_use_PrivateKey_file() failed");
 		}
 		if (!SSL_CTX_check_private_key(ctx)) {
+			ERR_print_errors_fp(stderr);
 			throw IOException("SSL_CTX_check_private_key() failed");
 		}
 	}
@@ -403,7 +408,10 @@ namespace osl {
 	}
 	
 	void SecureServerSocket::close() {
-		SSL_CTX_free(ctx);
+		if (ctx) {
+			SSL_CTX_free(ctx);
+			ctx = NULL;
+		}
 		ServerSocket::close();
 	}
 
