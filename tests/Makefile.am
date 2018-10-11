@@ -16,6 +16,7 @@ check_PROGRAMS = \
 	test-tree \
 	test-regex \
 	test-arguments \
+	test-autolock \
 	test-text \
 	test-logger \
 	test-iterator \
@@ -60,6 +61,7 @@ test_random_SOURCES=test-random.cpp
 test_tree_SOURCES=test-tree.cpp
 test_regex_SOURCES=test-regex.cpp
 test_arguments_SOURCES=test-arguments.cpp
+test_autolock_SOURCES=test-autolock.cpp
 test_text_SOURCES=test-text.cpp
 test_logger_SOURCES=test-logger.cpp
 test_iterator_SOURCES=test-iterator.cpp
