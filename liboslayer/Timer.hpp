@@ -15,6 +15,8 @@ namespace osl {
 	 * @brief
 	 */
 	class TimerSchedule {
+	public:
+		static const int INFINITE = -1;
 	private:
 		std::string _nickname;
 		unsigned long delay;
@@ -25,12 +27,16 @@ namespace osl {
 		TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount);
 		virtual ~TimerSchedule();
 		std::string & nickname();
-		void schedule(unsigned long delay, unsigned long interval, int repeatCount);
 		bool testDelay(unsigned long startTick, unsigned long currentTick);
 		bool testEvent(unsigned long lastLapseTick, unsigned long currentTick);
 		unsigned long fixedLapseTick(unsigned long startTick, unsigned int count);
 		int getRepeatCount();
 		bool infinite();
+		static TimerSchedule makeInterval(unsigned long interval);
+		static TimerSchedule makeDelay(unsigned long delay);
+		static TimerSchedule makeIntervalRepeat(unsigned long interval, int repeatCount);
+		static TimerSchedule makeDelayIntervalRepeat(unsigned long delay, unsigned long interval, int repeatCount);
+		static TimerSchedule makeDelayInterval(unsigned long delay, unsigned long interval);
 	};
 
 	/**
@@ -46,7 +52,7 @@ namespace osl {
 	/**
 	 * @brief
 	 */
-	class TimerSession {
+	class TimerTaskSession {
 	private:
 		TimerSchedule schedule;
 		AutoRef<TimerTask> task;
@@ -55,8 +61,8 @@ namespace osl {
 		unsigned long lastLapseTick;
 	
 	public:
-		TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task);
-		virtual ~TimerSession();
+		TimerTaskSession(TimerSchedule schedule, AutoRef<TimerTask> task);
+		virtual ~TimerTaskSession();
 		void start();
 		void process();
 		bool outdated();
@@ -67,19 +73,19 @@ namespace osl {
 	 */
 	class TimerLooper {
 	private:
-		std::vector<TimerSession> sessions;
+		std::vector<TimerTaskSession> sessions;
 		bool done;
 		Semaphore sem;
 	
 	public:
 		TimerLooper();
 		virtual ~TimerLooper();
-		void addSession(TimerSession & session);
+		void addTaskSession(TimerTaskSession session);
 		void delay(unsigned long delay, AutoRef<TimerTask> task);
 		void interval(unsigned long interval, AutoRef<TimerTask> task);
-		void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
-		void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
-		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
+		void intervalRepeat(unsigned long interval, int repeat, AutoRef<TimerTask> task);
+		void delayInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
+		void delayIntervalRepeat(unsigned long delay, unsigned long interval, int repeat, AutoRef<TimerTask> task);
 		void loop();
 		void stop();
 	};
@@ -107,7 +113,9 @@ namespace osl {
 		unsigned long startTick;
 	public:
 		TimePin();
+		TimePin(unsigned long initialTick);
 		virtual ~TimePin();
+		unsigned long & tick();
 		void reset();
 		unsigned long elapsed();
 	};
@@ -129,17 +137,17 @@ namespace osl {
 	/**
 	 * @brief
 	 */
-	class TimeoutChecker {
+	class Timeout {
 	private:
 		unsigned long _timeout;
 		unsigned long _tick;
 	public:
-		TimeoutChecker();
-		TimeoutChecker(unsigned long timeout);
-		virtual ~TimeoutChecker();
-		unsigned long & timeout();
+		Timeout();
+		Timeout(unsigned long timeout);
+		virtual ~Timeout();
+		unsigned long & value();
 		void reset();
-		bool trigger();
+		bool expired();
 	};
 
 }

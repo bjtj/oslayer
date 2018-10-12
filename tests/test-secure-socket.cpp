@@ -86,7 +86,7 @@ public:
 	}
 	virtual void tearDown() {
 		serverThread->interrupt();
-		serverThread->wait();
+		serverThread->join();
 		delete serverThread;
 	}
 	virtual void test() {

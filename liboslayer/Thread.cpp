@@ -145,15 +145,7 @@ namespace osl {
 		/* virtual */
 	}
 
-	void Thread::wait() {
-		waitFor();
-	}
-
 	void Thread::join() {
-		waitFor();
-	}
-
-	void Thread::waitFor() {
 		while (running) { idle(10); }
 	}
 

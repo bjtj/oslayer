@@ -8,51 +8,81 @@ namespace osl {
 
 	//
 	
-	TimerSchedule::TimerSchedule() : delay(0), interval(0), repeatCount(0) {}
-	TimerSchedule::TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount) : delay(delay), interval(interval), repeatCount(repeatCount) {
+	TimerSchedule::TimerSchedule()
+		: delay(0), interval(0), repeatCount(0) {
 	}
-	TimerSchedule::~TimerSchedule() {}
+	
+	TimerSchedule::TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount)
+		: delay(delay), interval(interval), repeatCount(repeatCount) {
+	}
+	
+	TimerSchedule::~TimerSchedule() {
+	}
+	
 	string & TimerSchedule::nickname() {
 		return _nickname;
 	}
-	void TimerSchedule::schedule(unsigned long delay, unsigned long interval, int repeatCount) {
-		this->delay = delay;
-		this->interval = interval;
-		this->repeatCount = repeatCount;
-	}
+
 	bool TimerSchedule::testDelay(unsigned long startTick, unsigned long currentTick) {
 		return currentTick - startTick >= delay;
 	}
+	
 	bool TimerSchedule::testEvent(unsigned long lastLapseTick, unsigned long currentTick) {
 		return currentTick - lastLapseTick >= interval;
 	}
+	
 	unsigned long TimerSchedule::fixedLapseTick(unsigned long startTick, unsigned int count) {
 		return startTick + delay + (count * interval);
 	}
+	
 	int TimerSchedule::getRepeatCount() {
 		return repeatCount;
 	}
+	
 	bool TimerSchedule::infinite() {
 		return repeatCount < 0;
+	}
+	
+	TimerSchedule TimerSchedule::makeInterval(unsigned long interval) {
+		return TimerSchedule(0, interval, INFINITE);
+	}
+	
+	TimerSchedule TimerSchedule::makeDelay(unsigned long delay) {
+		return TimerSchedule(delay, 0, 0);
+	}
+	
+	TimerSchedule TimerSchedule::makeIntervalRepeat(unsigned long interval, int repeatCount) {
+		return TimerSchedule(0, interval, repeatCount);
+	}
+	
+	TimerSchedule TimerSchedule::makeDelayIntervalRepeat(unsigned long delay, unsigned long interval, int repeatCount) {
+		return TimerSchedule(delay, interval, repeatCount);
+	}
+	
+	TimerSchedule TimerSchedule::makeDelayInterval(unsigned long delay, unsigned long interval) {
+		return TimerSchedule(delay, interval, INFINITE);
 	}
 
 	//
 
-	TimerTask::TimerTask() {}
-	TimerTask::~TimerTask() {}
+	TimerTask::TimerTask() {
+	}
+	
+	TimerTask::~TimerTask() {
+	}
 
 
-	TimerSession::TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task) : schedule(schedule), task(task), runCount(0),startTick(0), lastLapseTick(0) {
+	TimerTaskSession::TimerTaskSession(TimerSchedule schedule, AutoRef<TimerTask> task) : schedule(schedule), task(task), runCount(0),startTick(0), lastLapseTick(0) {
 		start();
 	}
-	TimerSession::~TimerSession() {}
+	TimerTaskSession::~TimerTaskSession() {}
 
-	void TimerSession::start() {
+	void TimerTaskSession::start() {
 		lastLapseTick = startTick = tick_milli();
 		runCount = 0;
 	}
 
-	void TimerSession::process() {
+	void TimerTaskSession::process() {
 
 		if (outdated()) {
 			return;
@@ -71,52 +101,50 @@ namespace osl {
 		}
 	}
 
-	bool TimerSession::outdated() {
+	bool TimerTaskSession::outdated() {
 		return (!schedule.infinite() && runCount > (unsigned int)schedule.getRepeatCount());
 	}
 
 	//
 
-	TimerLooper::TimerLooper() : done(false), sem(1) {}
-	TimerLooper::~TimerLooper() {}
+	TimerLooper::TimerLooper()
+		: done(false), sem(1) {
+	}
+	
+	TimerLooper::~TimerLooper() {
+	}
 
-	void TimerLooper::addSession(TimerSession & session) {
+	void TimerLooper::addTaskSession(TimerTaskSession session) {
 		sem.wait();
 		sessions.push_back(session);
 		sem.post();
 	}
 
 	void TimerLooper::delay(unsigned long delay, AutoRef<TimerTask> task) {
-		TimerSchedule schedule(delay, 0, 0);
-		TimerSession session(schedule, task);
-		addSession(session);
+		addTaskSession(TimerTaskSession(TimerSchedule::makeDelay(delay), task));
 	}
+
 	void TimerLooper::interval(unsigned long interval, AutoRef<TimerTask> task) {
-		TimerSchedule schedule(0, interval, -1);
-		TimerSession session(schedule, task);
-		addSession(session);
+		addTaskSession(TimerTaskSession(TimerSchedule::makeInterval(interval), task));
 	}
-	void TimerLooper::intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task) {
-		TimerSchedule schedule(0, interval, count);
-		TimerSession session(schedule, task);
-		addSession(session);
+
+	void TimerLooper::intervalRepeat(unsigned long interval, int repeat, AutoRef<TimerTask> task) {
+		addTaskSession(TimerTaskSession(TimerSchedule::makeIntervalRepeat(interval, repeat), task));
 	}
-	void TimerLooper::delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task) {
-		TimerSchedule schedule(delay, interval, -1);
-		TimerSession session(schedule, task);
-		addSession(session);
+	
+	void TimerLooper::delayInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task) {
+		addTaskSession(TimerTaskSession(TimerSchedule::makeDelayInterval(delay, interval), task));
 	}
-	void TimerLooper::delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task) {
-		TimerSchedule schedule(delay, interval, count);
-		TimerSession session(schedule, task);
-		addSession(session);
+	
+	void TimerLooper::delayIntervalRepeat(unsigned long delay, unsigned long interval, int repeat, AutoRef<TimerTask> task) {
+		addTaskSession(TimerTaskSession(TimerSchedule::makeDelayIntervalRepeat(delay, interval, repeat), task));
 	}
 
 	void TimerLooper::loop() {
 		done = false;
 		while (!done) {
 			sem.wait();
-			for (vector<TimerSession>::iterator iter = sessions.begin(); iter != sessions.end(); iter++) {
+			for (vector<TimerTaskSession>::iterator iter = sessions.begin(); iter != sessions.end(); iter++) {
 				iter->process();
 			}
 			sem.post();
@@ -146,8 +174,20 @@ namespace osl {
 
 	//
 
-	TimePin::TimePin() : startTick(tick_milli()) {}
-	TimePin::~TimePin() {}
+	TimePin::TimePin()
+		: startTick(tick_milli()) {
+	}
+
+	TimePin::TimePin(unsigned long initialTick)
+		: startTick(initialTick) {
+	}
+	
+	TimePin::~TimePin() {
+	}
+
+	unsigned long & TimePin::tick() {
+		return startTick;
+	}
 
 	void TimePin::reset() {
 		startTick = tick_milli();
@@ -174,21 +214,21 @@ namespace osl {
 
 	//
 
-	TimeoutChecker::TimeoutChecker() : _timeout(0) {
+	Timeout::Timeout() : _timeout(0) {
 		_tick = tick_milli();
 	}
-	TimeoutChecker::TimeoutChecker(unsigned long timeout) : _timeout(timeout) {
+	Timeout::Timeout(unsigned long timeout) : _timeout(timeout) {
 		_tick = tick_milli();
 	}
-	TimeoutChecker::~TimeoutChecker() {
+	Timeout::~Timeout() {
 	}
-	unsigned long & TimeoutChecker::timeout() {
+	unsigned long & Timeout::value() {
 		return _timeout;
 	}
-	void TimeoutChecker::reset() {
+	void Timeout::reset() {
 		_tick = tick_milli();
 	}
-	bool TimeoutChecker::trigger() {
+	bool Timeout::expired() {
 		return (tick_milli() - _tick) >= _timeout;
 	}
 }

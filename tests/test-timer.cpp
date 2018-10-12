@@ -7,32 +7,28 @@ using namespace std;
 using namespace osl;
 
 
-TimePin pin;
-
 class MyTask : public TimerTask {
 private:
+	TimePin & _pin;
 public:
-    MyTask() {}
+    MyTask(TimePin & pin) : _pin(pin) {}
     virtual ~MyTask() {}
 	virtual void onTask() {
-		cout << "[" << pin.elapsed() << "] do it!" << endl;
-		ASSERT(pin.elapsed(), >=, 1000);
+		cout << "[" << _pin.elapsed() << "] do it!" << endl;
+		ASSERT(_pin.elapsed(), >=, 1000);
 	}
 };
 
 class TimerThread : public Thread {
 private:
+	TimePin & _pin;
 	TimerLooper looper;
 public:
-    TimerThread() {}
+    TimerThread(TimePin & pin) : _pin(pin) {}
     virtual ~TimerThread() {}
 
 	virtual void run() {
-		TimerSchedule schedule(0, 1000, 0);
-		AutoRef<TimerTask> task(new MyTask);
-		TimerSession session(schedule, task);
-		
-		looper.addSession(session);
+		looper.interval(1000, AutoRef<TimerTask>(new MyTask(_pin)));
 		looper.loop();
 	}
 
@@ -44,7 +40,9 @@ public:
 
 static void test_timer() {
 
-	TimerThread tt;
+	TimePin pin;
+
+	TimerThread tt(pin);
 	tt.start();
 
 	cout << pin.elapsed() << endl;
@@ -52,9 +50,10 @@ static void test_timer() {
 	idle(2 * 1000);
 
 	cout << pin.elapsed() << endl;
+	ASSERT(pin.elapsed(), >=, 2000 - 10);
 
 	tt.br();
-	tt.wait();
+	tt.join();
 }
 
 int main(int argc, char *args[]) {

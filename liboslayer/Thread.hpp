@@ -31,9 +31,7 @@ namespace osl {
 		bool interrupted();
 		bool isRunning();
 		virtual void onInterrupt();
-		void wait(); // deprecated
 		void join();
-		void waitFor();
 		virtual void run() = 0;
 	};
 

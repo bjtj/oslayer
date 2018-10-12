@@ -199,7 +199,7 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 
 	LOG << " ** @@@ multiplex test" << endl;
 
-	TimeoutChecker readTimeoutChecker;
+	Timeout readTimeout;
 
 	string ret;
 	Socket sock(remoteAddr);
@@ -208,8 +208,8 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 
 	if (recvTimeout > 0) {
 		LOG << " ** set timeout" << endl;
-		readTimeoutChecker.reset();
-		readTimeoutChecker.timeout() = recvTimeout;
+		readTimeout.reset();
+		readTimeout.value() = recvTimeout;
 		// sock.setRecvTimeout(recvTimeout);
 	}
 	
@@ -226,7 +226,7 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 			LOG << "wre : " << w << r << e << endl;
 
 			if (r) {
-				readTimeoutChecker.reset();
+				readTimeout.reset();
 				char buffer[1024] = {0,};
 				try {
 					sock.recv(buffer, sizeof(buffer));
@@ -243,7 +243,7 @@ static string readonly_multiplex(InetAddress remoteAddr, unsigned long recvTimeo
 			}
 		}
 
-		if (readTimeoutChecker.timeout() > 0 && readTimeoutChecker.trigger()) {
+		if (readTimeout.value() > 0 && readTimeout.expired()) {
 			throw Exception("recv timeout");
 		}
 	}
@@ -291,15 +291,15 @@ int main(int argc, char *args[]) {
 
 	cout << "[server thread / interrupt & wait]" << endl;
 	st.interrupt();
-	st.wait();
+	st.join();
 
 	cout << "[server thread2 / interrupt & wait]" << endl;
 	st2.interrupt();
-	st2.wait();
+	st2.join();
 	
 	cout << "[server thread3 / interrupt & wait]" << endl;
 	st3.interrupt();
-	st3.wait();
+	st3.join();
     
 	return 0;
 }

@@ -131,7 +131,7 @@ namespace osl {
 			}*/
 			for (size_t i = 0; i < qu.size(); i++) {
 				qu[i]->interrupt();
-				qu[i]->wait();
+				qu[i]->join();
 			}
 			_running = false;
 		}
