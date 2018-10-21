@@ -9,19 +9,19 @@
 
 namespace osl {
 
-	/**
+    /**
      * @brief auto lock
      */
     class AutoLock {
     private:
-		bool _flag;
+	bool _flag;
         Ref<Semaphore> _sem;
-		Ref<Mutex> _mutex;
+	Ref<Mutex> _mutex;
     public:
         AutoLock(Ref<Semaphore> sem);
-		AutoLock(Ref<Mutex> mutex);
+	AutoLock(Ref<Mutex> mutex);
         virtual ~AutoLock();
-		bool & flag();
+	bool & flag();
     };
 }
 

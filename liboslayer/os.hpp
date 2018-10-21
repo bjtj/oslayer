@@ -113,93 +113,93 @@ typedef SOCKET SOCK_HANDLE;
 
 namespace osl {
 
-#define DECL_EXCEPTION(NAME, BASE)										\
-	class NAME : public BASE {											\
-	public:																\
-	explicit NAME() {/**/}												\
-	explicit NAME(const std::string & message) : BASE(message) {/**/}	\
-	explicit NAME(const char * message) : BASE(message) {/**/}			\
-	explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
-		: BASE(message, errorCode, subErrorCode) {/**/}					\
-	explicit NAME(const char * message, int errorCode, int subErrorCode) \
-		: BASE(message, errorCode, subErrorCode) {/**/}					\
-	virtual ~NAME() throw() {/**/}										\
-	};
+#define DECL_EXCEPTION(NAME, BASE)					\
+    class NAME : public BASE {						\
+    public:								\
+    explicit NAME() {/**/}						\
+    explicit NAME(const std::string & message) : BASE(message) {/**/}	\
+    explicit NAME(const char * message) : BASE(message) {/**/}		\
+    explicit NAME(const std::string & message, int errorCode, int subErrorCode) \
+	: BASE(message, errorCode, subErrorCode) {/**/}			\
+    explicit NAME(const char * message, int errorCode, int subErrorCode) \
+	: BASE(message, errorCode, subErrorCode) {/**/}			\
+    virtual ~NAME() throw() {/**/}					\
+    };
 
 #define DECL_NAMED_EXCEPTION(NAME) DECL_EXCEPTION(NAME, osl::Exception)
 
-	/**
-	 * @brief Exception
-	 */
-	class Exception : public std::exception {
-	private:
-		std::string _message;
-		int _error_code;
-		int _sub_error_code;
-	public:
-		explicit Exception() : _error_code(-1), _sub_error_code(-1) {
-		}
-		explicit Exception(const std::string & message) :
-			_message(message), _error_code(-1), _sub_error_code(-1) {
-		}
-		explicit Exception(const char * message) :
-			_message(message), _error_code(-1), _sub_error_code(-1) {
-		}
-		explicit Exception(const std::string & message, int _error_code, int _sub_error_code) :
-			_message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
-		}
-		explicit Exception(const char * message, int _error_code, int _sub_error_code) :
-			_message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
-		}
-		virtual ~Exception() throw() {
-		}
-		int & error_code() {
-			return _error_code;
-		}
-		int error_code() const {
-			return _error_code;
-		}
-		int & sub_error_code() {
-			return _sub_error_code;
-		}
-		int sub_error_code() const {
-			return _sub_error_code;
-		}
-		std::string & message() {
-			return _message;
-		}
-		std::string message() const {
-			return _message;
-		}
-		virtual std::string toString() const {
-			return _message;
-		}
-		virtual const char * what() const throw () {
-			return _message.c_str();
-		}
-	};
+    /**
+     * @brief Exception
+     */
+    class Exception : public std::exception {
+    private:
+	std::string _message;
+	int _error_code;
+	int _sub_error_code;
+    public:
+	explicit Exception() : _error_code(-1), _sub_error_code(-1) {
+	}
+	explicit Exception(const std::string & message) :
+	    _message(message), _error_code(-1), _sub_error_code(-1) {
+	}
+	explicit Exception(const char * message) :
+	    _message(message), _error_code(-1), _sub_error_code(-1) {
+	}
+	explicit Exception(const std::string & message, int _error_code, int _sub_error_code) :
+	    _message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
+	}
+	explicit Exception(const char * message, int _error_code, int _sub_error_code) :
+	    _message(message), _error_code(_error_code), _sub_error_code(_sub_error_code) {
+	}
+	virtual ~Exception() throw() {
+	}
+	int & error_code() {
+	    return _error_code;
+	}
+	int error_code() const {
+	    return _error_code;
+	}
+	int & sub_error_code() {
+	    return _sub_error_code;
+	}
+	int sub_error_code() const {
+	    return _sub_error_code;
+	}
+	std::string & message() {
+	    return _message;
+	}
+	std::string message() const {
+	    return _message;
+	}
+	virtual std::string toString() const {
+	    return _message;
+	}
+	virtual const char * what() const throw () {
+	    return _message.c_str();
+	}
+    };
 
-	DECL_NAMED_EXCEPTION(NotSupportedPlatformException);
+    DECL_NAMED_EXCEPTION(NotSupportedPlatformException);
     DECL_NAMED_EXCEPTION(NullException);
     DECL_NAMED_EXCEPTION(IOException);
     DECL_NAMED_EXCEPTION(NotImplementedException);
     DECL_NAMED_EXCEPTION(IllegalArgumentException);
-	DECL_NAMED_EXCEPTION(BufferOverflowException);
+    DECL_NAMED_EXCEPTION(BufferOverflowException);
 
-	/**
-	 * @brief no meaningful version string to distinguish
-	 */
-	std::string nomeaningfulVesion();
+    /**
+     * @brief no meaningful version string to distinguish
+     */
+    std::string nomeaningfulVesion();
 
-	/**
-	 * @brief milli seconds sleep
-	 */
-	void idle(unsigned long timeout);
+    /**
+     * @brief milli seconds sleep
+     */
+    void idle(unsigned long timeout);
 
-	/**
-	 * @brief get tick count
-	 */
-	unsigned long tick_milli();
+    /**
+     * @brief get tick count
+     */
+    unsigned long tick_milli();
 		
     
     /**
@@ -214,7 +214,7 @@ namespace osl {
     public:
         virtual ~System();
         static System * getInstance();
-		virtual void ignoreSigpipe() = 0;
+	virtual void ignoreSigpipe() = 0;
     };
 }
 

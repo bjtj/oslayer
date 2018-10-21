@@ -7,38 +7,38 @@
  */
 namespace osl {
 
-	using namespace std;
+    using namespace std;
 
-	string nomeaningfulVesion() {
-		return "0.1";
-	}
+    string nomeaningfulVesion() {
+	return "0.1";
+    }
 
-	/**
-	 * @brief milliseconds sleep
-	 */
-	void idle(unsigned long timeout) {
+    /**
+     * @brief milliseconds sleep
+     */
+    void idle(unsigned long timeout) {
         
 #if defined(USE_UNIX_STD)
 				
-		struct timespec ts;
-		ts.tv_sec = timeout / 1000;
-		ts.tv_nsec = (timeout % 1000) * (1000 * 1000);
-		nanosleep(&ts, NULL);
+	struct timespec ts;
+	ts.tv_sec = timeout / 1000;
+	ts.tv_nsec = (timeout % 1000) * (1000 * 1000);
+	nanosleep(&ts, NULL);
         
 #elif defined(USE_MS_WIN)
         
-		Sleep(timeout);
+	Sleep(timeout);
         
 #else
-		// sleep
-		throw NotImplementedException("Not implemented");
+	// sleep
+	throw NotImplementedException("Not implemented");
 #endif
-	}
+    }
 
-	/**
-	 * @brief get tick count
-	 */
-	unsigned long tick_milli() {
+    /**
+     * @brief get tick count
+     */
+    unsigned long tick_milli() {
         
 #if defined(USE_APPLE_STD)
         
@@ -53,18 +53,18 @@ namespace osl {
         
 #elif defined(USE_POSIX_STD)
 
-		struct timespec spec;
-		clock_gettime(CLOCK_MONOTONIC, &spec);
-		return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000000);
+	struct timespec spec;
+	clock_gettime(CLOCK_MONOTONIC, &spec);
+	return (spec.tv_sec * 1000) + (spec.tv_nsec / 1000000);
 		
 #elif defined(USE_MS_WIN)
         
-		return GetTickCount();
+	return GetTickCount();
         
 #else
-		throw NotImplementedException("Not implemented");
+	throw NotImplementedException("Not implemented");
 #endif
-	}
+    }
 
 
     /**
@@ -77,8 +77,8 @@ namespace osl {
         }
         virtual ~SystemImpl() {
         }
-		virtual void ignoreSigpipe() {
-		}
+	virtual void ignoreSigpipe() {
+	}
     };
     
 #if defined(USE_UNIX_STD)
@@ -89,11 +89,11 @@ namespace osl {
         }
         virtual ~NixSystemImpl() {
         }
-		virtual void ignoreSigpipe() {
+	virtual void ignoreSigpipe() {
 #if defined(USE_SIGNAL)
-			signal(SIGPIPE, SIG_IGN);
+	    signal(SIGPIPE, SIG_IGN);
 #endif
-		}
+	}
     };
     static NixSystemImpl s_systemImpl;
 	
@@ -104,8 +104,8 @@ namespace osl {
         MSSystemImpl() {
             WSADATA wsaData;
             if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
-				throw Exception("WSAStartup() failed", -1, 0);
-			}
+		throw Exception("WSAStartup() failed", -1, 0);
+	    }
         }
         virtual ~MSSystemImpl() {
             WSACleanup();

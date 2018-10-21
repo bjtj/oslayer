@@ -15,34 +15,34 @@ using namespace osl;
  */
 class WorkerThread : public Thread {
 private:
-	Event & _evt;
-	unsigned long _due;
-	unsigned long _timeout;
+    Event & _evt;
+    unsigned long _due;
+    unsigned long _timeout;
 public:
     WorkerThread(Event & evt, unsigned long timeout) : _evt(evt), _due(0), _timeout(timeout) {}
     virtual ~WorkerThread() {}
-	virtual void run() {
-		LOG("wait...");
-		unsigned long _t = tick_milli();
-		if (_timeout == 0) {
-			_evt.lock();
-			_evt.wait();
-			_evt.unlock();
-		} else {
-			try {
-				_evt.lock();
-				_evt.wait(_timeout);
-				_evt.unlock();
-			} catch (TimeoutException e) {
-				cerr << "exception: " << e.what() << endl;
-			}
-		}
-		_due = tick_milli() - _t;
-		LOG("done...");
+    virtual void run() {
+	LOG("wait...");
+	unsigned long _t = tick_milli();
+	if (_timeout == 0) {
+	    _evt.lock();
+	    _evt.wait();
+	    _evt.unlock();
+	} else {
+	    try {
+		_evt.lock();
+		_evt.wait(_timeout);
+		_evt.unlock();
+	    } catch (TimeoutException e) {
+		cerr << "exception: " << e.what() << endl;
+	    }
 	}
-	unsigned long & due() {
-		return _due;
-	}
+	_due = tick_milli() - _t;
+	LOG("done...");
+    }
+    unsigned long & due() {
+	return _due;
+    }
 };
 
 /**
@@ -51,46 +51,46 @@ public:
 class EventTestCase : public TestCase {
 public:
     EventTestCase() : TestCase("event test") {
-	}
+    }
     virtual ~EventTestCase() {
-	}
-	virtual void test() {
+    }
+    virtual void test() {
 
-		if (Event::support_wait_with_timeout() == false) {
-			cout << "[skip] not supported feature found" << endl;
-			return;
-		}
+	if (Event::support_wait_with_timeout() == false) {
+	    cout << "[skip] not supported feature found" << endl;
+	    return;
+	}
 		
-		Event e;
-		for (int i = 0; i < 2; i++) {
-			WorkerThread w(e, i * 2000);
-			w.start();
-			idle(1100);
-			e.lock();
-			e.notify();
-			e.unlock();
-			w.join();
-			ASSERT(w.due(), >=, 1000);
-		}
-
-		unsigned long _t = tick_milli();
-		try {
-			e.lock();
-			e.wait(2000);
-			e.unlock();
-			throw "unexpect throw";
-		} catch (TimeoutException e) {
-			// expect
-		}
-		ASSERT(tick_milli() - _t, >=, 2000);
+	Event e;
+	for (int i = 0; i < 2; i++) {
+	    WorkerThread w(e, i * 2000);
+	    w.start();
+	    idle(1100);
+	    e.lock();
+	    e.notify();
+	    e.unlock();
+	    w.join();
+	    ASSERT(w.due(), >=, 1000);
 	}
+
+	unsigned long _t = tick_milli();
+	try {
+	    e.lock();
+	    e.wait(2000);
+	    e.unlock();
+	    throw "unexpect throw";
+	} catch (TimeoutException e) {
+	    // expect
+	}
+	ASSERT(tick_milli() - _t, >=, 2000);
+    }
 };
 
 int main(int argc, char *argv[])
 {
     TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new EventTestCase));
-	TestReport report(ts.testAll());
-	report.validate();
+    ts.addTestCase(AutoRef<TestCase>(new EventTestCase));
+    TestReport report(ts.testAll());
+    report.validate();
     return 0;
 }

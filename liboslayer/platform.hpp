@@ -10,17 +10,17 @@
 #endif
 
 /*
-* Predefined osl macros
-* ====================
-* http://stackoverflow.com/questions/142508/how-do-i-check-os-with-a-preprocessor-directive
-*/
+ * Predefined osl macros
+ * ====================
+ * http://stackoverflow.com/questions/142508/how-do-i-check-os-with-a-preprocessor-directive
+ */
 
 #if defined(__APPLE__) || defined(__MACH__) /* mac os x */
 
 #	define PLATFORM_APPLE
 
 #	define USE_UNIX_STD
-#   define USE_APPLE_STD
+#	define USE_APPLE_STD
 #	define USE_APPLE_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
@@ -34,9 +34,9 @@
 #	include <dirent.h>
 #	include <fcntl.h>
 #	include <signal.h>
-#   include <mach/clock.h>
-#   include <mach/mach.h>
-#   include <dlfcn.h>
+#	include <mach/clock.h>
+#	include <mach/mach.h>
+#	include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
 
@@ -45,7 +45,7 @@
 #	define PLATFORM_UNIX
 
 #	define USE_UNIX_STD
-#   define USE_POSIX_STD
+#	define USE_POSIX_STD
 #	define USE_POSIX_SEMAPHORE
 #	define USE_PTHREAD
 #	define USE_BSD_SOCKET
@@ -65,7 +65,7 @@
 #	include <errno.h>
 #	include <fcntl.h>
 #	include <signal.h>
-#   include <dlfcn.h>
+#	include <dlfcn.h>
 
 #	define osl_vsnprintf vsnprintf
 

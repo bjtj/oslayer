@@ -23,11 +23,11 @@ namespace osl {
     
     void Uuid::parse(const string & uuid) {
 
-		size_t offset = 5;
+	size_t offset = 5;
         clear();
         
         if (!Text::startsWith(uuid, "uuid:")) {
-			offset = 0;
+	    offset = 0;
         }
         
         size_t sep = uuid.find("::");
@@ -94,56 +94,56 @@ namespace osl {
     }
 
 
-	/**
-	 * @brief 
-	 */
-	UuidGenerator::UuidGenerator() {
-	}
-	UuidGenerator::~UuidGenerator() {
-	}
+    /**
+     * @brief 
+     */
+    UuidGenerator::UuidGenerator() {
+    }
+    UuidGenerator::~UuidGenerator() {
+    }
 	
 
+    /**
+     * @brief 
+     */
+    UuidGeneratorVersion1::UuidGeneratorVersion1()
+	: _clock_seq(0), _nodes(6) {
+    }
+    UuidGeneratorVersion1::~UuidGeneratorVersion1() {
+    }
+    string UuidGeneratorVersion1::generate() {
+		
+	osl_time_t time = osl_get_time_unix();
+
 	/**
-	 * @brief 
+	 * Unix base time (Jan. 1, 1970) to UUID base time (Oct. 15, 1582)
 	 */
-	UuidGeneratorVersion1::UuidGeneratorVersion1()
-		: _clock_seq(0), _nodes(6) {
+	uint64_t uuid_time = ((uint64_t)time.sec * 10000000)
+	    + ((uint64_t)time.nano * 10)
+	    + 0x01B21DD213814000LL;
+
+	uint32_t part1 = (uint32_t)(uuid_time & 0xffffffff);
+	uint16_t part2 = (uint16_t)((uuid_time >> 32) & 0xffff);
+	uint16_t part3 = (uint16_t)(((uuid_time >> 48) & 0x0fff) | 0x1fff);
+	uint16_t part4 = (uint16_t)((_clock_seq & 0x3fff) | 0x8000);
+
+	_clock_seq++;
+
+	string uuid = Text::format("%8.8x-%4.4x-%4.4x-%4.4x-", part1, part2, part3, part4);
+	for (size_t i = 0; i < 6; i++) {
+	    if (i < _nodes.size()) {
+		uuid += Text::format("%2.2x", _nodes[i]);
+	    } else {
+		uuid += "00";
+	    }
 	}
-	UuidGeneratorVersion1::~UuidGeneratorVersion1() {
-	}
-	string UuidGeneratorVersion1::generate() {
 		
-		osl_time_t time = osl_get_time_unix();
-
-		/**
-		 * Unix base time (Jan. 1, 1970) to UUID base time (Oct. 15, 1582)
-		 */
-		uint64_t uuid_time = ((uint64_t)time.sec * 10000000)
-			+ ((uint64_t)time.nano * 10)
-			+ 0x01B21DD213814000LL;
-
-		uint32_t part1 = (uint32_t)(uuid_time & 0xffffffff);
-		uint16_t part2 = (uint16_t)((uuid_time >> 32) & 0xffff);
-		uint16_t part3 = (uint16_t)(((uuid_time >> 48) & 0x0fff) | 0x1fff);
-		uint16_t part4 = (uint16_t)((_clock_seq & 0x3fff) | 0x8000);
-
-		_clock_seq++;
-
-		string uuid = Text::format("%8.8x-%4.4x-%4.4x-%4.4x-", part1, part2, part3, part4);
-		for (size_t i = 0; i < 6; i++) {
-			if (i < _nodes.size()) {
-				uuid += Text::format("%2.2x", _nodes[i]);
-			} else {
-				uuid += "00";
-			}
-		}
-		
-		return uuid;
-	}
-	uint16_t & UuidGeneratorVersion1::clock_seq() {
-		return _clock_seq;
-	}
-	std::vector<uint8_t> & UuidGeneratorVersion1::nodes() {
-		return _nodes;
-	}
+	return uuid;
+    }
+    uint16_t & UuidGeneratorVersion1::clock_seq() {
+	return _clock_seq;
+    }
+    std::vector<uint8_t> & UuidGeneratorVersion1::nodes() {
+	return _nodes;
+    }
 }

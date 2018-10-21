@@ -5,46 +5,46 @@ SUBDIRS=data
 TESTS=$(check_PROGRAMS)
 
 check_PROGRAMS = \
-	test-os \
-	test-file \
-	test-ref \
-	test-date \
-	test-base64 \
-	test-bytearray \
-	test-event \
-	test-random \
-	test-tree \
-	test-regex \
-	test-arguments \
-	test-autolock \
-	test-text \
-	test-logger \
-	test-iterator \
-	test-library \
-	test-thread-pool \
-	test-task-thread-pool \
-	test-test-suite \
-	test-heap \
-	test-lisp \
-	test-properties \
-	test-network \
-	test-process \
-	test-file-stream \
-	test-timer \
-	test-exception \
-	test-message-queue \
-	test-xml \
-	test-string-elements \
-	test-property-map \
-	test-database-connection \
-	test-socket \
-	test-echo-server-client \
-	test-datagramsocket \
-	test-observer-pattern \
-	test-register \
-	test-lifetime \
-	test-uuid \
-	test-uri
+test-os \
+test-file \
+test-ref \
+test-date \
+test-base64 \
+test-bytearray \
+test-event \
+test-random \
+test-tree \
+test-regex \
+test-arguments \
+test-autolock \
+test-text \
+test-logger \
+test-iterator \
+test-library \
+test-thread-pool \
+test-task-thread-pool \
+test-test-suite \
+test-heap \
+test-lisp \
+test-properties \
+test-network \
+test-process \
+test-file-stream \
+test-timer \
+test-exception \
+test-message-queue \
+test-xml \
+test-string-elements \
+test-property-map \
+test-database-connection \
+test-socket \
+test-echo-server-client \
+test-datagramsocket \
+test-observer-pattern \
+test-register \
+test-lifetime \
+test-uuid \
+test-uri
 
 if SUPPORT_OPENSSL
 check_PROGRAMS += test-secure-socket

@@ -7,25 +7,25 @@ using namespace osl;
 
 class RandomTestCase : public TestCase {
 public:
-	RandomTestCase() : TestCase("RandomTestCase") {}
-	virtual ~RandomTestCase() {}
+    RandomTestCase() : TestCase("RandomTestCase") {}
+    virtual ~RandomTestCase() {}
 
-	void test() {
-		Random random(time(NULL));
-		cout << random.next() << endl;
-		cout << random.next() << endl;
-		cout << random.next() << endl;
-	}
+    void test() {
+	Random random(time(NULL));
+	cout << random.next() << endl;
+	cout << random.next() << endl;
+	cout << random.next() << endl;
+    }
 };
 
 
 int main(int argc, char *args[]) {
 
-	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new RandomTestCase));
+    TestSuite ts;
+    ts.addTestCase(AutoRef<TestCase>(new RandomTestCase));
 
-	TestReport report(ts.testAll());
-	ASSERT(report.failed(), ==, 0);
+    TestReport report(ts.testAll());
+    ASSERT(report.failed(), ==, 0);
     
     return 0;
 }

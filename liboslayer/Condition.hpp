@@ -3,12 +3,12 @@
 
 namespace osl {
 
-	class Condition {
-	public:
-		Condition() {}
-		virtual ~Condition() {}
-		virtual bool test(void * t) const = 0;
-	};
+    class Condition {
+    public:
+	Condition() {}
+	virtual ~Condition() {}
+	virtual bool test(void * t) const = 0;
+    };
 }
 
 #endif

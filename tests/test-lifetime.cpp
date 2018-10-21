@@ -7,41 +7,41 @@ using namespace osl;
 
 class LifetimeTestCase : public TestCase {
 private:
-	class MyObject : public Lifetime {
-	public:
-		MyObject() {/**/}
-		virtual ~MyObject() {/**/}
-	};
+    class MyObject : public Lifetime {
+    public:
+	MyObject() {/**/}
+	virtual ~MyObject() {/**/}
+    };
 
 public:
-	LifetimeTestCase() : TestCase("heap") {
-	}
-	virtual ~LifetimeTestCase() {
-	}
+    LifetimeTestCase() : TestCase("heap") {
+    }
+    virtual ~LifetimeTestCase() {
+    }
 
-	virtual void test() {
-		MyObject obj;
+    virtual void test() {
+	MyObject obj;
 
-		idle(500);
+	idle(500);
 
-		ASSERT(obj.lifetime(), >=, 500);
-		obj.resetLifetime();
-		ASSERT(obj.lifetime(), <=, 10);
+	ASSERT(obj.lifetime(), >=, 500);
+	obj.resetLifetime();
+	ASSERT(obj.lifetime(), <=, 10);
 
-		idle(500);
+	idle(500);
 
-		ASSERT(obj.lifetime(), >=, 500);
-	}
+	ASSERT(obj.lifetime(), >=, 500);
+    }
 };
 
 
 int main(int argc, char *args[]) {
 
-	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new LifetimeTestCase));
+    TestSuite ts;
+    ts.addTestCase(AutoRef<TestCase>(new LifetimeTestCase));
 
-	TestReport report(ts.testAll());
-	report.validate();
+    TestReport report(ts.testAll());
+    report.validate();
     
     return 0;
 }

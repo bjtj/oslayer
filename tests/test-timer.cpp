@@ -14,52 +14,52 @@ private:
 public:
     MyTask() {}
     virtual ~MyTask() {}
-	virtual void onTask() {
-		cout << "[" << pin.elapsed() << "] do it!" << endl;
-		ASSERT(pin.elapsed(), >=, 1000);
-	}
+    virtual void onTask() {
+	cout << "[" << pin.elapsed() << "] do it!" << endl;
+	ASSERT(pin.elapsed(), >=, 1000);
+    }
 };
 
 class TimerThread : public Thread {
 private:
-	TimerLooper looper;
+    TimerLooper looper;
 public:
     TimerThread() {}
     virtual ~TimerThread() {}
 
-	virtual void run() {
-		TimerSchedule schedule(0, 1000, 0);
-		AutoRef<TimerTask> task(new MyTask);
-		TimerSession session(schedule, task);
+    virtual void run() {
+	TimerSchedule schedule(0, 1000, 0);
+	AutoRef<TimerTask> task(new MyTask);
+	TimerSession session(schedule, task);
 		
-		looper.addSession(session);
-		looper.loop();
-	}
+	looper.addSession(session);
+	looper.loop();
+    }
 
-	void br() {
-		looper.stop();
-	}
+    void br() {
+	looper.stop();
+    }
 };
 
 
 static void test_timer() {
 
-	TimerThread tt;
-	tt.start();
+    TimerThread tt;
+    tt.start();
 
-	cout << pin.elapsed() << endl;
+    cout << pin.elapsed() << endl;
 
-	idle(2 * 1000);
+    idle(2 * 1000);
 
-	cout << pin.elapsed() << endl;
+    cout << pin.elapsed() << endl;
 
-	tt.br();
-	tt.wait();
+    tt.br();
+    tt.wait();
 }
 
 int main(int argc, char *args[]) {
 
-	test_timer();
+    test_timer();
     
     return 0;
 }

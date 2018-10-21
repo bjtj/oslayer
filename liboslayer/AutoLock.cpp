@@ -2,7 +2,7 @@
 
 namespace osl {
 
-	/**
+    /**
      * @breif auto lock
      */
     
@@ -10,20 +10,20 @@ namespace osl {
         _sem->wait();
     }
 
-	AutoLock::AutoLock(Ref<Mutex> mutex) : _mutex(mutex), _flag(false) {
+    AutoLock::AutoLock(Ref<Mutex> mutex) : _mutex(mutex), _flag(false) {
         _mutex->lock();
     }
 
     AutoLock::~AutoLock() {
-		if (_sem.nil() == false) {
-			_sem->post();
-		}
-		if (_mutex.nil() == false) {
-			_mutex->unlock();
-		}
+	if (_sem.nil() == false) {
+	    _sem->post();
+	}
+	if (_mutex.nil() == false) {
+	    _mutex->unlock();
+	}
     }
 
-	bool & AutoLock::flag() {
-		return _flag;
-	}
+    bool & AutoLock::flag() {
+	return _flag;
+    }
 }

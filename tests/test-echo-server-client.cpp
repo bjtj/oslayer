@@ -12,28 +12,28 @@ using namespace osl;
  */
 class EchoServer : public Thread{
 private:
-	int _port;
+    int _port;
 public:
     EchoServer(int port) : _port(port) {
-	}
+    }
     virtual ~EchoServer() {
+    }
+    virtual void run() {
+	ServerSocket server(_port);
+	server.setReuseAddr(true);
+	server.bind();
+	server.listen(5);
+	while (!interrupted()) {
+	    AutoRef<Socket> client(server.accept());
+	    char buffer[1024] = {0,};
+	    client->send(buffer, client->recv(buffer, sizeof(buffer)));
+	    client->close();
+	    if (string(buffer) == "quit") {
+		break;
+	    }
 	}
-	virtual void run() {
-		ServerSocket server(_port);
-		server.setReuseAddr(true);
-		server.bind();
-		server.listen(5);
-		while (!interrupted()) {
-			AutoRef<Socket> client(server.accept());
-			char buffer[1024] = {0,};
-			client->send(buffer, client->recv(buffer, sizeof(buffer)));
-			client->close();
-			if (string(buffer) == "quit") {
-				break;
-			}
-		}
-		server.close();
-	}
+	server.close();
+    }
 };
 
 /**
@@ -42,45 +42,45 @@ public:
 class EchoServerClientTestCase : public TestCase {
 public:
     EchoServerClientTestCase() : TestCase("echo server client test") {
-	}
+    }
     virtual ~EchoServerClientTestCase() {
+    }
+    virtual void test() {
+	int port = 9999;
+	EchoServer server(port);
+	server.start();
+
+	idle(100);
+
+	for (int i = 0; i < 100; i++) {
+	    Socket client(InetAddress("127.0.0.1", port));
+	    client.connect();
+	    client.send("hello", 5);
+	    char buffer[1024] = {0,};
+	    client.recv(buffer, sizeof(buffer));
+	    ASSERT(string(buffer), ==, "hello");
+	    client.close();
 	}
-	virtual void test() {
-		int port = 9999;
-		EchoServer server(port);
-		server.start();
 
-		idle(100);
+	Socket client(InetAddress("127.0.0.1", port));
+	client.connect();
+	client.send("quit", 5);
+	char buffer[1024] = {0,};
+	client.recv(buffer, sizeof(buffer));
+	ASSERT(string(buffer), ==, "quit");
+	client.close();
 
-		for (int i = 0; i < 100; i++) {
-			Socket client(InetAddress("127.0.0.1", port));
-			client.connect();
-			client.send("hello", 5);
-			char buffer[1024] = {0,};
-			client.recv(buffer, sizeof(buffer));
-			ASSERT(string(buffer), ==, "hello");
-			client.close();
-		}
-
-		Socket client(InetAddress("127.0.0.1", port));
-		client.connect();
-		client.send("quit", 5);
-		char buffer[1024] = {0,};
-		client.recv(buffer, sizeof(buffer));
-		ASSERT(string(buffer), ==, "quit");
-		client.close();
-
-		server.join();
-	}
+	server.join();
+    }
 };
 
 int main(int argc, char *argv[])
 {
-	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new EchoServerClientTestCase));
+    TestSuite ts;
+    ts.addTestCase(AutoRef<TestCase>(new EchoServerClientTestCase));
 
-	TestReport report(ts.testAll());
-	report.validate();
+    TestReport report(ts.testAll());
+    report.validate();
     
     return 0;
 }

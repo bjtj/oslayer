@@ -13,18 +13,18 @@ using namespace osl;
  */
 class LoggerFactoryObserver : public Observer {
 private:
-	bool _updated;
+    bool _updated;
 public:
     LoggerFactoryObserver() : _updated(false) {
-	}
+    }
     virtual ~LoggerFactoryObserver() {
-	}
-	virtual void onUpdate(Observable * target) {
-		_updated = true;
-	}
-	bool & updated() {
-		return _updated;
-	}
+    }
+    virtual void onUpdate(Observable * target) {
+	_updated = true;
+    }
+    bool & updated() {
+	return _updated;
+    }
 };
 
 /**
@@ -32,14 +32,14 @@ public:
  */
 class StaticWriter : public LogWriter {
 public:
-	static vector<string> logs;
+    static vector<string> logs;
 public:
-	StaticWriter() {}
-	virtual ~StaticWriter() {}
-	virtual void write(const string & str) {
-		cout << "[StaticWriter] :: " << str << endl;
-		logs.push_back(str);
-	}
+    StaticWriter() {}
+    virtual ~StaticWriter() {}
+    virtual void write(const string & str) {
+	cout << "[StaticWriter] :: " << str << endl;
+	logs.push_back(str);
+    }
 };
 
 vector<string> StaticWriter::logs;
@@ -49,30 +49,30 @@ vector<string> StaticWriter::logs;
  */
 class LoggerTestCase : public TestCase {
 private:
-	AutoRef<Logger> logger;
-	LoggerFactoryObserver observer;
+    AutoRef<Logger> logger;
+    LoggerFactoryObserver observer;
 public:
-	LoggerTestCase() : TestCase("LoggerTestCase") {}
-	virtual ~LoggerTestCase() {}
-	virtual void setUp(TestEnvironment & env) {
-		LoggerFactory::instance().addObserver(&observer);
-		LoggerFactory::instance().registerWriter("static", AutoRef<LogWriter>(new StaticWriter));
-		logger = LoggerFactory::instance().getObservingLogger(File::basename(__FILE__));
-	}
-	virtual void tearDown() {
-	}
+    LoggerTestCase() : TestCase("LoggerTestCase") {}
+    virtual ~LoggerTestCase() {}
+    virtual void setUp(TestEnvironment & env) {
+	LoggerFactory::instance().addObserver(&observer);
+	LoggerFactory::instance().registerWriter("static", AutoRef<LogWriter>(new StaticWriter));
+	logger = LoggerFactory::instance().getObservingLogger(File::basename(__FILE__));
+    }
+    virtual void tearDown() {
+    }
 	
-	virtual void test() {
-		LoggerFactory::instance().setProfile("*", "basic", "static");
-		ASSERT(LoggerFactory::instance().writer("static").nil(), ==, false);
-		ASSERT(LoggerFactory::instance().observerCount(), ==, 2);
-		ASSERT(observer.updated(), ==, true);
-		logger->debug("debug1");
-		logger->debug("debug2");
-		ASSERT(StaticWriter::logs.size(), ==, 2);
-		ASSERT(Text::endsWith(StaticWriter::logs[0], "debug1"), ==, true);
-		ASSERT(Text::endsWith(StaticWriter::logs[1], "debug2"), ==, true);
-	}
+    virtual void test() {
+	LoggerFactory::instance().setProfile("*", "basic", "static");
+	ASSERT(LoggerFactory::instance().writer("static").nil(), ==, false);
+	ASSERT(LoggerFactory::instance().observerCount(), ==, 2);
+	ASSERT(observer.updated(), ==, true);
+	logger->debug("debug1");
+	logger->debug("debug2");
+	ASSERT(StaticWriter::logs.size(), ==, 2);
+	ASSERT(Text::endsWith(StaticWriter::logs[0], "debug1"), ==, true);
+	ASSERT(Text::endsWith(StaticWriter::logs[1], "debug2"), ==, true);
+    }
 };
 
 /**
@@ -80,11 +80,11 @@ public:
  */
 int main(int argc, char *args[]) {
 
-	TestSuite ts;
-	ts.addTestCase(AutoRef<TestCase>(new LoggerTestCase));
+    TestSuite ts;
+    ts.addTestCase(AutoRef<TestCase>(new LoggerTestCase));
 
-	TestReport report(ts.testAll());
-	ASSERT(report.failed(), ==, 0);
+    TestReport report(ts.testAll());
+    ASSERT(report.failed(), ==, 0);
     
     return 0;
 }

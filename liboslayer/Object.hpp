@@ -3,15 +3,15 @@
 
 namespace osl {
 
-	/**
-	 * @brief placeholder
-	 */
-	class Object {
-	private:
-	public:
-		Object() {}
-		virtual ~Object() {}
-	};
+    /**
+     * @brief placeholder
+     */
+    class Object {
+    private:
+    public:
+	Object() {}
+	virtual ~Object() {}
+    };
 }
 
 #endif

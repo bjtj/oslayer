@@ -7,11 +7,11 @@
 
 namespace osl {
     
-	/**
-	 * @brief uuid
-	 * @ref https://tools.ietf.org/html/rfc4122 (there's sample source)
-	 * @ref https://en.wikipedia.org/wiki/Universally_unique_identifier
-	 */
+    /**
+     * @brief uuid
+     * @ref https://tools.ietf.org/html/rfc4122 (there's sample source)
+     * @ref https://en.wikipedia.org/wiki/Universally_unique_identifier
+     */
     class Uuid {
     private:
         std::string uuid;
@@ -29,31 +29,31 @@ namespace osl {
         std::string toString() const;
     };
 
-	/**
-	 * @brief
-	 */
-	class UuidGenerator {
-	private:
-	public:
-		UuidGenerator();
-		virtual ~UuidGenerator();
-		virtual std::string generate() = 0;
-	};
+    /**
+     * @brief
+     */
+    class UuidGenerator {
+    private:
+    public:
+	UuidGenerator();
+	virtual ~UuidGenerator();
+	virtual std::string generate() = 0;
+    };
 
-	/**
-	 * @brief 
-	 */
-	class UuidGeneratorVersion1 : public UuidGenerator {
-	private:
-		uint16_t _clock_seq;
-		std::vector<uint8_t> _nodes;
-	public:
-		UuidGeneratorVersion1();
-		virtual ~UuidGeneratorVersion1();
-		virtual std::string generate();
-		uint16_t & clock_seq();
-		std::vector<uint8_t> & nodes();
-	};
+    /**
+     * @brief 
+     */
+    class UuidGeneratorVersion1 : public UuidGenerator {
+    private:
+	uint16_t _clock_seq;
+	std::vector<uint8_t> _nodes;
+    public:
+	UuidGeneratorVersion1();
+	virtual ~UuidGeneratorVersion1();
+	virtual std::string generate();
+	uint16_t & clock_seq();
+	std::vector<uint8_t> & nodes();
+    };
 }
 
 #endif

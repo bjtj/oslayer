@@ -2,157 +2,157 @@
 
 namespace osl {
 
-	using namespace std;
+    using namespace std;
 
-	const static uint64_t _NSEC_PER_SEC = 1000000000ULL;
+    const static uint64_t _NSEC_PER_SEC = 1000000000ULL;
 
-	bool osl_time_t::operator< (const struct _osl_time_t & other) const {
-		if (sec < other.sec) {
-			return true;
-		} else if (sec == other.sec && nano < other.nano) {
-			return true;
-		}
-		return false;
+    bool osl_time_t::operator< (const struct _osl_time_t & other) const {
+	if (sec < other.sec) {
+	    return true;
+	} else if (sec == other.sec && nano < other.nano) {
+	    return true;
 	}
-	bool osl_time_t::operator<= (const struct _osl_time_t & other) const {
-		if (sec < other.sec) {
-			return true;
-		} else if (sec == other.sec && nano < other.nano) {
-			return true;
-		} else if (sec == other.sec && nano == other.nano) {
-			return true;
-		}
-		return false;
+	return false;
+    }
+    bool osl_time_t::operator<= (const struct _osl_time_t & other) const {
+	if (sec < other.sec) {
+	    return true;
+	} else if (sec == other.sec && nano < other.nano) {
+	    return true;
+	} else if (sec == other.sec && nano == other.nano) {
+	    return true;
 	}
-	bool osl_time_t::operator> (const struct _osl_time_t & other) const {
-		if (sec > other.sec) {
-			return true;
-		} else if (sec == other.sec && nano > other.nano) {
-			return true;
-		}
-		return false;
+	return false;
+    }
+    bool osl_time_t::operator> (const struct _osl_time_t & other) const {
+	if (sec > other.sec) {
+	    return true;
+	} else if (sec == other.sec && nano > other.nano) {
+	    return true;
 	}
-	bool osl_time_t::operator>= (const struct _osl_time_t & other) const {
-		if (sec > other.sec) {
-			return true;
-		} else if (sec == other.sec && nano > other.nano) {
-			return true;
-		} else if (sec == other.sec && nano == other.nano) {
-			return true;
-		}
-		return false;
+	return false;
+    }
+    bool osl_time_t::operator>= (const struct _osl_time_t & other) const {
+	if (sec > other.sec) {
+	    return true;
+	} else if (sec == other.sec && nano > other.nano) {
+	    return true;
+	} else if (sec == other.sec && nano == other.nano) {
+	    return true;
 	}
-	bool osl_time_t::operator== (const struct _osl_time_t & other) const {
-		if (sec == other.sec && nano == other.nano) {
-			return true;
-		}
-		return false;
+	return false;
+    }
+    bool osl_time_t::operator== (const struct _osl_time_t & other) const {
+	if (sec == other.sec && nano == other.nano) {
+	    return true;
 	}
-	bool osl_time_t::operator!= (const struct _osl_time_t & other) const {
-		if (sec != other.sec || nano != other.nano) {
-			return true;
-		}
-		return false;
+	return false;
+    }
+    bool osl_time_t::operator!= (const struct _osl_time_t & other) const {
+	if (sec != other.sec || nano != other.nano) {
+	    return true;
 	}
-	struct _osl_time_t osl_time_t::operator+ (const struct _osl_time_t & other) const {
-		osl_time_t ret;
-		ret.sec = sec + other.sec;
-		ret.nano = nano + other.nano;
-		ret.sec += (ret.nano / _NSEC_PER_SEC);
-		ret.nano = (ret.nano % _NSEC_PER_SEC);
-		return ret;
+	return false;
+    }
+    struct _osl_time_t osl_time_t::operator+ (const struct _osl_time_t & other) const {
+	osl_time_t ret;
+	ret.sec = sec + other.sec;
+	ret.nano = nano + other.nano;
+	ret.sec += (ret.nano / _NSEC_PER_SEC);
+	ret.nano = (ret.nano % _NSEC_PER_SEC);
+	return ret;
 		
+    }
+    struct _osl_time_t osl_time_t::operator- (const struct _osl_time_t & other) const {
+	osl_time_t ret = {0,0};
+	if (sec < other.sec) {
+	    ret.sec = 0;
+	} else {
+	    ret.sec = sec - other.sec;
 	}
-	struct _osl_time_t osl_time_t::operator- (const struct _osl_time_t & other) const {
-		osl_time_t ret = {0,0};
-		if (sec < other.sec) {
-			ret.sec = 0;
-		} else {
-			ret.sec = sec - other.sec;
-		}
-		if (nano < other.nano) {
-			if (ret.sec > 0) {
-				ret.nano = _NSEC_PER_SEC - (other.nano - nano);
-				ret.sec--;
-			}
-		} else {
-			ret.nano = nano - other.nano;
-		}
-		return ret;
+	if (nano < other.nano) {
+	    if (ret.sec > 0) {
+		ret.nano = _NSEC_PER_SEC - (other.nano - nano);
+		ret.sec--;
+	    }
+	} else {
+	    ret.nano = nano - other.nano;
 	}
-	struct _osl_time_t & osl_time_t::operator+= (const struct _osl_time_t & other) {
-		*this = *this + other;
-		return *this;
-	}
-	struct _osl_time_t & osl_time_t::operator-= (const struct _osl_time_t & other) {
-		*this = *this - other;
-		return *this;
-	}
+	return ret;
+    }
+    struct _osl_time_t & osl_time_t::operator+= (const struct _osl_time_t & other) {
+	*this = *this + other;
+	return *this;
+    }
+    struct _osl_time_t & osl_time_t::operator-= (const struct _osl_time_t & other) {
+	*this = *this - other;
+	return *this;
+    }
 
 	
 #if defined(USE_MS_WIN)
 
-	static Date s_systemtime_to_date(SYSTEMTIME t) {
-		Date date;
-		date.setYear(t.wYear);
-		date.setMonth(t.wMonth - 1);
-		date.setDay(t.wDay);
-		date.setDayOfWeek(t.wDayOfWeek);
-		date.setHour(t.wHour);
-		date.setMinute(t.wMinute);
-		date.setSecond(t.wSecond);
-		date.setMillisecond(t.wMilliseconds);
-		return date;
-	}
+    static Date s_systemtime_to_date(SYSTEMTIME t) {
+	Date date;
+	date.setYear(t.wYear);
+	date.setMonth(t.wMonth - 1);
+	date.setDay(t.wDay);
+	date.setDayOfWeek(t.wDayOfWeek);
+	date.setHour(t.wHour);
+	date.setMinute(t.wMinute);
+	date.setSecond(t.wSecond);
+	date.setMillisecond(t.wMilliseconds);
+	return date;
+    }
 
-	static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
-		SYSTEMTIME stime;
-		FILETIME localtime;
-		FileTimeToLocalFileTime(&ftime, &localtime);
-		FileTimeToSystemTime(&localtime, &stime);
-		return stime;
-	}
+    static SYSTEMTIME s_filetime_to_systemtime(FILETIME ftime) {
+	SYSTEMTIME stime;
+	FILETIME localtime;
+	FileTimeToLocalFileTime(&ftime, &localtime);
+	FileTimeToSystemTime(&localtime, &stime);
+	return stime;
+    }
 
-	/**
-	 * @ref https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms724284(v=vs.85).aspx
-	 */
-	static osl_time_t s_filetime_to_osl_time(const FILETIME * ft) {
-		osl_time_t t = {0,};
-		ULARGE_INTEGER time;
-		time.LowPart = ft->dwLowDateTime;
-		time.HighPart = ft->dwHighDateTime;
-		unsigned __int64 uit = time.QuadPart;
-		t.sec = (uint64_t)(uit / 10000000);
-		t.nano = (unsigned long)(uit % 10000000) * 100;
+    /**
+     * @ref https://msdn.microsoft.com/ko-kr/library/windows/desktop/ms724284(v=vs.85).aspx
+     */
+    static osl_time_t s_filetime_to_osl_time(const FILETIME * ft) {
+	osl_time_t t = {0,};
+	ULARGE_INTEGER time;
+	time.LowPart = ft->dwLowDateTime;
+	time.HighPart = ft->dwHighDateTime;
+	unsigned __int64 uit = time.QuadPart;
+	t.sec = (uint64_t)(uit / 10000000);
+	t.nano = (unsigned long)(uit % 10000000) * 100;
 
-		return t;
-	}
+	return t;
+    }
 
-	/**
-	 * @ref https://support.microsoft.com/ko-kr/kb/167296
-	 */
-	static FILETIME s_osl_time_to_filetime(const osl_time_t * ot) {
-		unsigned __int64 uit = 0;
-		uit = ((unsigned __int64)ot->sec) * 10000000ULL;
-		uit += ((unsigned __int64)ot->nano) / 100ULL;
-		FILETIME t = {0,};
-		t.dwLowDateTime = (DWORD)uit;
-		t.dwHighDateTime= (DWORD)(uit >> 32);
-		return t;
-	}
+    /**
+     * @ref https://support.microsoft.com/ko-kr/kb/167296
+     */
+    static FILETIME s_osl_time_to_filetime(const osl_time_t * ot) {
+	unsigned __int64 uit = 0;
+	uit = ((unsigned __int64)ot->sec) * 10000000ULL;
+	uit += ((unsigned __int64)ot->nano) / 100ULL;
+	FILETIME t = {0,};
+	t.dwLowDateTime = (DWORD)uit;
+	t.dwHighDateTime= (DWORD)(uit >> 32);
+	return t;
+    }
 
 #endif
 
-	/**
-	 * @brief 
-	 */
-	osl_time_t osl_get_time() {
+    /**
+     * @brief 
+     */
+    osl_time_t osl_get_time() {
 		
 #if defined(USE_APPLE_STD)
         
         // @ref http://stackoverflow.com/a/11681069
 
-		osl_time_t ti = {0,};
+	osl_time_t ti = {0,};
         
         clock_serv_t cclock;
         mach_timespec_t mts;
@@ -160,119 +160,119 @@ namespace osl {
         clock_get_time(cclock, &mts);
         mach_port_deallocate(mach_task_self(), cclock);
 
-		ti.sec = mts.tv_sec;
-		ti.nano = mts.tv_nsec;
+	ti.sec = mts.tv_sec;
+	ti.nano = mts.tv_nsec;
 
-		return ti;
+	return ti;
         
 #elif defined(USE_POSIX_STD)
 
-		osl_time_t ti = {0,};
+	osl_time_t ti = {0,};
         
         struct timespec spec;
         clock_gettime(CLOCK_REALTIME, &spec);
 		
-		ti.sec = spec.tv_sec;
-		ti.nano = spec.tv_nsec;
+	ti.sec = spec.tv_sec;
+	ti.nano = spec.tv_nsec;
 
-		return ti;
+	return ti;
         
 #elif defined(USE_MS_WIN)
 
-		FILETIME ft;
-		GetSystemTimeAsFileTime(&ft);
+	FILETIME ft;
+	GetSystemTimeAsFileTime(&ft);
 
-		return s_filetime_to_osl_time(&ft);
+	return s_filetime_to_osl_time(&ft);
 #else
-		throw Exception("Not implemented");
+	throw Exception("Not implemented");
 #endif
-	}
+    }
 
-	/**
-	 * @brief Jan. 1, 1970 based
-	 */
-	osl_time_t osl_get_time_unix() {
-		osl_time_t ti = osl_get_time();
+    /**
+     * @brief Jan. 1, 1970 based
+     */
+    osl_time_t osl_get_time_unix() {
+	osl_time_t ti = osl_get_time();
 
 #if defined(USE_MS_WIN)
-		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/6161842
-		ti.sec -= (uint64_t)11644473600ULL;
+	// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/6161842
+	ti.sec -= (uint64_t)11644473600ULL;
 #endif
 
-		return ti;
-	}
+	return ti;
+    }
 
-	/**
-	 * @brief Jan. 1, 1900 based
-	 */
-	osl_time_t osl_get_time_network() {
-		osl_time_t ti = osl_get_time_unix();
-		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/29138806
-		ti.sec += 2208988800ULL;
-		return ti;
-	}
+    /**
+     * @brief Jan. 1, 1900 based
+     */
+    osl_time_t osl_get_time_network() {
+	osl_time_t ti = osl_get_time_unix();
+	// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/29138806
+	ti.sec += 2208988800ULL;
+	return ti;
+    }
 
-	osl_time_t osl_system_time_to_unix_time(osl_time_t t) {
+    osl_time_t osl_system_time_to_unix_time(osl_time_t t) {
 #if defined(USE_MS_WIN)
-		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/6161842
-		t.sec -= (uint64_t)11644473600ULL;
+	// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/6161842
+	t.sec -= (uint64_t)11644473600ULL;
 #endif
-		return t;
-	}
+	return t;
+    }
 
-	osl_time_t osl_system_time_to_network_time(osl_time_t t) {
-		t = osl_system_time_to_unix_time(t);
-		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/29138806
-		t.sec += 2208988800ULL;
-		return t;
-	}
+    osl_time_t osl_system_time_to_network_time(osl_time_t t) {
+	t = osl_system_time_to_unix_time(t);
+	// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/29138806
+	t.sec += 2208988800ULL;
+	return t;
+    }
 
-	osl_time_t osl_unix_time_to_system_time(osl_time_t t) {
+    osl_time_t osl_unix_time_to_system_time(osl_time_t t) {
 #if defined(USE_MS_WIN)
-		// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/6161842
-		t.sec += (uint64_t)11644473600ULL;
+	// 11644473600 seconds (1601-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/6161842
+	t.sec += (uint64_t)11644473600ULL;
 #endif
-		return t;
-	}
+	return t;
+    }
 
-	osl_time_t osl_network_time_to_system_time(osl_time_t t) {
-		// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
-		// @ref http://stackoverflow.com/a/29138806
-		t.sec -= 2208988800ULL;
+    osl_time_t osl_network_time_to_system_time(osl_time_t t) {
+	// 2208988800 seconds (1900-01-01 ~ 1970-01-01)
+	// @ref http://stackoverflow.com/a/29138806
+	t.sec -= 2208988800ULL;
 		
-		return osl_unix_time_to_system_time(t);
-	}
+	return osl_unix_time_to_system_time(t);
+    }
 
-	/**
-	 * @return gmtoffset in minute
-	 */
-	static int s_get_gmt_offset() {
+    /**
+     * @return gmtoffset in minute
+     */
+    static int s_get_gmt_offset() {
 #if defined(USE_APPLE_STD) || defined(USE_POSIX_STD)
-		struct tm info;
-		time_t t = 0;
-		localtime_r(&t, &info);
-		time_t local = mktime(&info);
-		gmtime_r(&t, &info);
-		time_t gmt = mktime(&info);
-		double offset = difftime(local, gmt);
-		return (int)(offset / 60);
+	struct tm info;
+	time_t t = 0;
+	localtime_r(&t, &info);
+	time_t local = mktime(&info);
+	gmtime_r(&t, &info);
+	time_t gmt = mktime(&info);
+	double offset = difftime(local, gmt);
+	return (int)(offset / 60);
 #elif defined(USE_MS_WIN)
-		// http://stackoverflow.com/a/597562
-		TIME_ZONE_INFORMATION TimeZoneInfo;
-		GetTimeZoneInformation(&TimeZoneInfo);
-		return -((int)TimeZoneInfo.Bias);
+	// http://stackoverflow.com/a/597562
+	TIME_ZONE_INFORMATION TimeZoneInfo;
+	GetTimeZoneInformation(&TimeZoneInfo);
+	return -((int)TimeZoneInfo.Bias);
 #else
-		throw Exception("Not implemented");
+	throw Exception("Not implemented");
 #endif
-	}
+    }
 
-	static Date s_get_localtime() {
-		Date date;
+    static Date s_get_localtime() {
+	Date date;
 
 #if defined(USE_APPLE_STD)
         
@@ -289,13 +289,13 @@ namespace osl {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
-		date.setDayOfWeek(info.tm_wday);
+	date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
         date.setMillisecond(mts.tv_nsec / 1000000);
 
-		date.setGmtOffset(s_get_gmt_offset());
+	date.setGmtOffset(s_get_gmt_offset());
         
 #elif defined(USE_POSIX_STD)
         
@@ -307,429 +307,429 @@ namespace osl {
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
-		date.setDayOfWeek(info.tm_wday);
+	date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
         date.setMillisecond(spec.tv_nsec / 1000000);
 
-		date.setGmtOffset(s_get_gmt_offset());
+	date.setGmtOffset(s_get_gmt_offset());
         
 #elif defined(USE_MS_WIN)
         
         SYSTEMTIME now;
         GetLocalTime(&now);
-		date.setYear(now.wYear);
-		date.setMonth(now.wMonth - 1);
-		date.setDay(now.wDay);
-		date.setDayOfWeek(now.wDayOfWeek);
-		date.setHour(now.wHour);
-		date.setMinute(now.wMinute);
-		date.setSecond(now.wSecond);
-		date.setMillisecond(now.wMilliseconds);
+	date.setYear(now.wYear);
+	date.setMonth(now.wMonth - 1);
+	date.setDay(now.wDay);
+	date.setDayOfWeek(now.wDayOfWeek);
+	date.setHour(now.wHour);
+	date.setMinute(now.wMinute);
+	date.setSecond(now.wSecond);
+	date.setMillisecond(now.wMilliseconds);
 
-		date.setGmtOffset(s_get_gmt_offset());
+	date.setGmtOffset(s_get_gmt_offset());
         
 #endif
-		return date;
-	}
+	return date;
+    }
 
-	// http://www.cplusplus.com/reference/ctime/strftime/
+    // http://www.cplusplus.com/reference/ctime/strftime/
 
-	string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
+    string Date::DEFAULT_FORMAT = "%Y-%c-%d %H:%i:%s";
 
-	Date::Date()
-		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0) {
-		osl_time_t _t = {0, };
-		setTime(_t);
-	}
+    Date::Date()
+	: gmtoffset(0), year(0), month(0), day(0), wday(0),
+	  hour(0), minute(0), second(0), millisecond(0) {
+	osl_time_t _t = {0, };
+	setTime(_t);
+    }
 
-	Date::Date(struct tm & info)
-		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0)
-	{
-		setYear(1900 + info.tm_year);
+    Date::Date(struct tm & info)
+	: gmtoffset(0), year(0), month(0), day(0), wday(0),
+	  hour(0), minute(0), second(0), millisecond(0)
+    {
+	setYear(1900 + info.tm_year);
         setMonth(info.tm_mon);
         setDay(info.tm_mday);
-		setDayOfWeek(info.tm_wday);
+	setDayOfWeek(info.tm_wday);
         setHour(info.tm_hour);
         setMinute(info.tm_min);
         setSecond(info.tm_sec);
-	}
-
-	Date::Date(osl_time_t time)
-		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0) 
-	{
-		setTime(time);
-	}
-
-	Date::Date(osl_time_t time, int gmtoffset)
-		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0)
-	{
-		setTime(time, gmtoffset);
-	}
-
-#if defined(USE_MS_WIN)
-	Date::Date(const FILETIME ft)
-		: gmtoffset(0), year(0), month(0), day(0), wday(0),
-		  hour(0), minute(0), second(0), millisecond(0)
-	{
-		*this = Date(s_filetime_to_systemtime(ft));
-	}
-
-	Date::Date(const SYSTEMTIME st)
-		: gmtoffset(0), 
-		year(st.wYear), 
-		month(st.wMonth - 1), 
-		day(st.wDay), 
-		wday(st.wDayOfWeek),
-		hour(st.wHour), 
-		minute(st.wMinute), 
-		second(st.wSecond), 
-		millisecond(st.wMilliseconds)
-	{		
-	}
-#endif
-
-	Date::~Date() {
-	}
-	
-	Date Date::now() {		
-		return s_get_localtime();
-	}
-
-	static string s_to_string(int i) {
-		char num[512] = {0,};
-        snprintf(num, sizeof(num), "%d", i);
-        return string(num);
-	}
-
-	static string s_to_format_string(const char * fmt, int i) {
-		char num[512] = {0,};
-        snprintf(num, sizeof(num), fmt, i);
-        return string(num);
-	}
-
-	string Date::format(const Date & date) {
-		return format(date, DEFAULT_FORMAT);
-	}
-
-	/**
-	 * @brief seconds to string
-	 * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
-	 * @ref http://www.cplusplus.com/reference/ctime/strftime/
-	 */
-    string Date::format(const Date & date, const string & fmt) {
-		if (fmt.empty()) {
-			return "";
-		}
-		string ret;
-		for (size_t i = 0; i < fmt.size(); i++) {
-			char ch = fmt[i];
-			if (ch == '%') {
-				if (i >= fmt.size() - 1) {
-					ret.append(1, '%');
-					break;
-				}
-				i++;
-				switch (fmt[i]) {
-				case 'Y':
-					ret.append(s_to_format_string("%04d", date.getYear()));
-					break;
-				case 'y':
-					ret.append(s_to_format_string("%02d", date.getYear() % 100));
-					break;
-				case 'c':
-					ret.append(s_to_format_string("%02d", date.getMonth() + 1));
-					break;
-				case 'e':
-					ret.append(s_to_string(date.getMonth()));
-					break;
-				case 'd':
-					ret.append(s_to_format_string("%02d", date.getDay()));
-					break;
-				case 'H':
-					ret.append(s_to_format_string("%02d", date.getHour()));
-					break;
-				case 'h':
-					ret.append(s_to_format_string("%02d", date.getHour() % 12));
-					break;
-				case 'i':
-					ret.append(s_to_format_string("%02d", date.getMinute()));
-					break;
-				case 's':
-					ret.append(s_to_format_string("%02d", date.getSecond()));
-					break;
-				case 'f':
-					ret.append(s_to_format_string("%03d", date.getMillisecond()));
-					break;
-				case 'p':
-					ret.append(date.getHour() >= 12 ? "PM" : "AM");
-					break;
-				default:
-					ret.append(1, fmt[i]);
-					break;
-				}
-			} else {
-				ret.append(1, ch);
-			}
-		}
-		return ret;
     }
 
-	// RFC-8601
-	// e.g.) 2017-04-20T03:48:30+00:00
-	string Date::formatRfc8601(const Date & date) {
-		char buffer[50] = {0,};
-		snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
-				 date.getYear(), date.getMonth() + 1, date.getDay(),
-				 date.getHour(), date.getMinute(), date.getSecond(),
-				 date.getGmtOffset() >= 0 ? '+' : '-',
-				 ((int)abs(date.getGmtOffset())) / 60,
-				 ((int)abs(date.getGmtOffset())) % 60);
-		return string(buffer);
-	}
+    Date::Date(osl_time_t time)
+	: gmtoffset(0), year(0), month(0), day(0), wday(0),
+	  hour(0), minute(0), second(0), millisecond(0) 
+    {
+	setTime(time);
+    }
+
+    Date::Date(osl_time_t time, int gmtoffset)
+	: gmtoffset(0), year(0), month(0), day(0), wday(0),
+	  hour(0), minute(0), second(0), millisecond(0)
+    {
+	setTime(time, gmtoffset);
+    }
+
+#if defined(USE_MS_WIN)
+    Date::Date(const FILETIME ft)
+	: gmtoffset(0), year(0), month(0), day(0), wday(0),
+	  hour(0), minute(0), second(0), millisecond(0)
+    {
+	*this = Date(s_filetime_to_systemtime(ft));
+    }
+
+    Date::Date(const SYSTEMTIME st)
+	: gmtoffset(0), 
+	  year(st.wYear), 
+	  month(st.wMonth - 1), 
+	  day(st.wDay), 
+	  wday(st.wDayOfWeek),
+	  hour(st.wHour), 
+	  minute(st.wMinute), 
+	  second(st.wSecond), 
+	  millisecond(st.wMilliseconds)
+    {		
+    }
+#endif
+
+    Date::~Date() {
+    }
 	
-	Date Date::parseRfc8601(const string & date) {
-		// TODO: implement
-		throw NotImplementedException("Not implemented");
-	}
+    Date Date::now() {		
+	return s_get_localtime();
+    }
 
-	// RFC-1123
-	// e.g.) Wed, 09 Jun 2021 10:18:14 GMT
-	string Date::formatRfc1123(const Date & date) {
-		static const char * wkday[] = {"Sun", "Mon", "Tue",
-									   "Wed", "Thu", "Fri", "Sat"};
-		static const char * month[] = {"Jan", "Feb", "Mar",
-									   "Apr", "May", "Jun",
-									   "Jul", "Aug", "Sep",
-									   "Oct", "Nov", "Dec"};
-		Date gmt = date.toGmt();
-		char buffer[64] = {0,};
-		snprintf(buffer, sizeof(buffer), "%s, %02d %s %04d %02d:%02d:%02d GMT",
-				 wkday[gmt.getDayOfWeek()],
-				 gmt.getDay(),
-				 month[gmt.getMonth()],
-				 gmt.getYear(),
-				 gmt.getHour(),
-				 gmt.getMinute(),
-				 gmt.getSecond());
-		return string(buffer);
-	}
+    static string s_to_string(int i) {
+	char num[512] = {0,};
+        snprintf(num, sizeof(num), "%d", i);
+        return string(num);
+    }
 
-	Date Date::parseRfc1123(const string & date) {
-		// TODO: implement
-		throw NotImplementedException("Not implemented");
-	}
+    static string s_to_format_string(const char * fmt, int i) {
+	char num[512] = {0,};
+        snprintf(num, sizeof(num), fmt, i);
+        return string(num);
+    }
 
-	// RFC-1036
-	// e.g.) Sunday, 06-Nov-94 08:49:37 GMT
-	string Date::formatRfc1036(const Date & date) {
-		static const char * wkday[] = {"Sunday", "Monday", "Tuesday",
-									   "Wednesday", "Thursday", "Friday", "Saturday"};
-		static const char * month[] = {"Jan", "Feb", "Mar",
-									   "Apr", "May", "Jun",
-									   "Jul", "Aug", "Sep",
-									   "Oct", "Nov", "Dec"};
-		Date gmt = date.toGmt();
-		char buffer[64] = {0,};
-		snprintf(buffer, sizeof(buffer), "%s, %02d-%s-%02d %02d:%02d:%02d GMT",
-				 wkday[gmt.getDayOfWeek()],
-				 gmt.getDay(),
-				 month[gmt.getMonth()],
-				 gmt.getYear() % 100,
-				 gmt.getHour(),
-				 gmt.getMinute(),
-				 gmt.getSecond());
-		return string(buffer);
-	}
+    string Date::format(const Date & date) {
+	return format(date, DEFAULT_FORMAT);
+    }
 
-	Date Date::parseRfc1036(const string & date) {
-		// TODO: implement
-		throw NotImplementedException("Not implemented");
+    /**
+     * @brief seconds to string
+     * @ref http://stackoverflow.com/questions/10446526/get-last-modified-time-of-file-in-linux
+     * @ref http://www.cplusplus.com/reference/ctime/strftime/
+     */
+    string Date::format(const Date & date, const string & fmt) {
+	if (fmt.empty()) {
+	    return "";
 	}
-
-	int Date::getSystemGmtOffset() {
-		return now().getGmtOffset();
-	}
-	Date Date::toGmt(const Date & from) {
-		if (from.getGmtOffset() == 0) {
-			return from;
+	string ret;
+	for (size_t i = 0; i < fmt.size(); i++) {
+	    char ch = fmt[i];
+	    if (ch == '%') {
+		if (i >= fmt.size() - 1) {
+		    ret.append(1, '%');
+		    break;
 		}
+		i++;
+		switch (fmt[i]) {
+		case 'Y':
+		    ret.append(s_to_format_string("%04d", date.getYear()));
+		    break;
+		case 'y':
+		    ret.append(s_to_format_string("%02d", date.getYear() % 100));
+		    break;
+		case 'c':
+		    ret.append(s_to_format_string("%02d", date.getMonth() + 1));
+		    break;
+		case 'e':
+		    ret.append(s_to_string(date.getMonth()));
+		    break;
+		case 'd':
+		    ret.append(s_to_format_string("%02d", date.getDay()));
+		    break;
+		case 'H':
+		    ret.append(s_to_format_string("%02d", date.getHour()));
+		    break;
+		case 'h':
+		    ret.append(s_to_format_string("%02d", date.getHour() % 12));
+		    break;
+		case 'i':
+		    ret.append(s_to_format_string("%02d", date.getMinute()));
+		    break;
+		case 's':
+		    ret.append(s_to_format_string("%02d", date.getSecond()));
+		    break;
+		case 'f':
+		    ret.append(s_to_format_string("%03d", date.getMillisecond()));
+		    break;
+		case 'p':
+		    ret.append(date.getHour() >= 12 ? "PM" : "AM");
+		    break;
+		default:
+		    ret.append(1, fmt[i]);
+		    break;
+		}
+	    } else {
+		ret.append(1, ch);
+	    }
+	}
+	return ret;
+    }
+
+    // RFC-8601
+    // e.g.) 2017-04-20T03:48:30+00:00
+    string Date::formatRfc8601(const Date & date) {
+	char buffer[50] = {0,};
+	snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
+		 date.getYear(), date.getMonth() + 1, date.getDay(),
+		 date.getHour(), date.getMinute(), date.getSecond(),
+		 date.getGmtOffset() >= 0 ? '+' : '-',
+		 ((int)abs(date.getGmtOffset())) / 60,
+		 ((int)abs(date.getGmtOffset())) % 60);
+	return string(buffer);
+    }
+	
+    Date Date::parseRfc8601(const string & date) {
+	// TODO: implement
+	throw NotImplementedException("Not implemented");
+    }
+
+    // RFC-1123
+    // e.g.) Wed, 09 Jun 2021 10:18:14 GMT
+    string Date::formatRfc1123(const Date & date) {
+	static const char * wkday[] = {"Sun", "Mon", "Tue",
+				       "Wed", "Thu", "Fri", "Sat"};
+	static const char * month[] = {"Jan", "Feb", "Mar",
+				       "Apr", "May", "Jun",
+				       "Jul", "Aug", "Sep",
+				       "Oct", "Nov", "Dec"};
+	Date gmt = date.toGmt();
+	char buffer[64] = {0,};
+	snprintf(buffer, sizeof(buffer), "%s, %02d %s %04d %02d:%02d:%02d GMT",
+		 wkday[gmt.getDayOfWeek()],
+		 gmt.getDay(),
+		 month[gmt.getMonth()],
+		 gmt.getYear(),
+		 gmt.getHour(),
+		 gmt.getMinute(),
+		 gmt.getSecond());
+	return string(buffer);
+    }
+
+    Date Date::parseRfc1123(const string & date) {
+	// TODO: implement
+	throw NotImplementedException("Not implemented");
+    }
+
+    // RFC-1036
+    // e.g.) Sunday, 06-Nov-94 08:49:37 GMT
+    string Date::formatRfc1036(const Date & date) {
+	static const char * wkday[] = {"Sunday", "Monday", "Tuesday",
+				       "Wednesday", "Thursday", "Friday", "Saturday"};
+	static const char * month[] = {"Jan", "Feb", "Mar",
+				       "Apr", "May", "Jun",
+				       "Jul", "Aug", "Sep",
+				       "Oct", "Nov", "Dec"};
+	Date gmt = date.toGmt();
+	char buffer[64] = {0,};
+	snprintf(buffer, sizeof(buffer), "%s, %02d-%s-%02d %02d:%02d:%02d GMT",
+		 wkday[gmt.getDayOfWeek()],
+		 gmt.getDay(),
+		 month[gmt.getMonth()],
+		 gmt.getYear() % 100,
+		 gmt.getHour(),
+		 gmt.getMinute(),
+		 gmt.getSecond());
+	return string(buffer);
+    }
+
+    Date Date::parseRfc1036(const string & date) {
+	// TODO: implement
+	throw NotImplementedException("Not implemented");
+    }
+
+    int Date::getSystemGmtOffset() {
+	return now().getGmtOffset();
+    }
+    Date Date::toGmt(const Date & from) {
+	if (from.getGmtOffset() == 0) {
+	    return from;
+	}
 		
 #if defined(USE_MS_WIN)
-		int defaultOffset = Date::getSystemGmtOffset();
-		osl_time_t t = from.getTime();
-		t.sec -= (defaultOffset * 60);
-		return Date(t, 0);
+	int defaultOffset = Date::getSystemGmtOffset();
+	osl_time_t t = from.getTime();
+	t.sec -= (defaultOffset * 60);
+	return Date(t, 0);
 #else
-		int defaultOffset = Date::getSystemGmtOffset();
-		int offset = from.getGmtOffset();
-		osl_time_t time = from.getTime();
-		uint64_t seconds = time.sec;
-		time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
-		struct tm info;
-		gmtime_r(&x, &info);
-		Date date = Date(info);
-		date.setMillisecond(from.getMillisecond());
-		return date;
+	int defaultOffset = Date::getSystemGmtOffset();
+	int offset = from.getGmtOffset();
+	osl_time_t time = from.getTime();
+	uint64_t seconds = time.sec;
+	time_t x = (time_t)(seconds + ((defaultOffset - offset) * 60));
+	struct tm info;
+	gmtime_r(&x, &info);
+	Date date = Date(info);
+	date.setMillisecond(from.getMillisecond());
+	return date;
 #endif
-	}
-	Date Date::toGmt() const {
-		return toGmt(*this);
-	}
-	void Date::setGmtOffset(int gmtoffset) {
-		this->gmtoffset = gmtoffset;
-	}
-	void Date::setTimezone(const string & timezone) {
-		this->timezone = timezone;
-	}
-	void Date::setYear(int year) {
-		this->year = year;
-	}
-	void Date::setMonth(int month) {
-		this->month = month;
-	}
-	void Date::setDay(int day) {
-		this->day = day;
-	}
-	void Date::setDayOfWeek(int wday) {
-		this->wday = wday;
-	}
-	void Date::setHour(int hour) {
-		this->hour = hour;
-	}
-	void Date::setMinute(int minute) {
-		this->minute = minute;
-	}
-	void Date::setSecond(int second) {
-		this->second = second;
-	}
-	void Date::setMillisecond(int millisecond) {
-		this->millisecond = millisecond;
-	}
-	int Date::getGmtOffset() const {
-		return gmtoffset;
-	}
-	string Date::getTimezone() const {
-		return timezone;
-	}
-	int Date::getYear() const {
-		return year;
-	}
-	int Date::getMonth() const {
-		return month;
-	}
-	int Date::getDay() const {
-		return day;
-	}
-	int Date::getDayOfWeek() const {
-		return wday;
-	}
-	int Date::getHour() const {
-		return hour;
-	}
-	int Date::getMinute() const {
-		return minute;
-	}
-	int Date::getSecond() const {
-		return second;
-	}
-	int Date::getMillisecond() const {
-		return millisecond;
-	}
-	osl_time_t Date::getTime() const {
+    }
+    Date Date::toGmt() const {
+	return toGmt(*this);
+    }
+    void Date::setGmtOffset(int gmtoffset) {
+	this->gmtoffset = gmtoffset;
+    }
+    void Date::setTimezone(const string & timezone) {
+	this->timezone = timezone;
+    }
+    void Date::setYear(int year) {
+	this->year = year;
+    }
+    void Date::setMonth(int month) {
+	this->month = month;
+    }
+    void Date::setDay(int day) {
+	this->day = day;
+    }
+    void Date::setDayOfWeek(int wday) {
+	this->wday = wday;
+    }
+    void Date::setHour(int hour) {
+	this->hour = hour;
+    }
+    void Date::setMinute(int minute) {
+	this->minute = minute;
+    }
+    void Date::setSecond(int second) {
+	this->second = second;
+    }
+    void Date::setMillisecond(int millisecond) {
+	this->millisecond = millisecond;
+    }
+    int Date::getGmtOffset() const {
+	return gmtoffset;
+    }
+    string Date::getTimezone() const {
+	return timezone;
+    }
+    int Date::getYear() const {
+	return year;
+    }
+    int Date::getMonth() const {
+	return month;
+    }
+    int Date::getDay() const {
+	return day;
+    }
+    int Date::getDayOfWeek() const {
+	return wday;
+    }
+    int Date::getHour() const {
+	return hour;
+    }
+    int Date::getMinute() const {
+	return minute;
+    }
+    int Date::getSecond() const {
+	return second;
+    }
+    int Date::getMillisecond() const {
+	return millisecond;
+    }
+    osl_time_t Date::getTime() const {
 #if defined(USE_MS_WIN)
-		SYSTEMTIME st = {0,};
-		FILETIME ft = {0,};
-		st.wYear = year;
-		st.wMonth = month + 1;
-		st.wDay = day;
-		st.wHour = hour;
-		st.wMinute = minute;
-		st.wSecond = second;
-		st.wMilliseconds = millisecond;
-		SystemTimeToFileTime(&st, &ft);
-		osl_time_t ret = s_filetime_to_osl_time(&ft);
-		ret.sec -= (this->gmtoffset * 60);
-		return ret;
+	SYSTEMTIME st = {0,};
+	FILETIME ft = {0,};
+	st.wYear = year;
+	st.wMonth = month + 1;
+	st.wDay = day;
+	st.wHour = hour;
+	st.wMinute = minute;
+	st.wSecond = second;
+	st.wMilliseconds = millisecond;
+	SystemTimeToFileTime(&st, &ft);
+	osl_time_t ret = s_filetime_to_osl_time(&ft);
+	ret.sec -= (this->gmtoffset * 60);
+	return ret;
 #else
-		struct tm info = {0,};
-		info.tm_year = year - 1900;
-		info.tm_mon = month;
-		info.tm_mday = day;
-		info.tm_hour = hour;
-		info.tm_min = minute;
-		info.tm_sec = second;
-		time_t t = mktime(&info);
-		time_t base = {0,};
-		double seconds = difftime(t, base);
-		osl_time_t ret;
-		ret.sec = (uint64_t)seconds;
-		ret.nano = millisecond * (1000 * 1000);
-		return ret;
+	struct tm info = {0,};
+	info.tm_year = year - 1900;
+	info.tm_mon = month;
+	info.tm_mday = day;
+	info.tm_hour = hour;
+	info.tm_min = minute;
+	info.tm_sec = second;
+	time_t t = mktime(&info);
+	time_t base = {0,};
+	double seconds = difftime(t, base);
+	osl_time_t ret;
+	ret.sec = (uint64_t)seconds;
+	ret.nano = millisecond * (1000 * 1000);
+	return ret;
 #endif
-	}
+    }
 
-	void Date::setTime(const osl_time_t t) {
-		setTime(t, s_get_gmt_offset());
-	}
+    void Date::setTime(const osl_time_t t) {
+	setTime(t, s_get_gmt_offset());
+    }
 
-	void Date::setTime(const osl_time_t time, int gmtoffset) {
+    void Date::setTime(const osl_time_t time, int gmtoffset) {
 #if defined(USE_MS_WIN)
-		*this = Date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
-		setGmtOffset(gmtoffset);
+	*this = Date(s_filetime_to_systemtime(s_osl_time_to_filetime(&time)));
+	setGmtOffset(gmtoffset);
 #else
-		time_t t = (time_t)time.sec;
+	time_t t = (time_t)time.sec;
         struct tm info;
-		localtime_r(&t, &info);
+	localtime_r(&t, &info);
         setYear(1900 + info.tm_year);
         setMonth(info.tm_mon);
         setDay(info.tm_mday);
-		setDayOfWeek(info.tm_wday);
+	setDayOfWeek(info.tm_wday);
         setHour(info.tm_hour);
         setMinute(info.tm_min);
         setSecond(info.tm_sec);
-		setMillisecond((int)(time.nano / (1000 * 1000)));
-		setGmtOffset(gmtoffset);
+	setMillisecond((int)(time.nano / (1000 * 1000)));
+	setGmtOffset(gmtoffset);
 #endif
-	}
-	Date Date::toDate(osl_time_t time) {
-		return Date(time);
-	}
-	bool Date::operator< (const Date & other) const {
-		return getTime() < other.getTime();
-	}
-	bool Date::operator<= (const Date & other) const {
-		return getTime() <= other.getTime();
-	}
-	bool Date::operator> (const Date & other) const {
-		return getTime() > other.getTime();
-	}
-	bool Date::operator>= (const Date & other) const {
-		return getTime() >= other.getTime();
-	}
-	bool Date::operator== (const Date & other) const {
-		return getTime() == other.getTime();
-	}
-	bool Date::operator!= (const Date & other) const {
-		return getTime() != other.getTime();
-	}
-	Date Date::operator+ (const Date & other) const {
-		return Date(getTime() + other.getTime());
-	}
-	Date Date::operator- (const Date & other) const {
-		return Date(getTime() - other.getTime());
-	}
-	Date & Date::operator+= (const Date & other) {
-		*this = *this + other;
-		return *this;
-	}
-	Date & Date::operator-= (const Date & other) {
-		*this = *this - other;
-		return *this;
-	}
+    }
+    Date Date::toDate(osl_time_t time) {
+	return Date(time);
+    }
+    bool Date::operator< (const Date & other) const {
+	return getTime() < other.getTime();
+    }
+    bool Date::operator<= (const Date & other) const {
+	return getTime() <= other.getTime();
+    }
+    bool Date::operator> (const Date & other) const {
+	return getTime() > other.getTime();
+    }
+    bool Date::operator>= (const Date & other) const {
+	return getTime() >= other.getTime();
+    }
+    bool Date::operator== (const Date & other) const {
+	return getTime() == other.getTime();
+    }
+    bool Date::operator!= (const Date & other) const {
+	return getTime() != other.getTime();
+    }
+    Date Date::operator+ (const Date & other) const {
+	return Date(getTime() + other.getTime());
+    }
+    Date Date::operator- (const Date & other) const {
+	return Date(getTime() - other.getTime());
+    }
+    Date & Date::operator+= (const Date & other) {
+	*this = *this + other;
+	return *this;
+    }
+    Date & Date::operator-= (const Date & other) {
+	*this = *this - other;
+	return *this;
+    }
 }

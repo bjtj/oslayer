@@ -2,23 +2,23 @@
 
 namespace osl {
 
-	using namespace std;
+    using namespace std;
 	
 #if defined(USE_UNIX_STD)
 
-	static Date s_time_to_date(time_t t) {
-		Date date;
+    static Date s_time_to_date(time_t t) {
+	Date date;
         struct tm info;
-		localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
+	localtime_r(&t, &info); // GMT - gmtime_r(&t, &info);
         date.setYear(1900 + info.tm_year);
         date.setMonth(info.tm_mon);
         date.setDay(info.tm_mday);
-		date.setDayOfWeek(info.tm_wday);
+	date.setDayOfWeek(info.tm_wday);
         date.setHour(info.tm_hour);
         date.setMinute(info.tm_min);
         date.setSecond(info.tm_sec);
-		return date;
-	}
+	return date;
+    }
     
     static bool s_is_separator(char c, const string & separators);
 
@@ -59,9 +59,9 @@ namespace osl {
         }
         return path;
     }
-	static bool s_is_fullpath(const string & path) {
-		return !path.empty() && s_is_separator(path[0]);
-	}
+    static bool s_is_fullpath(const string & path) {
+	return !path.empty() && s_is_separator(path[0]);
+    }
     static string s_get_cwd() {
         char buffer[2048] = {0,};
         if (getcwd(buffer, sizeof(buffer)) == NULL) {
@@ -69,691 +69,691 @@ namespace osl {
         }
         return string(buffer);
     }
-	static bool s_is_root_path(const string & path) {
-		return !path.compare("/");
-	}
-	static bool s_exists(const string & path) {
+    static bool s_is_root_path(const string & path) {
+	return !path.compare("/");
+    }
+    static bool s_exists(const string & path) {
 
-		if (path.empty()) {
-			return false;
-		}
+	if (path.empty()) {
+	    return false;
+	}
 		
-		// http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
-		struct stat st;
-		memset(&st, 0, sizeof(struct stat));
-		return (stat(path.c_str(), &st) == 0);
-	}
-	static bool s_is_file(const string & path) {
+	// http://stackoverflow.com/questions/12774207/fastest-way-to-check-if-a-file-exist-using-standard-c-c11-c
+	struct stat st;
+	memset(&st, 0, sizeof(struct stat));
+	return (stat(path.c_str(), &st) == 0);
+    }
+    static bool s_is_file(const string & path) {
 
-		if (path.empty()) {
-			return false;
-		}
+	if (path.empty()) {
+	    return false;
+	}
 		
-		// http://stackoverflow.com/questions/3536781/accessing-directories-in-c/3536853#3536853
-		struct stat st;
-		memset(&st, 0, sizeof(struct stat));
-		lstat(path.c_str(), &st);
-		return (S_ISDIR(st.st_mode) ? false : true);
-	}
-	static bool s_is_directory(const string & path) {
+	// http://stackoverflow.com/questions/3536781/accessing-directories-in-c/3536853#3536853
+	struct stat st;
+	memset(&st, 0, sizeof(struct stat));
+	lstat(path.c_str(), &st);
+	return (S_ISDIR(st.st_mode) ? false : true);
+    }
+    static bool s_is_directory(const string & path) {
 
-		if (path.empty()) {
-			return false;
-		}
+	if (path.empty()) {
+	    return false;
+	}
 		
-		struct stat st;
-		memset(&st, 0, sizeof(struct stat));
-		lstat(path.c_str(), &st);
-		return (S_ISDIR(st.st_mode) ? true : false);
-	}
-	static bool s_is_writable(const string & path) {
-		return (access(path.c_str(), W_OK) == 0);
-	}
+	struct stat st;
+	memset(&st, 0, sizeof(struct stat));
+	lstat(path.c_str(), &st);
+	return (S_ISDIR(st.st_mode) ? true : false);
+    }
+    static bool s_is_writable(const string & path) {
+	return (access(path.c_str(), W_OK) == 0);
+    }
 
-	static string s_get_path_part(const string & path) {
+    static string s_get_path_part(const string & path) {
 		
-		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
-			return s_remove_last_separator(path);
-		}
-
-		size_t f = path.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return "";
-		}
-
-		return path.substr(0, f + 1);
+	if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
+	    return s_remove_last_separator(path);
 	}
-	static string s_get_filename_part(const string & path) {
 
-		if (path.empty()) {
-			return "";
-		}
+	size_t f = path.find_last_of(s_get_separators());
+	if (f == string::npos) {
+	    return "";
+	}
+
+	return path.substr(0, f + 1);
+    }
+    static string s_get_filename_part(const string & path) {
+
+	if (path.empty()) {
+	    return "";
+	}
 		
-		size_t f = path.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return path;
-		}
-
-		return path.substr(f + 1);
-	}
-	static string s_get_ext(const string & path) {
-		string name = s_get_filename_part(path);
-		size_t f = name.find_last_of(".");
-		if (f == string::npos || f == 0) {
-			return "";
-		}
-		return name.substr(f+1);
+	size_t f = path.find_last_of(s_get_separators());
+	if (f == string::npos) {
+	    return path;
 	}
 
-	// http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-	static int s_mkdir(const char *dir, mode_t mode) {
+	return path.substr(f + 1);
+    }
+    static string s_get_ext(const string & path) {
+	string name = s_get_filename_part(path);
+	size_t f = name.find_last_of(".");
+	if (f == string::npos || f == 0) {
+	    return "";
+	}
+	return name.substr(f+1);
+    }
+
+    // http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+    static int s_mkdir(const char *dir, mode_t mode) {
 	
-		char tmp[256];
-		char *p = NULL;
-		size_t len;
+	char tmp[256];
+	char *p = NULL;
+	size_t len;
 
-		snprintf(tmp, sizeof(tmp),"%s",dir);
-		len = strlen(tmp);
+	snprintf(tmp, sizeof(tmp),"%s",dir);
+	len = strlen(tmp);
 
-		if(tmp[len - 1] == '/') {
-			tmp[len - 1] = 0;
-		}
+	if(tmp[len - 1] == '/') {
+	    tmp[len - 1] = 0;
+	}
 
-		for(p = tmp + 1; *p; p++) {
-			if(*p == '/') {
-				*p = 0;
-				mkdir(tmp, mode); // ignore error (just try)
-				*p = '/';
-			}
-		}
+	for(p = tmp + 1; *p; p++) {
+	    if(*p == '/') {
+		*p = 0;
+		mkdir(tmp, mode); // ignore error (just try)
+		*p = '/';
+	    }
+	}
 	
-		return mkdir(tmp, mode);
-	}
+	return mkdir(tmp, mode);
+    }
 
-	static bool s_remove_file(const char * path) {
-		return (remove(path) == 0 ? true : false);
-	}
+    static bool s_remove_file(const char * path) {
+	return (remove(path) == 0 ? true : false);
+    }
 
-	static Date s_get_creation_date(const string & path) {
-		struct stat st;
-		memset(&st, 0, sizeof(struct stat));
-		if (stat(path.c_str(), &st) != 0) {
-			throw Exception("stat() failed");
-		}
-		return s_time_to_date(st.st_ctime);
+    static Date s_get_creation_date(const string & path) {
+	struct stat st;
+	memset(&st, 0, sizeof(struct stat));
+	if (stat(path.c_str(), &st) != 0) {
+	    throw Exception("stat() failed");
 	}
+	return s_time_to_date(st.st_ctime);
+    }
 
-	static Date s_get_modified_date(const string & path) {
-		struct stat st;
-		memset(&st, 0, sizeof(struct stat));
-		if (stat(path.c_str(), &st) != 0) {
-			throw Exception("stat() failed");
-		}
-		return s_time_to_date(st.st_mtime);
+    static Date s_get_modified_date(const string & path) {
+	struct stat st;
+	memset(&st, 0, sizeof(struct stat));
+	if (stat(path.c_str(), &st) != 0) {
+	    throw Exception("stat() failed");
 	}
+	return s_time_to_date(st.st_mtime);
+    }
     
     static filesize_t s_get_file_size(const string & path) {
         
         struct stat st;
-		memset(&st, 0, sizeof(struct stat));
+	memset(&st, 0, sizeof(struct stat));
         lstat(path.c_str(), &st);
         
         return st.st_size;
     }
 
-	static vector<File> s_list(const string & path) {
-		vector<File> ret;
-		struct dirent * ent = NULL;
-		struct dirent ** list = NULL;
-		int cnt;
-		cnt = scandir(path.c_str(), &list, NULL, alphasort);
-		if (cnt < 0) {
-			return ret;
-		}
-		for (int i = 0; i < cnt; i++) {
-			ent = list[i];
-			ret.push_back(File::fullpath(path, ent->d_name));
-			free(ent);
-		}
-		free(list);
-		return ret;
+    static vector<File> s_list(const string & path) {
+	vector<File> ret;
+	struct dirent * ent = NULL;
+	struct dirent ** list = NULL;
+	int cnt;
+	cnt = scandir(path.c_str(), &list, NULL, alphasort);
+	if (cnt < 0) {
+	    return ret;
 	}
+	for (int i = 0; i < cnt; i++) {
+	    ent = list[i];
+	    ret.push_back(File::fullpath(path, ent->d_name));
+	    free(ent);
+	}
+	free(list);
+	return ret;
+    }
 
-	static string s_get_absolute_path(const string & path) {
-		bool abs = (path[0] == '/');
-		vector<string> toks;
-		string p = path;
+    static string s_get_absolute_path(const string & path) {
+	bool abs = (path[0] == '/');
+	vector<string> toks;
+	string p = path;
 
-		if (!abs) {
-			p = s_get_cwd() + "/" + p;
-		}
+	if (!abs) {
+	    p = s_get_cwd() + "/" + p;
+	}
 	
-		string buf;
-		for (string::iterator iter = p.begin(); iter != p.end(); iter++) {
-			char ch = *iter;
+	string buf;
+	for (string::iterator iter = p.begin(); iter != p.end(); iter++) {
+	    char ch = *iter;
 
-			if (ch != '/') {
-				buf.append(1, ch);
-			}
+	    if (ch != '/') {
+		buf.append(1, ch);
+	    }
 		
-			if (ch == '/' || (iter + 1 == p.end())) {
-				if (!buf.empty()) {
-					if (buf == ".") {
-						// no op
-					} else if (buf == "..") {
-						toks.pop_back();
-					} else {
-						toks.push_back(buf);
-					}
-				}
-				buf = "";
-			}
+	    if (ch == '/' || (iter + 1 == p.end())) {
+		if (!buf.empty()) {
+		    if (buf == ".") {
+			// no op
+		    } else if (buf == "..") {
+			toks.pop_back();
+		    } else {
+			toks.push_back(buf);
+		    }
 		}
-
-		string ret;
-		for (vector<string>::iterator iter = toks.begin(); iter != toks.end(); iter++) {
-			ret.append("/" + *iter);
-		}
-
-		return ret;
+		buf = "";
+	    }
 	}
+
+	string ret;
+	for (vector<string>::iterator iter = toks.begin(); iter != toks.end(); iter++) {
+	    ret.append("/" + *iter);
+	}
+
+	return ret;
+    }
 	
 #elif defined(USE_MS_WIN)
 
 #define STAT_STRUCT struct _stat64
 #define STAT_FUNC __stat64
 
-	static const string s_get_separators();
-	static bool s_is_separator(char c);
-	static bool s_is_separator(char c, const string & separators);
-	static string s_remove_if_last(const string & path, char m);
-	static bool s_is_fullpath(const string & path);
-	static bool s_is_root_path(const string & path);
-	static bool s_exists(const string & path);
-	static bool s_is_file(const string & path);
-	static bool s_is_directory(const string & path);
-	static string s_get_path_part(const string & path);
-	static string s_get_filename_part(const string & path);
-	static string s_get_ext(const string & path);
-	static int s_mkdir(const char *dir, int mode);
-	static Date s_get_creation_date(const string & path);
-	static Date s_get_modified_date(const string & path);
+    static const string s_get_separators();
+    static bool s_is_separator(char c);
+    static bool s_is_separator(char c, const string & separators);
+    static string s_remove_if_last(const string & path, char m);
+    static bool s_is_fullpath(const string & path);
+    static bool s_is_root_path(const string & path);
+    static bool s_exists(const string & path);
+    static bool s_is_file(const string & path);
+    static bool s_is_directory(const string & path);
+    static string s_get_path_part(const string & path);
+    static string s_get_filename_part(const string & path);
+    static string s_get_ext(const string & path);
+    static int s_mkdir(const char *dir, int mode);
+    static Date s_get_creation_date(const string & path);
+    static Date s_get_modified_date(const string & path);
 
-	static const string s_get_separators() {
-		return "\\/";
+    static const string s_get_separators() {
+	return "\\/";
+    }
+    static bool s_is_separator(char c) {
+	return s_is_separator(c, s_get_separators());
+    }
+    static bool s_is_separator(char c, const string & separators) {
+	for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+	    char sep = *iter;
+	    if (sep == c) {
+		return true;
+	    }
 	}
-	static bool s_is_separator(char c) {
-		return s_is_separator(c, s_get_separators());
+	return false;
+    }
+    static char s_get_default_seprator() {
+	return *(s_get_separators().begin());
+    }
+    static string s_get_default_seprator_in_string() {
+	return string(1, s_get_default_seprator());
+    }
+    static string s_append_separator_if_not(const string & path) {
+	if (!s_is_separator(*(path.rbegin()))) {
+	    return path + s_get_default_seprator();
 	}
-	static bool s_is_separator(char c, const string & separators) {
-		for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
-			char sep = *iter;
-			if (sep == c) {
-				return true;
-			}
-		}
-		return false;
+	return path;
+    }
+    static string s_append_separator_if_not(const string & path, const string & separators) {
+
+	if (path.empty() || separators.empty()) {
+	    return path;
 	}
-	static char s_get_default_seprator() {
-		return *(s_get_separators().begin());
-	}
-	static string s_get_default_seprator_in_string() {
-		return string(1, s_get_default_seprator());
-	}
-	static string s_append_separator_if_not(const string & path) {
-		if (!s_is_separator(*(path.rbegin()))) {
-			return path + s_get_default_seprator();
-		}
+
+	char end = *(path.rbegin());
+	for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
+	    char sep = *iter;
+	    if (sep == end) {
 		return path;
-	}
-	static string s_append_separator_if_not(const string & path, const string & separators) {
-
-		if (path.empty() || separators.empty()) {
-			return path;
-		}
-
-		char end = *(path.rbegin());
-		for (string::const_iterator iter = separators.begin(); iter != separators.end(); iter++) {
-			char sep = *iter;
-			if (sep == end) {
-				return path;
-			}
-		}
-
-		return path + *(separators.begin());
-	}
-	static string s_remove_last_separator(const string & path) {
-		if (!path.empty() && path.length() > 1 && s_is_separator(*(path.rbegin())) ) {
-			return path.substr(0, path.length() - 1); // trailing last / character
-		}
-		return path;
-	}
-	static bool s_is_fullpath(const string & path) {
-		return !path.empty() && s_is_separator(path[0]);
+	    }
 	}
 
-	static string s_get_cwd() {
-		char buffer[2048] = {0,};
-		if (_getcwd(buffer, sizeof(buffer)) == NULL) {
-			throw IOException("_getcwd() error", -1, 0);
-		}
-		return string(buffer);
+	return path + *(separators.begin());
+    }
+    static string s_remove_last_separator(const string & path) {
+	if (!path.empty() && path.length() > 1 && s_is_separator(*(path.rbegin())) ) {
+	    return path.substr(0, path.length() - 1); // trailing last / character
+	}
+	return path;
+    }
+    static bool s_is_fullpath(const string & path) {
+	return !path.empty() && s_is_separator(path[0]);
+    }
+
+    static string s_get_cwd() {
+	char buffer[2048] = {0,};
+	if (_getcwd(buffer, sizeof(buffer)) == NULL) {
+	    throw IOException("_getcwd() error", -1, 0);
+	}
+	return string(buffer);
+    }
+
+    static bool s_is_root_path(const string & path) {
+	return (path.length() == 1 && s_is_separator(*path.begin()));
+    }
+    static bool s_exists(const string & path) {
+
+	if (path.empty()) {
+	    return false;
 	}
 
-	static bool s_is_root_path(const string & path) {
-		return (path.length() == 1 && s_is_separator(*path.begin()));
+	if (s_is_directory(path) || s_is_file(path)) {
+	    return true;
 	}
-	static bool s_exists(const string & path) {
-
-		if (path.empty()) {
-			return false;
-		}
-
-		if (s_is_directory(path) || s_is_file(path)) {
-			return true;
-		}
 		
-		return false;
+	return false;
+    }
+    static bool s_is_file(const string & path) {
+
+	if (path.empty()) {
+	    return false;
 	}
-	static bool s_is_file(const string & path) {
 
-		if (path.empty()) {
-			return false;
-		}
-
-		STAT_STRUCT s;
-		memset(&s, 0, sizeof(STAT_STRUCT));
-		if (STAT_FUNC(path.c_str(), &s) != 0) {
-			// error
-			return false;
-		}
-
-		return (s.st_mode & S_IFREG ? true : false);
+	STAT_STRUCT s;
+	memset(&s, 0, sizeof(STAT_STRUCT));
+	if (STAT_FUNC(path.c_str(), &s) != 0) {
+	    // error
+	    return false;
 	}
-	static bool s_is_directory(const string & path) {
 
-		if (path.empty()) {
-			return false;
-		}
+	return (s.st_mode & S_IFREG ? true : false);
+    }
+    static bool s_is_directory(const string & path) {
+
+	if (path.empty()) {
+	    return false;
+	}
 		
-		STAT_STRUCT s;
-		memset(&s, 0, sizeof(STAT_STRUCT));
-		if (STAT_FUNC(path.c_str(), &s) != 0) {
-			// error
-			return false;
-		}
-
-		return (s.st_mode & S_IFDIR ? true : false);
-	}
-	static bool s_is_writable(const string & path) {
-		if (!s_exists(path)) {
-			return false;
-		}
-		return (_access(path.c_str(), 2) == 0);
+	STAT_STRUCT s;
+	memset(&s, 0, sizeof(STAT_STRUCT));
+	if (STAT_FUNC(path.c_str(), &s) != 0) {
+	    // error
+	    return false;
 	}
 
-	static string s_get_path_part(const string & path) {
+	return (s.st_mode & S_IFDIR ? true : false);
+    }
+    static bool s_is_writable(const string & path) {
+	if (!s_exists(path)) {
+	    return false;
+	}
+	return (_access(path.c_str(), 2) == 0);
+    }
+
+    static string s_get_path_part(const string & path) {
 		
-		if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
-			return s_remove_last_separator(path);
-		}
-
-		int f = path.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return "";
-		}
-
-		return path.substr(0, f + 1);
+	if (path.empty() || s_is_directory(path) || s_is_root_path(path)) {
+	    return s_remove_last_separator(path);
 	}
-	static string s_get_filename_part(const string & path) {
 
-		if (path.empty()) {
-			return "";
-		}
+	int f = path.find_last_of(s_get_separators());
+	if (f == string::npos) {
+	    return "";
+	}
+
+	return path.substr(0, f + 1);
+    }
+    static string s_get_filename_part(const string & path) {
+
+	if (path.empty()) {
+	    return "";
+	}
 		
-		int f = path.find_last_of(s_get_separators());
-		if (f == string::npos) {
-			return path;
-		}
-
-		return path.substr(f + 1);
-	}
-	static string s_get_ext(const string & path) {
-		string name = s_get_filename_part(path);
-		size_t f = name.find_last_of(".");
-		if (f == string::npos || f == 0) {
-			return "";
-		}
-		return name.substr(f+1);
+	int f = path.find_last_of(s_get_separators());
+	if (f == string::npos) {
+	    return path;
 	}
 
-	// http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
-	static int s_mkdir(const char *dir, int mode) {
+	return path.substr(f + 1);
+    }
+    static string s_get_ext(const string & path) {
+	string name = s_get_filename_part(path);
+	size_t f = name.find_last_of(".");
+	if (f == string::npos || f == 0) {
+	    return "";
+	}
+	return name.substr(f+1);
+    }
+
+    // http://stackoverflow.com/questions/2336242/recursive-mkdir-system-call-on-unix
+    static int s_mkdir(const char *dir, int mode) {
 	
-		// https://msdn.microsoft.com/en-us/library/2fkk4dzw.aspx
+	// https://msdn.microsoft.com/en-us/library/2fkk4dzw.aspx
 
-		char tmp[256];
-		char *p = NULL;
-		size_t len;
+	char tmp[256];
+	char *p = NULL;
+	size_t len;
 
-		snprintf(tmp, sizeof(tmp),"%s",dir);
-		len = strlen(tmp);
+	snprintf(tmp, sizeof(tmp),"%s",dir);
+	len = strlen(tmp);
 
-		if(s_is_separator(tmp[len - 1])) {
-			tmp[len - 1] = 0;
-		}
-
-		for(p = tmp + 1; *p; p++) {
-			if(s_is_separator(*p)) {
-				*p = 0;
-				_mkdir(tmp);
-				*p = s_get_default_seprator();
-			}
-		}
-	
-		return _mkdir(tmp);
+	if(s_is_separator(tmp[len - 1])) {
+	    tmp[len - 1] = 0;
 	}
 
-	static bool s_remove_file(const char * path) {
-		return DeleteFile(path) == TRUE ? true : false;
+	for(p = tmp + 1; *p; p++) {
+	    if(s_is_separator(*p)) {
+		*p = 0;
+		_mkdir(tmp);
+		*p = s_get_default_seprator();
+	    }
 	}
 	
-	static Date s_get_creation_date(const string & path) {
-		HANDLE hFile;
-		FILETIME ftCreate, ftAccess, ftWrite;
-		long int ret = 0;
+	return _mkdir(tmp);
+    }
 
-		memset(&ftCreate, 0, sizeof(ftCreate));
-		memset(&ftAccess, 0, sizeof(ftAccess));
-		memset(&ftWrite, 0, sizeof(ftWrite));
+    static bool s_remove_file(const char * path) {
+	return DeleteFile(path) == TRUE ? true : false;
+    }
+	
+    static Date s_get_creation_date(const string & path) {
+	HANDLE hFile;
+	FILETIME ftCreate, ftAccess, ftWrite;
+	long int ret = 0;
 
-		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-		if (hFile == INVALID_HANDLE_VALUE) {
-			throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
-		}
+	memset(&ftCreate, 0, sizeof(ftCreate));
+	memset(&ftAccess, 0, sizeof(ftAccess));
+	memset(&ftWrite, 0, sizeof(ftWrite));
 
-		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			CloseHandle(hFile);
-			throw Exception("GetFileTime() failed");
-		}
-
-		CloseHandle(hFile);
-
-		return Date(ftCreate);
-	}
-	static Date s_get_modified_date(const string & path) {
-		HANDLE hFile;
-		FILETIME ftCreate, ftAccess, ftWrite;
-		long int ret = 0;
-
-		memset(&ftCreate, 0, sizeof(ftCreate));
-		memset(&ftAccess, 0, sizeof(ftAccess));
-		memset(&ftWrite, 0, sizeof(ftWrite));
-
-		hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-		if (hFile == INVALID_HANDLE_VALUE) {
-			throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
-		}
-
-		if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
-			CloseHandle(hFile);
-			throw Exception("GetFileTime() failed");
-		}
-
-		CloseHandle(hFile);
-
-		return Date(ftWrite);
+	hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+	    throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
 	}
 
-	static filesize_t s_get_file_size(const string & path) {
-
-		STAT_STRUCT st;
-		memset(&st, 0, sizeof(STAT_STRUCT));
-		int ret = STAT_FUNC(path.c_str(), &st);
-		if (ret != 0) {
-			// error
-			throw Exception("stat() failed", -1, 0);
-		}
-
-		return (filesize_t)st.st_size;
+	if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
+	    CloseHandle(hFile);
+	    throw Exception("GetFileTime() failed");
 	}
 
-	static vector<File> s_list(const string & path) {
+	CloseHandle(hFile);
 
-		vector<File> ret;
+	return Date(ftCreate);
+    }
+    static Date s_get_modified_date(const string & path) {
+	HANDLE hFile;
+	FILETIME ftCreate, ftAccess, ftWrite;
+	long int ret = 0;
 
-		string dir = path;
-		dir.append("\\*");
+	memset(&ftCreate, 0, sizeof(ftCreate));
+	memset(&ftAccess, 0, sizeof(ftAccess));
+	memset(&ftWrite, 0, sizeof(ftWrite));
 
-		WIN32_FIND_DATAA ffd;
-		HANDLE hFind = INVALID_HANDLE_VALUE;
-		DWORD dwError = 0;
+	hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+	if (hFile == INVALID_HANDLE_VALUE) {
+	    throw Exception("CreateFile() failed - INVALID_HANDLE_VALUE");
+	}
 
-		hFind = FindFirstFileA(dir.c_str(), &ffd);
-		if (hFind == INVALID_HANDLE_VALUE) {
-			throw IOException("FindFirstFileA() failed", -1, 0);
-		}
+	if (!GetFileTime(hFile, &ftCreate, &ftAccess, &ftWrite)) {
+	    CloseHandle(hFile);
+	    throw Exception("GetFileTime() failed");
+	}
 
-		do {
+	CloseHandle(hFile);
+
+	return Date(ftWrite);
+    }
+
+    static filesize_t s_get_file_size(const string & path) {
+
+	STAT_STRUCT st;
+	memset(&st, 0, sizeof(STAT_STRUCT));
+	int ret = STAT_FUNC(path.c_str(), &st);
+	if (ret != 0) {
+	    // error
+	    throw Exception("stat() failed", -1, 0);
+	}
+
+	return (filesize_t)st.st_size;
+    }
+
+    static vector<File> s_list(const string & path) {
+
+	vector<File> ret;
+
+	string dir = path;
+	dir.append("\\*");
+
+	WIN32_FIND_DATAA ffd;
+	HANDLE hFind = INVALID_HANDLE_VALUE;
+	DWORD dwError = 0;
+
+	hFind = FindFirstFileA(dir.c_str(), &ffd);
+	if (hFind == INVALID_HANDLE_VALUE) {
+	    throw IOException("FindFirstFileA() failed", -1, 0);
+	}
+
+	do {
 			
-			ret.push_back(File::fullpath(path, ffd.cFileName));
+	    ret.push_back(File::fullpath(path, ffd.cFileName));
 
-		} while (FindNextFileA(hFind, &ffd) != 0);
+	} while (FindNextFileA(hFind, &ffd) != 0);
 
-		FindClose(hFind);
+	FindClose(hFind);
 
-		return ret;
+	return ret;
+    }
+
+    static string s_get_absolute_path(const string & path) {
+
+	static const unsigned int BUFFER_SIZE = 4096;
+
+	DWORD  retval = 0;	
+	char buffer[BUFFER_SIZE] = {0,}; 
+	char ** lpppart = {NULL};
+
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364963(v=vs.85).aspx
+	retval = GetFullPathName(path.c_str(), BUFFER_SIZE, buffer, lpppart);
+
+	if (retval == 0)  {
+	    throw Exception("GetFullPathName failed\n", GetLastError(), 0);
 	}
 
-	static string s_get_absolute_path(const string & path) {
-
-		static const unsigned int BUFFER_SIZE = 4096;
-
-		DWORD  retval = 0;	
-		char buffer[BUFFER_SIZE] = {0,}; 
-		char ** lpppart = {NULL};
-
-		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa364963(v=vs.85).aspx
-		retval = GetFullPathName(path.c_str(), BUFFER_SIZE, buffer, lpppart);
-
-		if (retval == 0)  {
-			throw Exception("GetFullPathName failed\n", GetLastError(), 0);
-		}
-
-		return string(buffer);
-	}
+	return string(buffer);
+    }
 
 #else
 
-	/* other platform */
+    /* other platform */
 	
 #endif
 
-	/**
-	 * @brief file constructor
-	 */
-	File::File() {
-	}
+    /**
+     * @brief file constructor
+     */
+    File::File() {
+    }
 	
-	File::File(const string & path) : _path(path) {
-	}
+    File::File(const string & path) : _path(path) {
+    }
 
-	File::~File() {
-	}
+    File::~File() {
+    }
 
-	string File::separators() {
-		return s_get_separators();
-	}
+    string File::separators() {
+	return s_get_separators();
+    }
 
-	string File::merge(const string & dir, const string & filename) {
-		return fullpath(dir, filename);
-	}
+    string File::merge(const string & dir, const string & filename) {
+	return fullpath(dir, filename);
+    }
 
-	string File::merge(const string & dir, const string & filename, const string & separators) {
-		return fullpath(dir, filename, separators);
-	}
+    string File::merge(const string & dir, const string & filename, const string & separators) {
+	return fullpath(dir, filename, separators);
+    }
 
-	string File::fullpath(const string & dir, const string & filename) {
-		return fullpath(dir, filename, s_get_separators());
-	}
+    string File::fullpath(const string & dir, const string & filename) {
+	return fullpath(dir, filename, s_get_separators());
+    }
 
-	string File::fullpath(const string & dir, const string & filename, const string & separators) {
+    string File::fullpath(const string & dir, const string & filename, const string & separators) {
 		
-		string d = dir;
-		string fname = filename;
+	string d = dir;
+	string fname = filename;
 
-		d = s_append_separator_if_not(d, separators);
+	d = s_append_separator_if_not(d, separators);
 
-		if (!fname.empty()) {
-			size_t f = fname.find_first_not_of(separators);
-			fname = (f != string::npos ? fname.substr(f) : "");
-		}
-
-		return (d + fname);
+	if (!fname.empty()) {
+	    size_t f = fname.find_first_not_of(separators);
+	    fname = (f != string::npos ? fname.substr(f) : "");
 	}
 
-	string File::getCwd() {
-		return s_get_cwd();
-	}
+	return (d + fname);
+    }
 
-	bool File::isRootPath(const string & path){
-		return s_is_root_path(path);
-	}
+    string File::getCwd() {
+	return s_get_cwd();
+    }
 
-	bool File::isAbsolutePath(const string & path) {
-		return s_is_fullpath(path);
-	}
+    bool File::isRootPath(const string & path){
+	return s_is_root_path(path);
+    }
+
+    bool File::isAbsolutePath(const string & path) {
+	return s_is_fullpath(path);
+    }
 	
-	bool File::exists(const string & path){
-		return s_exists(path);
-	}
+    bool File::exists(const string & path){
+	return s_exists(path);
+    }
 
-	bool File::isFile(const string & path){
-		return s_is_file(path);
-	}
+    bool File::isFile(const string & path){
+	return s_is_file(path);
+    }
 
-	bool File::isDirectory(const string & path){
-		return s_is_directory(path);
-	}
+    bool File::isDirectory(const string & path){
+	return s_is_directory(path);
+    }
 
-	bool File::isWritable(const string & path) {
-		return s_is_writable(path);
-	}
+    bool File::isWritable(const string & path) {
+	return s_is_writable(path);
+    }
 
-	string File::absolutePath(const string & path) {
-		return s_get_absolute_path(path);
-	}
+    string File::absolutePath(const string & path) {
+	return s_get_absolute_path(path);
+    }
 
-	string File::dirname(const string & path){
-		return s_get_path_part(path);
-	}
+    string File::dirname(const string & path){
+	return s_get_path_part(path);
+    }
 
-	string File::name(const string & path){
-		string name = basename(path);
-		size_t dot = name.find_last_of(".");
-		if (dot != string::npos && dot > 0) {
-			return name.substr(0, dot);
-		}
-		return name;
+    string File::name(const string & path){
+	string name = basename(path);
+	size_t dot = name.find_last_of(".");
+	if (dot != string::npos && dot > 0) {
+	    return name.substr(0, dot);
 	}
+	return name;
+    }
 
-	string File::basename(const string & path){
-		return s_get_filename_part(path);
-	}
+    string File::basename(const string & path){
+	return s_get_filename_part(path);
+    }
 
-	string File::extension(const string & path){
-		return s_get_ext(path);
-	}
+    string File::extension(const string & path){
+	return s_get_ext(path);
+    }
 
-	int File::mkdir(const string & path) {
-		return s_mkdir(path.c_str(), 0755);
-	}
+    int File::mkdir(const string & path) {
+	return s_mkdir(path.c_str(), 0755);
+    }
 
-	bool File::remove(const string & path) {
-		return s_remove_file(path.c_str());
-	}
+    bool File::remove(const string & path) {
+	return s_remove_file(path.c_str());
+    }
 
-	Date File::creationDate(const string & path) {
-		return s_get_creation_date(path);
-	}
-	Date File::lastModifiedDate(const string & path) {
-		return s_get_modified_date(path);
-	}
-	osl_time_t File::creationTime(const string & path) {
-		return creationDate(path).getTime();
-	}
-	osl_time_t File::lastModifiedTime(const string & path) {
-		return lastModifiedDate(path).getTime();
-	}
-	filesize_t File::size(const string & path) {
-		return s_get_file_size(path);
-	}
-	vector<File> File::list(const string & path) {
-		return s_list(path);
-	}
-	string File::path() const {
-		return _path;
-	}
-	bool File::isRootPath() const {
-		return File::isRootPath(_path);
-	}
-	bool File::isAbsolutePath() const {
-		return File::isAbsolutePath(_path);
-	}
-	bool File::exists() const {
-		return File::exists(_path);
-	}
-	bool File::isFile() const {
-		return File::isFile(_path);
-	}
-	bool File::isDirectory() const {
-		return File::isDirectory(_path);
-	}
-	bool File::isWritable() const {
-		return File::isWritable(_path);
-	}
-	string File::absolutePath() {
-		return File::absolutePath(_path);
-	}
-	string File::dirname() const {
-		return File::dirname(_path);
-	}
-	string File::name() const {
-		return File::name(_path);
-	}
-	string File::basename() const {
-		return File::basename(_path);
-	}
-	string File::extension() const {
-		return File::extension(_path);
-	}
-	int File::mkdir() const {
-		return File::mkdir(_path);
-	}
-	bool File::remove() {
-		return File::remove(_path);
-	}
-	Date File::creationDate() const {
-		return creationDate(_path);
-	}
-	Date File::lastModifiedDate() const {
-		return lastModifiedDate(_path);
-	}
-	osl_time_t File::creationTime() const {
-		return creationDate(_path).getTime();
-	}
-	osl_time_t File::lastModifiedTime() const {
-		return lastModifiedDate(_path).getTime();
-	}
-	filesize_t File::size() const {
-		return File::size(_path);
-	}
-	vector<File> File::list() const {
-		return File::list(_path);
-	}
+    Date File::creationDate(const string & path) {
+	return s_get_creation_date(path);
+    }
+    Date File::lastModifiedDate(const string & path) {
+	return s_get_modified_date(path);
+    }
+    osl_time_t File::creationTime(const string & path) {
+	return creationDate(path).getTime();
+    }
+    osl_time_t File::lastModifiedTime(const string & path) {
+	return lastModifiedDate(path).getTime();
+    }
+    filesize_t File::size(const string & path) {
+	return s_get_file_size(path);
+    }
+    vector<File> File::list(const string & path) {
+	return s_list(path);
+    }
+    string File::path() const {
+	return _path;
+    }
+    bool File::isRootPath() const {
+	return File::isRootPath(_path);
+    }
+    bool File::isAbsolutePath() const {
+	return File::isAbsolutePath(_path);
+    }
+    bool File::exists() const {
+	return File::exists(_path);
+    }
+    bool File::isFile() const {
+	return File::isFile(_path);
+    }
+    bool File::isDirectory() const {
+	return File::isDirectory(_path);
+    }
+    bool File::isWritable() const {
+	return File::isWritable(_path);
+    }
+    string File::absolutePath() {
+	return File::absolutePath(_path);
+    }
+    string File::dirname() const {
+	return File::dirname(_path);
+    }
+    string File::name() const {
+	return File::name(_path);
+    }
+    string File::basename() const {
+	return File::basename(_path);
+    }
+    string File::extension() const {
+	return File::extension(_path);
+    }
+    int File::mkdir() const {
+	return File::mkdir(_path);
+    }
+    bool File::remove() {
+	return File::remove(_path);
+    }
+    Date File::creationDate() const {
+	return creationDate(_path);
+    }
+    Date File::lastModifiedDate() const {
+	return lastModifiedDate(_path);
+    }
+    osl_time_t File::creationTime() const {
+	return creationDate(_path).getTime();
+    }
+    osl_time_t File::lastModifiedTime() const {
+	return lastModifiedDate(_path).getTime();
+    }
+    filesize_t File::size() const {
+	return File::size(_path);
+    }
+    vector<File> File::list() const {
+	return File::list(_path);
+    }
 
-	string File::toString() const {
-		return _path;
-	}
+    string File::toString() const {
+	return _path;
+    }
 	
 }

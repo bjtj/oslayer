@@ -5,15 +5,15 @@
 
 namespace osl {
 	
-	class Base64 {
-	private:
-	public:
-		Base64();
-		virtual ~Base64();
+    class Base64 {
+    private:
+    public:
+	Base64();
+	virtual ~Base64();
 
-		static std::string encode(const std::string & plain);
-		static std::string decode(const std::string & encoded);
-	};
+	static std::string encode(const std::string & plain);
+	static std::string decode(const std::string & encoded);
+    };
 }
 
 #endif

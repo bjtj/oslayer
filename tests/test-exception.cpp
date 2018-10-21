@@ -10,21 +10,21 @@ DECL_NAMED_EXCEPTION(MyException);
 
 static void test_exception() {
 
-	string err;
+    string err;
 
-	try {
-		throw MyException("Error occurred");
-	} catch (Exception & e) {
-		err = e.toString();
-	}
+    try {
+	throw MyException("Error occurred");
+    } catch (Exception & e) {
+	err = e.toString();
+    }
 
-	ASSERT(err, ==, "Error occurred");
+    ASSERT(err, ==, "Error occurred");
 }
 
 
 int main(int argc, char *args[]) {
 
-	test_exception();
+    test_exception();
     
     return 0;
 }

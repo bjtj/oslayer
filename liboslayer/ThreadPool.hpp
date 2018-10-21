@@ -13,56 +13,56 @@
 
 namespace osl {
 
-	/**
-	 * @brief PoolThread
-	 */
-	class StatefulThread : public Thread, public Observable {
-	private:
-		AutoRef<Event> _evt;
-		bool _triggered;
-		bool _busy;
-		AutoRef<Task> _task;
-	public:
-		StatefulThread();
-		virtual ~StatefulThread();
-		AutoRef<Task> & task();
-		void preTask();
-		void postTask();
-		bool inBusy();
-		void waitTillEnd();
-		void loop();
-		virtual void interrupt();
-		virtual void onTask();
-		virtual void run();
-		void wakeup();
-	};
+    /**
+     * @brief PoolThread
+     */
+    class StatefulThread : public Thread, public Observable {
+    private:
+	AutoRef<Event> _evt;
+	bool _triggered;
+	bool _busy;
+	AutoRef<Task> _task;
+    public:
+	StatefulThread();
+	virtual ~StatefulThread();
+	AutoRef<Task> & task();
+	void preTask();
+	void postTask();
+	bool inBusy();
+	void waitTillEnd();
+	void loop();
+	virtual void interrupt();
+	virtual void onTask();
+	virtual void run();
+	void wakeup();
+    };
 
-	/**
-	 *
-	 */
-	class ThreadPool : public Observer, public Observable {
-	private:
-		Pool<StatefulThread> _pool;
-		bool _running;
-		bool _finishing;
-	public:
-		ThreadPool(size_t poolSize);
-		virtual ~ThreadPool();
+    /**
+     *
+     */
+    class ThreadPool : public Observer, public Observable {
+    private:
+	Pool<StatefulThread> _pool;
+	bool _running;
+	bool _finishing;
+    public:
+	ThreadPool(size_t poolSize);
+	virtual ~ThreadPool();
         void init();
-		void start();
-		void stop();
-		void collectIdleThreads();
-		void collectThread(StatefulThread * thread);
-		StatefulThread * acquire();
-		void release(StatefulThread * thread);
-		void enqueue(StatefulThread * thread);
-		StatefulThread * dequeue();
-		size_t freeCount();
-		size_t workingCount();
-		size_t capacity();
-		bool finishing() const;
-		virtual void onUpdate(Observable * target);
-	};
+	void start();
+	void stop();
+	void collectIdleThreads();
+	void collectThread(StatefulThread * thread);
+	StatefulThread * acquire();
+	void release(StatefulThread * thread);
+	void enqueue(StatefulThread * thread);
+	StatefulThread * dequeue();
+	size_t freeCount();
+	size_t workingCount();
+	size_t capacity();
+	bool finishing() const;
+	virtual void onUpdate(Observable * target);
+    };
 }
 
 #endif

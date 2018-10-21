@@ -5,24 +5,24 @@
 
 namespace osl {
 
-	class Mutex
-	{
-	private:
+    class Mutex
+    {
+    private:
 #if defined(USE_PTHREAD)		// apple also
-		pthread_mutex_t _mutex;
-		pthread_cond_t _cond;
+	pthread_mutex_t _mutex;
+	pthread_cond_t _cond;
 #elif defined(USE_MS_WIN)
-		HANDLE _mutex;
-		HANDLE _evt;
+	HANDLE _mutex;
+	HANDLE _evt;
 #else
-		// not support
+	// not support
 #endif
-	public:
-		Mutex();
-		virtual ~Mutex();
-		void lock();
-		void unlock();
-	};
+    public:
+	Mutex();
+	virtual ~Mutex();
+	void lock();
+	void unlock();
+    };
 }
 
 #endif

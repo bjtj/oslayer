@@ -11,136 +11,136 @@
 
 namespace osl {
 
-	/**
-	 * @brief
-	 */
-	class TimerSchedule {
-	private:
-		std::string _nickname;
-		unsigned long delay;
-		unsigned long interval;
-		int repeatCount;
-	public:
-		TimerSchedule();
-		TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount);
-		virtual ~TimerSchedule();
-		std::string & nickname();
-		void schedule(unsigned long delay, unsigned long interval, int repeatCount);
-		bool testDelay(unsigned long startTick, unsigned long currentTick);
-		bool testEvent(unsigned long lastLapseTick, unsigned long currentTick);
-		unsigned long fixedLapseTick(unsigned long startTick, unsigned int count);
-		int getRepeatCount();
-		bool infinite();
-	};
+    /**
+     * @brief
+     */
+    class TimerSchedule {
+    private:
+	std::string _nickname;
+	unsigned long delay;
+	unsigned long interval;
+	int repeatCount;
+    public:
+	TimerSchedule();
+	TimerSchedule(unsigned long delay, unsigned long interval, int repeatCount);
+	virtual ~TimerSchedule();
+	std::string & nickname();
+	void schedule(unsigned long delay, unsigned long interval, int repeatCount);
+	bool testDelay(unsigned long startTick, unsigned long currentTick);
+	bool testEvent(unsigned long lastLapseTick, unsigned long currentTick);
+	unsigned long fixedLapseTick(unsigned long startTick, unsigned int count);
+	int getRepeatCount();
+	bool infinite();
+    };
 
-	/**
-	 * @brief
-	 */
-	class TimerTask : public Task {
-	private:
-	public:
-		TimerTask();
-		virtual ~TimerTask();
-	};
+    /**
+     * @brief
+     */
+    class TimerTask : public Task {
+    private:
+    public:
+	TimerTask();
+	virtual ~TimerTask();
+    };
 
-	/**
-	 * @brief
-	 */
-	class TimerSession {
-	private:
-		TimerSchedule schedule;
-		AutoRef<TimerTask> task;
-		unsigned int runCount;
-		unsigned long startTick;
-		unsigned long lastLapseTick;
+    /**
+     * @brief
+     */
+    class TimerSession {
+    private:
+	TimerSchedule schedule;
+	AutoRef<TimerTask> task;
+	unsigned int runCount;
+	unsigned long startTick;
+	unsigned long lastLapseTick;
 	
-	public:
-		TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task);
-		virtual ~TimerSession();
-		void start();
-		void process();
-		bool outdated();
-	};
+    public:
+	TimerSession(TimerSchedule & schedule, AutoRef<TimerTask> task);
+	virtual ~TimerSession();
+	void start();
+	void process();
+	bool outdated();
+    };
 
-	/**
-	 * @brief
-	 */
-	class TimerLooper {
-	private:
-		std::vector<TimerSession> sessions;
-		bool done;
-		Semaphore sem;
+    /**
+     * @brief
+     */
+    class TimerLooper {
+    private:
+	std::vector<TimerSession> sessions;
+	bool done;
+	Semaphore sem;
 	
-	public:
-		TimerLooper();
-		virtual ~TimerLooper();
-		void addSession(TimerSession & session);
-		void delay(unsigned long delay, AutoRef<TimerTask> task);
-		void interval(unsigned long interval, AutoRef<TimerTask> task);
-		void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
-		void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
-		void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
-		void loop();
-		void stop();
-	};
+    public:
+	TimerLooper();
+	virtual ~TimerLooper();
+	void addSession(TimerSession & session);
+	void delay(unsigned long delay, AutoRef<TimerTask> task);
+	void interval(unsigned long interval, AutoRef<TimerTask> task);
+	void intervalWithCount(unsigned long interval, int count, AutoRef<TimerTask> task);
+	void delayAndInterval(unsigned long delay, unsigned long interval, AutoRef<TimerTask> task);
+	void delayAndIntervalWithCount(unsigned long delay, unsigned long interval, int count, AutoRef<TimerTask> task);
+	void loop();
+	void stop();
+    };
 
-	/**
-	 * @brief
-	 */
-	class TimerLooperThread : public Thread {
-	private:
-		TimerLooper _looper;
-	public:
-		TimerLooperThread();
-		virtual ~TimerLooperThread();
-		virtual void run();
-		TimerLooper & looper();
-		void stop();
-	};
+    /**
+     * @brief
+     */
+    class TimerLooperThread : public Thread {
+    private:
+	TimerLooper _looper;
+    public:
+	TimerLooperThread();
+	virtual ~TimerLooperThread();
+	virtual void run();
+	TimerLooper & looper();
+	void stop();
+    };
 
 
-	/**
-	 * @brief
-	 */
-	class TimePin {
-	private:
-		unsigned long startTick;
-	public:
-		TimePin();
-		virtual ~TimePin();
-		void reset();
-		unsigned long elapsed();
-	};
+    /**
+     * @brief
+     */
+    class TimePin {
+    private:
+	unsigned long startTick;
+    public:
+	TimePin();
+	virtual ~TimePin();
+	void reset();
+	unsigned long elapsed();
+    };
 
-	/**
-	 * @brief
-	 */
-	class Duration {
-	private:
-		unsigned long _milli;
-	public:
-		Duration();
-		Duration(unsigned long milli);
-		virtual ~Duration();
-		void add(unsigned long milli);
-		unsigned long & milli();
-	};
+    /**
+     * @brief
+     */
+    class Duration {
+    private:
+	unsigned long _milli;
+    public:
+	Duration();
+	Duration(unsigned long milli);
+	virtual ~Duration();
+	void add(unsigned long milli);
+	unsigned long & milli();
+    };
 
-	/**
-	 * @brief
-	 */
-	class TimeoutChecker {
-	private:
-		unsigned long _timeout;
-		unsigned long _tick;
-	public:
-		TimeoutChecker();
-		TimeoutChecker(unsigned long timeout);
-		virtual ~TimeoutChecker();
-		unsigned long & timeout();
-		void reset();
-		bool trigger();
-	};
+    /**
+     * @brief
+     */
+    class TimeoutChecker {
+    private:
+	unsigned long _timeout;
+	unsigned long _tick;
+    public:
+	TimeoutChecker();
+	TimeoutChecker(unsigned long timeout);
+	virtual ~TimeoutChecker();
+	unsigned long & timeout();
+	void reset();
+	bool trigger();
+    };
 
 }
 

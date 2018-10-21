@@ -5,14 +5,14 @@
 
 namespace osl {
 	
-	class Random {
-	public:
-		Random();
-		Random(unsigned seed);
-		virtual ~Random();
-		void setSeed(unsigned seed);
-		int next();
-	};
+    class Random {
+    public:
+	Random();
+	Random(unsigned seed);
+	virtual ~Random();
+	void setSeed(unsigned seed);
+	int next();
+    };
 }
 
 #endif

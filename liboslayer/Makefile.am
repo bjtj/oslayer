@@ -2,160 +2,160 @@ lib_LTLIBRARIES = liboslayer.la
 
 liboslayerincdir=${includedir}/liboslayer
 liboslayerinc_HEADERS= \
-	Arguments.hpp \
-	AutoLock.hpp \
-	AutoRef.hpp \
-	AutoRelease.hpp \
-	Base64.hpp \
-	ByteArray.hpp \
-	Condition.hpp \
-	DatabaseConnection.hpp \
-	DatabaseDriver.hpp \
-	DatagramSocket.hpp \
-	Date.hpp \
-	Endian.hpp \
-	Event.hpp \
-	File.hpp \
-	FileStream.hpp \
-	Hash.hpp \
-	Heap.hpp \
-	Iterator.hpp \
-	Library.hpp \
-	Lifetime.hpp \
-	Lisp.hpp \
-	Logger.hpp \
-	MessageQueue.hpp \
-	Mutex.hpp \
-	Network.hpp \
-	Object.hpp \
-	Observer.hpp \
-	Pool.hpp \
-	Process.hpp \
-	Properties.hpp \
-	PropertyMap.hpp \
-	Random.hpp \
-	Ref.hpp \
-	Regex.hpp \
-	Register.hpp \
-	SecureSocket.hpp \
-	Selector.hpp \
-	Semaphore.hpp \
-	Socket.hpp \
-	SocketApi.hpp \
-	StringElements.hpp \
-	Task.hpp \
-	TaskThreadPool.hpp \
-	TestSuite.hpp \
-	Text.hpp \
-	Thread.hpp \
-	ThreadPool.hpp \
-	Timer.hpp \
-	Tokenizer.hpp \
-	Tree.hpp \
-	Uuid.hpp \
-	XmlEncoderDecoder.hpp \
-	XmlParser.hpp \
-	Uri.hpp \
-	os.hpp \
-	platform.hpp
+Arguments.hpp \
+AutoLock.hpp \
+AutoRef.hpp \
+AutoRelease.hpp \
+Base64.hpp \
+ByteArray.hpp \
+Condition.hpp \
+DatabaseConnection.hpp \
+DatabaseDriver.hpp \
+DatagramSocket.hpp \
+Date.hpp \
+Endian.hpp \
+Event.hpp \
+File.hpp \
+FileStream.hpp \
+Hash.hpp \
+Heap.hpp \
+Iterator.hpp \
+Library.hpp \
+Lifetime.hpp \
+Lisp.hpp \
+Logger.hpp \
+MessageQueue.hpp \
+Mutex.hpp \
+Network.hpp \
+Object.hpp \
+Observer.hpp \
+Pool.hpp \
+Process.hpp \
+Properties.hpp \
+PropertyMap.hpp \
+Random.hpp \
+Ref.hpp \
+Regex.hpp \
+Register.hpp \
+SecureSocket.hpp \
+Selector.hpp \
+Semaphore.hpp \
+Socket.hpp \
+SocketApi.hpp \
+StringElements.hpp \
+Task.hpp \
+TaskThreadPool.hpp \
+TestSuite.hpp \
+Text.hpp \
+Thread.hpp \
+ThreadPool.hpp \
+Timer.hpp \
+Tokenizer.hpp \
+Tree.hpp \
+Uuid.hpp \
+XmlEncoderDecoder.hpp \
+XmlParser.hpp \
+Uri.hpp \
+os.hpp \
+platform.hpp
 
 liboslayer_la_SOURCES= \
-	Arguments.hpp \
-	Arguments.cpp \
-	AutoLock.cpp \
-	AutoLock.hpp \
-	AutoRef.cpp \
-	AutoRef.hpp \
-	AutoRelease.hpp \
-	Base64.cpp \
-	Base64.hpp \
-	ByteArray.cpp \
-	ByteArray.hpp \
-	Condition.hpp \
-	DatabaseConnection.cpp \
-	DatabaseConnection.hpp \
-	DatabaseDriver.cpp \
-	DatabaseDriver.hpp \
-	DatagramSocket.cpp \
-	DatagramSocket.hpp \
-	Date.cpp \
-	Date.hpp \
-	Endian.cpp \
-	Endian.hpp \
-	Event.cpp \
-	Event.hpp \
-	File.cpp \
-	File.hpp \
-	FileStream.cpp \
-	FileStream.hpp \
-	Hash.hpp \
-	Heap.hpp \
-	Iterator.hpp \
-	Library.cpp \
-	Library.hpp \
-	Lifetime.hpp \
-	Lisp.cpp \
-	Lisp.hpp \
-	Logger.cpp \
-	Logger.hpp \
-	MessageQueue.hpp \
-	Mutex.cpp \
-	Mutex.hpp \
-	Network.cpp \
-	Network.hpp \
-	Object.hpp \
-	Observer.cpp \
-	Observer.hpp \
-	Pool.hpp \
-	Process.cpp \
-	Process.hpp \
-	Properties.cpp \
-	Properties.hpp \
-	PropertyMap.hpp \
-	Random.cpp \
-	Random.hpp \
-	Ref.hpp \
-	Regex.cpp \
-	Regex.hpp \
-	Register.hpp \
-	SecureSocket.cpp \
-	SecureSocket.hpp \
-	Selector.cpp \
-	Selector.hpp \
-	Semaphore.cpp \
-	Semaphore.hpp \
-	Socket.cpp \
-	Socket.hpp \
-	SocketApi.cpp \
-	SocketApi.hpp \
-	StringElements.cpp \
-	StringElements.hpp \
-	Task.hpp \
-	TaskThreadPool.cpp \
-	TaskThreadPool.hpp \
-	TestSuite.cpp \
-	TestSuite.hpp \
-	Text.cpp \
-	Text.hpp \
-	Thread.cpp \
-	Thread.hpp \
-	ThreadPool.cpp \
-	ThreadPool.hpp \
-	Timer.cpp \
-	Timer.hpp \
-	Tokenizer.cpp \
-	Tokenizer.hpp \
-	Tree.cpp \
-	Tree.hpp \
-	Uuid.cpp \
-	Uuid.hpp \
-	XmlEncoderDecoder.hpp \
-	XmlParser.hpp \
-	Uri.cpp \
-	Uri.hpp \
-	os.cpp \
-	os.hpp \
-	platform.hpp
+Arguments.hpp \
+Arguments.cpp \
+AutoLock.cpp \
+AutoLock.hpp \
+AutoRef.cpp \
+AutoRef.hpp \
+AutoRelease.hpp \
+Base64.cpp \
+Base64.hpp \
+ByteArray.cpp \
+ByteArray.hpp \
+Condition.hpp \
+DatabaseConnection.cpp \
+DatabaseConnection.hpp \
+DatabaseDriver.cpp \
+DatabaseDriver.hpp \
+DatagramSocket.cpp \
+DatagramSocket.hpp \
+Date.cpp \
+Date.hpp \
+Endian.cpp \
+Endian.hpp \
+Event.cpp \
+Event.hpp \
+File.cpp \
+File.hpp \
+FileStream.cpp \
+FileStream.hpp \
+Hash.hpp \
+Heap.hpp \
+Iterator.hpp \
+Library.cpp \
+Library.hpp \
+Lifetime.hpp \
+Lisp.cpp \
+Lisp.hpp \
+Logger.cpp \
+Logger.hpp \
+MessageQueue.hpp \
+Mutex.cpp \
+Mutex.hpp \
+Network.cpp \
+Network.hpp \
+Object.hpp \
+Observer.cpp \
+Observer.hpp \
+Pool.hpp \
+Process.cpp \
+Process.hpp \
+Properties.cpp \
+Properties.hpp \
+PropertyMap.hpp \
+Random.cpp \
+Random.hpp \
+Ref.hpp \
+Regex.cpp \
+Regex.hpp \
+Register.hpp \
+SecureSocket.cpp \
+SecureSocket.hpp \
+Selector.cpp \
+Selector.hpp \
+Semaphore.cpp \
+Semaphore.hpp \
+Socket.cpp \
+Socket.hpp \
+SocketApi.cpp \
+SocketApi.hpp \
+StringElements.cpp \
+StringElements.hpp \
+Task.hpp \
+TaskThreadPool.cpp \
+TaskThreadPool.hpp \
+TestSuite.cpp \
+TestSuite.hpp \
+Text.cpp \
+Text.hpp \
+Thread.cpp \
+Thread.hpp \
+ThreadPool.cpp \
+ThreadPool.hpp \
+Timer.cpp \
+Timer.hpp \
+Tokenizer.cpp \
+Tokenizer.hpp \
+Tree.cpp \
+Tree.hpp \
+Uuid.cpp \
+Uuid.hpp \
+XmlEncoderDecoder.hpp \
+XmlParser.hpp \
+Uri.cpp \
+Uri.hpp \
+os.cpp \
+os.hpp \
+platform.hpp
 
 # cxxflags
 liboslayer_la_CXXFLAGS=$(PTHREAD_CXXFLAGS)
