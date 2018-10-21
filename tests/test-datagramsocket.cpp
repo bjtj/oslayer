@@ -35,6 +35,7 @@ public:
 		
     }
     virtual ~DatagramSocketTestCase() {
+
     }
     virtual void setUp(TestEnvironment & env) {
 	server = new DatagramServer(8080);
@@ -43,7 +44,7 @@ public:
     }
     virtual void tearDown() {
 	server->interrupt();
-	server->wait();
+	server->join();
 	delete server;
     }
     virtual void test() {

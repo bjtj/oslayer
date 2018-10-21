@@ -115,6 +115,7 @@ namespace osl {
 	}
     }
 	
+
     void ThreadPool::stop() {
 	if (_running == true) {
 	    _finishing = true;
@@ -131,11 +132,12 @@ namespace osl {
 	      }*/
 	    for (size_t i = 0; i < qu.size(); i++) {
 		qu[i]->interrupt();
-		qu[i]->wait();
+		qu[i]->join();
 	    }
 	    _running = false;
 	}
     }
+
 
     void ThreadPool::collectIdleThreads() {
 	_pool.lock_work();

@@ -125,7 +125,7 @@ namespace osl {
 	}
 	return false;
     }
-	
+
     void Thread::interrupt() {
 	signal_interrupt = true;
 	onInterrupt();
@@ -145,16 +145,7 @@ namespace osl {
 	/* virtual */
     }
 
-    void Thread::wait() {
-	waitFor();
-    }
-
     void Thread::join() {
-	waitFor();
-    }
-
-    void Thread::waitFor() {
 	while (running) { idle(10); }
     }
-
 }

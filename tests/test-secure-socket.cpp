@@ -76,6 +76,7 @@ private:
     string certPath;
     string keyPath;
 public:
+
     SecureSocketConnectionTestCase(const string & name, int port, const string & certPath, const string & keyPath)
 	: TestCase(name), serverThread(NULL), port(port), certPath(certPath), keyPath(keyPath) {}
     virtual ~SecureSocketConnectionTestCase() {}
@@ -86,7 +87,7 @@ public:
     }
     virtual void tearDown() {
 	serverThread->interrupt();
-	serverThread->wait();
+	serverThread->join();
 	delete serverThread;
     }
     virtual void test() {
@@ -108,6 +109,7 @@ public:
     string getKeyPath() {
 	return keyPath;
     }
+
 };
 
 class SecureSocketVerifiationTestCase : public SecureSocketConnectionTestCase {
