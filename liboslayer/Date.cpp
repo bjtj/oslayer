@@ -732,4 +732,8 @@ namespace osl {
 	*this = *this - other;
 	return *this;
     }
+
+    string Date::toString() {
+	return Date::formatRfc1123(*this);
+    }
 }

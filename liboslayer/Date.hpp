@@ -109,6 +109,7 @@ namespace osl {
 	Date operator- (const Date & other) const;
 	Date & operator+= (const Date & other);
 	Date & operator-= (const Date & other);
+	std::string toString();
     };
 }
 
