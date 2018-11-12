@@ -29,6 +29,7 @@ Mutex.hpp \
 Network.hpp \
 Object.hpp \
 Observer.hpp \
+Optional.hpp \
 Pool.hpp \
 Process.hpp \
 Properties.hpp \
@@ -106,6 +107,7 @@ Network.hpp \
 Object.hpp \
 Observer.cpp \
 Observer.hpp \
+Optional.hpp \
 Pool.hpp \
 Process.cpp \
 Process.hpp \

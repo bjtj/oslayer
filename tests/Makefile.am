@@ -41,6 +41,7 @@ test-socket \
 test-echo-server-client \
 test-datagramsocket \
 test-observer-pattern \
+test-optional \
 test-register \
 test-lifetime \
 test-uuid \
@@ -85,6 +86,7 @@ test_socket_SOURCES=test-socket.cpp
 test_echo_server_client_SOURCES=test-echo-server-client.cpp
 test_datagramsocket_SOURCES=test-datagramsocket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
+test_optional_SOURCES=test-optional.cpp
 test_register_SOURCES=test-register.cpp
 test_heap_SOURCES=test-heap.cpp
 test_lifetime_SOURCES=test-lifetime.cpp
