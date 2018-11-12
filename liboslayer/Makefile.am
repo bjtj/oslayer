@@ -14,6 +14,7 @@ DatabaseDriver.hpp \
 DatagramSocket.hpp \
 Date.hpp \
 Endian.hpp \
+Environment.hpp \
 Event.hpp \
 File.hpp \
 FileStream.hpp \
@@ -83,6 +84,8 @@ Date.cpp \
 Date.hpp \
 Endian.cpp \
 Endian.hpp \
+Environment.cpp \
+Environment.hpp \
 Event.cpp \
 Event.hpp \
 File.cpp \

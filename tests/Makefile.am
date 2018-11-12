@@ -39,6 +39,7 @@ test-property-map \
 test-database-connection \
 test-socket \
 test-echo-server-client \
+test-environment \
 test-datagramsocket \
 test-observer-pattern \
 test-optional \
@@ -84,6 +85,7 @@ test_property_map_SOURCES=test-property-map.cpp
 test_database_connection_SOURCES=test-database-connection.cpp
 test_socket_SOURCES=test-socket.cpp
 test_echo_server_client_SOURCES=test-echo-server-client.cpp
+test_environment_SOURCES=test-environment.cpp
 test_datagramsocket_SOURCES=test-datagramsocket.cpp
 test_observer_pattern_SOURCES=test-observer-pattern.cpp
 test_optional_SOURCES=test-optional.cpp
