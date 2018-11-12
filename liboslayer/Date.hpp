@@ -42,6 +42,11 @@ namespace osl {
     class Date {
     private:
     public:
+	static const unsigned long MILLISECONDS_SECOND = 1000;
+	static const unsigned long MILLISECONDS_MINUTE = MILLISECONDS_SECOND * 60;
+	static const unsigned long MILLISECONDS_HOUR = MILLISECONDS_MINUTE * 60;
+	static const unsigned long MILLISECONDS_DAY = MILLISECONDS_HOUR * 24;
+    public:
 	static std::string DEFAULT_FORMAT;
 	int gmtoffset;
 	std::string timezone;
