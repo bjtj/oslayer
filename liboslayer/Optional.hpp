@@ -1,6 +1,8 @@
 #ifndef __OPTIONAL_HPP__
 #define __OPTIONAL_HPP__
 
+#include "os.hpp"
+
 namespace osl {
 
     template <typename T>
@@ -16,15 +18,27 @@ namespace osl {
 	virtual ~Optional() {
 	}
 	T & operator*() {
+	    if (nil()) {
+		throw NullException("null exception");
+	    }
 	    return *_t;
 	}
 	T * operator->() const {
+	    if (nil()) {
+		throw NullException("null exception");
+	    }
 	    return _t;
 	}
 	T * operator& () {
+	    if (nil()) {
+		throw NullException("null exception");
+	    }
 	    return _t;
 	}
 	T * operator& () const {
+	    if (nil()) {
+		throw NullException("null exception");
+	    }
 	    return _t;
 	}
 	bool operator== (const Optional<T> & other) const {
