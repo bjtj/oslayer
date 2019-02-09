@@ -62,11 +62,11 @@ namespace osl {
 	if (lpvEnv == NULL)
 	{
 	    fprintf(stderr, "GetEnvironmentStrings() failed\n");
-	    return NULL;
+	    return env;
 	}
 	for (lpszVariable = (LPTSTR)lpvEnv; *lpszVariable; lpszVariable++)
 	{
-	    string line(*lpszVariable);
+	    string line((char*)*lpszVariable);
 	    size_t f = line.find("=");
 	    if (f == string::npos) {
 		env[line] = "";

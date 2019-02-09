@@ -17,7 +17,7 @@ namespace osl {
      */
     class TimerSchedule {
     public:
-	static const int INFINITE = -1;
+	static const int INFINITE_LOOP = -1;
     private:
 	std::string _nickname;
 	unsigned long delay;

@@ -16,7 +16,7 @@
 	    std::stringstream ss;					\
 	    ss << (#A) << " should be [" << (#CMP) << " " << (B) << "] but [" << (A) << "]"; \
 	    std::cerr << " [!] " << ss.str() << std::endl << std::endl;	\
-	    throw AssertException(ss.str());				\
+	    throw osl::AssertException(ss.str());				\
 	} else {							\
 	    std::cout << " - PASS" << std::endl << std::endl;		\
 	}								\

@@ -58,15 +58,15 @@ namespace TestProject1
 		[TestMethod]
 		void TestMethod1()
 		{
-			unsigned long _t = OS::tick_milli();
-			OS::idle(1000);
-			Assert::AreEqual(true, (OS::tick_milli() - _t >= 1000 ? true : false));
+			unsigned long _t = osl::tick_milli();
+			osl::idle(1000);
+			Assert::AreEqual(true, (osl::tick_milli() - _t >= 1000 ? true : false));
 		};
 
 		[TestMethod]
 		void TestDate()
 		{
-			OS::Date d;
+			osl::Date d;
 			d.setYear(2017);
 			d.setMonth(3 - 1);
 			d.setDay(22);
@@ -75,8 +75,8 @@ namespace TestProject1
 			d.setSecond(52);
 			d.setGmtOffset(9 * 60);
 
-			Assert::AreEqual(true, std::string("Wed, 22 Mar 2017 14:33:52 GMT") == OS::Date::formatRfc1123(d));
-			Assert::AreEqual(true, std::string("Wednesday, 22-Mar-17 14:33:52 GMT") == OS::Date::formatRfc1036(d));
+			Assert::AreEqual(true, std::string("Wed, 22 Mar 2017 14:33:52 GMT") == osl::Date::formatRfc1123(d));
+			Assert::AreEqual(true, std::string("Wednesday, 22-Mar-17 14:33:52 GMT") == osl::Date::formatRfc1036(d));
 		};
 	};
 }

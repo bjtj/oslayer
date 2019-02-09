@@ -5,25 +5,45 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{62F62888-B617-D1C5-DD02-0CC27E78A455}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -31,15 +51,27 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -51,6 +83,19 @@
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN64;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
     </Link>
@@ -70,17 +115,35 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN64;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SDLCheck>true</SDLCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\liboslayer\Arguments.cpp" />
     <ClCompile Include="..\liboslayer\AutoLock.cpp" />
     <ClCompile Include="..\liboslayer\AutoRef.cpp" />
     <ClCompile Include="..\liboslayer\Base64.cpp" />
     <ClCompile Include="..\liboslayer\ByteArray.cpp" />
-    <ClCompile Include="..\liboslayer\CountDownLatch.cpp" />
     <ClCompile Include="..\liboslayer\DatabaseConnection.cpp" />
     <ClCompile Include="..\liboslayer\DatabaseDriver.cpp" />
     <ClCompile Include="..\liboslayer\Date.cpp" />
     <ClCompile Include="..\liboslayer\Endian.cpp" />
+    <ClCompile Include="..\liboslayer\Environment.cpp" />
     <ClCompile Include="..\liboslayer\Event.cpp" />
     <ClCompile Include="..\liboslayer\File.cpp" />
     <ClCompile Include="..\liboslayer\FileStream.cpp" />
@@ -108,6 +171,7 @@
     <ClCompile Include="..\liboslayer\ThreadPool.cpp" />
     <ClCompile Include="..\liboslayer\Text.cpp" />
     <ClCompile Include="..\liboslayer\Timer.cpp" />
+    <ClCompile Include="..\liboslayer\Tokenizer.cpp" />
     <ClCompile Include="..\liboslayer\Tree.cpp" />
     <ClCompile Include="..\liboslayer\Uri.cpp" />
     <ClCompile Include="..\liboslayer\Uuid.cpp" />
@@ -120,11 +184,11 @@
     <ClInclude Include="..\liboslayer\Base64.hpp" />
     <ClInclude Include="..\liboslayer\ByteArray.hpp" />
     <ClInclude Include="..\liboslayer\Condition.hpp" />
-    <ClInclude Include="..\liboslayer\CountDownLatch.hpp" />
     <ClInclude Include="..\liboslayer\DatabaseConnection.hpp" />
     <ClInclude Include="..\liboslayer\DatabaseDriver.hpp" />
     <ClInclude Include="..\liboslayer\Date.hpp" />
     <ClInclude Include="..\liboslayer\Endian.hpp" />
+    <ClInclude Include="..\liboslayer\Environment.hpp" />
     <ClInclude Include="..\liboslayer\Event.hpp" />
     <ClInclude Include="..\liboslayer\File.hpp" />
     <ClInclude Include="..\liboslayer\FileStream.hpp" />
@@ -140,6 +204,7 @@
     <ClInclude Include="..\liboslayer\Network.hpp" />
     <ClInclude Include="..\liboslayer\Object.hpp" />
     <ClInclude Include="..\liboslayer\Observer.hpp" />
+    <ClInclude Include="..\liboslayer\Optional.hpp" />
     <ClInclude Include="..\liboslayer\os.hpp" />
     <ClInclude Include="..\liboslayer\platform.hpp" />
     <ClInclude Include="..\liboslayer\Pool.hpp" />
@@ -164,9 +229,9 @@
     <ClInclude Include="..\liboslayer\ThreadPool.hpp" />
     <ClInclude Include="..\liboslayer\Text.hpp" />
     <ClInclude Include="..\liboslayer\Timer.hpp" />
+    <ClInclude Include="..\liboslayer\Tokenizer.hpp" />
     <ClInclude Include="..\liboslayer\Tree.hpp" />
     <ClInclude Include="..\liboslayer\Uri.hpp" />
-    <ClInclude Include="..\liboslayer\Utils.hpp" />
     <ClInclude Include="..\liboslayer\Uuid.hpp" />
     <ClInclude Include="..\liboslayer\XmlEncoderDecoder.hpp" />
     <ClInclude Include="..\liboslayer\XmlParser.hpp" />

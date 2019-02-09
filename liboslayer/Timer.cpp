@@ -44,7 +44,7 @@ namespace osl {
     }
 	
     TimerSchedule TimerSchedule::makeInterval(unsigned long interval) {
-	return TimerSchedule(0, interval, INFINITE);
+	return TimerSchedule(0, interval, INFINITE_LOOP);
     }
 	
     TimerSchedule TimerSchedule::makeDelay(unsigned long delay) {
@@ -60,7 +60,7 @@ namespace osl {
     }
 	
     TimerSchedule TimerSchedule::makeDelayInterval(unsigned long delay, unsigned long interval) {
-	return TimerSchedule(delay, interval, INFINITE);
+	return TimerSchedule(delay, interval, INFINITE_LOOP);
     }
 
     //
